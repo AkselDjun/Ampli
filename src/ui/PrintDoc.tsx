@@ -1,7 +1,8 @@
 import type { Calc, Project } from '../core/types';
 import { dfmt, fmt, fs } from '../core/format';
 import { STATUS } from '../core/norms';
-import { buildSpec } from '../core/spec';
+import { buildSpec, estimate } from '../core/spec';
+import { useLib } from '../store/LibContext';
 import { cableName, protName } from '../core/protection';
 import { dropText } from '../core/report';
 import { Schematic } from './Schematic';
@@ -34,6 +35,32 @@ function ProtoTable({ a }: { a: Calc }) {
   );
 }
 
+function BrandHead() {
+  const { lib } = useLib();
+  const b = lib.brand;
+  if (!b.company && !b.contacts && !b.logo) return null;
+  return (
+    <div className="pd-brand">
+      {b.logo && <img src={b.logo} alt="" />}
+      <div>
+        {b.company && <b>{b.company}</b>}
+        {b.contacts && <span>{b.contacts}</span>}
+      </div>
+    </div>
+  );
+}
+
+function SignBlock() {
+  const { lib } = useLib();
+  const b = lib.brand;
+  return (
+    <div className="pd-sign">
+      <span>{b.signer ? b.signer : 'Исполнитель'} ______________________</span>
+      <span>Подпись ______________</span>
+    </div>
+  );
+}
+
 function Meta({ p }: { p: Project }) {
   return (
     <div className="pd-meta">
@@ -49,6 +76,7 @@ function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
   const pr = p.proto ?? { date: '', device: '', by: '' };
   return (
     <>
+      <BrandHead />
       <h1>Протокол замеров</h1>
       <p className="pd-sub">{p.name || 'Без названия'}</p>
       <Meta p={p} />
@@ -67,7 +95,7 @@ function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
       <p className="pd-note">
         Допустимые значения: ток однофазного замыкания не меньше тока мгновенного срабатывания защиты (5×In для кривой B, 10×In для C) при времени отключения 0,4 с для 230 В (ТКП 339-2022, п. 4.3.5.4, п. 4.4.28.5); сопротивление изоляции не менее 0,5 МОм (п. 4.4.29.2); ток утечки не более трети уставки УЗО (СН 4.04.01-2019, п. 16.3.7).
       </p>
-      <div className="pd-sign"><span>Измерения выполнил ______________________</span><span>Подпись ______________</span></div>
+      <SignBlock />
       <div className="pd-foot">Ampli · {dfmt(Date.now())}</div>
     </>
   );
@@ -125,10 +153,13 @@ export function PrintDoc({ p, a, mode = 'report' }: { p: Project; a: Calc; mode?
 function ReportDoc({ p, a }: { p: Project; a: Calc }) {
   const c = a.c;
   const three = c.supply === 3;
-  const spec = buildSpec(a);
+  const { lib } = useLib();
+  const est = estimate(buildSpec(a), lib.prices);
+  const priced = Object.keys(lib.prices).length > 0;
   const now = dfmt(Date.now());
   return (
     <div className="printdoc" aria-hidden="true">
+      <BrandHead />
       <h1>Расчёт электрощита</h1>
       <p className="pd-sub">{p.name || 'Без названия'}</p>
       <div className="pd-meta">
@@ -203,21 +234,29 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
       <h2>Спецификация</h2>
       <table>
         <thead>
-          <tr><th>Позиция</th><th className="r">Количество</th><th>Примечание</th></tr>
+          <tr><th>Позиция</th><th className="r">Количество</th><th>Примечание</th>{priced && <th className="r">Цена, BYN</th>}{priced && <th className="r">Сумма, BYN</th>}</tr>
         </thead>
         <tbody>
-          {spec.map((x, i) => (
+          {est.rows.map(({ item, price, sum }, i) => (
             <tr key={i}>
-              <td>{x.name}</td>
-              <td className="r">{x.qty}</td>
-              <td>{x.note}</td>
+              <td>{item.name}</td>
+              <td className="r">{item.qty}</td>
+              <td>{item.note}</td>
+              {priced && <td className="r">{price === null ? '—' : fmt(price, 2)}</td>}
+              {priced && <td className="r">{sum === null ? '—' : fmt(sum, 2)}</td>}
             </tr>
           ))}
         </tbody>
+        {priced && (
+          <tfoot>
+            <tr><td colSpan={4}>Итого по смете</td><td className="r">{fmt(est.total, 2)}</td></tr>
+          </tfoot>
+        )}
       </table>
       <p className="pd-note">
         Допустимые токи по таблице 1.3.4 ПУЭ, на которую ссылается ТКП 339-2022, с поправкой; УЗО по СН 4.04.01-2019 (изм. 2, п. 16.3.3); коэффициенты спроса и одновременности приняты по практике. Потеря напряжения: 3 % для освещения и 5 % для остальных групп, на линиях длиннее 100 м допуск растёт на 0,005 % за метр, но не более чем на 0,5 % (СН 4.04.01-2019, п. 9.14); сопротивление меди 0,0225 Ом·мм²/м. Допустимые токи взяты из ПУЭ и не сверены с таблицами МЭК 364-5-523 (ГОСТ 30331.15-2001 их не содержит); минимальное сечение жилы 1,5 мм² по табл. 52J. Ввод по СН 4.04.01-2019, п. 9.12, селективность по п. 10.5; отключение короткого замыкания за 0,4 с проверено по заданной петле фаза-нуль питающей сети (ТКП 339-2022, п. 4.3.5.4). Длины кабеля даны с запасом 10 %, ввод и мелочь уточняются по месту. Результат предварительный: проект щитка и монтаж согласуйте с аттестованным электриком.
       </p>
+      <SignBlock />
       <div className="pd-foot">Ampli · {now}</div>
     </div>
   );

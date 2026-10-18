@@ -6,6 +6,9 @@ import { blank } from '../core/templates';
 import { cur, init } from '../store/reducer';
 import { hreducer, initH } from '../store/history';
 import { loadStore, saveStore } from '../store/storage';
+import { libReducer, loadLib, saveLib } from '../store/lib';
+import { LibContext } from '../store/LibContext';
+import { LibSheet } from './LibSheet';
 import { Brand, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconNet, IconPanel } from './Icons';
 import { GroupList } from './GroupList';
 import { Editor } from './Editor';
@@ -16,13 +19,14 @@ import { WorkSheet } from './WorkSheet';
 import type { PrintMode } from './WorkSheet';
 
 type View = 'groups' | 'edit' | 'sum' | 'panel';
-type SheetId = 'net' | 'proj' | 'rep' | 'work' | null;
+type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | null;
 
 const isWide = () => window.matchMedia('(min-width:1000px)').matches;
 
 export function App() {
   const [hist, dispatch] = useReducer(hreducer, undefined, () => initH(init(loadStore())));
   const state = hist.now;
+  const [lib, libDispatch] = useReducer(libReducer, undefined, loadLib);
   const [view, setView] = useState<View>('groups');
   const [sheet, setSheet] = useState<SheetId>(null);
   const [whyOpen, setWhyOpen] = useState(false);
@@ -32,6 +36,10 @@ export function App() {
   const a = useMemo(() => calcAll(p.lines, p.cfg), [p.lines, p.cfg]);
   const selected = p.lines.find(l => l.id === state.sel) || null;
   const idx = selected ? p.lines.indexOf(selected) : -1;
+
+  useEffect(() => {
+    saveLib(lib);
+  }, [lib]);
 
   useEffect(() => {
     saveStore({ cur: state.cur, list: state.list });
@@ -85,7 +93,7 @@ export function App() {
   };
 
   return (
-    <>
+    <LibContext.Provider value={{ lib, dispatch: libDispatch }}>
       <div id="app" data-view={view}>
         <header className="appbar">
           <div className="in">
@@ -174,11 +182,12 @@ export function App() {
         </nav>
 
         <NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} />
-        <ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} />
+        <ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => setSheet('lib')} />
+        <LibSheet open={sheet === 'lib'} onClose={closeSheet} />
         <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} />
         <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} />
       </div>
       <PrintDoc p={p} a={a} mode={printMode} />
-    </>
+    </LibContext.Provider>
   );
 }

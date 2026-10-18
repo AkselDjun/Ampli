@@ -12,6 +12,8 @@ import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
 import { ArmButton, Seg, Sheet, Stepper } from './common';
 import { Schematic } from './Schematic';
+import { useLib } from '../store/LibContext';
+import { estimate } from '../core/spec';
 
 export function NetSheet({
   open, onClose, p, dispatch
@@ -82,14 +84,16 @@ export function NetSheet({
 }
 
 export function ProjectsSheet({
-  open, onClose, state, p, dispatch
+  open, onClose, state, p, dispatch, onLib
 }: {
   open: boolean;
   onClose: () => void;
   state: { list: Project[]; cur: string };
   p: Project;
   dispatch: (a: Action) => void;
+  onLib: () => void;
 }) {
+  const { lib, dispatch: libDispatch } = useLib();
   const [tplOpen, setTplOpen] = useState(false);
   const [elec, setElec] = useState(true);
   const [msg, setMsg] = useState<{ t: string; bad: boolean } | null>(null);
@@ -195,6 +199,27 @@ export function ProjectsSheet({
             </button>
           ))}
         </div>
+        {lib.templates.length > 0 && (
+          <>
+            <span className="lbl">Мои шаблоны</span>
+            <div className="tpl-grid">
+              {lib.templates.map(t => (
+                <button key={t.id} className="tpl-b" type="button" onClick={() => {
+                  dispatch({ t: 'addProject', content: { sample: false, cfg: t.cfg, lines: t.lines }, name: t.name });
+                  setTplOpen(false);
+                  note('Создан проект: ' + t.name);
+                }}>
+                  <b>{t.name}</b>
+                  <span>{t.lines.length} {plural(t.lines.length, ['группа', 'группы', 'групп'])}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+      <div className="data-row">
+        <button className="btn ghost" type="button" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</button>
+        <button className="btn ghost" type="button" onClick={onLib}>Мои данные</button>
       </div>
       <div className="data-row">
         <button className="btn ghost" type="button" onClick={exportFile}>Сохранить в файл</button>
@@ -247,7 +272,7 @@ export function ReportSheet({
     }
   }, [fallback]);
   const copy = async () => {
-    const txt = reportText(p, a);
+    const txt = reportText(p, a, lib.prices);
     try {
       await navigator.clipboard.writeText(txt);
       setFallback(null);
@@ -261,7 +286,8 @@ export function ReportSheet({
     timer.current = window.setTimeout(() => setMsg(null), 4000);
   };
   const three = a.c.supply === 3;
-  const spec = buildSpec(a);
+  const { lib, dispatch: libDispatch } = useLib();
+  const est = estimate(buildSpec(a), lib.prices);
   return (
     <Sheet open={open} onClose={onClose} title="Отчёт и спецификация">
       <div className="copy-row">
@@ -326,19 +352,28 @@ export function ReportSheet({
       <div className="tablewrap">
         <table className="t2">
           <thead>
-            <tr><th>Позиция</th><th className="num">Количество</th><th>Примечание</th></tr>
+            <tr><th>Позиция</th><th className="num">Количество</th><th>Примечание</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></tr>
           </thead>
           <tbody>
-            {spec.map((x, i) => (
+            {est.rows.map(({ item, sum }, i) => (
               <tr key={i}>
-                <td className="t-name">{x.name}</td>
-                <td className="num" data-label="Количество">{x.qty}</td>
-                <td data-label="Примечание">{x.note || '—'}</td>
+                <td className="t-name">{item.name}</td>
+                <td className="num" data-label="Количество">{item.qty}</td>
+                <td data-label="Примечание">{item.note || '—'}</td>
+                <td className="num" data-label="Цена, BYN">
+                  <input className="price-in" type="number" inputMode="decimal" min={0} step={0.01} aria-label={'Цена: ' + item.name} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
+                </td>
+                <td className="num" data-label="Сумма, BYN">{sum === null ? '—' : fmt(sum, 2)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <div className="est">
+        <span>Итого по смете</span>
+        <span className="mono">{fmt(est.total, 2)} BYN</span>
+      </div>
+      {est.missing > 0 && Object.keys(lib.prices).length > 0 && <p className="muted">Для {est.missing} поз. цена или количество не заданы, они не входят в итог.</p>}
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <div className="foot">
         <p>Допустимые токи медных жил взяты из таблицы 1.3.4 главы 1.3 ПУЭ, на которую ссылается ТКП 339-2022, и умножены на поправку; прокладка по ГОСТ 30331.15. Групповые сети до 16 мм² выполняются медными жилами (ТКП 339-2022, п. 8.4.4), наименьшее сечение жилы 1,5 мм² (табл. 8.1).</p>

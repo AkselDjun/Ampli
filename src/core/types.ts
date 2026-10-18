@@ -153,4 +153,6 @@ export interface SpecItem {
   name: string;
   qty: string;
   note: string;
+  n: number | null;
+  unit: string;
 }

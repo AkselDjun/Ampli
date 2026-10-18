@@ -6,6 +6,7 @@ import { whyRows } from '../core/why';
 import type { Action } from '../store/reducer';
 import { IconDown } from './Icons';
 import { ArmButton, Seg, Stepper } from './common';
+import { useLib } from '../store/LibContext';
 
 function Tile({ label, val, sub }: { label: string; val: string; sub?: string }) {
   return (
@@ -28,6 +29,7 @@ export function Editor({
   setWhyOpen: (v: boolean) => void;
   onDeleted: () => void;
 }) {
+  const { lib, dispatch: libDispatch } = useLib();
   const chips = useRef<HTMLDivElement>(null);
   const focusNew = useRef(false);
   const [measOpen, setMeasOpen] = useState(false);
@@ -210,8 +212,17 @@ export function Editor({
                 + {p[0]}
               </button>
             ))}
+            {lib.apps.filter(m => m.tag === tag).map(m => (
+              <span className="chip-mine" key={m.id}>
+                <button className="chip" type="button" title={m.w + ' Вт'} onClick={() => keepChips(() => dispatch({ t: 'addApp', name: m.name, w: m.w }))}>+ {m.name}</button>
+                <button className="chip-x" type="button" aria-label={'Убрать из моих приборов: ' + m.name} onClick={() => libDispatch({ t: 'delApp', id: m.id })}>×</button>
+              </span>
+            ))}
             <button className="chip custom" type="button" onClick={() => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp' }); })}>+ Свой прибор</button>
           </div>
+          {l.apps.some(ap => ap.name.trim() && pn(ap.w, 0) > 0) && (
+            <button className="link" type="button" onClick={() => libDispatch({ t: 'addApps', apps: l.apps.filter(ap => ap.name.trim() && pn(ap.w, 0) > 0).map(ap => ({ name: ap.name, w: pn(ap.w, 0), tag: tag as 'l' | 's' | 'p' })) })}>Сохранить приборы группы в мои</button>
+          )}
         </div>
         <div className="blk">
           <ArmButton className="btn danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); }} />

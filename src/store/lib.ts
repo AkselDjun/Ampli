@@ -1,0 +1,137 @@
+import type { Cfg, Line } from '../core/types';
+import { pn } from '../core/format';
+import { nid } from '../core/ids';
+
+export const LIB_KEY = 'ampli-lib-v1';
+
+export interface CustomApp {
+  id: string;
+  name: string;
+  w: number;
+  tag: 'l' | 's' | 'p';
+}
+
+export interface UserTpl {
+  id: string;
+  name: string;
+  cfg: Cfg;
+  lines: Line[];
+}
+
+export interface Brand {
+  company: string;
+  contacts: string;
+  signer: string;
+  logo: string;
+}
+
+export interface Lib {
+  apps: CustomApp[];
+  templates: UserTpl[];
+  prices: Record<string, number>;
+  brand: Brand;
+}
+
+export const emptyBrand = (): Brand => ({ company: '', contacts: '', signer: '', logo: '' });
+export const emptyLib = (): Lib => ({ apps: [], templates: [], prices: {}, brand: emptyBrand() });
+
+const isTag = (t: unknown): t is CustomApp['tag'] => t === 'l' || t === 's' || t === 'p';
+
+export function normLib(o: unknown): Lib {
+  const lib = emptyLib();
+  if (!o || typeof o !== 'object') return lib;
+  const x = o as Partial<Record<keyof Lib, unknown>>;
+  if (Array.isArray(x.apps)) {
+    lib.apps = x.apps
+      .filter((a): a is CustomApp => !!a && typeof (a as CustomApp).name === 'string' && isTag((a as CustomApp).tag) && pn((a as CustomApp).w, 0) > 0)
+      .map(a => ({ id: String(a.id || nid()), name: a.name.slice(0, 60), w: pn(a.w, 0), tag: a.tag }));
+  }
+  if (Array.isArray(x.templates)) {
+    lib.templates = x.templates
+      .filter((t): t is UserTpl => !!t && typeof (t as UserTpl).name === 'string' && Array.isArray((t as UserTpl).lines) && !!(t as UserTpl).cfg)
+      .map(t => ({ id: String(t.id || nid()), name: t.name.slice(0, 60), cfg: t.cfg, lines: t.lines }));
+  }
+  if (x.prices && typeof x.prices === 'object') {
+    for (const [k, v] of Object.entries(x.prices as Record<string, unknown>)) {
+      const n = pn(v, NaN);
+      if (isFinite(n) && n >= 0) lib.prices[k] = n;
+    }
+  }
+  if (x.brand && typeof x.brand === 'object') {
+    const b = x.brand as Partial<Brand>;
+    lib.brand = {
+      company: String(b.company ?? '').slice(0, 80),
+      contacts: String(b.contacts ?? '').slice(0, 160),
+      signer: String(b.signer ?? '').slice(0, 80),
+      logo: typeof b.logo === 'string' && b.logo.startsWith('data:image/') ? b.logo : ''
+    };
+  }
+  return lib;
+}
+
+export function loadLib(): Lib {
+  try {
+    const r = localStorage.getItem(LIB_KEY);
+    return r ? normLib(JSON.parse(r)) : emptyLib();
+  } catch (e) {
+    void e;
+    return emptyLib();
+  }
+}
+
+export function saveLib(l: Lib): void {
+  try {
+    localStorage.setItem(LIB_KEY, JSON.stringify(l));
+  } catch (e) {
+    void e;
+  }
+}
+
+export type LibAction =
+  | { t: 'addApps'; apps: { name: string; w: number; tag: CustomApp['tag'] }[] }
+  | { t: 'delApp'; id: string }
+  | { t: 'addTpl'; name: string; cfg: Cfg; lines: Line[] }
+  | { t: 'delTpl'; id: string }
+  | { t: 'price'; name: string; value: string }
+  | { t: 'clearPrices' }
+  | { t: 'brand'; field: 'company' | 'contacts' | 'signer'; value: string }
+  | { t: 'logo'; value: string };
+
+export function libReducer(l: Lib, a: LibAction): Lib {
+  switch (a.t) {
+    case 'addApps': {
+      const apps = [...l.apps];
+      a.apps.forEach(n => {
+        const name = n.name.trim();
+        if (!name || !(n.w > 0)) return;
+        if (apps.some(x => x.name === name && x.w === n.w && x.tag === n.tag)) return;
+        apps.push({ id: nid() + Date.now().toString(36), name: name.slice(0, 60), w: n.w, tag: n.tag });
+      });
+      return { ...l, apps };
+    }
+    case 'delApp':
+      return { ...l, apps: l.apps.filter(x => x.id !== a.id) };
+    case 'addTpl': {
+      const name = a.name.trim() || 'Мой шаблон';
+      const copy: UserTpl = { id: nid() + Date.now().toString(36), name: name.slice(0, 60), cfg: { ...a.cfg }, lines: JSON.parse(JSON.stringify(a.lines)) };
+      return { ...l, templates: [...l.templates, copy] };
+    }
+    case 'delTpl':
+      return { ...l, templates: l.templates.filter(x => x.id !== a.id) };
+    case 'price': {
+      const prices = { ...l.prices };
+      const n = pn(a.value, NaN);
+      if (isFinite(n) && n >= 0) prices[a.name] = n;
+      else delete prices[a.name];
+      return { ...l, prices };
+    }
+    case 'clearPrices':
+      return { ...l, prices: {} };
+    case 'brand':
+      return { ...l, brand: { ...l.brand, [a.field]: a.value } };
+    case 'logo':
+      return { ...l, brand: { ...l.brand, logo: a.value } };
+    default:
+      return l;
+  }
+}

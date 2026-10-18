@@ -1,12 +1,12 @@
 import type { Calc, Project } from './types';
 import { fmt, fs } from './format';
-import { buildSpec } from './spec';
+import { buildSpec, estimate } from './spec';
 import { cableName, protName } from './protection';
 
 export const dropText = (drop: number): string =>
   drop > 0 ? 'не более ' + fmt(drop, 0) + ' %' : '3 % освещение, 5 % прочие (СН 4.04.01-2019, п. 9.14)';
 
-export function reportText(p: Project, a: Calc): string {
+export function reportText(p: Project, a: Calc, prices: Record<string, number> = {}): string {
   const c = a.c;
   const out: string[] = [];
   out.push('Расчёт электрощита: ' + (p.name || 'Без названия'));
@@ -39,5 +39,10 @@ export function reportText(p: Project, a: Calc): string {
   buildSpec(a).forEach(x => {
     out.push('- ' + x.name + ' — ' + x.qty + (x.note ? ' (' + x.note + ')' : ''));
   });
+  if (Object.keys(prices).length) {
+    const e = estimate(buildSpec(a), prices);
+    out.push('');
+    out.push('Итого по смете: ' + fmt(e.total, 2) + ' BYN' + (e.missing ? ' (цена не задана для ' + e.missing + ' поз.)' : ''));
+  }
   return out.join('\n');
 }
