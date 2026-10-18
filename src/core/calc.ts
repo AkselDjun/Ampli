@@ -1,5 +1,5 @@
 import type { Calc, Cfg, CfgN, Device, Line, LineResult, Phase, Row } from './types';
-import { ALL_STEPS, IZ, KZ_TIME, PE_MAX_S, RHO, RHO_HOT_K, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
+import { ALL_STEPS, INS_MIN_MOHM, IZ, KZ_TIME, LEAK_FRACTION, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs, pn } from './format';
 
 export function cfgN(c: Cfg): CfgN {
@@ -39,7 +39,8 @@ export function calcLine(l: Line, c: CfgN): LineResult {
   const r: LineResult = {
     limit: lim, pInst, pd, I, three, len, cos, kc, notes: [], status: 'ok', rcd: t.rcd,
     ma: t.rcd ? (l.wet ? 10 : (I > 32 ? 100 : 30)) : 0, curve: t.curve, In: null, S: null, drop: 0, empty: false,
-    mod: three ? (t.rcd ? 4 : 3) : (t.rcd ? 2 : 1), ik: 0, ikNeed: 0
+    mod: three ? (t.rcd ? 4 : 3) : (t.rcd ? 2 : 1), ik: 0, ikNeed: 0, ikSrc: 'calc',
+    zsMeas: null, insMeas: null, leakMeas: null, leakLim: 0, leakEst: 0
   };
   if (pInst <= 0) {
     r.empty = true;
@@ -74,6 +75,12 @@ export function calcLine(l: Line, c: CfgN): LineResult {
   r.S = SECTIONS[i];
   r.drop = dropAt(i);
   r.ik = len === 0 ? 0 : shortCircuit(r.S, len, c.zs);
+  const zm = pn(l.meas?.zs, 0);
+  if (zm > 0) {
+    r.zsMeas = zm;
+    r.ik = 230 / zm;
+    r.ikSrc = 'meas';
+  }
   if (afterDrop > base) {
     r.status = 'warn';
     r.notes.push('Сечение увеличено с ' + fs(SECTIONS[base]) + ' до ' + fs(SECTIONS[afterDrop]) + ' мм² из-за падения напряжения на длине ' + fmt(len, 0) + ' м.');
@@ -82,9 +89,32 @@ export function calcLine(l: Line, c: CfgN): LineResult {
     r.status = 'warn';
     r.notes.push('Сечение увеличено до ' + fs(r.S) + ' мм², чтобы автомат отключил короткое замыкание за ' + fs(KZ_TIME) + ' с.');
   }
-  if (len > 0 && r.ik < r.ikNeed) {
+  if ((len > 0 || r.zsMeas !== null) && r.ik < r.ikNeed) {
     r.status = 'bad';
-    r.notes.push('Ток короткого замыкания в конце линии ' + fmt(r.ik, 0) + ' А меньше ' + fmt(r.ikNeed, 0) + ' А: автомат может не отключить линию за ' + fs(KZ_TIME) + ' с. Сократите линию.');
+    r.notes.push(r.ikSrc === 'meas'
+      ? 'По замеру петли ' + fmt(r.zsMeas as number, 2) + ' Ом ток короткого замыкания ' + fmt(r.ik, 0) + ' А меньше ' + fmt(r.ikNeed, 0) + ' А: автомат не обеспечит отключение за ' + fs(KZ_TIME) + ' с (ТКП 339-2022, п. 4.4.28.5).'
+      : 'Ток короткого замыкания в конце линии ' + fmt(r.ik, 0) + ' А меньше ' + fmt(r.ikNeed, 0) + ' А: автомат может не отключить линию за ' + fs(KZ_TIME) + ' с. Сократите линию.');
+  }
+  if (r.rcd) {
+    r.leakLim = r.ma * LEAK_FRACTION;
+    r.leakEst = len * LEAK_PER_M_MA;
+    const lm = pn(l.meas?.leak, 0);
+    if (lm > 0) r.leakMeas = lm;
+    if (r.leakMeas !== null && r.leakMeas > r.leakLim) {
+      r.status = 'bad';
+      r.notes.push('Ток утечки ' + fmt(r.leakMeas, 1) + ' мА больше трети уставки УЗО (' + fmt(r.leakLim, 1) + ' мА): возможны ложные отключения (СН 4.04.01-2019, п. 16.3.7).');
+    } else if (r.leakMeas === null && r.leakEst > r.leakLim) {
+      r.status = r.status === 'bad' ? 'bad' : 'warn';
+      r.notes.push('Утечка самой линии около ' + fmt(r.leakEst, 1) + ' мА больше трети уставки УЗО (' + fmt(r.leakLim, 1) + ' мА, СН 4.04.01-2019, п. 16.3.7).');
+    }
+  }
+  const im = pn(l.meas?.ins, 0);
+  if (im > 0) {
+    r.insMeas = im;
+    if (im < INS_MIN_MOHM) {
+      r.status = 'bad';
+      r.notes.push('Сопротивление изоляции ' + fmt(im, 2) + ' МОм меньше ' + fs(INS_MIN_MOHM) + ' МОм (ТКП 339-2022, п. 4.4.29.2).');
+    }
   }
   if (r.drop > lim) {
     r.status = 'bad';

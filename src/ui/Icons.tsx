@@ -28,6 +28,12 @@ export const IconDoc = make(0, (
   </>
 ));
 export const IconFolder = make(0, <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />);
+export const IconCheck = make(0, (
+  <>
+    <rect x="4" y="4" width="16" height="16" rx="3" />
+    <path d="m8.5 12 2.5 2.5 4.5-5" />
+  </>
+));
 export const IconList = make(0, <path d="M4 6h16M4 12h16M4 18h16" />);
 export const IconBolt = make(0, <path d="M13 2 5 13h6l-1 9 8-11h-6z" />);
 export const IconPanel = make(0, (

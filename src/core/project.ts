@@ -23,7 +23,9 @@ export function normProject(o: unknown, keep = false): Project | null {
     updated: Number(x.updated) || Date.now(),
     sample: !!x.sample,
     cfg: { ...defaultCfg(), ...(x.cfg as object) },
-    lines
+    lines,
+    checks: x.checks && typeof x.checks === 'object' ? { ...x.checks } : {},
+    proto: { date: '', device: '', by: '', ...(x.proto ?? {}) }
   };
 }
 

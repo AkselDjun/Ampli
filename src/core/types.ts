@@ -10,12 +10,25 @@ export interface App {
   n: Num;
 }
 
+export interface Meas {
+  zs?: Num;
+  ins?: Num;
+  leak?: Num;
+}
+
+export interface Proto {
+  date: string;
+  device: string;
+  by: string;
+}
+
 export interface Line {
   id: string;
   name: string;
   type: LineType;
   phase: Phase;
   wet?: boolean;
+  meas?: Meas;
   len: Num;
   kc: Num;
   cos: Num;
@@ -45,6 +58,8 @@ export interface Project {
   sample: boolean;
   cfg: Cfg;
   lines: Line[];
+  checks?: Record<string, boolean>;
+  proto?: Proto;
 }
 
 export interface Content {
@@ -86,6 +101,12 @@ export interface LineResult {
   mod: number;
   ik: number;
   ikNeed: number;
+  ikSrc: 'calc' | 'meas';
+  zsMeas: number | null;
+  insMeas: number | null;
+  leakMeas: number | null;
+  leakLim: number;
+  leakEst: number;
 }
 
 export interface Device {

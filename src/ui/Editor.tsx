@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import type { Calc, Line, LineType, Phase } from '../core/types';
 import { NB, fmt, fs, pn, round2 } from '../core/format';
 import { PRESETS, STATUS, TYPES, TYPE_KEYS } from '../core/norms';
@@ -30,6 +30,7 @@ export function Editor({
 }) {
   const chips = useRef<HTMLDivElement>(null);
   const focusNew = useRef(false);
+  const [measOpen, setMeasOpen] = useState(false);
   if (!l) {
     return (
       <section className="col col-edit" aria-label="Редактор группы">
@@ -179,6 +180,26 @@ export function Editor({
                 <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" onClick={() => keepChips(() => dispatch({ t: 'delApp', id: ap.id }))}>×</button>
               </div>
             ))}
+          </div>
+        </div>
+        <div className="blk meas">
+          <button className="why-t" type="button" aria-expanded={measOpen} onClick={() => setMeasOpen(!measOpen)}>
+            <span>Замеры после монтажа</span>
+            <IconDown />
+          </button>
+          <div className="grid3" hidden={!measOpen}>
+            <label className="f">
+              <span className="lbl">Петля фаза-нуль, Ом</span>
+              <input type="number" inputMode="decimal" min={0} step={0.01} aria-label="Замер петли фаза-нуль, Ом" value={String(l.meas?.zs ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'zs', value: e.target.value })} />
+            </label>
+            <label className="f">
+              <span className="lbl">Изоляция, МОм</span>
+              <input type="number" inputMode="decimal" min={0} step={0.1} aria-label="Замер сопротивления изоляции, МОм" value={String(l.meas?.ins ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'ins', value: e.target.value })} />
+            </label>
+            <label className="f">
+              <span className="lbl">Ток утечки, мА</span>
+              <input type="number" inputMode="decimal" min={0} step={0.1} aria-label="Замер тока утечки, мА" value={String(l.meas?.leak ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'leak', value: e.target.value })} />
+            </label>
           </div>
         </div>
         <div className="blk">

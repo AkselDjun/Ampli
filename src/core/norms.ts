@@ -16,6 +16,9 @@ export const TRIP_MULT: Record<string, number> = { B: 5, C: 10 };
 export const PE_MAX_S = 16;
 export const KZ_TIME = 0.4;
 export const SINGLE_INPUT_KW = 12;
+export const INS_MIN_MOHM = 0.5;
+export const LEAK_FRACTION = 1 / 3;
+export const LEAK_PER_M_MA = 0.01;
 export const SIZES = [12, 18, 24, 36, 48, 72];
 export const ROWLEN: Record<number, number> = { 12: 12, 18: 18, 24: 12, 36: 18, 48: 12, 72: 18 };
 

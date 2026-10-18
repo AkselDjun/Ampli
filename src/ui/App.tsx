@@ -6,15 +6,17 @@ import { blank } from '../core/templates';
 import { cur, init } from '../store/reducer';
 import { hreducer, initH } from '../store/history';
 import { loadStore, saveStore } from '../store/storage';
-import { Brand, IconBack, IconBolt, IconDoc, IconList, IconNet, IconPanel } from './Icons';
+import { Brand, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconNet, IconPanel } from './Icons';
 import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
 import { NetSheet, ProjectsSheet, ReportSheet } from './sheets';
 import { PrintDoc } from './PrintDoc';
+import { WorkSheet } from './WorkSheet';
+import type { PrintMode } from './WorkSheet';
 
 type View = 'groups' | 'edit' | 'sum' | 'panel';
-type SheetId = 'net' | 'proj' | 'rep' | null;
+type SheetId = 'net' | 'proj' | 'rep' | 'work' | null;
 
 const isWide = () => window.matchMedia('(min-width:1000px)').matches;
 
@@ -24,6 +26,7 @@ export function App() {
   const [view, setView] = useState<View>('groups');
   const [sheet, setSheet] = useState<SheetId>(null);
   const [whyOpen, setWhyOpen] = useState(false);
+  const [printMode, setPrintMode] = useState<PrintMode>('report');
   const scrollPos = useRef(0);
   const p = cur(state);
   const a = useMemo(() => calcAll(p.lines, p.cfg), [p.lines, p.cfg]);
@@ -67,7 +70,8 @@ export function App() {
     setView(v);
     window.scrollTo(0, 0);
   };
-  const doPrint = () => {
+  const doPrint = (mode: PrintMode = 'report') => {
+    setPrintMode(mode);
     const prev = document.title;
     document.title = 'Ampli — ' + (p.name || 'расчёт');
     window.setTimeout(() => {
@@ -100,6 +104,10 @@ export function App() {
               <button className="ab-btn" type="button" onClick={() => setSheet('net')} aria-label="Параметры сети">
                 <IconNet />
                 <span className="ab-txt">Параметры</span>
+              </button>
+              <button className="ab-btn desk" type="button" onClick={() => setSheet('work')}>
+                <IconCheck />
+                <span className="ab-txt">Приёмка</span>
               </button>
               <button className="ab-btn desk" type="button" onClick={() => setSheet('rep')}>
                 <IconDoc />
@@ -155,6 +163,10 @@ export function App() {
             <IconPanel />
             <span>Щиток</span>
           </button>
+          <button type="button" onClick={() => setSheet('work')}>
+            <IconCheck />
+            <span>Приёмка</span>
+          </button>
           <button type="button" onClick={() => setSheet('rep')}>
             <IconDoc />
             <span>Отчёт</span>
@@ -163,9 +175,10 @@ export function App() {
 
         <NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} />
         <ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} />
-        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={doPrint} />
+        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} />
+        <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} />
       </div>
-      <PrintDoc p={p} a={a} />
+      <PrintDoc p={p} a={a} mode={printMode} />
     </>
   );
 }

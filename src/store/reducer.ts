@@ -19,6 +19,9 @@ export type Action =
   | { t: 'lineType'; type: LineType }
   | { t: 'linePhase'; phase: Phase }
   | { t: 'lineWet'; wet: boolean }
+  | { t: 'lineMeas'; field: 'zs' | 'ins' | 'leak'; value: string }
+  | { t: 'check'; id: string; on: boolean }
+  | { t: 'proto'; field: 'date' | 'device' | 'by'; value: string }
   | { t: 'appField'; id: string; field: 'name' | 'w' | 'n'; value: string | number }
   | { t: 'addApp'; name?: string; w?: number }
   | { t: 'delApp'; id: string }
@@ -86,6 +89,12 @@ export function reducer(s: State, a: Action): State {
       });
     case 'linePhase':
       return patchLine(s, l => ({ ...l, phase: a.phase }));
+    case 'lineMeas':
+      return patchLine(s, l => ({ ...l, meas: { ...(l.meas ?? {}), [a.field]: a.value } }));
+    case 'check':
+      return patch(s, q => ({ ...q, checks: { ...(q.checks ?? {}), [a.id]: a.on } }));
+    case 'proto':
+      return patch(s, q => ({ ...q, proto: { date: '', device: '', by: '', ...(q.proto ?? {}), [a.field]: a.value } }));
     case 'lineWet':
       return patchLine(s, l => ({ ...l, wet: a.wet }));
     case 'appField':

@@ -5,8 +5,124 @@ import { buildSpec } from '../core/spec';
 import { cableName, protName } from '../core/protection';
 import { dropText } from '../core/report';
 import { Schematic } from './Schematic';
+import { VERDICT, hasMeasurements, protocolRows } from '../core/protocol';
+import type { PrintMode } from './WorkSheet';
+import { CHECK_ITEMS } from '../core/checklist';
 
-export function PrintDoc({ p, a }: { p: Project; a: Calc }) {
+function ProtoTable({ a }: { a: Calc }) {
+  const rows = protocolRows(a);
+  return (
+    <table>
+      <thead>
+        <tr><th>№</th><th>Группа</th><th>Защита</th><th className="r">Петля, Ом</th><th className="r">Iк / нужно, А</th><th className="r">Изоляция, МОм</th><th className="r">Утечка / допуск, мА</th><th>Итог</th></tr>
+      </thead>
+      <tbody>
+        {rows.map(r => (
+          <tr key={r.no}>
+            <td>{r.no}</td>
+            <td>{r.name}</td>
+            <td>{r.prot}</td>
+            <td className="r">{r.zs === null ? '—' : fmt(r.zs, 2)}</td>
+            <td className="r">{r.ik === null ? '—' : fmt(r.ik, 0) + ' / ' + fmt(r.need, 0)}</td>
+            <td className="r">{r.ins === null ? '—' : fmt(r.ins, 2)}</td>
+            <td className="r">{r.leak === null ? '—' : fmt(r.leak, 1) + ' / ' + fmt(r.leakLim, 1)}</td>
+            <td>{VERDICT[r.verdict]}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function Meta({ p }: { p: Project }) {
+  return (
+    <div className="pd-meta">
+      {p.address && <div><span>Объект: </span>{p.address}</div>}
+      {p.client && <div><span>Заказчик: </span>{p.client}</div>}
+      {p.author && <div><span>Исполнитель: </span>{p.author}</div>}
+      <div><span>Дата: </span>{dfmt(Date.now())}</div>
+    </div>
+  );
+}
+
+function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
+  const pr = p.proto ?? { date: '', device: '', by: '' };
+  return (
+    <>
+      <h1>Протокол замеров</h1>
+      <p className="pd-sub">{p.name || 'Без названия'}</p>
+      <Meta p={p} />
+      <div className="pd-meta">
+        <div><span>Дата замеров: </span>{pr.date ? dfmt(new Date(pr.date).getTime()) : '—'}</div>
+        <div><span>Измерения выполнил: </span>{pr.by || '—'}</div>
+        <div><span>Прибор: </span>{pr.device || '—'}</div>
+      </div>
+      <ProtoTable a={a} />
+      <h2>Приёмка</h2>
+      <ul className="pd-ck">
+        {CHECK_ITEMS.map(it => (
+          <li key={it.id}>{(p.checks ?? {})[it.id] ? '☑' : '☐'} {it.title}</li>
+        ))}
+      </ul>
+      <p className="pd-note">
+        Допустимые значения: ток однофазного замыкания не меньше тока мгновенного срабатывания защиты (5×In для кривой B, 10×In для C) при времени отключения 0,4 с для 230 В (ТКП 339-2022, п. 4.3.5.4, п. 4.4.28.5); сопротивление изоляции не менее 0,5 МОм (п. 4.4.29.2); ток утечки не более трети уставки УЗО (СН 4.04.01-2019, п. 16.3.7).
+      </p>
+      <div className="pd-sign"><span>Измерения выполнил ______________________</span><span>Подпись ______________</span></div>
+      <div className="pd-foot">Ampli · {dfmt(Date.now())}</div>
+    </>
+  );
+}
+
+function StickersDoc({ p, a }: { p: Project; a: Calc }) {
+  return (
+    <>
+      <h1>Наклейки для щитка</h1>
+      <p className="pd-sub">{p.name || 'Без названия'}. Ширина наклейки равна ширине аппарата (1 модуль = 17,5 мм).</p>
+      <div className="stk">
+        {a.devs.map((d, i) => {
+          const g = d.kind === 'in' ? '' : d.sub.split(' ')[0];
+          const nm = d.kind === 'in' ? 'Ввод' : (a.rows[Number(g.slice(1)) - 1]?.l.name || '');
+          return (
+            <div className="stk-i" key={i} style={{ width: d.mod * 17.5 + 'mm' }}>
+              <b>{d.kind === 'in' ? 'Ввод' : g}</b>
+              <span>{nm}</span>
+              <small>{d.label}{d.ma ? ' ' + d.ma + 'мА' : ''}</small>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+function TagsDoc({ p, a }: { p: Project; a: Calc }) {
+  const rows = a.rows.map((x, i) => ({ x, i })).filter(o => !o.x.r.empty && o.x.r.In);
+  return (
+    <>
+      <h1>Бирки кабелей</h1>
+      <p className="pd-sub">{p.name || 'Без названия'}. На каждую группу по две бирки: для щитка и для конца линии.</p>
+      <div className="tag-grid">
+        {rows.flatMap(({ x, i }) => [0, 1].map(k => (
+          <div className="tag" key={x.l.id + k}>
+            <b>Г{i + 1} {x.l.name || 'Без названия'}</b>
+            <span>{cableName(x.r)}</span>
+            <span>{protName(x.r)}</span>
+            <small>{k === 0 ? 'Конец у щитка' : 'Конец у потребителя'}{x.r.len ? ' · длина ' + fmt(x.r.len, 0) + ' м' : ''}</small>
+          </div>
+        )))}
+      </div>
+    </>
+  );
+}
+
+export function PrintDoc({ p, a, mode = 'report' }: { p: Project; a: Calc; mode?: PrintMode }) {
+  if (mode === 'proto') return <div className="printdoc" aria-hidden="true"><ProtoDoc p={p} a={a} /></div>;
+  if (mode === 'stickers') return <div className="printdoc" aria-hidden="true"><StickersDoc p={p} a={a} /></div>;
+  if (mode === 'tags') return <div className="printdoc" aria-hidden="true"><TagsDoc p={p} a={a} /></div>;
+  return <ReportDoc p={p} a={a} />;
+}
+
+function ReportDoc({ p, a }: { p: Project; a: Calc }) {
   const c = a.c;
   const three = c.supply === 3;
   const spec = buildSpec(a);
@@ -78,6 +194,12 @@ export function PrintDoc({ p, a }: { p: Project; a: Calc }) {
       <p>Выделенная мощность {fmt(c.alloc, 1)} кВт: {a.P / 1000 <= c.alloc * 0.9 ? 'укладывается' : (a.P / 1000 <= c.alloc ? 'на пределе' : 'превышение')}.</p>
       <h2>Схема щитка</h2>
       <Schematic a={a} />
+      {hasMeasurements(a) && (
+        <>
+          <h2>Протокол замеров</h2>
+          <ProtoTable a={a} />
+        </>
+      )}
       <h2>Спецификация</h2>
       <table>
         <thead>
