@@ -270,6 +270,27 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 #rep{width:100%;height:200px;padding:10px;font-family:var(--font-mono);font-size:12px;line-height:1.5;resize:vertical}
 .foot{display:grid;gap:8px}
 .foot p{font-size:13px;color:var(--ink-2)}
+.projbar{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);cursor:pointer;text-align:left;color:var(--ink)}
+.projbar:hover{border-color:var(--accent)}
+.projbar>svg{width:22px;height:22px;color:var(--accent)}
+.pb-main{flex:1;min-width:0;display:grid}
+.pb-name{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pb-sub{font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pb-more{font-size:13px;font-weight:600;color:var(--accent);white-space:nowrap}
+.sec-t{font-size:13px;font-weight:700;letter-spacing:0.02em;margin:0}
+.meta-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.meta-grid .wide{grid-column:1/-1}
+.pj-list{display:grid;gap:8px}
+.pj{display:flex;align-items:stretch;gap:8px}
+.pj-open{flex:1;min-width:0;display:grid;gap:2px;text-align:left;padding:10px 14px;min-height:56px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);cursor:pointer}
+.pj-open:hover{border-color:var(--accent)}
+.pj.cur .pj-open{border-color:var(--accent);background:var(--accent-soft)}
+.pj-name{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj-sub{font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj .btn{min-height:56px;padding:0 12px;font-size:13px}
+.pj-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.sec-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.printdoc{display:none}
 
 @media (hover:hover){
   .row:hover .chev{color:var(--ink)}
@@ -310,6 +331,9 @@ tfoot td{font-weight:700;background:var(--surface-2)}
   .tabs button[aria-current="page"]{color:var(--accent);box-shadow:inset 0 2px 0 var(--accent)}
   .badge{position:absolute;top:5px;left:calc(50% + 6px);min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--warn);color:var(--bg);font-size:10px;font-weight:700;font-style:normal;display:flex;align-items:center;justify-content:center}
 }
+@media (min-width:761px){
+  table.t2{min-width:520px}
+}
 @media (max-width:760px){
   input,select{font-size:16px;height:48px}
   .step{height:48px;grid-template-columns:46px minmax(0,1fr) 46px}
@@ -336,6 +360,11 @@ tfoot td{font-weight:700;background:var(--surface-2)}
   .sheet-panel,.sheet-panel.sm{width:100%;max-height:92vh;max-height:92dvh;border-radius:18px 18px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
   .set-grid{grid-template-columns:minmax(0,1fr)}
   .data-row .btn{flex:1 1 auto}
+  .meta-grid{grid-template-columns:minmax(0,1fr)}
+  .pj{flex-wrap:wrap}
+  .pj-open{flex:1 1 100%}
+  .pj .btn{flex:1 1 0;min-height:44px}
+  .copy-row .btn{flex:1 1 auto}
   .tablewrap{border:0;background:transparent;overflow:visible;border-radius:0}
   table{min-width:0;display:block}
   thead{display:none}
@@ -348,7 +377,7 @@ tfoot td{font-weight:700;background:var(--surface-2)}
   td.t-no::before,td.t-name::before{display:none}
   td.t-no{grid-column:1/-1;font-size:12px;color:var(--ink-2)}
   td.t-name{grid-column:1/-1;font-weight:600;font-size:15px;margin-top:-6px}
-  td[colspan],td[data-label="Кабель"],td[data-label="Защита"],td[data-label="Статус"]{grid-column:1/-1}
+  td[colspan],td[data-label="Примечание"],td[data-label="Кабель"],td[data-label="Защита"],td[data-label="Статус"]{grid-column:1/-1}
   #rep{height:220px}
 }
 @media (max-width:600px){
@@ -359,6 +388,30 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 @media (max-width:420px){
   .kv b{font-size:16px}
   .row{gap:10px;padding:10px}
+}
+@media print{
+  @page{size:A4;margin:14mm}
+  html,body{background:#fff!important;overflow:visible!important}
+  body::before{display:none!important}
+  #app{display:none!important}
+  .printdoc{display:block;color:#111;font-family:var(--font-body);font-size:11px;line-height:1.4}
+  .printdoc h1{font-size:20px;margin:0 0 2px}
+  .printdoc h2{font-size:13px;margin:16px 0 6px}
+  .printdoc .pd-sub{color:#444;margin:0 0 10px;font-size:12px}
+  .printdoc .pd-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:2px 16px;margin:0 0 6px}
+  .printdoc .pd-meta span{color:#555}
+  .printdoc table{min-width:0;width:100%;border-collapse:collapse;font-size:10.5px;display:table}
+  .printdoc thead{display:table-header-group}
+  .printdoc tbody{display:table-row-group}
+  .printdoc tfoot{display:table-footer-group}
+  .printdoc tr{display:table-row;padding:0;border:0;margin:0;background:transparent;break-inside:avoid}
+  .printdoc th,.printdoc td{display:table-cell;border:1px solid #999;padding:4px 6px;text-align:left;background:transparent;color:#111;font-size:10.5px;letter-spacing:0;text-transform:none;font-weight:400;vertical-align:top}
+  .printdoc th{background:#eee;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .printdoc td.r,.printdoc th.r{text-align:right;white-space:nowrap}
+  .printdoc tfoot td{font-weight:700;background:#f3f3f3}
+  .printdoc p{margin:3px 0}
+  .printdoc .pd-note{color:#444;font-size:10px;margin-top:12px}
+  .printdoc .pd-foot{margin-top:14px;padding-top:6px;border-top:1px solid #999;color:#555;font-size:10px}
 }
 @media (prefers-reduced-motion:reduce){
   .meter i{transition:none}
@@ -410,6 +463,11 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 
   <div class="workspace">
     <section class="col col-list" aria-label="Группы линий">
+      <button class="projbar" type="button" data-act="open-proj" aria-label="Проекты">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span class="pb-main"><span class="pb-name" id="pbName"></span><span class="pb-sub" id="pbSub"></span></span>
+        <span class="pb-more">Проекты</span>
+      </button>
       <div class="netchips" id="netChips"></div>
       <div class="sample" id="sampleNote" hidden>Это пример двухкомнатной квартиры. Нажмите на группу, чтобы изменить приборы, длину и фазу. <button class="link js-blank" type="button">Начать с нуля</button></div>
       <div class="kpi" id="kpi"></div>
@@ -501,25 +559,59 @@ tfoot td{font-weight:700;background:var(--surface-2)}
     </div>
   </div>
 
+  <div class="sheet" id="sheetProj" data-sheet hidden>
+    <div class="sheet-panel sm" role="dialog" aria-modal="true" aria-labelledby="ttlProj">
+      <div class="sheet-head"><h2 id="ttlProj">Проекты</h2><button class="sheet-close" type="button" data-act="close-sheet" aria-label="Закрыть">×</button></div>
+      <div class="sheet-body">
+        <h3 class="sec-t">Текущий проект</h3>
+        <div class="meta-grid" id="meta">
+          <div class="f wide"><label class="lbl" for="mName">Название</label><input id="mName" type="text" data-p="name" autocomplete="off" maxlength="80"></div>
+          <div class="f wide"><label class="lbl" for="mAddr">Объект, адрес</label><input id="mAddr" type="text" data-p="address" autocomplete="off" maxlength="120"></div>
+          <div class="f"><label class="lbl" for="mClient">Заказчик</label><input id="mClient" type="text" data-p="client" autocomplete="off" maxlength="80"></div>
+          <div class="f"><label class="lbl" for="mAuthor">Исполнитель</label><input id="mAuthor" type="text" data-p="author" autocomplete="off" maxlength="80"></div>
+        </div>
+        <div class="sec-row"><h3 class="sec-t">Все проекты</h3><span class="muted" id="pjCount"></span></div>
+        <div class="pj-list" id="pjList"></div>
+        <div class="data-row">
+          <button class="btn primary" type="button" data-act="pj-new">+ Новый проект</button>
+          <button class="btn ghost" type="button" data-act="pj-sample">Пример квартиры</button>
+        </div>
+        <div class="data-row">
+          <button class="btn ghost" type="button" data-act="pj-export">Сохранить в файл</button>
+          <button class="btn ghost" type="button" data-act="pj-import">Открыть из файла</button>
+          <input class="pj-file" id="pjFile" type="file" accept=".json,application/json" tabindex="-1" aria-hidden="true">
+        </div>
+        <span id="pjMsg" class="muted" role="status"></span>
+        <p class="muted">Проекты хранятся в этом браузере на этом устройстве. Чтобы перенести проект на другое устройство, сохраните его в файл и откройте там.</p>
+      </div>
+    </div>
+  </div>
+
   <div class="sheet" id="sheetRep" data-sheet hidden>
     <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="ttlRep">
-      <div class="sheet-head"><h2 id="ttlRep">Спецификация групп</h2><button class="sheet-close" type="button" data-act="close-sheet" aria-label="Закрыть">×</button></div>
+      <div class="sheet-head"><h2 id="ttlRep">Отчёт и спецификация</h2><button class="sheet-close" type="button" data-act="close-sheet" aria-label="Закрыть">×</button></div>
       <div class="sheet-body">
-        <div class="tablewrap"><table id="tbl"></table></div>
         <div class="copy-row">
-          <button class="btn primary" type="button" id="copy">Скопировать отчёт</button>
+          <button class="btn primary" type="button" data-act="print">Печать / PDF</button>
+          <button class="btn" type="button" id="copy">Скопировать отчёт</button>
           <span id="msg" role="status"></span>
         </div>
+        <h3 class="sec-t">Группы линий</h3>
+        <div class="tablewrap"><table id="tbl"></table></div>
+        <h3 class="sec-t">Спецификация</h3>
+        <div class="tablewrap"><table id="spec" class="t2"></table></div>
         <textarea id="rep" readonly hidden aria-label="Текст отчёта"></textarea>
         <div class="foot">
           <p>Допустимые токи взяты из таблицы 1.3.4 ПУЭ для медных проводников, затем умножены на поправку. Алюминий не учитывается: для внутренней проводки в жилых зданиях ПУЭ требует медные жилы (п. 7.1.34).</p>
           <p>Падение напряжения считается для активной нагрузки при сопротивлении меди 0,0225 Ом·мм²/м, то есть при рабочем нагреве жилы. Дифавтомат 30 мА предусмотрен для розеточных групп и линий мощных приборов.</p>
+          <p>Длины кабеля в спецификации взяты из длин групп с запасом 10 %. Сам ввод, трассу в щиток и расход мелочи уточняйте по месту.</p>
           <p>Результат предварительный. Проект щитка и монтаж согласуйте с аттестованным электриком.</p>
         </div>
       </div>
     </div>
   </div>
 </div>
+<div class="printdoc" id="printDoc" aria-hidden="true"></div>
 
 <script>
 'use strict';
@@ -533,7 +625,8 @@ const IZ={
 const RHO=0.0225;
 const SIZES=[12,18,24,36,48,72];
 const ROWLEN={12:12,18:18,24:12,36:18,48:12,72:18};
-const KEY='raschet-shchitka-v3';
+const KEY='ampli-v1';
+const OLDKEY='raschet-shchitka-v3';
 const TYPES={
   light:{label:'Освещение',short:'Свет',kc:1,cos:0.95,minS:1.5,minIn:10,curve:'B',rcd:false,tag:'l'},
   socket:{label:'Розетки',short:'Розетки',kc:0.7,cos:0.95,minS:2.5,minIn:16,curve:'C',rcd:true,tag:'s'},
@@ -586,27 +679,62 @@ function blank(){
   return{sample:false,cfg:defaultCfg(),lines:[mkLine('Розетки','socket',15,null,null,[])]};
 }
 
-function load(){
+function normProject(o,keep){
+  if(!o||!o.cfg||!Array.isArray(o.lines))return null;
+  for(const l of o.lines){
+    if(!l||!TYPES[l.type]||!Array.isArray(l.apps))return null;
+  }
+  const lines=o.lines.map(l=>Object.assign({},l,{id:nid(),apps:l.apps.map(a=>Object.assign({},a,{id:nid()}))}));
+  return{
+    id:keep&&o.id?String(o.id):'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    name:String(o.name||'Без названия').slice(0,80),
+    address:String(o.address||'').slice(0,120),
+    client:String(o.client||'').slice(0,80),
+    author:String(o.author||'').slice(0,80),
+    created:Number(o.created)||Date.now(),
+    updated:Number(o.updated)||Date.now(),
+    sample:!!o.sample,
+    cfg:Object.assign(defaultCfg(),o.cfg),
+    lines:lines
+  };
+}
+
+function newProject(src,name){
+  return normProject(Object.assign({},src,{name:name,created:Date.now(),updated:Date.now()}));
+}
+
+function ser(p){
+  return{id:p.id,name:p.name,address:p.address,client:p.client,author:p.author,created:p.created,updated:p.updated,sample:p.sample,cfg:p.cfg,lines:p.lines};
+}
+
+function loadStore(){
   try{
     const r=localStorage.getItem(KEY);
-    if(!r)return null;
-    const o=JSON.parse(r);
-    if(!o||!o.cfg||!Array.isArray(o.lines))return null;
-    for(const l of o.lines){
-      if(!TYPES[l.type]||!Array.isArray(l.apps))return null;
-      l.id=nid();
-      l.apps.forEach(a=>{a.id=nid();});
+    if(r){
+      const o=JSON.parse(r);
+      if(o&&Array.isArray(o.list)){
+        const list=o.list.map(x=>normProject(x,true)).filter(Boolean);
+        if(list.length)return{list:list,cur:list.some(x=>x.id===o.cur)?o.cur:list[0].id};
+      }
     }
-    o.cfg=Object.assign(defaultCfg(),o.cfg);
-    return o;
-  }catch(e){return null;}
+    const old=localStorage.getItem(OLDKEY);
+    if(old){
+      const q=JSON.parse(old);
+      const pr=normProject(Object.assign({},q,{name:'Моя квартира'}));
+      if(pr)return{list:[pr],cur:pr.id};
+    }
+  }catch(e){}
+  const pr=newProject(sample(),'Пример: двухкомнатная квартира');
+  return{list:[pr],cur:pr.id};
 }
 
 function save(){
-  try{localStorage.setItem(KEY,JSON.stringify({sample:S.sample,cfg:S.cfg,lines:S.lines}));}catch(e){}
+  S.updated=Date.now();
+  try{localStorage.setItem(KEY,JSON.stringify({cur:ST.cur,list:ST.list.map(ser)}));}catch(e){}
 }
 
-let S=load()||sample();
+let ST=loadStore();
+let S=ST.list.find(x=>x.id===ST.cur);
 S.sel=S.lines.length?S.lines[0].id:null;
 
 const selLine=()=>S.lines.find(x=>x.id===S.sel)||null;
@@ -750,6 +878,44 @@ function balance(){
     x.l.phase=p;
     load[p]+=x.r.I;
   });
+}
+
+function poles(r){
+  if(r.three)return r.rcd?'4P':'3P';
+  return r.rcd?'1P+N':'1P';
+}
+
+function protFull(r){
+  return (r.rcd?'Дифавтомат ':'Автомат ')+poles(r)+' '+r.curve+r.In+(r.rcd?' 30 мА':'');
+}
+
+function buildSpec(a){
+  const c=a.c;
+  const items=[];
+  items.push({name:'Щиток на '+a.size+' модулей',qty:'1 шт',note:'с запасом 20 % свободных модулей'});
+  if(a.inIn)items.push({name:'Вводной автомат '+(c.supply===3?'4P':'2P')+' C'+a.inIn,qty:'1 шт',note:'ток линии ввода '+fmt(a.Itot,0)+' А'});
+  const dev=new Map();
+  const cab=new Map();
+  a.rows.forEach((x,idx)=>{
+    const r=x.r;
+    if(r.empty||!r.In)return;
+    const k=protFull(r);
+    if(!dev.has(k))dev.set(k,{name:k,n:0,g:[]});
+    const d=dev.get(k);
+    d.n++;
+    d.g.push('Г'+(idx+1));
+    const ck=cableName(r);
+    if(!cab.has(ck))cab.set(ck,{name:ck,m:0,g:[]});
+    const cc=cab.get(ck);
+    cc.m+=r.len;
+    cc.g.push('Г'+(idx+1));
+  });
+  dev.forEach(d=>items.push({name:d.name,qty:d.n+' шт',note:d.g.join(', ')}));
+  if(a.inS)items.push({name:'ВВГнг(А)-LS '+(c.supply===3?5:3)+'×'+fs(a.inS),qty:'по месту',note:'кабель ввода в щиток'});
+  cab.forEach(cc=>items.push({name:cc.name,qty:cc.m>0?Math.ceil(cc.m*1.1)+' м':'длина не задана',note:cc.g.join(', ')+(cc.m>0?'; запас 10 %':'')}));
+  items.push({name:'Шина N (нулевая)',qty:'1 шт',note:''});
+  items.push({name:'Шина PE (заземления)',qty:'1 шт',note:''});
+  return items;
 }
 
 const protName=r=>(r.rcd?'Дифавтомат ':'Автомат ')+r.curve+r.In+(r.rcd?' · 30 мА':'');
@@ -941,6 +1107,52 @@ function paintTable(a){
   $('#tbl').innerHTML=h;
 }
 
+function paintSpec(a){
+  const it=buildSpec(a);
+  let h='<thead><tr><th>Позиция</th><th class="num">Количество</th><th>Примечание</th></tr></thead><tbody>';
+  it.forEach(x=>{
+    h+='<tr><td class="t-name">'+esc(x.name)+'</td><td class="num" data-label="Количество">'+esc(x.qty)+'</td><td data-label="Примечание">'+esc(x.note||'—')+'</td></tr>';
+  });
+  h+='</tbody>';
+  $('#spec').innerHTML=h;
+}
+
+const dfmt=t=>new Date(t).toLocaleDateString('ru-RU');
+
+function paintProjBar(){
+  $('#pbName').textContent=S.name||'Без названия';
+  const parts=[];
+  if(S.address)parts.push(S.address);
+  parts.push(S.lines.length+' '+plural(S.lines.length,['группа','группы','групп']));
+  $('#pbSub').textContent=parts.join(' · ');
+}
+
+function plural(n,f){
+  const a=Math.abs(n)%100,b=a%10;
+  if(a>10&&a<20)return f[2];
+  if(b>1&&b<5)return f[1];
+  if(b===1)return f[0];
+  return f[2];
+}
+
+function renderProjList(){
+  $('#pjCount').textContent=ST.list.length+' '+plural(ST.list.length,['проект','проекта','проектов']);
+  $('#pjList').innerHTML=ST.list.map(p=>{
+    const cur=p.id===ST.cur;
+    return '<div class="pj'+(cur?' cur':'')+'">'+
+      '<button class="pj-open" type="button" data-act="pj-open" data-id="'+esc(p.id)+'"'+(cur?' aria-current="true"':'')+'>'+
+      '<span class="pj-name">'+esc(p.name||'Без названия')+'</span>'+
+      '<span class="pj-sub">'+(cur?'Открыт · ':'')+p.lines.length+' '+plural(p.lines.length,['группа','группы','групп'])+' · '+dfmt(p.updated)+'</span></button>'+
+      '<button class="btn" type="button" data-act="pj-dup" data-id="'+esc(p.id)+'">Копия</button>'+
+      '<button class="btn danger" type="button" data-act="pj-del" data-id="'+esc(p.id)+'">Удалить</button>'+
+      '</div>';
+  }).join('');
+}
+
+function syncMeta(){
+  document.querySelectorAll('#meta [data-p]').forEach(el=>{el.value=S[el.dataset.p]||'';});
+}
+
 function paintHeader(a){
   $('#hP').textContent=a.P>0?fmt(a.P/1000,1)+' кВт':'—';
   $('#hI').textContent=a.Itot>0?fmt(a.Itot,0)+' А':'—';
@@ -953,7 +1165,10 @@ function paintHeader(a){
 function reportText(a){
   const c=a.c;
   const out=[];
-  out.push('Расчёт щитка квартиры');
+  out.push('Расчёт электрощита: '+(S.name||'Без названия'));
+  if(S.address)out.push('Объект: '+S.address);
+  if(S.client)out.push('Заказчик: '+S.client);
+  if(S.author)out.push('Исполнитель: '+S.author);
   out.push('Питание: '+(c.supply===3?'3 фазы, 400 В':'1 фаза, 230 В')+'; прокладка: '+(c.method==='wall'?'скрытая':'открытая')+'; допустимое падение напряжения: '+fmt(c.drop,0)+' %');
   out.push('');
   a.rows.forEach((x,i)=>{
@@ -969,6 +1184,9 @@ function reportText(a){
   out.push('Вводной автомат: '+(a.inIn?(c.supply===3?'4P':'2P')+' C'+a.inIn:'—')+(a.inS?', кабель '+fs(a.inS)+' мм²':''));
   if(a.phases)out.push('Фазы: L1 '+fmt(a.phases.L1,1)+' А, L2 '+fmt(a.phases.L2,1)+' А, L3 '+fmt(a.phases.L3,1)+' А');
   out.push('Щиток: '+a.size+' модулей');
+  out.push('');
+  out.push('Спецификация:');
+  buildSpec(a).forEach(x=>{out.push('- '+x.name+' — '+x.qty+(x.note?' ('+x.note+')':''));});
   return out.join('\n');
 }
 
@@ -991,6 +1209,8 @@ function update(){
   paintEditor(a);
   paintSide(a);
   paintTable(a);
+  paintSpec(a);
+  paintProjBar();
   paintHeader(a);
   paintNetChips();
   save();
@@ -1140,6 +1360,51 @@ document.addEventListener('click',e=>{
     openSheet('sheetNet',b);
   }else if(act==='open-report'){
     openSheet('sheetRep',b);
+  }else if(act==='open-proj'){
+    syncMeta();
+    renderProjList();
+    openSheet('sheetProj',b);
+  }else if(act==='pj-open'){
+    closeSheets();
+    openProject(b.dataset.id);
+  }else if(act==='pj-new'){
+    addProject(blank(),'Проект '+(ST.list.length+1));
+    syncMeta();
+    const ni=$('#mName');
+    ni.focus();
+    ni.select();
+  }else if(act==='pj-sample'){
+    addProject(sample(),'Пример: двухкомнатная квартира');
+    syncMeta();
+  }else if(act==='pj-dup'){
+    const src=ST.list.find(x=>x.id===b.dataset.id);
+    if(src){
+      const cp=newProject(Object.assign({},ser(src),{sample:false}),(src.name||'Без названия')+' (копия)');
+      ST.list.splice(ST.list.indexOf(src)+1,0,cp);
+      openProject(cp.id);
+      syncMeta();
+      renderProjList();
+      pjMsg('Копия создана');
+    }
+  }else if(act==='pj-del'){
+    const id=b.dataset.id;
+    armBtn(b,()=>{
+      ST.list=ST.list.filter(x=>x.id!==id);
+      if(!ST.list.length){
+        const pr=newProject(blank(),'Новый проект');
+        ST.list.push(pr);
+      }
+      if(!ST.list.some(x=>x.id===ST.cur))openProject(ST.list[0].id);
+      syncMeta();
+      renderProjList();
+      save();
+    },'Точно удалить?');
+  }else if(act==='pj-export'){
+    exportProject();
+  }else if(act==='pj-import'){
+    $('#pjFile').click();
+  }else if(act==='print'){
+    doPrint();
   }else if(act==='close-sheet'){
     closeSheets();
   }else if(act==='add-line'){
@@ -1216,8 +1481,17 @@ document.addEventListener('click',e=>{
   }
 });
 
-document.querySelectorAll('.js-sample').forEach(b=>b.addEventListener('click',()=>armBtn(b,()=>{S=sample();S.sel=S.lines[0].id;closeSheets();setView('groups');renderAll();})));
-document.querySelectorAll('.js-blank').forEach(b=>b.addEventListener('click',()=>armBtn(b,()=>{S=blank();S.sel=S.lines[0].id;closeSheets();setView('groups');renderAll();})));
+function replaceContent(src){
+  S.sample=src.sample;
+  S.cfg=src.cfg;
+  S.lines=src.lines;
+  S.sel=S.lines[0].id;
+  closeSheets();
+  setView('groups');
+  renderAll();
+}
+document.querySelectorAll('.js-sample').forEach(b=>b.addEventListener('click',()=>armBtn(b,()=>replaceContent(sample()))));
+document.querySelectorAll('.js-blank').forEach(b=>b.addEventListener('click',()=>armBtn(b,()=>replaceContent(blank()))));
 
 $('#copy').addEventListener('click',async()=>{
   const txt=reportText(calcAll());
@@ -1239,7 +1513,135 @@ $('#copy').addEventListener('click',async()=>{
   setTimeout(()=>{msg.textContent='';},4000);
 });
 
+function openProject(id){
+  const p=ST.list.find(x=>x.id===id);
+  if(!p)return;
+  S=p;
+  ST.cur=id;
+  S.sel=S.lines.length?S.lines[0].id:null;
+  setView('groups');
+  window.scrollTo(0,0);
+  renderAll();
+}
+
+function pjMsg(t,bad){
+  const m=$('#pjMsg');
+  m.style.color=bad?'var(--bad)':'var(--ok)';
+  m.textContent=t;
+  setTimeout(()=>{m.textContent='';},5000);
+}
+
+function uniqName(n){
+  const names=ST.list.map(x=>x.name);
+  if(!names.includes(n))return n;
+  let i=2;
+  while(names.includes(n+' '+i))i++;
+  return n+' '+i;
+}
+
+function addProject(src,name){
+  const pr=newProject(src,uniqName(name));
+  ST.list.push(pr);
+  openProject(pr.id);
+  renderProjList();
+  return pr;
+}
+
+function slug(t){
+  return (String(t).toLowerCase().replace(/[^a-zа-яё0-9]+/g,'-').replace(/^-+|-+$/g,'')||'project').slice(0,40);
+}
+
+function exportProject(){
+  try{
+    const text=JSON.stringify(Object.assign({app:'ampli',version:1},ser(S)),null,2);
+    const u=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+    const a=document.createElement('a');
+    a.href=u;
+    a.download='ampli-'+slug(S.name)+'.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),2000);
+    pjMsg('Файл сохранён');
+  }catch(e){
+    pjMsg('Не удалось сохранить файл на этом устройстве',true);
+  }
+}
+
+function importText(text){
+  let o;
+  try{o=JSON.parse(text);}catch(e){pjMsg('Файл не похож на проект Ampli',true);return;}
+  const arr=Array.isArray(o)?o:(o&&Array.isArray(o.list)?o.list:[o]);
+  const added=arr.map(x=>normProject(x)).filter(Boolean);
+  if(!added.length){pjMsg('В файле нет проекта Ampli',true);return;}
+  added.forEach(x=>ST.list.push(x));
+  openProject(added[added.length-1].id);
+  renderProjList();
+  pjMsg('Добавлено проектов: '+added.length);
+}
+
+$('#pjFile').addEventListener('change',e=>{
+  const f=e.target.files&&e.target.files[0];
+  if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{importText(String(rd.result));e.target.value='';};
+  rd.onerror=()=>{pjMsg('Не удалось прочитать файл',true);};
+  rd.readAsText(f);
+});
+
+$('#meta').addEventListener('input',e=>{
+  const f=e.target.dataset.p;
+  if(!f)return;
+  S[f]=e.target.value;
+  if(f==='name'&&!S.name.trim())S.name='';
+  S.sample=false;
+  $('#sampleNote').hidden=true;
+  paintProjBar();
+  renderProjList();
+  save();
+});
+
+function esct(v){return esc(v==null?'':v);}
+
+function printHTML(a){
+  const c=a.c;
+  const three=c.supply===3;
+  let h='<h1>Расчёт электрощита</h1><p class="pd-sub">'+esct(S.name||'Без названия')+'</p>';
+  h+='<div class="pd-meta">';
+  if(S.address)h+='<div><span>Объект: </span>'+esct(S.address)+'</div>';
+  if(S.client)h+='<div><span>Заказчик: </span>'+esct(S.client)+'</div>';
+  if(S.author)h+='<div><span>Исполнитель: </span>'+esct(S.author)+'</div>';
+  h+='<div><span>Дата: </span>'+dfmt(Date.now())+'</div></div>';
+  h+='<p><span style="color:#555">Питание: </span>'+(three?'3 фазы, 400 В':'1 фаза, 230 В')+'; <span style="color:#555">прокладка: </span>'+(c.method==='wall'?'скрытая':'открытая')+'; <span style="color:#555">падение напряжения не более </span>'+fmt(c.drop,0)+' %; <span style="color:#555">Ко </span>'+fs(c.ko)+'; <span style="color:#555">поправка </span>'+fs(c.k)+'</p>';
+  h+='<h2>Группы линий</h2><table><thead><tr><th>№</th><th>Группа</th>'+(three?'<th>Фаза</th>':'')+'<th class="r">Уст., Вт</th><th class="r">Ток, А</th><th>Защита</th><th>Кабель</th><th class="r">ΔU, %</th><th>Статус</th></tr></thead><tbody>';
+  a.rows.forEach((x,i)=>{
+    const r=x.r;
+    h+='<tr><td>Г'+(i+1)+'</td><td>'+esct(x.l.name||'Без названия')+'</td>'+(three?'<td>'+(r.three?'3Ф':esct(x.l.phase))+'</td>':'');
+    if(r.empty){h+='<td class="r">0</td><td class="r">—</td><td colspan="4">нет приборов</td></tr>';return;}
+    h+='<td class="r">'+fmt(r.pInst,0)+'</td><td class="r">'+fmt(r.I,1)+'</td><td>'+(r.In?esct(protName(r)):'—')+'</td><td>'+(r.In?esct(cableName(r)):'—')+'</td><td class="r">'+(r.In?fmt(r.drop,1):'—')+'</td><td>'+STATUS[r.status]+'</td></tr>';
+  });
+  h+='</tbody><tfoot><tr><td colspan="'+(three?3:2)+'">Всего</td><td class="r">'+fmt(a.sumInst,0)+'</td><td class="r">'+fmt(a.Itot,1)+'</td><td colspan="4">Расчётная мощность '+fmt(a.P/1000,1)+' кВт</td></tr></tfoot></table>';
+  h+='<h2>Ввод и щиток</h2><p>Вводной автомат: '+(a.inIn?(three?'4P':'2P')+' C'+a.inIn:'—')+(a.inS?', кабель ввода '+fs(a.inS)+' мм²':'')+'. Щиток на '+a.size+' модулей, занято '+a.modSum+'.</p>';
+  if(a.phases)h+='<p>Токи по фазам: L1 '+fmt(a.phases.L1,1)+' А, L2 '+fmt(a.phases.L2,1)+' А, L3 '+fmt(a.phases.L3,1)+' А; перекос '+fmt(a.imb,0)+' %.</p>';
+  h+='<p>Выделенная мощность '+fmt(c.alloc,1)+' кВт: '+(a.P/1000<=c.alloc*0.9?'укладывается':(a.P/1000<=c.alloc?'на пределе':'превышение'))+'.</p>';
+  h+='<h2>Спецификация</h2><table><thead><tr><th>Позиция</th><th class="r">Количество</th><th>Примечание</th></tr></thead><tbody>';
+  buildSpec(a).forEach(x=>{h+='<tr><td>'+esct(x.name)+'</td><td class="r">'+esct(x.qty)+'</td><td>'+esct(x.note)+'</td></tr>';});
+  h+='</tbody></table>';
+  h+='<p class="pd-note">Допустимые токи по таблице 1.3.4 ПУЭ для медных проводников с поправкой. Падение напряжения при сопротивлении меди 0,0225 Ом·мм²/м. Длины кабеля даны с запасом 10 %, ввод и мелочь уточняются по месту. Результат предварительный: проект щитка и монтаж согласуйте с аттестованным электриком.</p>';
+  h+='<div class="pd-foot">Ampli · '+dfmt(Date.now())+'</div>';
+  return h;
+}
+
+function doPrint(){
+  $('#printDoc').innerHTML=printHTML(calcAll());
+  const prev=document.title;
+  document.title='Ampli — '+(S.name||'расчёт');
+  try{window.print();}catch(e){}
+  document.title=prev;
+}
+
 renderAll();
+paintProjBar();
 </script>
 
 </body>
