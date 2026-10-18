@@ -95,7 +95,7 @@ h1,h2,h3,p{margin:0}
 h2{font-size:17px;font-weight:700;letter-spacing:-0.005em}
 button{font:inherit;color:inherit}
 svg{display:block;flex:none}
-.lbl{display:block;font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--ink-2)}
+.lbl{display:block;font-size:13px;font-weight:500;color:var(--ink-2);line-height:1.3}
 .muted{color:var(--ink-2);font-size:14px}
 .mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
 
@@ -121,8 +121,8 @@ svg{display:block;flex:none}
 .btn.ghost{background:transparent}
 .btn.sm{min-height:38px;padding:0 14px}
 .link{border:0;background:transparent;color:var(--accent);font-weight:600;text-decoration:underline;cursor:pointer;padding:0}
-.btn,.ab-btn,.ab-back,.row,.chip,.nchip,.tabs button,.step button,.icon-btn,.sheet-close{touch-action:manipulation}
-.btn:focus-visible,.ab-btn:focus-visible,.ab-back:focus-visible,.row:focus-visible,.chip:focus-visible,.nchip:focus-visible,.tabs button:focus-visible,.step button:focus-visible,.icon-btn:focus-visible,.sheet-close:focus-visible,input:focus-visible,select:focus-visible,.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn,.ab-btn,.ab-back,.row,.chip,.netline,.projbar,.tabs button,.step button,.icon-btn,.sheet-close{touch-action:manipulation}
+.btn:focus-visible,.ab-btn:focus-visible,.ab-back:focus-visible,.row:focus-visible,.chip:focus-visible,.netline:focus-visible,.projbar:focus-visible,.tabs button:focus-visible,.step button:focus-visible,.icon-btn:focus-visible,.sheet-close:focus-visible,input:focus-visible,select:focus-visible,.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 input,select{font:inherit;font-size:15px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:0 12px;height:44px;width:100%;min-width:0}
 input[type=number]{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
@@ -156,10 +156,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .workspace{width:100%;max-width:1560px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(86px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:block}
 .col{min-width:0;display:grid;gap:14px;align-content:start}
 .main-col{display:contents}
-.netchips{display:flex;flex-wrap:wrap;gap:8px}
-.nchip{min-height:36px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
-.nchip:hover{border-color:var(--accent);color:var(--accent)}
-.sample{font-size:14px;color:var(--accent);background:var(--accent-soft);padding:10px 12px;border-radius:10px;line-height:1.4}
+.netchips{display:block}
+.netline{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);cursor:pointer;text-align:left;color:var(--ink)}
+.netline:hover{border-color:var(--accent)}
+.netline>svg{width:20px;height:20px;color:var(--ink-2);flex:none}
+.nl-items{flex:1;min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;font-size:14px;font-weight:600}
+.nl-items span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nl-items small{display:block;font-size:12px;font-weight:500;color:var(--ink-2)}
+.netline .chev{width:18px;height:18px;color:var(--ink-2)}
+.sample{font-size:13px;color:var(--ink-2);background:transparent;border:1px dashed var(--line);padding:9px 12px;border-radius:12px;line-height:1.4}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
 .kpi-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .kpi-top b{font-family:var(--font-mono);font-size:22px;font-weight:700}
@@ -174,8 +179,10 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .row-name{font-weight:600;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row-sub{font-size:13px;color:var(--ink-2);overflow-wrap:anywhere}
 .row-end{display:flex;align-items:center;gap:8px}
-.brk{font-family:var(--font-mono);font-weight:700;font-size:14px;border:1.5px solid var(--ink);border-radius:7px;padding:3px 8px;min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+.brk{position:relative;font-family:var(--font-mono);font-weight:700;font-size:14px;border:1.5px solid var(--ink-2);border-radius:6px;padding:10px 8px 4px;min-width:54px;text-align:center;font-variant-numeric:tabular-nums;background:var(--surface);line-height:1.2}
+.brk::before{content:"";position:absolute;top:3px;left:50%;width:14px;height:4px;margin-left:-7px;border-radius:2px;background:var(--ink-2)}
 .brk.rcd{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.brk.rcd::before{background:var(--accent-ink);opacity:.75}
 .flag{width:22px;height:22px;border-radius:50%;font-size:13px;font-weight:700;display:grid;place-items:center}
 .flag.warn{background:var(--warn-soft);color:var(--warn)}
 .flag.bad{background:var(--bad-soft);color:var(--bad)}
@@ -204,7 +211,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .grid3{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);gap:12px}
 .apps{display:grid;gap:10px}
 .app{display:grid;grid-template-columns:minmax(0,1fr) 120px 140px 44px;gap:8px;align-items:center}
-.app-h span{font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--ink-2)}
+.app-h span{font-size:13px;font-weight:500;color:var(--ink-2)}
 .a-w,.a-n{display:flex;flex-direction:column;gap:4px;min-width:0}
 .a-lbl{display:none}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -233,15 +240,40 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .phase span.n{font-family:var(--font-mono);font-weight:700;font-size:13px}
 .phase .meter{height:12px}
 .phase b{font-family:var(--font-mono);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
-.rail-wrap{overflow-x:auto;margin-top:12px}
-.rail{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:3px;min-width:calc(var(--cols)*28px);padding:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px}
-.dev{height:60px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:var(--font-mono);overflow:hidden;min-width:0}
-.dev b{font-size:11px;font-weight:700;line-height:1}
-.dev i{font-style:normal;font-size:8px;line-height:1;white-space:nowrap}
+.rail-wrap{overflow-x:auto;margin-top:12px;border-radius:12px;container-type:inline-size}
+@container (max-width:430px){
+  .rail[style*="--rc:12"]{--cols:6}
+  .rail[style*="--rc:18"]{--cols:9}
+}
+@container (min-width:431px) and (max-width:560px){
+  .rail[style*="--rc:18"]{--cols:9}
+}
+.rail{--cols:var(--rc);display:grid;grid-template-columns:repeat(var(--cols),minmax(30px,1fr));grid-auto-rows:68px;gap:14px 3px;padding:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;background-image:linear-gradient(to bottom,transparent 0 69px,var(--line) 69px 76px,transparent 76px 82px);background-size:100% 82px;background-position:0 12px;background-repeat:repeat-y}
+.dev{position:relative;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:var(--font-mono);overflow:hidden;min-width:0;padding-top:10px}
+.dev::before{content:"";position:absolute;top:5px;left:50%;width:min(14px,44%);height:7px;margin-left:calc(min(14px,44%)/-2);border-radius:2px;background:currentColor;opacity:.6}
+.dev b{font-size:12px;font-weight:700;line-height:1}
+.dev i{font-style:normal;font-size:9.5px;line-height:1;white-space:nowrap;opacity:.9}
 .dev-in{background:var(--ink);color:var(--bg)}
 .dev-rcd{background:var(--accent);color:var(--accent-ink)}
-.dev-mcb{background:var(--surface);color:var(--ink);border:1px solid var(--ink-2)}
-.dev-free{border:1px dashed var(--ink-2);opacity:0.55}
+.dev-mcb{background:var(--surface);color:var(--ink);border:1.5px solid var(--ink-2)}
+.dev-free{border:1px dashed var(--ink-2);opacity:0.5;background:transparent}
+.dev-free::before{display:none}
+.sc{display:grid;gap:0}
+.sc-r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.sc-r:first-child{border-top:0;padding-top:0}
+.sc-name{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-sub{grid-column:2;font-size:13px;color:var(--ink-2)}
+.sc-r b{font-family:var(--font-mono);font-size:14px;text-align:right;grid-row:1;grid-column:3}
+.sc-r .sc-m{grid-column:3;grid-row:2;font-size:13px;color:var(--ink-2);text-align:right}
+.gl{display:grid;gap:14px}
+.gl-r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 10px;align-items:center}
+.gl-name{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gl-r b{font-family:var(--font-mono);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gl-bar{grid-column:1/-1;height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden}
+.gl-bar i{display:block;height:100%;border-radius:5px;background:var(--accent)}
+.gl-bar i.warn{background:var(--warn)}
+.gl-bar i.bad{background:var(--bad)}
+.gl-hint{font-size:13px;color:var(--ink-2);margin:0 0 14px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:12px;color:var(--ink-2)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
@@ -259,7 +291,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .data-row{display:flex;flex-wrap:wrap;gap:10px;padding-top:4px}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 table{border-collapse:collapse;width:100%;min-width:760px;font-size:13px}
-th{font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--ink-2);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12.5px;font-weight:600;color:var(--ink-2);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:0}
 td.num,th.num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -274,7 +306,7 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 .projbar:hover{border-color:var(--accent)}
 .projbar>svg{width:22px;height:22px;color:var(--accent)}
 .pb-main{flex:1;min-width:0;display:grid}
-.pb-name{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pb-name{font-weight:700;font-size:15px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pb-sub{font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pb-more{font-size:13px;font-weight:600;color:var(--accent);white-space:nowrap}
 .sec-t{font-size:13px;font-weight:700;letter-spacing:0.02em;margin:0}
@@ -297,6 +329,12 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 }
 
 @media (min-width:1000px){
+  .pane-sum,.pane-panel{display:contents}
+  .c-total{order:1}
+  .c-phase{order:2}
+  .c-panel{order:3}
+  .c-reserve{order:4}
+  .c-sched{order:5}
   .tabs{display:none}
   body{overflow:hidden}
   .workspace{height:calc(100vh - var(--bar) - env(safe-area-inset-top,0px));height:calc(100dvh - var(--bar) - env(safe-area-inset-top,0px));padding-block:16px;display:grid;grid-template-columns:350px minmax(0,1fr);gap:20px}
@@ -373,7 +411,7 @@ tfoot td{font-weight:700;background:var(--surface-2)}
   tfoot tr{background:var(--surface-2)}
   td,tfoot td{display:block;border:0;padding:0;background:transparent;text-align:left}
   td.num,td.mono{text-align:left;white-space:normal;overflow-wrap:anywhere}
-  td[data-label]::before{content:attr(data-label);display:block;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-2)}
+  td[data-label]::before{content:attr(data-label);display:block;font-size:12px;font-weight:500;color:var(--ink-2)}
   td.t-no::before,td.t-name::before{display:none}
   td.t-no{grid-column:1/-1;font-size:12px;color:var(--ink-2)}
   td.t-name{grid-column:1/-1;font-weight:600;font-size:15px;margin-top:-6px}
@@ -469,7 +507,7 @@ tfoot td{font-weight:700;background:var(--surface-2)}
         <span class="pb-more">Проекты</span>
       </button>
       <div class="netchips" id="netChips"></div>
-      <div class="sample" id="sampleNote" hidden>Это пример двухкомнатной квартиры. Нажмите на группу, чтобы изменить приборы, длину и фазу. <button class="link js-blank" type="button">Начать с нуля</button></div>
+      <div class="sample" id="sampleNote" hidden>Пример двухкомнатной квартиры. Нажмите на группу, чтобы изменить её. <button class="link js-blank" type="button">Начать с нуля</button></div>
       <div class="kpi" id="kpi"></div>
       <div class="list-head"><h2>Группы линий</h2><span class="count" id="count"></span></div>
       <div class="rows" id="rows"></div>
@@ -977,7 +1015,7 @@ function editorHTML(l,idx){
     (three?'<div class="blk"><span class="lbl">Фаза</span>'+segHTML('p-'+l.id,'phase',l.phase,phItems)+'</div>':'')+
     '<div class="grid3">'+
     '<div class="f len-f"><span class="lbl">Длина линии</span><div class="step"><button type="button" data-act="lstep" data-d="-1" aria-label="Короче">−</button><input data-f="len" type="number" inputmode="decimal" min="0" step="any" value="'+esc(l.len)+'" aria-label="Длина линии, м"><button type="button" data-act="lstep" data-d="1" aria-label="Длиннее">+</button></div></div>'+
-    '<label class="f"><span class="lbl">Кс (спрос)</span><input data-f="kc" type="number" inputmode="decimal" min="0.05" max="1" step="0.05" value="'+esc(l.kc)+'"></label>'+
+    '<label class="f"><span class="lbl">Коэффициент спроса</span><input data-f="kc" type="number" inputmode="decimal" min="0.05" max="1" step="0.05" value="'+esc(l.kc)+'"></label>'+
     '<label class="f"><span class="lbl">cos φ</span><input data-f="cos" type="number" inputmode="decimal" min="0.3" max="1" step="0.05" value="'+esc(l.cos)+'"></label>'+
     '</div>'+
     '<div class="blk"><span class="lbl">Приборы</span><div class="apps">'+head+apps+'</div></div>'+
@@ -1043,8 +1081,11 @@ function paintList(a){
 
 function paintNetChips(){
   const c=cfgN();
-  const items=[c.supply===3?'3 фазы · 400 В':'1 фаза · 230 В',c.method==='wall'?'Скрытая прокладка':'Открытая прокладка','ΔU ≤ '+fmt(c.drop,0)+' %','Выделено '+fmt(c.alloc,1)+' кВт'];
-  $('#netChips').innerHTML=items.map(t=>'<button class="nchip" type="button" data-act="open-net">'+esc(t)+'</button>').join('');
+  const items=[['Питание',c.supply===3?'3 фазы, 400 В':'1 фаза, 230 В'],['Прокладка',c.method==='wall'?'Скрытая':'Открытая'],['Потеря напряжения','до '+fmt(c.drop,0)+' %'],['Выделено',fmt(c.alloc,1)+' кВт']];
+  $('#netChips').innerHTML='<button class="netline" type="button" data-act="open-net" aria-label="Параметры сети">'+
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h9M19 8h1M4 16h1M11 16h9"/><circle cx="16" cy="8" r="2.5"/><circle cx="8" cy="16" r="2.5"/></svg>'+
+    '<span class="nl-items">'+items.map(t=>'<span><small>'+esc(t[0])+'</small>'+esc(t[1])+'</span>').join('')+'</span>'+
+    '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>';
 }
 
 function kv(l,v,s){return '<div class="kv"><span class="lbl">'+l+'</span><b>'+v+'</b>'+(s?'<small>'+s+'</small>':'')+'</div>';}
@@ -1062,7 +1103,7 @@ function paintSide(a){
   const meter='<div class="meter" role="img" aria-label="Загрузка выделенной мощности '+Math.round(pct)+' %"><i class="'+(ac==='ok'?'':ac)+'" style="width:'+Math.min(100,Math.max(0,pct))+'%"></i></div>';
   $('#kpi').innerHTML='<div class="kpi-top"><span><b>'+fmt(a.P/1000,1)+' кВт</b> из '+fmt(c.alloc,1)+'</span><span class="pill '+ac+'">'+at+'</span></div>'+meter+
     '<div class="kpi-sub">Ввод '+inDev+(a.inS?' · '+fs(a.inS)+' мм²':'')+' · щиток на '+a.size+' мод.</div>';
-  let sum='<section class="card"><div class="card-head"><h2>Итого по квартире</h2></div>'+
+  let sum='<section class="card c-total"><div class="card-head"><h2>Итого по квартире</h2></div>'+
     '<div class="kvs">'+kv('Установлено',fmt(a.sumInst/1000,1)+' кВт')+kv('Расчётная',fmt(a.P/1000,1)+' кВт')+kv(c.supply===3?'Макс. фаза':'Ток ввода',fmt(a.Itot,0)+' А')+'</div>'+
     '<div class="alloc"><div class="alloc-top"><span class="lbl">Выделено '+fmt(c.alloc,1)+' кВт</span><span class="pill '+ac+'">'+at+'</span></div>'+meter+'</div>'+
     '<dl class="dl"><dt>Вводной автомат</dt><dd>'+inDev+'</dd><dt>Вводной кабель</dt><dd>'+inCab+'</dd></dl></section>';
@@ -1070,19 +1111,37 @@ function paintSide(a){
     const mx=Math.max(a.phases.L1,a.phases.L2,a.phases.L3,0.001);
     const cols={L1:'var(--l1)',L2:'var(--l2)',L3:'var(--l3)'};
     const bars=['L1','L2','L3'].map(k=>'<div class="phase"><span class="n">'+k+'</span><div class="meter"><i style="width:'+(a.phases[k]/mx*100)+'%;background:'+cols[k]+'"></i></div><b>'+fmt(a.phases[k],1)+' А</b></div>').join('');
-    sum+='<section class="card"><div class="card-head"><h2>Нагрузка по фазам</h2><button class="btn sm" type="button" data-act="balance">Выровнять</button></div>'+
+    sum+='<section class="card c-phase"><div class="card-head"><h2>Нагрузка по фазам</h2><button class="btn sm" type="button" data-act="balance">Выровнять</button></div>'+
       '<span class="pill '+(a.imb>25?'warn':'ok')+'">'+(a.imb>25?'Перекос '+fmt(a.imb,0)+' %':'Распределено ровно')+'</span>'+bars+'</section>';
+  }
+  const gl=a.rows.filter(x=>!x.r.empty&&x.r.In);
+  if(gl.length){
+    sum+='<section class="card c-reserve"><div class="card-head"><h2>Запас автоматов</h2></div><p class="gl-hint">Какую часть номинала автомата занимает ток группы.</p><div class="gl">'+gl.map(x=>{
+      const u=x.r.I/x.r.In*100;
+      const cl=u>100?'bad':(u>80?'warn':'');
+      return '<div class="gl-r"><span class="no">Г'+(a.rows.indexOf(x)+1)+'</span><span class="gl-name">'+esc(x.l.name||'Без названия')+'</span><b>'+fmt(x.r.I,1)+' из '+x.r.In+' А</b><div class="gl-bar" role="img" aria-label="Загрузка автомата '+Math.round(u)+' %"><i class="'+cl+'" style="width:'+Math.min(100,u)+'%"></i></div></div>';
+    }).join('')+'</div></section>';
   }
   const devsHtml=a.devs.map(d=>'<div class="dev dev-'+d.kind+'" style="grid-column:span '+d.mod+'" title="'+esc(d.title)+'"><b>'+d.label+'</b><i>'+d.sub+'</i></div>').join('');
   const free=Math.max(0,a.size-a.placed);
   let freeHtml='';
   for(let i=0;i<free;i++)freeHtml+='<div class="dev dev-free" title="Резерв"></div>';
-  const panel='<section class="card"><div class="card-head"><h2>Щиток</h2></div>'+
+  const panel='<section class="card c-panel"><div class="card-head"><h2>Щиток</h2></div>'+
     '<p class="muted">Приборов на '+a.modSum+' мод. Нужен корпус на <b>'+a.size+'</b> мод. с запасом 20 %'+(a.fits?'.':', но и он тесен: разделите щиток на два.')+'</p>'+
-    '<div class="rail-wrap"><div class="rail" style="--cols:'+ROWLEN[a.size]+'">'+devsHtml+freeHtml+'</div></div>'+
+    '<div class="rail-wrap"><div class="rail" style="--rc:'+ROWLEN[a.size]+'">'+devsHtml+freeHtml+'</div></div>'+
     '<div class="legend"><span><i class="dev-in"></i>Ввод</span><span><i class="dev-rcd"></i>Дифавтомат 30 мА</span><span><i class="dev-mcb" style="border:1px solid var(--ink-2)"></i>Автомат</span><span><i class="dev-free" style="border:1px dashed var(--ink-2)"></i>Резерв</span></div></section>';
+  let sched='<section class="card c-sched"><div class="card-head"><h2>Состав щитка</h2></div><div class="sc">';
+  const nameOf={};
+  a.rows.forEach((x,i)=>{nameOf['Г'+(i+1)]=x.l.name||'Без названия';});
+  a.devs.forEach(d=>{
+    const g=d.kind==='in'?'':d.sub.split(' ')[0];
+    sched+='<div class="sc-r">'+(d.kind==='in'?'<span class="no">Ввод</span>':'<span class="no">'+esc(g)+'</span>')+
+      '<span class="sc-name">'+esc(d.kind==='in'?'Вводной автомат':nameOf[g])+'</span><b>'+esc(d.label)+'</b>'+
+      '<span class="sc-sub">'+(d.kind==='rcd'?'дифавтомат 30 мА':(d.kind==='in'?(c.supply===3?'4 полюса':'2 полюса'):'автомат'))+'</span><span class="sc-m">'+d.mod+' мод.</span></div>';
+  });
+  sched+='</div></section>';
   $('#paneSum').innerHTML=sum;
-  $('#panePanel').innerHTML=panel;
+  $('#panePanel').innerHTML=panel+sched;
 }
 
 function paintTable(a){
