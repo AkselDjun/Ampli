@@ -10,7 +10,7 @@ import { cableName, protName } from '../core/protection';
 import { reportText } from '../core/report';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
-import { ArmButton, Seg, Sheet, Stepper } from './common';
+import { ArmButton, Assumptions, Seg, Sheet, Stepper } from './common';
 import { Schematic } from './Schematic';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
@@ -376,6 +376,10 @@ export function ReportSheet({
       </div>
       {est.missing > 0 && Object.keys(lib.prices).length > 0 && <p className="muted">Для {est.missing} поз. цена или количество не заданы, они не входят в итог.</p>}
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
+      <details className="assum-d">
+        <summary>Допущения и источники</summary>
+        <Assumptions cfg={cfgN(p.cfg)} />
+      </details>
       <div className="foot">
         <p>Допустимые токи медных жил взяты из таблицы 1.3.4 главы 1.3 ПУЭ, на которую ссылается ТКП 339-2022, и умножены на поправку; прокладка по ГОСТ 30331.15. Групповые сети до 16 мм² выполняются медными жилами (ТКП 339-2022, п. 8.4.4), наименьшее сечение жилы 1,5 мм² (табл. 8.1).</p>
         <p>УЗО до 30 мА предусмотрены для групп освещения, розеток и мощных приборов (СН 4.04.01-2019, изм. 2, п. 16.3.3), при расчётном токе больше 32 А до 100 мА (п. 16.3.13). Потеря напряжения: 3 % для освещения и 5 % для остальных групп, на линиях длиннее 100 м допуск растёт на 0,005 % за метр, но не более чем на 0,5 % (СН 4.04.01-2019, п. 9.14); сопротивление меди 0,0225 Ом·мм²/м. Коэффициенты спроса и одновременности приняты по практике, их сверка с таблицами СН 4.04.01-2019 не выполнена.</p>
