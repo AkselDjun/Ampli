@@ -48,7 +48,7 @@ function Kpi({ a }: { a: Calc }) {
 }
 
 export function GroupList({
-  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onBlank
+  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onBlank, canUndo, canRedo, onUndo, onRedo
 }: {
   p: Project;
   a: Calc;
@@ -58,6 +58,10 @@ export function GroupList({
   onOpenProj: () => void;
   onOpenNet: () => void;
   onBlank: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
 }) {
   const c = a.c;
   const three = c.supply === 3;
@@ -100,7 +104,11 @@ export function GroupList({
       <Kpi a={a} />
       <div className="list-head">
         <h2>Группы линий</h2>
-        <span className="count">{p.lines.length ? p.lines.length + ' шт.' : ''}</span>
+        <span className="hist">
+          <button className="icon-btn" type="button" disabled={!canUndo} onClick={onUndo} aria-label="Отменить" title="Отменить (Ctrl+Z)">↶</button>
+          <button className="icon-btn" type="button" disabled={!canRedo} onClick={onRedo} aria-label="Вернуть" title="Вернуть (Ctrl+Shift+Z)">↷</button>
+          <span className="count">{p.lines.length ? p.lines.length + ' шт.' : ''}</span>
+        </span>
       </div>
       <div className="rows">
         {p.lines.length ? (

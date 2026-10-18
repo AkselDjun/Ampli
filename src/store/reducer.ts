@@ -18,11 +18,12 @@ export type Action =
   | { t: 'lineField'; field: 'name' | 'len' | 'kc' | 'cos'; value: string | number }
   | { t: 'lineType'; type: LineType }
   | { t: 'linePhase'; phase: Phase }
+  | { t: 'lineWet'; wet: boolean }
   | { t: 'appField'; id: string; field: 'name' | 'w' | 'n'; value: string | number }
   | { t: 'addApp'; name?: string; w?: number }
   | { t: 'delApp'; id: string }
   | { t: 'cfg'; field: keyof Cfg; value: string | number }
-  | { t: 'cfgStep'; field: 'alloc' | 'ko' | 'k'; d: number }
+  | { t: 'cfgStep'; field: 'alloc' | 'ko' | 'k' | 'zs'; d: number }
   | { t: 'balance' }
   | { t: 'meta'; field: 'name' | 'address' | 'client' | 'author'; value: string }
   | { t: 'replace'; content: Content }
@@ -85,6 +86,8 @@ export function reducer(s: State, a: Action): State {
       });
     case 'linePhase':
       return patchLine(s, l => ({ ...l, phase: a.phase }));
+    case 'lineWet':
+      return patchLine(s, l => ({ ...l, wet: a.wet }));
     case 'appField':
       return patchLine(s, l => ({ ...l, apps: l.apps.map(x => (x.id === a.id ? { ...x, [a.field]: a.value } : x)) }));
     case 'addApp':

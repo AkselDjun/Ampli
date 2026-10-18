@@ -60,3 +60,76 @@ describe('reducer', () => {
     expect(s1.cur).toBe(s1.list[0].id);
   });
 });
+
+import { calcLine, cfgN, shortCircuit, calcAll as calcAll2 } from './calc';
+import { mkLine, defaultCfg } from './templates';
+
+describe('norm checks', () => {
+  const cfg = cfgN(defaultCfg());
+  it('uses 10 mA RCD for wet rooms', () => {
+    const l = { ...mkLine('Ванная', 'socket', 10, null, null, [['Фен', 1800, 1]]), wet: true };
+    expect(calcLine(l, cfg).ma).toBe(10);
+  });
+  it('grows the section when the short-circuit current is too low', () => {
+    const l = mkLine('Длинная', 'socket', 60, null, null, [['Чайник', 2200, 1]]);
+    const r = calcLine(l, cfg);
+    expect(r.ik).toBeGreaterThanOrEqual(r.ikNeed);
+    expect(r.S as number).toBeGreaterThan(2.5);
+  });
+  it('flags a line that cannot trip even at 35 mm2', () => {
+    const l = mkLine('Очень длинная', 'power', 500, null, null, [['Плита', 7000, 1]]);
+    const r = calcLine(l, cfg);
+    expect(r.status).toBe('bad');
+  });
+  it('lowers the short-circuit current with a weaker source', () => {
+    expect(shortCircuit(2.5, 20, 1)).toBeLessThan(shortCircuit(2.5, 20, 0.2));
+  });
+  it('keeps the input two steps above the largest group', () => {
+    const lines = [mkLine('Свет', 'light', 10, null, null, [['Лампа', 60, 1]])];
+    const a = calcAll2(lines, defaultCfg());
+    expect(a.inStep).toBeGreaterThanOrEqual(2);
+  });
+  it('suggests a three-phase input above 12 kW', () => {
+    const lines = [mkLine('Мощная', 'power', 5, 1, 1, [['Печь', 9000, 1], ['Бойлер', 5000, 1]])];
+    const a = calcAll2(lines, { ...defaultCfg(), ko: 1 });
+    expect(a.hint3).toBe(true);
+    const b = calcAll2(lines, { ...defaultCfg(), ko: 1, supply: 3 });
+    expect(b.hint3).toBe(false);
+  });
+});
+
+import { hreducer, initH } from '../store/history';
+
+describe('history', () => {
+  const start = () => {
+    const pr = sampleProject();
+    return initH(init({ list: [pr], cur: pr.id }));
+  };
+  it('undoes and redoes edits and merges fast typing', () => {
+    let h = start();
+    h = hreducer(h, { t: 'lineField', field: 'len', value: 30 });
+    h = hreducer(h, { t: 'lineField', field: 'len', value: 31 });
+    expect(h.past.length).toBe(1);
+    h = hreducer(h, { t: 'addLine', type: 'light' });
+    expect(h.past.length).toBe(2);
+    h = hreducer(h, { t: 'undo' });
+    expect(cur(h.now).lines.length).toBe(7);
+    h = hreducer(h, { t: 'undo' });
+    expect(cur(h.now).lines[0].len).toBe(22);
+    h = hreducer(h, { t: 'redo' });
+    expect(cur(h.now).lines[0].len).toBe(31);
+  });
+  it('restores a deleted project', () => {
+    let h = start();
+    const id = h.now.cur;
+    h = hreducer(h, { t: 'delProject', id });
+    expect(h.now.cur).not.toBe(id);
+    h = hreducer(h, { t: 'undo' });
+    expect(h.now.cur).toBe(id);
+  });
+  it('does not record selection changes', () => {
+    let h = start();
+    h = hreducer(h, { t: 'select', id: cur(h.now).lines[1].id });
+    expect(h.past.length).toBe(0);
+  });
+});

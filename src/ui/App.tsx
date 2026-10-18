@@ -3,7 +3,8 @@ import { calcAll } from '../core/calc';
 import { fmt } from '../core/format';
 import type { LineType } from '../core/types';
 import { blank } from '../core/templates';
-import { cur, init, reducer } from '../store/reducer';
+import { cur, init } from '../store/reducer';
+import { hreducer, initH } from '../store/history';
 import { loadStore, saveStore } from '../store/storage';
 import { Brand, IconBack, IconBolt, IconDoc, IconList, IconNet, IconPanel } from './Icons';
 import { GroupList } from './GroupList';
@@ -18,7 +19,8 @@ type SheetId = 'net' | 'proj' | 'rep' | null;
 const isWide = () => window.matchMedia('(min-width:1000px)').matches;
 
 export function App() {
-  const [state, dispatch] = useReducer(reducer, undefined, () => init(loadStore()));
+  const [hist, dispatch] = useReducer(hreducer, undefined, () => initH(init(loadStore())));
+  const state = hist.now;
   const [view, setView] = useState<View>('groups');
   const [sheet, setSheet] = useState<SheetId>(null);
   const [whyOpen, setWhyOpen] = useState(false);
@@ -36,6 +38,18 @@ export function App() {
     setView('groups');
     window.scrollTo(0, 0);
   }, [state.cur]);
+
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return;
+      e.preventDefault();
+      dispatch({ t: e.shiftKey ? 'redo' : 'undo' });
+    };
+    document.addEventListener('keydown', key);
+    return () => document.removeEventListener('keydown', key);
+  }, []);
 
   const closeSheet = useCallback(() => setSheet(null), []);
 
@@ -105,6 +119,10 @@ export function App() {
             onOpenProj={() => setSheet('proj')}
             onOpenNet={() => setSheet('net')}
             onBlank={() => dispatch({ t: 'replace', content: blank() })}
+            canUndo={hist.past.length > 0}
+            canRedo={hist.future.length > 0}
+            onUndo={() => dispatch({ t: 'undo' })}
+            onRedo={() => dispatch({ t: 'redo' })}
           />
           <div className="main-col">
             <Editor

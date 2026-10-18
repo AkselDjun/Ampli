@@ -15,6 +15,7 @@ export interface Line {
   name: string;
   type: LineType;
   phase: Phase;
+  wet?: boolean;
   len: Num;
   kc: Num;
   cos: Num;
@@ -29,6 +30,7 @@ export interface Cfg {
   k: Num;
   alloc: Num;
   minS: string;
+  zs: Num;
 }
 
 export interface Project {
@@ -58,6 +60,7 @@ export interface CfgN {
   k: number;
   alloc: number;
   safe: boolean;
+  zs: number;
 }
 
 export interface LineResult {
@@ -79,6 +82,8 @@ export interface LineResult {
   drop: number;
   empty: boolean;
   mod: number;
+  ik: number;
+  ikNeed: number;
 }
 
 export interface Device {
@@ -117,6 +122,8 @@ export interface Calc {
   placed: number;
   fits: boolean;
   issues: number;
+  inStep: number;
+  hint3: boolean;
 }
 
 export interface SpecItem {

@@ -1,5 +1,5 @@
 import type { Calc, Cfg, CfgN, Device, Line, LineResult, Phase, Row } from './types';
-import { IZ, RHO, ROWLEN, SECTIONS, SIZES, STD, STD_IN, TYPES } from './norms';
+import { ALL_STEPS, IZ, KZ_TIME, PE_MAX_S, RHO, RHO_HOT_K, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs, pn } from './format';
 
 export function cfgN(c: Cfg): CfgN {
@@ -10,8 +10,18 @@ export function cfgN(c: Cfg): CfgN {
     ko: Math.min(1, Math.max(0.3, pn(c.ko, 0.75))),
     k: Math.min(1, Math.max(0.5, pn(c.k, 0.9))),
     alloc: Math.max(0.5, pn(c.alloc, 15)),
-    safe: c.minS !== 'norm'
+    safe: c.minS !== 'norm',
+    zs: Math.min(2, Math.max(0.05, pn(c.zs, 0.3)))
   };
+}
+
+export function loopOhm(S: number, len: number): number {
+  const pe = Math.min(S, PE_MAX_S);
+  return RHO * RHO_HOT_K * len * (1 / S + 1 / pe);
+}
+
+export function shortCircuit(S: number, len: number, zs: number): number {
+  return 230 / (zs + loopOhm(S, len));
 }
 
 export function calcLine(l: Line, c: CfgN): LineResult {
@@ -27,8 +37,8 @@ export function calcLine(l: Line, c: CfgN): LineResult {
   const lim = c.drop > 0 ? Math.min(lim0, c.drop) : lim0;
   const r: LineResult = {
     limit: lim, pInst, pd, I, three, len, cos, kc, notes: [], status: 'ok', rcd: t.rcd,
-    ma: t.rcd ? (I > 32 ? 100 : 30) : 0, curve: t.curve, In: null, S: null, drop: 0, empty: false,
-    mod: three ? (t.rcd ? 4 : 3) : (t.rcd ? 2 : 1)
+    ma: t.rcd ? (l.wet ? 10 : (I > 32 ? 100 : 30)) : 0, curve: t.curve, In: null, S: null, drop: 0, empty: false,
+    mod: three ? (t.rcd ? 4 : 3) : (t.rcd ? 2 : 1), ik: 0, ikNeed: 0
   };
   if (pInst <= 0) {
     r.empty = true;
@@ -56,11 +66,24 @@ export function calcLine(l: Line, c: CfgN): LineResult {
   const dropAt = (k: number): number =>
     (three ? Math.sqrt(3) * RHO * len * I * cos / (SECTIONS[k] * 400) : 2 * RHO * len * I * cos / (SECTIONS[k] * 230)) * 100;
   while (dropAt(i) > lim && i < SECTIONS.length - 1) i++;
+  const afterDrop = i;
+  r.ikNeed = TRIP_MULT[t.curve] * r.In;
+  const kzOk = (k: number): boolean => len === 0 || shortCircuit(SECTIONS[k], len, c.zs) >= r.ikNeed;
+  while (!kzOk(i) && i < SECTIONS.length - 1) i++;
   r.S = SECTIONS[i];
   r.drop = dropAt(i);
-  if (i > base) {
+  r.ik = len === 0 ? 0 : shortCircuit(r.S, len, c.zs);
+  if (afterDrop > base) {
     r.status = 'warn';
-    r.notes.push('Сечение увеличено с ' + fs(SECTIONS[base]) + ' до ' + fs(r.S) + ' мм² из-за падения напряжения на длине ' + fmt(len, 0) + ' м.');
+    r.notes.push('Сечение увеличено с ' + fs(SECTIONS[base]) + ' до ' + fs(SECTIONS[afterDrop]) + ' мм² из-за падения напряжения на длине ' + fmt(len, 0) + ' м.');
+  }
+  if (i > afterDrop) {
+    r.status = 'warn';
+    r.notes.push('Сечение увеличено до ' + fs(r.S) + ' мм², чтобы автомат отключил короткое замыкание за ' + fs(KZ_TIME) + ' с.');
+  }
+  if (len > 0 && r.ik < r.ikNeed) {
+    r.status = 'bad';
+    r.notes.push('Ток короткого замыкания в конце линии ' + fmt(r.ik, 0) + ' А меньше ' + fmt(r.ikNeed, 0) + ' А: автомат может не отключить линию за ' + fs(KZ_TIME) + ' с. Сократите линию.');
   }
   if (r.drop > lim) {
     r.status = 'bad';
@@ -119,8 +142,11 @@ export function calcAll(lines: Line[], cfg: Cfg): Calc {
     Itot = c.ko * rows.reduce((s, x) => s + x.r.I, 0);
   }
   const maxLineIn = rows.reduce((m, x) => Math.max(m, x.r.In || 0), 0);
-  const needIn = Math.max(Itot, maxLineIn);
+  const gi = maxLineIn > 0 ? ALL_STEPS.indexOf(maxLineIn) : -1;
+  const selIn = gi >= 0 ? ALL_STEPS[gi + 2] : 0;
+  const needIn = Math.max(Itot, selIn);
   const inIn = Itot > 0 ? (STD_IN.find(x => x >= needIn) ?? null) : null;
+  const inStep = inIn && gi >= 0 ? ALL_STEPS.indexOf(inIn) - gi : 0;
   let inS: number | null = null;
   if (inIn) {
     const tbl = IZ[c.method][c.supply === 3 ? 3 : 1];
@@ -163,7 +189,8 @@ export function calcAll(lines: Line[], cfg: Cfg): Calc {
     imb = mx > 0 ? (mx - mn) / mx * 100 : 0;
   }
   const issues = rows.filter(x => !x.r.empty && x.r.status !== 'ok').length;
-  return { c, rows, sumInst, P, Itot, phases, imb, inIn, inS, devs, modSum, size, placed, fits, issues };
+  const hint3 = c.supply === 1 && P > SINGLE_INPUT_KW * 1000;
+  return { c, rows, sumInst, P, Itot, phases, imb, inIn, inS, devs, modSum, size, placed, fits, issues, inStep, hint3 };
 }
 
 export function balanceLines(lines: Line[], cfg: Cfg): Line[] {

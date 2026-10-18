@@ -112,6 +112,12 @@ export function Editor({
           <span className="lbl">Тип группы</span>
           <Seg<LineType> name={'t-' + l.id} value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', type: v })} />
         </div>
+        {l.type !== 'light' && (
+          <div className="blk">
+            <span className="lbl">Помещение</span>
+            <Seg<string> name={'w-' + l.id} value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычное'], ['wet', 'Вне помещения или особо опасное']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet' })} />
+          </div>
+        )}
         {three && (
           <div className="blk">
             <span className="lbl">Фаза</span>

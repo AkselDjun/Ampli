@@ -1,7 +1,8 @@
 import type { CfgN, Line, LineResult } from './types';
-import { IZ, SECTIONS, TYPES } from './norms';
+import { IZ, KZ_TIME, RHO, RHO_HOT_K, SECTIONS, TYPES } from './norms';
 import { NB, fmt, fs, round2 } from './format';
 import { cableName } from './protection';
+import { loopOhm } from './calc';
 
 export interface WhyRow {
   title: string;
@@ -31,7 +32,7 @@ export function whyRows(l: Line, r: LineResult, c: CfgN): WhyRow[] {
       (l.type === 'light' ? 'Кривая B подходит для освещения.' : 'Кривая C выдерживает пусковые токи приборов.') +
       (r.rcd
         ? ' Дифавтомат ' + r.ma + ' мА: для таких групп УЗО обязательно (СН 4.04.01-2019, изм. 2, п. 16.3.3)' +
-          (r.ma === 100 ? ', при расчётном токе больше 32 А до 100 мА со временем срабатывания не более 100 мс (п. 16.3.13).' : '.')
+          (r.ma === 10 ? '; для розеток вне помещений и в особо опасных помещениях УЗО до 10 мА (п. 16.3.13).' : (r.ma === 100 ? ', при расчётном токе больше 32 А до 100 мА со временем срабатывания не более 100 мс (п. 16.3.13).' : '.'))
         : '');
     rows.push({ title: 'Автомат', formula: r.curve + r.In + (r.rcd ? ', ' + r.ma + ' мА' : ''), note });
     const mS = c.safe ? t.minS : 1.5;
@@ -47,8 +48,16 @@ export function whyRows(l: Line, r: LineResult, c: CfgN): WhyRow[] {
     rows.push({
       title: 'Потеря напряжения',
       formula: 'ΔU = ' + (r.three ? '√3' : '2') + ' · 0,0225 · ' + fmt(r.len, 0) + ' · ' + fmt(r.I, 1) + ' · ' + fs(round2(r.cos)) + ' / (' + fs(r.S as number) + ' · ' + U + ') = ' + fmt(dv, 1) + NB + 'В',
-      note: 'Это ' + fmt(r.drop, 1) + NB + '% при допустимых ' + fmt(r.limit, 1) + NB + '%.'
+      note: 'Это ' + fmt(r.drop, 1) + NB + '% при допустимых ' + fmt(r.limit, 1) + NB + '% (СН 4.04.01-2019, п. 9.14).'
     });
+    if (r.len > 0) {
+      const zl = loopOhm(r.S as number, r.len);
+      rows.push({
+        title: 'Короткое замыкание',
+        formula: 'Iк = 230 / (' + fmt(c.zs, 2) + ' + ' + fmt(zl, 2) + ') = ' + fmt(r.ik, 0) + NB + 'А',
+        note: 'Нужно не меньше ' + fmt(r.ikNeed, 0) + NB + 'А (' + (r.curve === 'B' ? 5 : 10) + ' × ' + r.curve + r.In + '), чтобы автомат отключил линию за ' + fs(KZ_TIME) + NB + 'с при 230' + NB + 'В (ТКП 339-2022, п. 4.3.5.4, табл. 4.3.1). Петля фаза-нуль питающей сети ' + fmt(c.zs, 2) + NB + 'Ом задана в параметрах, сопротивление жил фазы и PE взято с коэффициентом ' + fs(RHO_HOT_K) + ' на нагрев (' + fs(RHO) + NB + 'Ом·мм²/м).'
+      });
+    }
   }
   return rows;
 }

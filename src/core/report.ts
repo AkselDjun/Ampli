@@ -26,7 +26,7 @@ export function reportText(p: Project, a: Calc): string {
       out.push('Г' + (i + 1) + ' ' + x.l.name + ph + ': ' + fmt(r.pInst, 0) + ' Вт, ток ' + fmt(r.I, 1) + ' А. ' + r.notes.join(' '));
       return;
     }
-    out.push('Г' + (i + 1) + ' ' + x.l.name + ph + ': ' + fmt(r.pInst, 0) + ' Вт, ток ' + fmt(r.I, 1) + ' А, ' + protName(r) + ', ' + cableName(r) + ', ΔU ' + fmt(r.drop, 1) + ' %');
+    out.push('Г' + (i + 1) + ' ' + x.l.name + ph + ': ' + fmt(r.pInst, 0) + ' Вт, ток ' + fmt(r.I, 1) + ' А, ' + protName(r) + ', ' + cableName(r) + ', ΔU ' + fmt(r.drop, 1) + ' %' + (r.ik > 0 ? ', Iк ' + fmt(r.ik, 0) + ' А' : ''));
   });
   out.push('');
   out.push('Установленная мощность: ' + fmt(a.sumInst / 1000, 1) + ' кВт');

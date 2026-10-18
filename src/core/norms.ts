@@ -10,6 +10,12 @@ export const IZ: Record<'wall' | 'open', Record<1 | 3, number[]>> = {
 };
 
 export const RHO = 0.0225;
+export const RHO_HOT_K = 1.5;
+export const ALL_STEPS = [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
+export const TRIP_MULT: Record<string, number> = { B: 5, C: 10 };
+export const PE_MAX_S = 16;
+export const KZ_TIME = 0.4;
+export const SINGLE_INPUT_KW = 12;
 export const SIZES = [12, 18, 24, 36, 48, 72];
 export const ROWLEN: Record<number, number> = { 12: 12, 18: 18, 24: 12, 36: 18, 48: 12, 72: 18 };
 
@@ -44,4 +50,4 @@ export const PRESETS: [string, number, string][] = [
 
 export const STATUS = { ok: 'Норма', warn: 'Проверьте', bad: 'Не подходит' } as const;
 
-export const CLIMITS: Record<string, [number, number]> = { ko: [0.3, 1], k: [0.5, 1], alloc: [1, 500] };
+export const CLIMITS: Record<string, [number, number]> = { ko: [0.3, 1], k: [0.5, 1], alloc: [1, 500], zs: [0.05, 2] };
