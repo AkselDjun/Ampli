@@ -1,6 +1,7 @@
 import type { Calc } from '../core/types';
 import { fmt, fs } from '../core/format';
 import { ROWLEN } from '../core/norms';
+import { Tip } from './common';
 
 function Kv({ l, v }: { l: string; v: string }) {
   return (
@@ -106,8 +107,7 @@ export function Summary({ a, onBalance }: { a: Calc; onBalance: () => void }) {
       )}
       {gl.length > 0 && (
         <section className="card c-reserve">
-          <div className="card-head"><h2>Запас автоматов</h2></div>
-          <p className="gl-hint">Какую часть номинала автомата занимает ток группы.</p>
+          <div className="card-head"><h2>Запас автоматов<Tip>Какую часть номинала автомата занимает ток группы.</Tip></h2></div>
           <div className="gl">
             {gl.map(x => {
               const u = x.r.I / (x.r.In as number) * 100;

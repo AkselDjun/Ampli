@@ -111,15 +111,15 @@ export function App() {
                 <div><span className="lbl">Ток</span><b>{a.Itot > 0 ? fmt(a.Itot, 0) + ' А' : '—'}</b></div>
                 <div><span className="lbl">Ввод</span><b>{a.inIn ? 'C' + a.inIn : '—'}</b></div>
               </div>
-              <button className="ab-btn" type="button" onClick={() => setSheet('net')} aria-label="Параметры сети">
+              <button className="ab-btn" type="button" data-tip="Параметры сети" onClick={() => setSheet('net')} aria-label="Параметры сети">
                 <IconNet />
                 <span className="ab-txt">Параметры</span>
               </button>
-              <button className="ab-btn desk" type="button" onClick={() => setSheet('work')}>
+              <button className="ab-btn desk" type="button" data-tip="Монтаж и приёмка" onClick={() => setSheet('work')}>
                 <IconCheck />
                 <span className="ab-txt">Приёмка</span>
               </button>
-              <button className="ab-btn desk" type="button" onClick={() => setSheet('rep')}>
+              <button className="ab-btn desk" type="button" data-tip="Отчёт и спецификация" onClick={() => setSheet('rep')}>
                 <IconDoc />
                 <span className="ab-txt">Отчёт</span>
               </button>

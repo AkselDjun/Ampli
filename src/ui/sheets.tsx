@@ -157,7 +157,7 @@ export function ProjectsSheet({
   };
   const n = state.list.length;
   return (
-    <Sheet open={open} onClose={onClose} title="Проекты" small>
+    <Sheet open={open} onClose={onClose} title="Проекты" small tip="Проекты хранятся в этом браузере на этом устройстве. Чтобы перенести проект на другое устройство, сохраните его в файл и откройте там.">
       <h3 className="sec-t">Текущий проект</h3>
       <div className="meta-grid">
         <div className="f wide"><label className="lbl" htmlFor="mName">Название</label><input id="mName" ref={nameRef} type="text" autoComplete="off" maxLength={80} value={p.name} onChange={e => dispatch({ t: 'meta', field: 'name', value: e.target.value })} /></div>
@@ -246,7 +246,6 @@ export function ProjectsSheet({
         />
       </div>
       <span className="muted" role="status" style={{ color: msg ? (msg.bad ? 'var(--bad)' : 'var(--ok)') : undefined }}>{msg ? msg.t : ''}</span>
-      <p className="muted">Проекты хранятся в этом браузере на этом устройстве. Чтобы перенести проект на другое устройство, сохраните его в файл и откройте там.</p>
     </Sheet>
   );
 }

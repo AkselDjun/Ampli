@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { IconInfo } from './Icons';
 
 export function Seg<T extends string | number>({
   name, value, items, onChange, labelledBy
@@ -74,13 +75,45 @@ export function ArmButton({
   );
 }
 
+export function Tip({ children, label = 'Подсказка' }: { children: ReactNode; label?: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: Event) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const key = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', away);
+    document.addEventListener('keydown', key, true);
+    return () => {
+      document.removeEventListener('pointerdown', away);
+      document.removeEventListener('keydown', key, true);
+    };
+  }, [open]);
+  return (
+    <span className={'tip' + (open ? ' on' : '')} ref={ref}>
+      <button type="button" className="tip-b" aria-label={label} aria-expanded={open} onClick={() => setOpen(o => !o)}>
+        <IconInfo />
+      </button>
+      <span className="tip-t" role="tooltip">{children}</span>
+    </span>
+  );
+}
+
 export function Sheet({
-  open, onClose, title, small, children
+  open, onClose, title, small, tip, children
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   small?: boolean;
+  tip?: ReactNode;
   children: ReactNode;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -107,6 +140,7 @@ export function Sheet({
       <div className={'sheet-panel' + (small ? ' sm' : '')} role="dialog" aria-modal="true" aria-labelledby={id}>
         <div className="sheet-head">
           <h2 id={id}>{title}</h2>
+          {tip && <Tip>{tip}</Tip>}
           <button ref={closeRef} className="sheet-close" type="button" onClick={onClose} aria-label="Закрыть">×</button>
         </div>
         <div className="sheet-body">{children}</div>

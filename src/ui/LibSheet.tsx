@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { fmt, plural } from '../core/format';
 import { useLib } from '../store/LibContext';
-import { ArmButton, Sheet } from './common';
+import { ArmButton, Sheet, Tip } from './common';
 import { scaleLogo } from './logo';
 
 export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -51,7 +51,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
         <h3 className="sec-t">Мои приборы</h3>
         <span className="muted">{lib.apps.length} {plural(lib.apps.length, ['прибор', 'прибора', 'приборов'])}</span>
       </div>
-      {lib.apps.length === 0 && <p className="muted">Пока пусто. В карточке группы нажмите «Сохранить приборы группы в мои».</p>}
+      {lib.apps.length === 0 && <p className="muted">Пока пусто<Tip>В карточке группы нажмите «Сохранить приборы группы в мои».</Tip></p>}
       <div className="lib-list">
         {lib.apps.map(a => (
           <div className="lib-r" key={a.id}>
@@ -66,7 +66,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
         <h3 className="sec-t">Мои шаблоны</h3>
         <span className="muted">{lib.templates.length} {plural(lib.templates.length, ['шаблон', 'шаблона', 'шаблонов'])}</span>
       </div>
-      {lib.templates.length === 0 && <p className="muted">Пока пусто. В окне «Проекты» можно сохранить текущий проект как шаблон.</p>}
+      {lib.templates.length === 0 && <p className="muted">Пока пусто<Tip>В окне «Проекты» можно сохранить текущий проект как шаблон.</Tip></p>}
       <div className="lib-list">
         {lib.templates.map(t => (
           <div className="lib-r" key={t.id}>
@@ -78,10 +78,9 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
       </div>
 
       <div className="sec-row">
-        <h3 className="sec-t">Цены в смете</h3>
+        <h3 className="sec-t">Цены в смете<Tip>Цены вводятся в отчёте, в таблице спецификации, и запоминаются по названию позиции.</Tip></h3>
         <span className="muted">{nPrices} {plural(nPrices, ['позиция', 'позиции', 'позиций'])}</span>
       </div>
-      <p className="muted">Цены вводятся в отчёте, в таблице спецификации, и запоминаются по названию позиции.</p>
       <div className="data-row">
         <ArmButton className="btn ghost" label="Очистить все цены" armedLabel="Точно очистить?" disabled={nPrices === 0} onRun={() => dispatch({ t: 'clearPrices' })} />
       </div>

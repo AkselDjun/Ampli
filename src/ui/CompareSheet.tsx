@@ -12,8 +12,7 @@ export function CompareSheet({ open, onClose, p, a }: { open: boolean; onClose: 
   const rows = compareRows(a, alt);
   const changed = excluded.length + addons.length > 0;
   return (
-    <Sheet open={open} onClose={onClose} title="Сравнение вариантов" small>
-      <p className="muted">Отметьте, что убрать или добавить, и посмотрите, как изменятся ток ввода, тип ввода и щиток. Проект при этом не меняется.</p>
+    <Sheet open={open} onClose={onClose} title="Сравнение вариантов" small tip="Отметьте, что убрать или добавить, и посмотрите, как изменятся ток ввода, тип ввода и щиток. Проект при этом не меняется.">
       <h3 className="sec-t">Убрать из расчёта</h3>
       <ul className="ck">
         {p.lines.map((l, i) => (

@@ -5,7 +5,7 @@ import { ROOM_PRESETS, assemble, makeRoom } from '../core/rooms';
 import { nid } from '../core/ids';
 import { plural } from '../core/format';
 import type { Action } from '../store/reducer';
-import { ArmButton, Sheet } from './common';
+import { ArmButton, Sheet, Tip } from './common';
 
 export function RoomsSheet({
   open, onClose, p, dispatch
@@ -19,8 +19,7 @@ export function RoomsSheet({
   const planned = useMemo(() => assemble(rooms).length, [rooms]);
   const addApp = (rid: string, app: RoomApp) => dispatch({ t: 'roomAppAdd', rid, app });
   return (
-    <Sheet open={open} onClose={onClose} title="Комнаты">
-      <p className="muted">Опишите комнаты и приборы в них, группы соберутся автоматически: свет по комнатам, розетки по комнатам, мощные приборы по отдельным линиям. Принципы сборки приняты по практике, их можно поправить в группах вручную.</p>
+    <Sheet open={open} onClose={onClose} title="Комнаты" tip="Опишите комнаты и приборы в них, группы соберутся автоматически: свет по комнатам, розетки по комнатам, мощные приборы по отдельным линиям. Принципы сборки приняты по практике, их можно поправить в группах вручную.">
       <div className="chips room-add">
         {ROOM_PRESETS.map(r => (
           <button key={r.key} className="chip" type="button" onClick={() => dispatch({ t: 'roomAdd', room: makeRoom(r) })}>+ {r.title}</button>
@@ -60,7 +59,7 @@ export function RoomsSheet({
       ))}
       <div className="copy-row">
         <ArmButton className="btn primary" label={'Собрать группы: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])} armedLabel="Заменить текущие группы?" disabled={planned === 0} onRun={() => { dispatch({ t: 'assemble' }); onClose(); }} />
-        <span className="muted">Текущие группы проекта будут заменены.</span>
+        <Tip>Текущие группы проекта будут заменены.</Tip>
       </div>
     </Sheet>
   );

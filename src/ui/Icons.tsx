@@ -34,6 +34,12 @@ export const IconCheck = make(0, (
     <path d="m8.5 12 2.5 2.5 4.5-5" />
   </>
 ));
+export const IconInfo = make(0, (
+  <>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v5M12 8v.01" />
+  </>
+));
 export const IconList = make(0, <path d="M4 6h16M4 12h16M4 18h16" />);
 export const IconBolt = make(0, <path d="M13 2 5 13h6l-1 9 8-11h-6z" />);
 export const IconPanel = make(0, (

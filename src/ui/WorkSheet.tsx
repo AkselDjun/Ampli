@@ -22,7 +22,7 @@ export function WorkSheet({
   const rows = protocolRows(a);
   const proto = p.proto ?? { date: '', device: '', by: '' };
   return (
-    <Sheet open={open} onClose={onClose} title="Монтаж и приёмка">
+    <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" tip="Значения замеров вводятся в карточке группы, раздел «Замеры после монтажа». Они подставляются в проверку КЗ, УЗО и изоляции.">
       <div className="wk-prog">
         <span><b>{pr.done}</b> из {pr.total} пунктов выполнено</span>
         <div className="meter" role="img" aria-label={'Выполнено ' + pr.done + ' из ' + pr.total}>
@@ -45,7 +45,6 @@ export function WorkSheet({
         <div className="f"><label className="lbl" htmlFor="pBy">Измерения выполнил</label><input id="pBy" type="text" maxLength={80} autoComplete="off" value={proto.by} onChange={e => dispatch({ t: 'proto', field: 'by', value: e.target.value })} /></div>
         <div className="f wide"><label className="lbl" htmlFor="pDev">Прибор, номер, поверка</label><input id="pDev" type="text" maxLength={120} autoComplete="off" value={proto.device} onChange={e => dispatch({ t: 'proto', field: 'device', value: e.target.value })} /></div>
       </div>
-      <p className="muted">Значения замеров вводятся в карточке группы, раздел «Замеры после монтажа». Они подставляются в проверку КЗ, УЗО и изоляции.</p>
       <div className="tablewrap">
         <table className="t2">
           <thead>

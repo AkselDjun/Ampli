@@ -182,7 +182,7 @@ export function Editor({
                     <button type="button" aria-label="Больше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(99, pn(ap.n, 1) + 1)) })}>+</button>
                   </div>
                 </div>
-                <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" onClick={() => keepChips(() => dispatch({ t: 'delApp', id: ap.id }))}>×</button>
+                <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" title="Удалить прибор" onClick={() => keepChips(() => dispatch({ t: 'delApp', id: ap.id }))}>×</button>
               </div>
             ))}
           </div>
