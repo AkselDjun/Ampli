@@ -3,7 +3,7 @@ import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '../../ui/App';
 import { KEY } from '../../store/storage';
-import { btn, click, dlg, isOpen, wide } from './util';
+import { click, dlg, isOpen, wide } from './util';
 
 vi.setConfig({ testTimeout: 60000 });
 

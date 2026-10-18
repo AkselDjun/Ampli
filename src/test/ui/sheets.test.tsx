@@ -231,10 +231,11 @@ describe('ReportSheet', () => {
   it('shows empty groups, three-phase columns and unfit rows', () => {
     render(<App />);
     let d = open('Параметры сети');
+    click(d, 'Начать с нуля');
+    click(d, 'Нажмите ещё раз');
+    d = open('Параметры сети');
     fireEvent.click(d.querySelector('input[name="sup"][value="3"]') as HTMLElement);
     fireEvent.keyDown(document, { key: 'Escape' });
-    click(list(), 'Начать с нуля');
-    click(list(), 'Нажмите ещё раз');
     d = open('Отчёт и спецификация');
     expect(d.textContent).toContain('нет приборов');
     expect(d.textContent).toContain('Фаза');
