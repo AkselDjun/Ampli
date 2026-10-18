@@ -43,12 +43,12 @@ export function whyRows(l: Line, r: LineResult, c: CfgN): WhyRow[] {
     else if (mS > sCur) cn = 'По току хватило бы ' + fs(sCur) + NB + 'мм², но выбран минимум ' + fs(mS) + NB + 'мм² (по ТКП 339-2022 достаточно 1,5 мм², табл. 8.1; настройка в параметрах).';
     else cn = 'Наименьшее сечение, у которого допустимый ток с поправкой не меньше номинала автомата.';
     const iz = tbl[SECTIONS.indexOf(r.S as number)] * c.k;
-    rows.push({ title: 'Кабель', formula: cableName(r), note: 'Допустимый ток ' + fmt(iz, 1) + NB + 'А с поправкой ' + kk + '. ' + cn });
+    rows.push({ title: 'Кабель', formula: cableName(r), note: 'Допустимый ток ' + fmt(iz, 1) + NB + 'А с поправкой ' + kk + ' (' + (c.method === 'wall' ? 'скрытая прокладка, способы 2 и 5A' : 'открытая прокладка, способы 4A и 11') + ' по табл. 52Н ГОСТ 30331.15). ' + cn });
     const dv = r.drop * U / 100;
     rows.push({
       title: 'Потеря напряжения',
       formula: 'ΔU = ' + (r.three ? '√3' : '2') + ' · 0,0225 · ' + fmt(r.len, 0) + ' · ' + fmt(r.I, 1) + ' · ' + fs(round2(r.cos)) + ' / (' + fs(r.S as number) + ' · ' + U + ') = ' + fmt(dv, 1) + NB + 'В',
-      note: 'Это ' + fmt(r.drop, 1) + NB + '% при допустимых ' + fmt(r.limit, 1) + NB + '% (СН 4.04.01-2019, п. 9.14).'
+      note: 'Это ' + fmt(r.drop, 1) + NB + '% при допустимых ' + fmt(r.limit, 1) + NB + '% (СН 4.04.01-2019, п. 9.14' + (c.feeder > 0 ? '; на стояк до щитка заложено ' + fmt(c.feeder, 1) + NB + '%' : '') + ').'
     });
     if (r.len > 0) {
       const zl = loopOhm(r.S as number, r.len);

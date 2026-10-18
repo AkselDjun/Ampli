@@ -31,6 +31,7 @@ export interface Cfg {
   alloc: Num;
   minS: string;
   zs: Num;
+  feeder: Num;
 }
 
 export interface Project {
@@ -61,6 +62,7 @@ export interface CfgN {
   alloc: number;
   safe: boolean;
   zs: number;
+  feeder: number;
 }
 
 export interface LineResult {

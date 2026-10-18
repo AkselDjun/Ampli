@@ -23,7 +23,7 @@ export type Action =
   | { t: 'addApp'; name?: string; w?: number }
   | { t: 'delApp'; id: string }
   | { t: 'cfg'; field: keyof Cfg; value: string | number }
-  | { t: 'cfgStep'; field: 'alloc' | 'ko' | 'k' | 'zs'; d: number }
+  | { t: 'cfgStep'; field: 'alloc' | 'ko' | 'k' | 'zs' | 'feeder'; d: number }
   | { t: 'balance' }
   | { t: 'meta'; field: 'name' | 'address' | 'client' | 'author'; value: string }
   | { t: 'replace'; content: Content }

@@ -3,7 +3,7 @@ import { TYPES } from './norms';
 import { nid } from './ids';
 
 export function defaultCfg(): Cfg {
-  return { supply: 1, method: 'wall', drop: 0, ko: 0.75, k: 0.9, alloc: 15, minS: 'safe', zs: 0.3 };
+  return { supply: 1, method: 'wall', drop: 0, ko: 0.75, k: 0.9, alloc: 15, minS: 'safe', zs: 0.3, feeder: 0 };
 }
 
 type AppDef = [string, number, number];

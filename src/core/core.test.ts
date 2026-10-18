@@ -133,3 +133,18 @@ describe('history', () => {
     expect(h.past.length).toBe(0);
   });
 });
+
+describe('voltage drop limits', () => {
+  const l = mkLine('Свет', 'light', 20, null, null, [['Лампа', 100, 1]]);
+  it('subtracts the riser drop from the limit', () => {
+    const a = calcLine(l, cfgN(defaultCfg()));
+    const b = calcLine(l, cfgN({ ...defaultCfg(), feeder: 1 }));
+    expect(a.limit).toBe(3);
+    expect(b.limit).toBe(2);
+  });
+  it('caps the limit at 4 percent when chosen', () => {
+    const p = mkLine('Печь', 'power', 20, null, null, [['Печь', 3000, 1]]);
+    expect(calcLine(p, cfgN(defaultCfg())).limit).toBe(5);
+    expect(calcLine(p, cfgN({ ...defaultCfg(), drop: 4 })).limit).toBe(4);
+  });
+});

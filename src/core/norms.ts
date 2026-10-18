@@ -50,4 +50,4 @@ export const PRESETS: [string, number, string][] = [
 
 export const STATUS = { ok: 'Норма', warn: 'Проверьте', bad: 'Не подходит' } as const;
 
-export const CLIMITS: Record<string, [number, number]> = { ko: [0.3, 1], k: [0.5, 1], alloc: [1, 500], zs: [0.05, 2] };
+export const CLIMITS: Record<string, [number, number]> = { ko: [0.3, 1], k: [0.5, 1], alloc: [1, 500], zs: [0.05, 2], feeder: [0, 3] };

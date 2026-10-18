@@ -11,7 +11,8 @@ export function cfgN(c: Cfg): CfgN {
     k: Math.min(1, Math.max(0.5, pn(c.k, 0.9))),
     alloc: Math.max(0.5, pn(c.alloc, 15)),
     safe: c.minS !== 'norm',
-    zs: Math.min(2, Math.max(0.05, pn(c.zs, 0.3)))
+    zs: Math.min(2, Math.max(0.05, pn(c.zs, 0.3))),
+    feeder: Math.min(3, Math.max(0, pn(c.feeder, 0)))
   };
 }
 
@@ -34,7 +35,7 @@ export function calcLine(l: Line, c: CfgN): LineResult {
   const pd = pInst * kc;
   const I = three ? pd / (Math.sqrt(3) * 400 * cos) : pd / (230 * cos);
   const lim0 = (l.type === 'light' ? 3 : 5) + Math.min(0.5, Math.max(0, len - 100) * 0.005);
-  const lim = c.drop > 0 ? Math.min(lim0, c.drop) : lim0;
+  const lim = Math.max(0.5, (c.drop > 0 ? Math.min(lim0, c.drop) : lim0) - c.feeder);
   const r: LineResult = {
     limit: lim, pInst, pd, I, three, len, cos, kc, notes: [], status: 'ok', rcd: t.rcd,
     ma: t.rcd ? (l.wet ? 10 : (I > 32 ? 100 : 30)) : 0, curve: t.curve, In: null, S: null, drop: 0, empty: false,
