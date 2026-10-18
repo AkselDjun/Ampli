@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { calcAll, balanceLines } from './calc';
-import { sample, tplLines } from './templates';
-import { buildSpec } from './spec';
+import { calcAll, balanceLines } from '../core/calc';
+import { sample, tplLines } from '../core/templates';
+import { buildSpec } from '../core/spec';
 
 describe('sample apartment', () => {
   const s = sample();
@@ -33,7 +33,7 @@ describe('sample apartment', () => {
 });
 
 import { init, reducer, cur } from '../store/reducer';
-import { sampleProject } from './project';
+import { sampleProject } from '../core/project';
 
 describe('reducer', () => {
   const base = () => {
@@ -61,8 +61,8 @@ describe('reducer', () => {
   });
 });
 
-import { calcLine, cfgN, shortCircuit, calcAll as calcAll2 } from './calc';
-import { mkLine, defaultCfg } from './templates';
+import { calcLine, cfgN, shortCircuit, calcAll as calcAll2 } from '../core/calc';
+import { mkLine, defaultCfg } from '../core/templates';
 
 describe('norm checks', () => {
   const cfg = cfgN(defaultCfg());
