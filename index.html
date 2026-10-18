@@ -584,11 +584,11 @@ tfoot td{font-weight:700;background:var(--surface-2)}
           <small>Скрытая: штроба, труба. Открытая: короб, по поверхности.</small>
         </div>
         <div class="f">
-          <span class="lbl" id="l-drop">Падение напряжения, не более</span>
+          <span class="lbl" id="l-drop">Допустимая потеря напряжения</span>
           <div class="seg" role="radiogroup" aria-labelledby="l-drop">
-            <label><input type="radio" name="drop" value="2" data-c="drop"><span>2 %</span></label>
-            <label><input type="radio" name="drop" value="3" data-c="drop"><span>3 %</span></label>
-            <label><input type="radio" name="drop" value="5" data-c="drop"><span>5 %</span></label>
+            <label><input type="radio" name="drop" value="0" data-c="drop"><span>По СН</span></label>
+            <label><input type="radio" name="drop" value="3" data-c="drop"><span>Строже 3 %</span></label>
+            <label><input type="radio" name="drop" value="2" data-c="drop"><span>Строже 2 %</span></label>
           </div>
         </div>
         <div class="f">
@@ -734,7 +734,7 @@ const NB=' ';
 let uid=1;
 const nid=()=>'i'+(uid++);
 
-function defaultCfg(){return{supply:1,method:'wall',drop:3,ko:0.75,k:0.9,alloc:15,minS:'safe'};}
+function defaultCfg(){return{supply:1,method:'wall',drop:0,ko:0.75,k:0.9,alloc:15,minS:'safe'};}
 
 function mkLine(name,type,len,kc,cos,apps,phase){
   const t=TYPES[type];
@@ -859,7 +859,7 @@ function cfgN(){
   return{
     supply:Number(c.supply)===3?3:1,
     method:c.method==='open'?'open':'wall',
-    drop:Math.max(0.5,pn(c.drop,3)),
+    drop:Math.max(0,pn(c.drop,0)),
     ko:Math.min(1,Math.max(0.3,pn(c.ko,0.75))),
     k:Math.min(1,Math.max(0.5,pn(c.k,0.9))),
     alloc:Math.max(0.5,pn(c.alloc,15)),
@@ -876,7 +876,9 @@ function calcLine(l,c){
   const three=c.supply===3&&l.type==='power'&&l.phase==='3';
   const pd=pInst*kc;
   const I=three?pd/(Math.sqrt(3)*400*cos):pd/(230*cos);
-  const r={pInst:pInst,pd:pd,I:I,three:three,len:len,cos:cos,kc:kc,notes:[],status:'ok',rcd:t.rcd,ma:t.rcd?(I>32?100:30):0,curve:t.curve,In:null,S:null,drop:0,empty:false};
+  const lim0=(l.type==='light'?3:5)+Math.min(0.5,Math.max(0,len-100)*0.005);
+  const lim=c.drop>0?Math.min(lim0,c.drop):lim0;
+  const r={limit:lim,pInst:pInst,pd:pd,I:I,three:three,len:len,cos:cos,kc:kc,notes:[],status:'ok',rcd:t.rcd,ma:t.rcd?(I>32?100:30):0,curve:t.curve,In:null,S:null,drop:0,empty:false};
   r.mod=three?(t.rcd?4:3):(t.rcd?2:1);
   if(pInst<=0){r.empty=true;r.I=0;r.pd=0;return r;}
   const need=Math.max(I,t.minIn);
@@ -897,14 +899,14 @@ function calcLine(l,c){
   }
   const base=i;
   const dropAt=k=>(three?Math.sqrt(3)*RHO*len*I*cos/(SECTIONS[k]*400):2*RHO*len*I*cos/(SECTIONS[k]*230))*100;
-  while(dropAt(i)>c.drop&&i<SECTIONS.length-1)i++;
+  while(dropAt(i)>lim&&i<SECTIONS.length-1)i++;
   r.S=SECTIONS[i];
   r.drop=dropAt(i);
   if(i>base){
     r.status='warn';
     r.notes.push('Сечение увеличено с '+fs(SECTIONS[base])+' до '+fs(r.S)+' мм² из-за падения напряжения на длине '+fmt(len,0)+' м.');
   }
-  if(r.drop>c.drop){
+  if(r.drop>lim){
     r.status='bad';
     r.notes.push('Падение напряжения выше допустимого даже на сечении 35 мм². Сократите линию.');
   }
@@ -1139,7 +1141,7 @@ function whyHTML(l,r,c){
     const iCur=tbl.findIndex(v=>v*c.k>=r.In);
     const sCur=iCur<0?0:SECTIONS[iCur];
     let cn;
-    if(r.S>Math.max(sCur,mS))cn='Увеличено, чтобы потеря напряжения не превысила '+fmt(c.drop,0)+NB+'%.';
+    if(r.S>Math.max(sCur,mS))cn='Увеличено, чтобы потеря напряжения не превысила '+fmt(r.limit,1)+NB+'%.';
     else if(mS>sCur)cn='По току хватило бы '+fs(sCur)+NB+'мм², но выбран минимум '+fs(mS)+NB+'мм² (по ТКП 339-2022 достаточно 1,5 мм², табл. 8.1; настройка в параметрах).';
     else cn='Наименьшее сечение, у которого допустимый ток с поправкой не меньше номинала автомата.';
     const iz=tbl[SECTIONS.indexOf(r.S)]*c.k;
@@ -1176,7 +1178,7 @@ function paintEditor(a){
   if(r.In){
     h+=tile('Автомат',r.curve+r.In,r.rcd?'дифавтомат '+r.ma+' мА':'автомат')+
        tile('Кабель',fs(r.S)+NB+'мм²',(r.three?5:3)+'-жильный')+
-       tile('ΔU',fmt(r.drop,1)+NB+'%','допустимо '+fmt(a.c.drop,0)+NB+'%');
+       tile('ΔU',fmt(r.drop,1)+NB+'%','допустимо '+fmt(r.limit,1)+NB+'%');
   }else{
     h+='<p style="grid-column:span 3">Подбор невозможен, см. замечание ниже.</p>';
   }
@@ -1194,7 +1196,7 @@ function paintList(a){
 
 function paintNetChips(){
   const c=cfgN();
-  const items=[['Питание',c.supply===3?'3 фазы, 400 В':'1 фаза, 230 В'],['Прокладка',c.method==='wall'?'Скрытая':'Открытая'],['Потеря напряжения','до '+fmt(c.drop,0)+' %'],['Выделено',fmt(c.alloc,1)+' кВт']];
+  const items=[['Питание',c.supply===3?'3 фазы, 400 В':'1 фаза, 230 В'],['Прокладка',c.method==='wall'?'Скрытая':'Открытая'],['Потеря напряжения',c.drop>0?'до '+fmt(c.drop,0)+' %':'по СН: 3 / 5 %'],['Выделено',fmt(c.alloc,1)+' кВт']];
   $('#netChips').innerHTML='<button class="netline" type="button" data-act="open-net" aria-label="Параметры сети">'+
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h9M19 8h1M4 16h1M11 16h9"/><circle cx="16" cy="8" r="2.5"/><circle cx="8" cy="16" r="2.5"/></svg>'+
     '<span class="nl-items">'+items.map(t=>'<span><small>'+esc(t[0])+'</small>'+esc(t[1])+'</span>').join('')+'</span>'+
@@ -1341,7 +1343,7 @@ function reportText(a){
   if(S.address)out.push('Объект: '+S.address);
   if(S.client)out.push('Заказчик: '+S.client);
   if(S.author)out.push('Исполнитель: '+S.author);
-  out.push('Питание: '+(c.supply===3?'3 фазы, 400 В':'1 фаза, 230 В')+'; прокладка: '+(c.method==='wall'?'скрытая':'открытая')+'; допустимое падение напряжения: '+fmt(c.drop,0)+' %');
+  out.push('Питание: '+(c.supply===3?'3 фазы, 400 В':'1 фаза, 230 В')+'; прокладка: '+(c.method==='wall'?'скрытая':'открытая')+'; допустимая потеря напряжения: '+(c.drop>0?'не более '+fmt(c.drop,0)+' %':'3 % освещение, 5 % прочие (СН 4.04.01-2019, п. 9.14)'));
   out.push('');
   a.rows.forEach((x,i)=>{
     const r=x.r;
@@ -1798,7 +1800,7 @@ function printHTML(a){
   if(S.client)h+='<div><span>Заказчик: </span>'+esct(S.client)+'</div>';
   if(S.author)h+='<div><span>Исполнитель: </span>'+esct(S.author)+'</div>';
   h+='<div><span>Дата: </span>'+dfmt(Date.now())+'</div></div>';
-  h+='<p><span style="color:#555">Питание: </span>'+(three?'3 фазы, 400 В':'1 фаза, 230 В')+'; <span style="color:#555">прокладка: </span>'+(c.method==='wall'?'скрытая':'открытая')+'; <span style="color:#555">падение напряжения не более </span>'+fmt(c.drop,0)+' %; <span style="color:#555">Ко </span>'+fs(c.ko)+'; <span style="color:#555">поправка </span>'+fs(c.k)+'</p>';
+  h+='<p><span style="color:#555">Питание: </span>'+(three?'3 фазы, 400 В':'1 фаза, 230 В')+'; <span style="color:#555">прокладка: </span>'+(c.method==='wall'?'скрытая':'открытая')+'; <span style="color:#555">потеря напряжения </span>'+(c.drop>0?'не более '+fmt(c.drop,0)+' %':'3 % освещение, 5 % прочие (СН 4.04.01-2019, п. 9.14)')+'; <span style="color:#555">Ко </span>'+fs(c.ko)+'; <span style="color:#555">поправка </span>'+fs(c.k)+'</p>';
   h+='<h2>Группы линий</h2><table><thead><tr><th>№</th><th>Группа</th>'+(three?'<th>Фаза</th>':'')+'<th class="r">Уст., Вт</th><th class="r">Ток, А</th><th>Защита</th><th>Кабель</th><th class="r">ΔU, %</th><th>Статус</th></tr></thead><tbody>';
   a.rows.forEach((x,i)=>{
     const r=x.r;
@@ -1813,7 +1815,7 @@ function printHTML(a){
   h+='<h2>Спецификация</h2><table><thead><tr><th>Позиция</th><th class="r">Количество</th><th>Примечание</th></tr></thead><tbody>';
   buildSpec(a).forEach(x=>{h+='<tr><td>'+esct(x.name)+'</td><td class="r">'+esct(x.qty)+'</td><td>'+esct(x.note)+'</td></tr>';});
   h+='</tbody></table>';
-  h+='<p class="pd-note">Допустимые токи по таблице 1.3.4 ПУЭ, на которую ссылается ТКП 339-2022, с поправкой; УЗО по СН 4.04.01-2019 (изм. 2, п. 16.3.3); коэффициенты спроса и одновременности приняты по практике. Падение напряжения при сопротивлении меди 0,0225 Ом·мм²/м. Длины кабеля даны с запасом 10 %, ввод и мелочь уточняются по месту. Результат предварительный: проект щитка и монтаж согласуйте с аттестованным электриком.</p>';
+  h+='<p class="pd-note">Допустимые токи по таблице 1.3.4 ПУЭ, на которую ссылается ТКП 339-2022, с поправкой; УЗО по СН 4.04.01-2019 (изм. 2, п. 16.3.3); коэффициенты спроса и одновременности приняты по практике. Потеря напряжения: 3 % для освещения и 5 % для остальных групп, на линиях длиннее 100 м допуск растёт на 0,005 % за метр, но не более чем на 0,5 % (СН 4.04.01-2019, п. 9.14); сопротивление меди 0,0225 Ом·мм²/м. Длины кабеля даны с запасом 10 %, ввод и мелочь уточняются по месту. Результат предварительный: проект щитка и монтаж согласуйте с аттестованным электриком.</p>';
   h+='<div class="pd-foot">Ampli · '+dfmt(Date.now())+'</div>';
   return h;
 }
