@@ -195,6 +195,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .ed-load{font-size:13px;color:var(--ink-2);margin-top:-8px}
 .notes{margin:0;padding:0;list-style:none;display:grid;gap:6px}
 .notes:empty{display:none}
+.room{display:grid;gap:10px}
+.room-app{display:grid;grid-template-columns:minmax(0,1fr) 84px 56px 104px 36px;gap:6px;align-items:center}
+.room-app select,.room-tools select{min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink);font:inherit;padding:0 8px}
+.room-tools{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:560px){.room-app{grid-template-columns:minmax(0,1fr) 72px 48px 36px}.room-app select{grid-column:1/4}}
+.cmp.worse{color:var(--bad)}
+.cmp.better{color:var(--ok)}
+.quick{display:grid;gap:8px;margin-top:8px}
+.quick textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--field);color:var(--ink);resize:vertical}
 .chip-mine{display:inline-flex;align-items:center;flex:none}
 .chip-mine .chip{border-top-right-radius:0;border-bottom-right-radius:0}
 .chip-x{min-width:32px;min-height:36px;border:1px solid var(--line);border-left:0;border-radius:0 999px 999px 0;background:var(--surface);color:var(--ink-2);cursor:pointer;font-size:16px}

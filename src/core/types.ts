@@ -10,6 +10,21 @@ export interface App {
   n: Num;
 }
 
+export interface RoomApp {
+  id: string;
+  name: string;
+  w: Num;
+  n: Num;
+  tag: 'l' | 's' | 'p';
+}
+
+export interface Room {
+  id: string;
+  name: string;
+  kitchen?: boolean;
+  apps: RoomApp[];
+}
+
 export interface Meas {
   zs?: Num;
   ins?: Num;
@@ -60,6 +75,7 @@ export interface Project {
   lines: Line[];
   checks?: Record<string, boolean>;
   proto?: Proto;
+  rooms?: Room[];
 }
 
 export interface Content {

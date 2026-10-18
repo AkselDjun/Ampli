@@ -1,4 +1,4 @@
-import type { Content, Line, Project } from './types';
+import type { Content, Line, Project, Room } from './types';
 import { TYPES } from './norms';
 import { defaultCfg, sample } from './templates';
 import { nid, pid } from './ids';
@@ -24,6 +24,9 @@ export function normProject(o: unknown, keep = false): Project | null {
     sample: !!x.sample,
     cfg: { ...defaultCfg(), ...(x.cfg as object) },
     lines,
+    rooms: Array.isArray(x.rooms)
+      ? (x.rooms as Room[]).filter(r => r && Array.isArray(r.apps)).map(r => ({ ...r, id: nid(), apps: r.apps.map(a => ({ ...a, id: nid() })) }))
+      : [],
     checks: x.checks && typeof x.checks === 'object' ? { ...x.checks } : {},
     proto: { date: '', device: '', by: '', ...(x.proto ?? {}) }
   };

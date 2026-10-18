@@ -1,4 +1,5 @@
-import type { App, Cfg, Content, Line, LineType, Phase, Project } from '../core/types';
+import type { App, Cfg, Content, Line, LineType, Phase, Project, Room, RoomApp } from '../core/types';
+import { assemble } from '../core/rooms';
 import { TYPES, CLIMITS } from '../core/norms';
 import { balanceLines } from '../core/calc';
 import { blank, mkLine } from '../core/templates';
@@ -15,6 +16,15 @@ export type Action =
   | { t: 'select'; id: string }
   | { t: 'addLine'; type: LineType }
   | { t: 'delLine' }
+  | { t: 'dupLine' }
+  | { t: 'roomAdd'; room: Room }
+  | { t: 'roomDel'; id: string }
+  | { t: 'roomName'; id: string; value: string }
+  | { t: 'roomAppAdd'; rid: string; app: RoomApp }
+  | { t: 'roomAppField'; rid: string; aid: string; field: 'name' | 'w' | 'n' | 'tag'; value: string }
+  | { t: 'roomAppDel'; rid: string; aid: string }
+  | { t: 'assemble' }
+  | { t: 'addApps'; apps: { name: string; w: number; n: number }[] }
   | { t: 'lineField'; field: 'name' | 'len' | 'kc' | 'cos'; value: string | number }
   | { t: 'lineType'; type: LineType }
   | { t: 'linePhase'; phase: Phase }
@@ -72,6 +82,41 @@ export function reducer(s: State, a: Action): State {
       const next = patch(s, q => ({ ...q, lines }));
       return { ...next, sel: lines.length ? lines[Math.min(i, lines.length - 1)].id : null };
     }
+    case 'roomAdd':
+      return patch(s, q => ({ ...q, rooms: [...(q.rooms ?? []), a.room] }));
+    case 'roomDel':
+      return patch(s, q => ({ ...q, rooms: (q.rooms ?? []).filter(r => r.id !== a.id) }));
+    case 'roomName':
+      return patch(s, q => ({ ...q, rooms: (q.rooms ?? []).map(r => (r.id === a.id ? { ...r, name: a.value } : r)) }));
+    case 'roomAppAdd':
+      return patch(s, q => ({ ...q, rooms: (q.rooms ?? []).map(r => (r.id === a.rid ? { ...r, apps: [...r.apps, a.app] } : r)) }));
+    case 'roomAppField':
+      return patch(s, q => ({
+        ...q,
+        rooms: (q.rooms ?? []).map(r => (r.id === a.rid ? { ...r, apps: r.apps.map(x => (x.id === a.aid ? { ...x, [a.field]: a.value } : x)) } : r))
+      }));
+    case 'roomAppDel':
+      return patch(s, q => ({ ...q, rooms: (q.rooms ?? []).map(r => (r.id === a.rid ? { ...r, apps: r.apps.filter(x => x.id !== a.aid) } : r)) }));
+    case 'assemble': {
+      const lines = assemble(p.rooms ?? []);
+      if (!lines.length) return s;
+      const next = patch(s, q => ({ ...q, lines }));
+      return { ...next, sel: lines[0].id };
+    }
+    case 'dupLine': {
+      const i = p.lines.findIndex(l => l.id === s.sel);
+      if (i < 0) return s;
+      const src = p.lines[i];
+      const cp: Line = { ...src, id: nid(), name: (src.name || 'Без названия') + ' (копия)', apps: src.apps.map(x => ({ ...x, id: nid() })), meas: undefined };
+      const lines = [...p.lines];
+      lines.splice(i + 1, 0, cp);
+      let next = patch(s, q => ({ ...q, lines }));
+      next = { ...next, sel: cp.id };
+      if (pn(p.cfg.supply, 1) === 3) next = patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) }));
+      return next;
+    }
+    case 'addApps':
+      return patchLine(s, l => ({ ...l, apps: [...l.apps, ...a.apps.map(x => ({ id: nid(), name: x.name, w: x.w, n: x.n }))] }));
     case 'lineField':
       return patchLine(s, l => ({ ...l, [a.field]: a.value }));
     case 'lineType':

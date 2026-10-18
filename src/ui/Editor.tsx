@@ -7,6 +7,7 @@ import type { Action } from '../store/reducer';
 import { IconDown } from './Icons';
 import { ArmButton, Seg, Stepper } from './common';
 import { useLib } from '../store/LibContext';
+import { parseApps } from '../core/quick';
 
 function Tile({ label, val, sub }: { label: string; val: string; sub?: string }) {
   return (
@@ -33,6 +34,8 @@ export function Editor({
   const chips = useRef<HTMLDivElement>(null);
   const focusNew = useRef(false);
   const [measOpen, setMeasOpen] = useState(false);
+  const [quick, setQuick] = useState<string | null>(null);
+  const [quickMsg, setQuickMsg] = useState('');
   if (!l) {
     return (
       <section className="col col-edit" aria-label="Редактор группы">
@@ -223,6 +226,26 @@ export function Editor({
           {l.apps.some(ap => ap.name.trim() && pn(ap.w, 0) > 0) && (
             <button className="link" type="button" onClick={() => libDispatch({ t: 'addApps', apps: l.apps.filter(ap => ap.name.trim() && pn(ap.w, 0) > 0).map(ap => ({ name: ap.name, w: pn(ap.w, 0), tag: tag as 'l' | 's' | 'p' })) })}>Сохранить приборы группы в мои</button>
           )}
+        </div>
+        <div className="blk">
+          <button className="link" type="button" aria-expanded={quick !== null} onClick={() => { setQuick(quick === null ? '' : null); setQuickMsg(''); }}>Вставить список текстом</button>
+          {quick !== null && (
+            <div className="quick">
+              <textarea aria-label="Список приборов" rows={3} placeholder="чайник 2200, духовка 2,5 кВт, лампы 60 x5" value={quick} onChange={e => setQuick(e.target.value)} />
+              <div className="copy-row">
+                <button className="btn primary" type="button" onClick={() => {
+                  const r = parseApps(quick);
+                  if (r.apps.length) dispatch({ t: 'addApps', apps: r.apps });
+                  setQuickMsg((r.apps.length ? 'Добавлено: ' + r.apps.length : 'Ничего не добавлено') + (r.skipped.length ? '. Не разобрано: ' + r.skipped.join('; ') : ''));
+                  if (r.apps.length && !r.skipped.length) setQuick('');
+                }}>Добавить</button>
+                <span role="status" className="muted">{quickMsg}</span>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="blk">
+          <button className="btn" type="button" onClick={() => dispatch({ t: 'dupLine' })}>Копия группы</button>
         </div>
         <div className="blk">
           <ArmButton className="btn danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); }} />

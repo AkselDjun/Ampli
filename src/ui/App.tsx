@@ -9,6 +9,8 @@ import { loadStore, saveStore } from '../store/storage';
 import { libReducer, loadLib, saveLib } from '../store/lib';
 import { LibContext } from '../store/LibContext';
 import { LibSheet } from './LibSheet';
+import { CompareSheet } from './CompareSheet';
+import { RoomsSheet } from './RoomsSheet';
 import { Brand, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconNet, IconPanel } from './Icons';
 import { GroupList } from './GroupList';
 import { Editor } from './Editor';
@@ -19,7 +21,7 @@ import { WorkSheet } from './WorkSheet';
 import type { PrintMode } from './WorkSheet';
 
 type View = 'groups' | 'edit' | 'sum' | 'panel';
-type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | null;
+type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | null;
 
 const isWide = () => window.matchMedia('(min-width:1000px)').matches;
 
@@ -134,6 +136,7 @@ export function App() {
             onAdd={(t: LineType) => { dispatch({ t: 'addLine', type: t }); goEdit(); }}
             onOpenProj={() => setSheet('proj')}
             onOpenNet={() => setSheet('net')}
+            onRooms={() => setSheet('rooms')}
             onBlank={() => dispatch({ t: 'replace', content: blank() })}
             canUndo={hist.past.length > 0}
             canRedo={hist.future.length > 0}
@@ -184,7 +187,9 @@ export function App() {
         <NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} />
         <ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => setSheet('lib')} />
         <LibSheet open={sheet === 'lib'} onClose={closeSheet} />
-        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} />
+        <CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} />
+        <RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} />
+        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} onCompare={() => setSheet('cmp')} />
         <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} />
       </div>
       <PrintDoc p={p} a={a} mode={printMode} />
