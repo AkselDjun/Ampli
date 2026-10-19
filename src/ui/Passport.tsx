@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { Calc, Project } from '../core/types';
 import { calcAll } from '../core/calc';
-import { dfmt } from '../core/format';
+import { dfmt, fmt } from '../core/format';
 import { SCOPE_NOTE, TEST_NOTE, TRIP_STEPS, passportInput, passportRows, watts } from '../core/passport';
 import { ownerUrl, qrSvg } from '../core/share';
 
@@ -20,7 +20,7 @@ export function PassportBody({ p, a, qr }: { p: Project; a: Calc; qr?: string | 
       </div>
       <div className="pp-in">
         <b>{inp.text}</b>
-        <span>Расчётная мощность квартиры {inp.pKw} кВт из выделенных {inp.allocKw} кВт</span>
+        <span>Расчётная мощность квартиры {fmt(inp.pKw, 1)} кВт из выделенных {fmt(inp.allocKw, 1)} кВт</span>
       </div>
       <h2>Что на каком автомате</h2>
       <div className="pp-list">

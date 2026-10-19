@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { IconDown, IconInfo } from './Icons';
 import type { CfgN } from '../core/types';
@@ -77,9 +77,29 @@ export function ArmButton({
   );
 }
 
+const TIP_GAP = 6;
+const TIP_EDGE = 8;
+
 export function Tip({ children, label = 'Подсказка' }: { children: ReactNode; label?: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
+  const tt = useRef<HTMLSpanElement>(null);
+  const place = useCallback(() => {
+    const host = ref.current;
+    const box = tt.current;
+    if (!host || !box) return;
+    const vw = document.documentElement.clientWidth;
+    const vh = window.innerHeight;
+    const b = host.getBoundingClientRect();
+    const w = box.offsetWidth;
+    const h = box.offsetHeight;
+    const left = Math.max(TIP_EDGE, Math.min(b.left + b.width / 2 - w / 2, vw - w - TIP_EDGE));
+    const below = b.bottom + TIP_GAP;
+    const above = b.top - TIP_GAP - h;
+    const top = below + h <= vh - TIP_EDGE || above < TIP_EDGE ? Math.max(TIP_EDGE, Math.min(below, vh - h - TIP_EDGE)) : above;
+    box.style.left = left + 'px';
+    box.style.top = top + 'px';
+  }, []);
   useEffect(() => {
     if (!open) return;
     const away = (e: Event) => {
@@ -93,17 +113,24 @@ export function Tip({ children, label = 'Подсказка' }: { children: Reac
     };
     document.addEventListener('pointerdown', away);
     document.addEventListener('keydown', key, true);
+    window.addEventListener('resize', place);
+    document.addEventListener('scroll', place, true);
     return () => {
       document.removeEventListener('pointerdown', away);
       document.removeEventListener('keydown', key, true);
+      window.removeEventListener('resize', place);
+      document.removeEventListener('scroll', place, true);
     };
-  }, [open]);
+  }, [open, place]);
+  useLayoutEffect(() => {
+    if (open) place();
+  }, [open, place]);
   return (
-    <span className={'tip' + (open ? ' on' : '')} ref={ref}>
+    <span className={'tip' + (open ? ' on' : '')} ref={ref} onMouseEnter={place} onFocus={place}>
       <button type="button" className="tip-b" aria-label={label} aria-expanded={open} onClick={() => setOpen(o => !o)}>
         <IconInfo />
       </button>
-      <span className="tip-t" role="tooltip">{children}</span>
+      <span className="tip-t" role="tooltip" ref={tt}>{children}</span>
     </span>
   );
 }
