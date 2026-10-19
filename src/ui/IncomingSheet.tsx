@@ -5,7 +5,7 @@ import { Sheet } from './common';
 export function IncomingSheet({ project, onAccept, onDecline }: { project: Project | null; onAccept: () => void; onDecline: () => void }) {
   const n = project ? project.lines.length : 0;
   return (
-    <Sheet open={project !== null} onClose={onDecline} title="Присланный проект" small>
+    <Sheet open={project !== null} onClose={onDecline} title="Присланный проект" compact>
       {project && (
         <>
           <p>

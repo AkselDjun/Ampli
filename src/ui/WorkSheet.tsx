@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import type { Calc, Project } from '../core/types';
 import { fmt } from '../core/format';
 import { CHECK_ITEMS, progress } from '../core/checklist';
 import { VERDICT, protocolRows } from '../core/protocol';
 import type { Action } from '../store/reducer';
-import { Sheet } from './common';
+import { Sheet, TabPanel, Tabs } from './common';
 import { ShareBlock } from './ShareBlock';
 
 export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport';
@@ -18,12 +19,14 @@ export function WorkSheet({
   dispatch: (x: Action) => void;
   onPrint: (m: PrintMode) => void;
 }) {
+  const [tab, setTab] = useState('check');
   const checks = p.checks ?? {};
   const pr = progress(p.checks);
   const rows = protocolRows(a);
   const proto = p.proto ?? { date: '', device: '', by: '' };
   return (
-    <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" tip="Значения замеров вводятся в карточке группы, раздел «Замеры после монтажа». Они подставляются в проверку КЗ, УЗО и изоляции.">
+    <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Значения замеров вводятся в карточке группы, раздел «Замеры после монтажа». Они подставляются в проверку КЗ, УЗО и изоляции.">
+      <TabPanel scope="wk" id="check" cur={tab}>
       <div className="wk-prog">
         <span><b>{pr.done}</b> из {pr.total} пунктов выполнено</span>
         <div className="meter" role="img" aria-label={'Выполнено ' + pr.done + ' из ' + pr.total}>
@@ -40,6 +43,8 @@ export function WorkSheet({
           </li>
         ))}
       </ul>
+      </TabPanel>
+      <TabPanel scope="wk" id="meas" cur={tab}>
       <h3 className="sec-t">Протокол замеров</h3>
       <div className="meta-grid">
         <div className="f"><label className="lbl" htmlFor="pDate">Дата замеров</label><input id="pDate" type="date" value={proto.date} onChange={e => dispatch({ t: 'proto', field: 'date', value: e.target.value })} /></div>
@@ -66,17 +71,21 @@ export function WorkSheet({
           </tbody>
         </table>
       </div>
+      </TabPanel>
+      <TabPanel scope="wk" id="docs" cur={tab}>
       <h3 className="sec-t">Паспорт для владельца</h3>
       <p className="muted">Одна страница для заказчика: что на каком автомате, предел нагрузки и что делать, если выбило. Откройте её по ссылке или распечатайте с QR-кодом для щитка.</p>
       <div className="copy-row">
         <button className="btn primary" type="button" onClick={() => onPrint('passport')}>Печать паспорта</button>
       </div>
       <ShareBlock p={p} owner />
+      <h3 className="sec-t">Протокол, наклейки и бирки</h3>
       <div className="copy-row">
         <button className="btn primary" type="button" onClick={() => onPrint('proto')}>Печать протокола</button>
         <button className="btn" type="button" onClick={() => onPrint('stickers')}>Наклейки щитка</button>
         <button className="btn" type="button" onClick={() => onPrint('tags')}>Бирки кабелей</button>
       </div>
+      </TabPanel>
     </Sheet>
   );
 }

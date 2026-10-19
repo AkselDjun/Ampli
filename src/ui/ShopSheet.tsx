@@ -8,7 +8,7 @@ import { parsePriceFile } from '../core/pricelist';
 import { MAX_LISTS, addList, loadLists, saveLists } from '../store/pricelists';
 import type { PriceList } from '../store/pricelists';
 import { useLib } from '../store/LibContext';
-import { Sheet, Tip } from './common';
+import { Sheet, TabPanel, Tabs, Tip } from './common';
 
 const BYN = ' BYN';
 
@@ -17,6 +17,7 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
   const [lists, setLists] = useState<PriceList[]>(loadLists);
   const [pick, setPick] = useState<Record<string, number>>({});
   const [msg, setMsg] = useState<{ t: string; bad: boolean } | null>(null);
+  const [tab, setTab] = useState('buy');
   const file = useRef<HTMLInputElement>(null);
   const items = useMemo(() => buildSpec(a), [a]);
   const offers = useMemo(() => lists.flatMap(l => l.offers), [lists]);
@@ -51,6 +52,7 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
     }
     setLists(next);
     setPick({});
+    setTab('buy');
     note('Загружено позиций: ' + parsed.offers.length + (parsed.skipped ? ', пропущено строк: ' + parsed.skipped : ''));
   };
 
@@ -73,7 +75,8 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Где купить" tip="Список закупки собран из вашей спецификации. Кнопки магазинов открывают поиск по нужной позиции. Загрузите прайс поставщика, и приложение подберёт подходящие позиции и самую низкую цену. Цены берутся только из ваших файлов, приложение их не угадывает.">
+    <Sheet open={open} onClose={onClose} title="Где купить" bar={<Tabs scope="shop" label="Разделы закупки" cur={tab} onChange={setTab} items={[{ id: 'buy', label: 'Что купить' }, { id: 'lists', label: 'Прайсы' + (lists.length ? ' (' + lists.length + ')' : '') }]} />} tip="Список закупки собран из вашей спецификации. Кнопки магазинов открывают поиск по нужной позиции. Загрузите прайс поставщика, и приложение подберёт подходящие позиции и самую низкую цену. Цены берутся только из ваших файлов, приложение их не угадывает.">
+      <TabPanel scope="shop" id="lists" cur={tab}>
       <h3 className="sec-t">Прайсы поставщиков</h3>
       <div className="data-row">
         <button className="btn" type="button" onClick={() => file.current?.click()}>Загрузить прайс</button>
@@ -90,7 +93,6 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
           }}
         />
       </div>
-      {msg && <p role="status" className="muted" style={{ color: msg.bad ? 'var(--bad)' : 'var(--ok)' }}>{msg.t}</p>}
       {lists.length > 0 && (
         <ul className="pl-list">
           {lists.map(l => (
@@ -101,6 +103,8 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
           ))}
         </ul>
       )}
+      </TabPanel>
+      <TabPanel scope="shop" id="buy" cur={tab}>
       <h3 className="sec-t">Что купить</h3>
       <ul className="shop-list">
         {rows.map(({ item, found, chosen }, idx) => {
@@ -146,6 +150,8 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
           <button className="btn primary" type="button" onClick={apply} disabled={!matched}>Подставить в смету</button>
         </div>
       )}
+      </TabPanel>
+      {msg && <p role="status" className="muted" style={{ color: msg.bad ? 'var(--bad)' : 'var(--ok)' }}>{msg.t}</p>}
     </Sheet>
   );
 }

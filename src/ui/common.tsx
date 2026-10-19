@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { KeyboardEvent as ReactKeyEvent, ReactNode } from 'react';
 import { IconDown, IconInfo } from './Icons';
 import type { CfgN } from '../core/types';
 import { BASIS_LABEL, assumptions } from '../core/assumptions';
@@ -135,14 +135,58 @@ export function Tip({ children, label = 'Подсказка' }: { children: Reac
   );
 }
 
+export interface TabDef {
+  id: string;
+  label: string;
+}
+
+export function Tabs({ scope, items, cur, onChange, label }: { scope: string; items: TabDef[]; cur: string; onChange: (id: string) => void; label: string }) {
+  const move = (e: ReactKeyEvent<HTMLButtonElement>, i: number) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const next = items[(i + (e.key === 'ArrowRight' ? 1 : items.length - 1)) % items.length];
+    onChange(next.id);
+    document.getElementById(scope + '-tab-' + next.id)?.focus();
+  };
+  return (
+    <div className="tabbar" role="tablist" aria-label={label}>
+      {items.map((t, i) => (
+        <button
+          key={t.id}
+          id={scope + '-tab-' + t.id}
+          type="button"
+          role="tab"
+          className={'tabbar-b' + (cur === t.id ? ' on' : '')}
+          aria-selected={cur === t.id}
+          aria-controls={scope + '-tp-' + t.id}
+          tabIndex={cur === t.id ? 0 : -1}
+          onClick={() => onChange(t.id)}
+          onKeyDown={e => move(e, i)}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function TabPanel({ scope, id, cur, children }: { scope: string; id: string; cur: string; children: ReactNode }) {
+  return (
+    <div className="tabpanel" role="tabpanel" id={scope + '-tp-' + id} aria-labelledby={scope + '-tab-' + id} hidden={cur !== id}>
+      {children}
+    </div>
+  );
+}
+
 export function Sheet({
-  open, onClose, title, small, full, tip, children
+  open, onClose, title, compact, full, tip, bar, children
 }: {
   full?: boolean;
+  compact?: boolean;
+  bar?: ReactNode;
   open: boolean;
   onClose: () => void;
   title: string;
-  small?: boolean;
   tip?: ReactNode;
   children: ReactNode;
 }) {
@@ -167,12 +211,13 @@ export function Sheet({
   const id = 'ttl-' + title.length + title.charCodeAt(0);
   return (
     <div className="sheet" hidden={!open} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className={'sheet-panel' + (small ? ' sm' : '') + (full ? ' full' : '')} role="dialog" aria-modal="true" aria-labelledby={id}>
+      <div className={'sheet-panel' + (compact ? ' compact' : '') + (full ? ' full' : '')} role="dialog" aria-modal="true" aria-labelledby={id}>
         <div className="sheet-head">
           <h2 id={id}>{title}</h2>
           {tip && <Tip>{tip}</Tip>}
           <button ref={closeRef} className="sheet-close" type="button" onClick={onClose} aria-label="Закрыть">×</button>
         </div>
+        {bar}
         <div className="sheet-body">{children}</div>
       </div>
     </div>

@@ -162,6 +162,7 @@ describe('App', () => {
     expect(window.print).toHaveBeenCalledTimes(1);
     expect(document.title).toBe('orig');
     fireEvent.click(within(nav).getByRole('button', { name: /Приёмка/ }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Документы' }));
     fireEvent.click(screen.getByRole('button', { name: 'Печать протокола' }));
     expect(document.querySelector('.printdoc h1')?.textContent).toBe('Протокол замеров');
     fireEvent.click(screen.getByRole('button', { name: 'Наклейки щитка' }));

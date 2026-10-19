@@ -171,6 +171,7 @@ describe('incoming project flow', () => {
 describe('ShareBlock', () => {
   const openProj = () => {
     click(list(), 'Проекты');
+    fireEvent.click(within(dlg('Проекты')).getByRole('tab', { name: 'Обмен и данные' }));
     return dlg('Проекты');
   };
   const clip = (impl: () => Promise<void>) => {

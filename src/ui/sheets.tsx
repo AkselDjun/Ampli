@@ -15,7 +15,7 @@ import { delPhoto, forgetPhotoUrl } from '../store/photos';
 import { IconDownload } from './Icons';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
-import { ArmButton, Assumptions, Seg, Sheet, Stepper, Tip } from './common';
+import { ArmButton, Assumptions, Seg, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
 import { Schematic } from './Schematic';
 import { ShareBlock } from './ShareBlock';
 import { useLib } from '../store/LibContext';
@@ -37,7 +37,7 @@ export function NetSheet({
     onClose();
   };
   return (
-    <Sheet open={open} onClose={onClose} title="Параметры сети" small>
+    <Sheet open={open} onClose={onClose} title="Параметры сети">
       <div className="f">
         <span className="lbl" id="l-sup">Питание</span>
         <Seg<number> name="sup" labelledBy="l-sup" value={c.supply} items={[[1, '1 фаза · 230 В'], [3, '3 фазы · 400 В']]} onChange={v => dispatch({ t: 'cfg', field: 'supply', value: v })} />
@@ -112,6 +112,7 @@ export function ProjectsSheet({
 }) {
   const { lib, dispatch: libDispatch } = useLib();
   const [tplOpen, setTplOpen] = useState(false);
+  const [tab, setTab] = useState('main');
   const [elec, setElec] = useState(true);
   const [msg, setMsg] = useState<{ t: string; bad: boolean } | null>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -174,7 +175,8 @@ export function ProjectsSheet({
   };
   const n = state.list.length;
   return (
-    <Sheet open={open} onClose={onClose} title="Проекты" small tip="Проекты хранятся в этом браузере на этом устройстве. Чтобы перенести проект на другое устройство, сохраните его в файл и откройте там.">
+    <Sheet open={open} onClose={onClose} title="Проекты" bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся в этом браузере на этом устройстве. Чтобы перенести проект на другое устройство, сохраните его в файл и откройте там.">
+      <TabPanel scope="pj" id="main" cur={tab}>
       <h3 className="sec-t">Текущий проект</h3>
       <div className="meta-grid">
         <div className="f wide"><label className="lbl" htmlFor="mName">Название</label><input id="mName" ref={nameRef} type="text" autoComplete="off" maxLength={80} value={p.name} onChange={e => dispatch({ t: 'meta', field: 'name', value: e.target.value })} /></div>
@@ -234,6 +236,8 @@ export function ProjectsSheet({
           </>
         )}
       </div>
+      </TabPanel>
+      <TabPanel scope="pj" id="share" cur={tab}>
       <div className="data-row">
         <button className="btn ghost" type="button" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</button>
         <button className="btn ghost" type="button" onClick={onLib}>Мои данные</button>
@@ -263,6 +267,7 @@ export function ProjectsSheet({
           }}
         />
       </div>
+      </TabPanel>
       <span className="muted" role="status" style={{ color: msg ? (msg.bad ? 'var(--bad)' : 'var(--ok)') : undefined }}>{msg ? msg.t : ''}</span>
     </Sheet>
   );
@@ -315,17 +320,16 @@ export function ReportSheet({
   const three = a.c.supply === 3;
   const { lib, dispatch: libDispatch } = useLib();
   const est = estimate(buildSpec(a), lib.prices);
+  const [tab, setTab] = useState('groups');
   return (
-    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация">
+    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Допущения' }]} />}>
+      <TabPanel scope="rep" id="groups" cur={tab}>
       <div className="copy-row">
         <button className="btn primary" type="button" onClick={onPrint}>Печать / PDF</button>
         <button className="btn" type="button" onClick={copy}>Скопировать отчёт</button>
-        <button className="btn" type="button" onClick={() => saveFile('xlsx')} title="Смета и группы в Excel"><IconDownload /> Excel</button>
-        <button className="btn" type="button" onClick={() => saveFile('csv')} title="Смета в CSV"><IconDownload /> CSV</button>
         <button className="btn" type="button" onClick={onCompare}>Сравнить варианты</button>
-        <button className="btn" type="button" onClick={onShop}>Где купить</button>
-        <span role="status" style={{ color: msg ? (msg.ok ? 'var(--ok)' : 'var(--ink-2)') : undefined }}>{msg ? msg.t : ''}</span>
       </div>
+      {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <h3 className="sec-t">Группы линий</h3>
       <div className="tablewrap">
         <table>
@@ -377,8 +381,17 @@ export function ReportSheet({
           </tfoot>
         </table>
       </div>
+      </TabPanel>
+      <TabPanel scope="rep" id="scheme" cur={tab}>
       <h3 className="sec-t">Схема щитка</h3>
       <div className="schem-wrap"><Schematic a={a} /></div>
+      </TabPanel>
+      <TabPanel scope="rep" id="estimate" cur={tab}>
+      <div className="copy-row">
+        <button className="btn" type="button" onClick={() => saveFile('xlsx')} title="Смета и группы в Excel"><IconDownload /> Excel</button>
+        <button className="btn" type="button" onClick={() => saveFile('csv')} title="Смета в CSV"><IconDownload /> CSV</button>
+        <button className="btn" type="button" onClick={onShop}>Где купить</button>
+      </div>
       <h3 className="sec-t">Спецификация</h3>
       <div className="tablewrap">
         <table className="t2">
@@ -405,11 +418,10 @@ export function ReportSheet({
         <span className="mono">{fmt(est.total, 2)} BYN</span>
       </div>
       {est.missing > 0 && Object.keys(lib.prices).length > 0 && <p className="muted">Для {est.missing} поз. цена или количество не заданы, они не входят в итог.</p>}
-      {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
-      <details className="assum-d">
-        <summary>Допущения и источники</summary>
-        <Assumptions cfg={cfgN(p.cfg)} />
-      </details>
+      </TabPanel>
+      <TabPanel scope="rep" id="notes" cur={tab}>
+      <h3 className="sec-t">Допущения и источники</h3>
+      <Assumptions cfg={cfgN(p.cfg)} />
       <div className="foot">
         <p>Допустимые токи медных жил взяты из таблицы 1.3.4 главы 1.3 ПУЭ, на которую ссылается ТКП 339-2022, и умножены на поправку; прокладка по ГОСТ 30331.15. Групповые сети до 16 мм² выполняются медными жилами (ТКП 339-2022, п. 8.4.4), наименьшее сечение жилы 1,5 мм² (табл. 8.1).</p>
         <p>УЗО до 30 мА предусмотрены для групп освещения, розеток и мощных приборов (СН 4.04.01-2019, изм. 2, п. 16.3.3), при расчётном токе больше 32 А до 100 мА (п. 16.3.13). Потеря напряжения: 3 % для освещения и 5 % для остальных групп, на линиях длиннее 100 м допуск растёт на 0,005 % за метр, но не более чем на 0,5 % (СН 4.04.01-2019, п. 9.14); сопротивление меди 0,0225 Ом·мм²/м. Коэффициенты спроса и одновременности приняты по практике, их сверка с таблицами СН 4.04.01-2019 не выполнена.</p>
@@ -418,6 +430,8 @@ export function ReportSheet({
         <p>Длины кабеля в спецификации взяты из длин групп с запасом 10 %. Сам ввод, трассу в щиток и расход мелочи уточняйте по месту.</p>
         <p>Результат предварительный. Проект щитка и монтаж согласуйте с аттестованным электриком.</p>
       </div>
+      </TabPanel>
+      <span role="status" style={{ color: msg ? (msg.ok ? 'var(--ok)' : 'var(--ink-2)') : undefined }}>{msg ? msg.t : ''}</span>
     </Sheet>
   );
 }
