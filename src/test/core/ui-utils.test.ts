@@ -1,40 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { THEME_KEY, THEME_LABEL, THEME_ORDER, applyTheme, loadTheme, nextTheme, saveTheme } from '../../ui/theme';
 import { PHOTO_MAX_SIDE, fitSide, scalePhoto } from '../../ui/photoScale';
 import { download } from '../../ui/download';
-
-afterEach(() => {
-  document.documentElement.removeAttribute('data-theme');
-});
-
-describe('theme', () => {
-  it('loads, saves and cycles', () => {
-    expect(loadTheme()).toBe('auto');
-    saveTheme('dark');
-    expect(localStorage.getItem(THEME_KEY)).toBe('dark');
-    expect(loadTheme()).toBe('dark');
-    localStorage.setItem(THEME_KEY, 'light');
-    expect(loadTheme()).toBe('light');
-    localStorage.setItem(THEME_KEY, 'weird');
-    expect(loadTheme()).toBe('auto');
-    expect(THEME_ORDER.map(nextTheme)).toEqual(['light', 'dark', 'auto']);
-    expect(THEME_LABEL.auto).toContain('системе');
-  });
-  it('applies theme to the root', () => {
-    applyTheme('dark');
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-    applyTheme('light');
-    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-    applyTheme('auto');
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
-  });
-  it('survives storage failures', () => {
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('x'); });
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('x'); });
-    expect(loadTheme()).toBe('auto');
-    expect(() => saveTheme('dark')).not.toThrow();
-  });
-});
 
 describe('fitSide', () => {
   it('handles degenerate, small and large sizes', () => {

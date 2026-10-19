@@ -3,8 +3,8 @@ import { USAGE_LIMIT, byUsage, catalog, normName, searchCatalog, topUsed } from 
 import type { CatItem } from '../../core/catalog';
 import { PRESETS } from '../../core/norms';
 import { PHOTO_LIMIT, PHOTO_TAG_LABEL, PHOTO_TAGS, normPhotos, photoCaption, referencedPhotoIds } from '../../core/photos';
-import { normProject, newProject } from '../../core/project';
-import { blank } from '../../core/templates';
+import { normProject, newProject, sampleProject } from '../../core/project';
+import { blank, defaultCfg } from '../../core/templates';
 import type { Line, Photo } from '../../core/types';
 
 const item = (name: string, w: number, tags: string): CatItem => ({ key: name + w, name, w, tags, mine: null });
@@ -55,7 +55,7 @@ describe('catalog', () => {
 });
 
 describe('photos', () => {
-  const ph = (o: Partial<Photo>): Photo => ({ id: 'a', tag: 'before', line: null, note: '', at: 1, ...o });
+  const ph = (o: Partial<Photo>): Photo => ({ id: 'a', tag: 'before', line: 'l1', note: '', at: 1, ...o });
   const lines = [{ id: 'l1', name: 'Кухня' }, { id: 'l2', name: 'Спальня' }] as Line[];
 
   it('exposes tags and labels', () => {
@@ -73,20 +73,22 @@ describe('photos', () => {
       { id: 'b', tag: 'nope' },
       { id: 'c', tag: 'after', line: 'l1', note: 'x'.repeat(200), at: '7' },
       { id: 'd', tag: 'plate', line: 5, at: 'bad' },
-      { id: 'e', tag: 'meas', note: null }
+      { id: 'e', tag: 'meas', note: null },
+      { id: 'f', tag: 'meas', line: null },
+      { id: 'g', tag: 'meas', line: '' },
+      { id: 'h', tag: 'meas', line: 'l2', note: null, at: 'bad' }
     ]);
     expect(out).toEqual([
       { id: 'c', tag: 'after', line: 'l1', note: 'x'.repeat(120), at: 7 },
-      { id: 'd', tag: 'plate', line: null, note: '', at: 0 },
-      { id: 'e', tag: 'meas', line: null, note: '', at: 0 }
+      { id: 'h', tag: 'meas', line: 'l2', note: '', at: 0 }
     ]);
   });
   it('normPhotos caps the list', () => {
-    const many = Array.from({ length: PHOTO_LIMIT + 10 }, (_, i) => ({ id: 'p' + i, tag: 'before' }));
+    const many = Array.from({ length: PHOTO_LIMIT + 10 }, (_, i) => ({ id: 'p' + i, tag: 'before', line: 'l1' }));
     expect(normPhotos(many)).toHaveLength(PHOTO_LIMIT);
   });
-  it('captions panel, group, deleted group and notes', () => {
-    expect(photoCaption(ph({}), lines)).toBe('Щиток · До');
+  it('captions group, deleted group and notes', () => {
+    expect(photoCaption(ph({}), lines)).toBe('Г1 Кухня · До');
     expect(photoCaption(ph({ line: 'l2', tag: 'after', note: 'ok' }), lines)).toBe('Г2 Спальня · После · ok');
     expect(photoCaption(ph({ line: 'gone', tag: 'meas' }), lines)).toBe('Группа удалена · Замер');
   });
@@ -98,6 +100,21 @@ describe('photos', () => {
     const src = { ...newProject(blank(), 'n'), photos: [ph({ id: 'k' })] };
     expect(normProject(src, true)?.photos).toEqual([ph({ id: 'k' })]);
     expect(normProject(src)?.photos).toEqual([]);
+  });
+  it('keeps line ids with keep=true and regenerates them otherwise', () => {
+    const src = newProject({ sample: true, cfg: defaultCfg(), lines: sampleProject().lines }, 'n');
+    const ids = src.lines.map(l => l.id);
+    expect(normProject(src, true)?.lines.map(l => l.id)).toEqual(ids);
+    const fresh = normProject(src)?.lines.map(l => l.id) ?? [];
+    expect(fresh).toHaveLength(ids.length);
+    fresh.forEach(id => expect(ids).not.toContain(id));
+  });
+  it('photos keep pointing at their group after a keep=true round trip', () => {
+    const base = sampleProject();
+    const src = { ...base, photos: [ph({ id: 'k', line: base.lines[1].id })] };
+    const out = normProject(JSON.parse(JSON.stringify(src)), true);
+    expect(out?.photos?.[0].line).toBe(out?.lines[1].id);
+    expect(normProject(JSON.parse(JSON.stringify(src)))?.photos).toEqual([]);
     expect(normProject({ ...src, photos: undefined }, true)?.photos).toEqual([]);
   });
 });

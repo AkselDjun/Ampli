@@ -12,7 +12,7 @@ const mk = (): State => {
   return init({ cur: p.id, list: [p] });
 };
 const run = (s: State, ...as: Action[]): State => as.reduce(reducer, s);
-const ph = (id: string, line: string | null = null): Photo => ({ id, tag: 'before', line, note: '', at: 1 });
+const ph = (id: string, line = 'l0'): Photo => ({ id, tag: 'before', line, note: '', at: 1 });
 
 describe('photo actions', () => {
   it('adds, notes and deletes photos', () => {
@@ -41,7 +41,7 @@ describe('photo actions', () => {
   it('deleting a line removes only its photos', () => {
     const s0 = mk();
     const [l1, l2] = cur(s0).lines;
-    let s = run(s0, { t: 'photoAdd', photo: ph('x', l1.id) }, { t: 'photoAdd', photo: ph('y', l2.id) }, { t: 'photoAdd', photo: ph('z') }, { t: 'select', id: l1.id }, { t: 'delLine' });
+    let s = run(s0, { t: 'photoAdd', photo: ph('x', l1.id) }, { t: 'photoAdd', photo: ph('y', l2.id) }, { t: 'photoAdd', photo: ph('z', 'other') }, { t: 'select', id: l1.id }, { t: 'delLine' });
     expect(cur(s).photos?.map(x => x.id)).toEqual(['y', 'z']);
     const p = cur(s);
     delete p.photos;

@@ -36,7 +36,7 @@ export type PhotoTag = 'before' | 'after' | 'plate' | 'meas';
 export interface Photo {
   id: string;
   tag: PhotoTag;
-  line: string | null;
+  line: string;
   note: string;
   at: number;
 }

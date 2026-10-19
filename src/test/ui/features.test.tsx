@@ -15,7 +15,6 @@ import { PHOTO_LIMIT } from '../../core/photos';
 import type { Photo, Project } from '../../core/types';
 import { download } from '../../ui/download';
 import { scalePhoto } from '../../ui/photoScale';
-import { THEME_KEY } from '../../ui/theme';
 import { byLabel, change, click, dlg, isOpen, wide } from './util';
 
 vi.setConfig({ testTimeout: 60000 });
@@ -30,7 +29,7 @@ const list = () => document.querySelector('.col-list') as HTMLElement;
 const nav = () => document.querySelector('nav.tabs') as HTMLElement;
 const blob = () => new Blob([new Uint8Array([1, 2, 3])], { type: 'image/jpeg' });
 const jpg = () => new File(['x'], 'a.jpg', { type: 'image/jpeg' });
-const ph = (id: string, line: string | null = null, tag: Photo['tag'] = 'before'): Photo => ({ id, tag, line, note: '', at: 1 });
+const ph = (id: string, line: string, tag: Photo['tag'] = 'before'): Photo => ({ id, tag, line, note: '', at: 1 });
 
 const seed = (mut: (p: Project) => void) => {
   const p = sampleProject();
@@ -41,31 +40,8 @@ const seed = (mut: (p: Project) => void) => {
 
 afterEach(() => {
   window.location.hash = '';
-  document.documentElement.removeAttribute('data-theme');
   vi.mocked(download).mockClear();
   vi.mocked(scalePhoto).mockReset();
-});
-
-describe('theme button', () => {
-  it('cycles auto, light, dark and persists', () => {
-    render(<App />);
-    expect(screen.getByRole('button', { name: 'Тема: как в системе' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Тема: как в системе' }));
-    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-    expect(localStorage.getItem(THEME_KEY)).toBe('light');
-    fireEvent.click(screen.getByRole('button', { name: 'Тема: светлая' }));
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-    expect(localStorage.getItem(THEME_KEY)).toBe('dark');
-    fireEvent.click(screen.getByRole('button', { name: 'Тема: тёмная' }));
-    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
-    expect(localStorage.getItem(THEME_KEY)).toBe('auto');
-  });
-  it('restores the saved theme on start', () => {
-    localStorage.setItem(THEME_KEY, 'dark');
-    render(<App />);
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-    expect(screen.getByRole('button', { name: 'Тема: тёмная' })).toBeInTheDocument();
-  });
 });
 
 describe('Sheet props', () => {
@@ -408,55 +384,54 @@ describe('photos', () => {
   });
   it('disables the add button at the limit', () => {
     seed(p => {
-      p.photos = Array.from({ length: PHOTO_LIMIT }, (_, i) => ph('x' + i));
+      p.photos = Array.from({ length: PHOTO_LIMIT }, (_, i) => ph('x' + i, p.lines[0].id));
     });
     boot();
     const b = within(strip()).getByRole('button', { name: /Фото/ });
     expect(b).toBeDisabled();
     expect(b.getAttribute('title')).toBe('Достигнут предел фото в проекте');
   });
-  it('adds a panel photo from the work sheet with limited tags', async () => {
-    vi.mocked(scalePhoto).mockResolvedValue(blob());
-    boot();
-    click(nav(), /Приёмка/);
-    const d = dlg('Монтаж и приёмка');
-    expect(d.querySelectorAll('input[name="ptag-panel"]').length).toBe(3);
-    await act(async () => {
-      fireEvent.change(d.querySelector('[data-testid="photo-input-panel"]') as HTMLElement, { target: { files: [jpg()] } });
-    });
-    await waitFor(() => expect(d.querySelector('.photo-list img')).toBeTruthy());
-    expect(stored().list[0].photos[0].line).toBeNull();
-  });
   it('shows stored photos and a placeholder for missing blobs', async () => {
     await putPhoto('have', blob());
     seed(p => {
-      p.photos = [ph('have'), ph('lost')];
+      p.photos = [ph('have', p.lines[0].id), ph('lost', p.lines[0].id)];
     });
-    wide(true);
-    render(<App />);
-    click(nav(), /Приёмка/);
-    const d = dlg('Монтаж и приёмка');
-    await waitFor(() => expect(d.querySelectorAll('.photo-list img').length).toBe(1));
-    expect(d.querySelectorAll('.photo-list li').length).toBe(2);
-    expect(d.querySelector('.photo-list .muted')?.textContent).toBe('…');
+    boot();
+    await waitFor(() => expect(strip().querySelectorAll('.photo-list img').length).toBe(1));
+    expect(strip().querySelectorAll('.photo-list li').length).toBe(2);
+    expect(strip().querySelector('.photo-list .muted')?.textContent).toBe('…');
   });
   it('tolerates a failing photo store while loading', async () => {
     seed(p => {
-      p.photos = [ph('have')];
+      p.photos = [ph('have', p.lines[0].id)];
     });
     (globalThis as { indexedDB?: unknown }).indexedDB = undefined;
-    wide(true);
-    render(<App />);
-    click(nav(), /Приёмка/);
+    boot();
     await act(async () => { await new Promise(r => setTimeout(r, 20)); });
-    expect(dlg('Монтаж и приёмка').querySelectorAll('.photo-list li').length).toBe(1);
-    expect(dlg('Монтаж и приёмка').querySelectorAll('.photo-list img').length).toBe(0);
+    expect(strip().querySelectorAll('.photo-list li').length).toBe(1);
+    expect(strip().querySelectorAll('.photo-list img').length).toBe(0);
+  });
+  it('still shows a group photo after the app is unmounted and rendered again', async () => {
+    vi.mocked(scalePhoto).mockResolvedValue(blob());
+    vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => undefined);
+    wide(true);
+    const first = render(<App />);
+    fireEvent.click(document.querySelector('.rows .row') as HTMLElement);
+    await attach(jpg());
+    await waitFor(() => expect(strip().querySelector('.photo-list img')).toBeTruthy());
+    const lineId = stored().list[0].lines[0].id;
+    first.unmount();
+    expect(stored().list[0].photos[0].line).toBe(lineId);
+    render(<App />);
+    fireEvent.click(document.querySelector('.rows .row') as HTMLElement);
+    expect(stored().list[0].lines[0].id).toBe(lineId);
+    await waitFor(() => expect(strip().querySelectorAll('.photo-list img').length).toBe(1));
   });
   it('removes the photos of a deleted group and collects orphaned blobs on start', async () => {
     await putPhoto('orphan', blob());
     await putPhoto('kept', blob());
     seed(p => {
-      p.photos = [ph('kept')];
+      p.photos = [ph('kept', p.lines[0].id)];
     });
     boot();
     await waitFor(async () => expect(await photoKeys()).toEqual(['kept']));
@@ -467,7 +442,7 @@ describe('print with photos', () => {
   const setup = async (complete: boolean) => {
     await putPhoto('have', blob());
     seed(p => {
-      p.photos = [ph('have')];
+      p.photos = [ph('have', p.lines[0].id)];
     });
     vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(complete);
     wide(true);
@@ -482,7 +457,7 @@ describe('print with photos', () => {
   it('renders the photo section with captions in proto mode', async () => {
     await setup(true);
     expect(document.querySelector('.printdoc h2')?.textContent).toContain('Фотофиксация');
-    expect(document.querySelector('.pd-photo figcaption')?.textContent).toBe('Щиток · До');
+    expect(document.querySelector('.pd-photo figcaption')?.textContent).toBe('Г1 Освещение · До');
   });
   it('waits for images to load before printing', async () => {
     await setup(true);

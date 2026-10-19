@@ -13,7 +13,7 @@ import { gcPhotos } from '../store/photos';
 import { referencedPhotoIds } from '../core/photos';
 import { CompareSheet } from './CompareSheet';
 import { RoomsSheet } from './RoomsSheet';
-import { Brand, IconAuto, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconMoon, IconNet, IconPanel, IconSun } from './Icons';
+import { Brand, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconNet, IconPanel } from './Icons';
 import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
@@ -21,8 +21,6 @@ import { NetSheet, ProjectsSheet, ReportSheet } from './sheets';
 import { PrintDoc } from './PrintDoc';
 import { WorkSheet } from './WorkSheet';
 import { PanelMode } from './PanelMode';
-import { THEME_LABEL, applyTheme, loadTheme, nextTheme, saveTheme } from './theme';
-import type { Theme } from './theme';
 import { IncomingSheet } from './IncomingSheet';
 import { readShareHash, unpackProject } from '../core/share';
 import { uniqName } from '../core/project';
@@ -52,7 +50,6 @@ export function App() {
   const [whyOpen, setWhyOpen] = useState(false);
   const [printMode, setPrintMode] = useState<PrintMode>('report');
   const scrollPos = useRef(0);
-  const [theme, setTheme] = useState<Theme>(loadTheme);
   const [incoming, setIncoming] = useState<Project | null>(() => {
     const h = readShareHash(window.location.hash);
     return h ? unpackProject(h) : null;
@@ -65,11 +62,6 @@ export function App() {
   useEffect(() => {
     saveLib(lib);
   }, [lib]);
-
-  useEffect(() => {
-    applyTheme(theme);
-    saveTheme(theme);
-  }, [theme]);
 
   useEffect(() => {
     gcPhotos(referencedPhotoIds(loadStore().list)).catch(() => undefined);
@@ -179,10 +171,6 @@ export function App() {
               <button className="ab-btn" type="button" data-tip="Параметры сети" onClick={() => setSheet('net')} aria-label="Параметры сети">
                 <IconNet />
                 <span className="ab-txt">Параметры</span>
-              </button>
-              <button className="ab-btn" type="button" data-tip={THEME_LABEL[theme]} aria-label={THEME_LABEL[theme]} onClick={() => setTheme(nextTheme(theme))}>
-                {theme === 'auto' ? <IconAuto /> : (theme === 'light' ? <IconSun /> : <IconMoon />)}
-                <span className="ab-txt">{THEME_LABEL[theme]}</span>
               </button>
               <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
                 <IconPanel />

@@ -55,19 +55,6 @@ export const IconCamera = make(0, (
     <circle cx="12" cy="13" r="3.5" />
   </>
 ));
-export const IconMoon = make(0, <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />);
-export const IconSun = make(0, (
-  <>
-    <circle cx="12" cy="12" r="4" />
-    <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4" />
-  </>
-));
-export const IconAuto = make(0, (
-  <>
-    <circle cx="12" cy="12" r="8" />
-    <path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor" />
-  </>
-));
 export const IconSearch = make(0, (
   <>
     <circle cx="11" cy="11" r="6.5" />

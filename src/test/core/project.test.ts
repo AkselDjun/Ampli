@@ -57,7 +57,7 @@ describe('normProject', () => {
     expect(k.client).toHaveLength(80);
     expect(k.author).toHaveLength(80);
     expect([k.created, k.updated, k.sample]).toEqual([5, 6, true]);
-    expect(k.lines[0].id).not.toBe('L');
+    expect(k.lines[0].id).toBe('L');
     expect(k.lines[0].apps[0].id).not.toBe('A');
     expect(k.rooms).toHaveLength(1);
     expect(k.rooms![0].id).not.toBe('r2');

@@ -7,7 +7,7 @@ import { hasMeasurements, protocolRows, VERDICT } from '../../core/protocol';
 import { parseApps } from '../../core/quick';
 import { calcAll, calcLine, cfgN } from '../../core/calc';
 import { defaultCfg, mkLine, sample } from '../../core/templates';
-import { nid, pid } from '../../core/ids';
+import { keepId, nid, pid } from '../../core/ids';
 import { CLIMITS, STATUS, TYPE_KEYS, TYPES } from '../../core/norms';
 import type { Calc, Cfg, Line, LineResult, Project } from '../../core/types';
 
@@ -57,6 +57,18 @@ describe('ids and norms', () => {
     expect(nid()).toMatch(/^i\d+$/);
     expect(pid()).toMatch(/^p/);
     expect(pid()).not.toBe(pid());
+  });
+  it('keepId keeps string ids and reserves the counter', () => {
+    expect(keepId('i99999')).toBe('i99999');
+    expect(nid()).toBe('i100000');
+    expect(keepId('i5')).toBe('i5');
+    expect(nid()).toBe('i100001');
+    expect(keepId('custom')).toBe('custom');
+    expect(nid()).toBe('i100002');
+  });
+  it('keepId falls back to nid for empty or non-string ids', () => {
+    for (const bad of ['', undefined, null, 5, {}]) expect(keepId(bad)).toMatch(/^i\d+$/);
+    expect(keepId(undefined)).not.toBe(keepId(undefined));
   });
   it('exposes consistent tables', () => {
     expect(TYPE_KEYS).toEqual(['light', 'socket', 'power']);

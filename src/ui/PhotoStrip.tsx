@@ -28,7 +28,7 @@ export function PhotoStrip({
   photos, line, tags, total, onAdd, onDel, onNote, name
 }: {
   photos: Photo[];
-  line: string | null;
+  line: string;
   tags: PhotoTag[];
   total: number;
   onAdd: (p: Photo) => void;
