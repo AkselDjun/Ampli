@@ -24,6 +24,7 @@ import { PrintDoc } from './PrintDoc';
 import { WorkSheet } from './WorkSheet';
 import { PanelMode } from './PanelMode';
 import { IncomingSheet } from './IncomingSheet';
+import { ShopSheet } from './ShopSheet';
 import { readOwnerHash, readShareHash, unpackProject } from '../core/share';
 import { OwnerView } from './Passport';
 import { uniqName } from '../core/project';
@@ -31,7 +32,7 @@ import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 
 type View = 'groups' | 'edit' | 'sum' | 'panel';
-type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | null;
+type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | null;
 
 const waitPhotos = async (n: number): Promise<void> => {
   const deadline = Date.now() + 2500;
@@ -293,7 +294,8 @@ export function App() {
         <LibSheet open={sheet === 'lib'} onClose={closeSheet} />
         <CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} />
         <RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} />
-        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} onCompare={() => setSheet('cmp')} />
+        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} onCompare={() => setSheet('cmp')} onShop={() => setSheet('shop')} />
+        <ShopSheet open={sheet === 'shop'} onClose={closeSheet} a={a} />
         {toast && <Toast text={toast.text} label={toast.label} onAction={toast.run} onClose={() => setToast(null)} />}
         <PanelMode open={sheet === 'panel'} onClose={closeSheet} a={a} dispatch={dispatch} />
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />

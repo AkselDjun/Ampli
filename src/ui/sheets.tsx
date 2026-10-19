@@ -269,7 +269,7 @@ export function ProjectsSheet({
 }
 
 export function ReportSheet({
-  open, onClose, p, a, onPrint, onCompare
+  open, onClose, p, a, onPrint, onCompare, onShop
 }: {
   open: boolean;
   onClose: () => void;
@@ -277,6 +277,7 @@ export function ReportSheet({
   a: Calc;
   onPrint: () => void;
   onCompare: () => void;
+  onShop: () => void;
 }) {
   const [msg, setMsg] = useState<{ t: string; ok: boolean } | null>(null);
   const [fallback, setFallback] = useState<string | null>(null);
@@ -322,6 +323,7 @@ export function ReportSheet({
         <button className="btn" type="button" onClick={() => saveFile('xlsx')} title="Смета и группы в Excel"><IconDownload /> Excel</button>
         <button className="btn" type="button" onClick={() => saveFile('csv')} title="Смета в CSV"><IconDownload /> CSV</button>
         <button className="btn" type="button" onClick={onCompare}>Сравнить варианты</button>
+        <button className="btn" type="button" onClick={onShop}>Где купить</button>
         <span role="status" style={{ color: msg ? (msg.ok ? 'var(--ok)' : 'var(--ink-2)') : undefined }}>{msg ? msg.t : ''}</span>
       </div>
       <h3 className="sec-t">Группы линий</h3>
