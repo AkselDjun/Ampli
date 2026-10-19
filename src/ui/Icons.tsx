@@ -40,6 +40,41 @@ export const IconInfo = make(0, (
     <path d="M12 11v5M12 8v.01" />
   </>
 ));
+export const IconDownload = make(0, <path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" />);
+export const IconShare = make(0, (
+  <>
+    <circle cx="6" cy="12" r="2.5" />
+    <circle cx="17" cy="6" r="2.5" />
+    <circle cx="17" cy="18" r="2.5" />
+    <path d="m8.2 10.8 6.6-3.6M8.2 13.2l6.6 3.6" />
+  </>
+));
+export const IconCamera = make(0, (
+  <>
+    <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </>
+));
+export const IconMoon = make(0, <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />);
+export const IconSun = make(0, (
+  <>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4" />
+  </>
+));
+export const IconAuto = make(0, (
+  <>
+    <circle cx="12" cy="12" r="8" />
+    <path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor" />
+  </>
+));
+export const IconSearch = make(0, (
+  <>
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="m16 16 4 4" />
+  </>
+));
+export const IconTrash = make(0, <path d="M5 7h14M10 7V5h4v2m-8 0 1 12h8l1-12" />);
 export const IconList = make(0, <path d="M4 6h16M4 12h16M4 18h16" />);
 export const IconBolt = make(0, <path d="M13 2 5 13h6l-1 9 8-11h-6z" />);
 export const IconPanel = make(0, (

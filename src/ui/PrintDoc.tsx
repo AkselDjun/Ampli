@@ -11,6 +11,8 @@ import { cfgN } from '../core/calc';
 import { VERDICT, hasMeasurements, protocolRows } from '../core/protocol';
 import type { PrintMode } from './WorkSheet';
 import { CHECK_ITEMS } from '../core/checklist';
+import { photoCaption } from '../core/photos';
+import { usePhotoUrls } from './PhotoStrip';
 
 function ProtoTable({ a }: { a: Calc }) {
   const rows = protocolRows(a);
@@ -74,6 +76,25 @@ function Meta({ p }: { p: Project }) {
   );
 }
 
+function PhotoSheet({ p }: { p: Project }) {
+  const photos = p.photos ?? [];
+  const urls = usePhotoUrls(photos.map(x => x.id));
+  if (!photos.length) return null;
+  return (
+    <>
+      <h2>Фотофиксация</h2>
+      <div className="pd-photos">
+        {photos.map(ph => (
+          <figure key={ph.id} className="pd-photo">
+            {urls[ph.id] && <img src={urls[ph.id]} alt={photoCaption(ph, p.lines)} />}
+            <figcaption>{photoCaption(ph, p.lines)}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </>
+  );
+}
+
 function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
   const pr = p.proto ?? { date: '', device: '', by: '' };
   return (
@@ -88,6 +109,7 @@ function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
         <div><span>Прибор: </span>{pr.device || '—'}</div>
       </div>
       <ProtoTable a={a} />
+      <PhotoSheet p={p} />
       <h2>Приёмка</h2>
       <ul className="pd-ck">
         {CHECK_ITEMS.map(it => (

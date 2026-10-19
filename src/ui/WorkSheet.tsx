@@ -3,7 +3,8 @@ import { fmt } from '../core/format';
 import { CHECK_ITEMS, progress } from '../core/checklist';
 import { VERDICT, protocolRows } from '../core/protocol';
 import type { Action } from '../store/reducer';
-import { Sheet } from './common';
+import { Sheet, Tip } from './common';
+import { PhotoStrip } from './PhotoStrip';
 
 export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags';
 
@@ -39,6 +40,17 @@ export function WorkSheet({
           </li>
         ))}
       </ul>
+      <h3 className="sec-t">Фото щитка<Tip>Фото щитка до и после, шильдик и замеры. Они попадут в печатный протокол. Фото хранятся на этом устройстве, в ссылку и файл проекта не входят.</Tip></h3>
+      <PhotoStrip
+        name="panel"
+        line={null}
+        tags={['before', 'after', 'plate']}
+        total={(p.photos ?? []).length}
+        photos={(p.photos ?? []).filter(ph => ph.line === null)}
+        onAdd={photo => dispatch({ t: 'photoAdd', photo })}
+        onDel={id => dispatch({ t: 'photoDel', id })}
+        onNote={(id, value) => dispatch({ t: 'photoNote', id, value })}
+      />
       <h3 className="sec-t">Протокол замеров</h3>
       <div className="meta-grid">
         <div className="f"><label className="lbl" htmlFor="pDate">Дата замеров</label><input id="pDate" type="date" value={proto.date} onChange={e => dispatch({ t: 'proto', field: 'date', value: e.target.value })} /></div>

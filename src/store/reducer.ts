@@ -1,4 +1,5 @@
-import type { App, Cfg, Content, Line, LineType, Phase, Project, Room, RoomApp } from '../core/types';
+import type { App, Cfg, Content, Line, LineType, Phase, Photo, Project, Room, RoomApp } from '../core/types';
+import { PHOTO_LIMIT } from '../core/photos';
 import { assemble } from '../core/rooms';
 import { TYPES, CLIMITS } from '../core/norms';
 import { balanceLines } from '../core/calc';
@@ -24,12 +25,16 @@ export type Action =
   | { t: 'roomAppField'; rid: string; aid: string; field: 'name' | 'w' | 'n' | 'tag'; value: string }
   | { t: 'roomAppDel'; rid: string; aid: string }
   | { t: 'assemble' }
+  | { t: 'photoAdd'; photo: Photo }
+  | { t: 'photoDel'; id: string }
+  | { t: 'photoNote'; id: string; value: string }
   | { t: 'addApps'; apps: { name: string; w: number; n: number }[] }
   | { t: 'lineField'; field: 'name' | 'len' | 'kc' | 'cos'; value: string | number }
   | { t: 'lineType'; type: LineType }
   | { t: 'linePhase'; phase: Phase }
   | { t: 'lineWet'; wet: boolean }
   | { t: 'lineMeas'; field: 'zs' | 'ins' | 'leak'; value: string }
+  | { t: 'lineMeasAt'; id: string; field: 'zs' | 'ins' | 'leak'; value: string }
   | { t: 'check'; id: string; on: boolean }
   | { t: 'proto'; field: 'date' | 'device' | 'by'; value: string }
   | { t: 'appField'; id: string; field: 'name' | 'w' | 'n'; value: string | number }
@@ -79,9 +84,16 @@ export function reducer(s: State, a: Action): State {
       const i = p.lines.findIndex(l => l.id === s.sel);
       if (i < 0) return s;
       const lines = p.lines.filter(l => l.id !== s.sel);
-      const next = patch(s, q => ({ ...q, lines }));
+      const next = patch(s, q => ({ ...q, lines, photos: (q.photos ?? []).filter(ph => ph.line !== s.sel) }));
       return { ...next, sel: lines.length ? lines[Math.min(i, lines.length - 1)].id : null };
     }
+    case 'photoAdd':
+      if ((p.photos ?? []).length >= PHOTO_LIMIT) return s;
+      return patch(s, q => ({ ...q, photos: [...(q.photos ?? []), a.photo] }));
+    case 'photoDel':
+      return patch(s, q => ({ ...q, photos: (q.photos ?? []).filter(ph => ph.id !== a.id) }));
+    case 'photoNote':
+      return patch(s, q => ({ ...q, photos: (q.photos ?? []).map(ph => (ph.id === a.id ? { ...ph, note: a.value.slice(0, 120) } : ph)) }));
     case 'roomAdd':
       return patch(s, q => ({ ...q, rooms: [...(q.rooms ?? []), a.room] }));
     case 'roomDel':
@@ -136,6 +148,8 @@ export function reducer(s: State, a: Action): State {
       return patchLine(s, l => ({ ...l, phase: a.phase }));
     case 'lineMeas':
       return patchLine(s, l => ({ ...l, meas: { ...(l.meas ?? {}), [a.field]: a.value } }));
+    case 'lineMeasAt':
+      return patch(s, q => ({ ...q, lines: q.lines.map(l => (l.id === a.id ? { ...l, meas: { ...(l.meas ?? {}), [a.field]: a.value } } : l)) }));
     case 'check':
       return patch(s, q => ({ ...q, checks: { ...(q.checks ?? {}), [a.id]: a.on } }));
     case 'proto':

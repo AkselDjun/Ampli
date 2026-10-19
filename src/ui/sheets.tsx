@@ -9,10 +9,15 @@ import { STATUS } from '../core/norms';
 import { buildSpec } from '../core/spec';
 import { cableName, protName } from '../core/protection';
 import { reportText } from '../core/report';
+import { buildXlsx, exportName, exportTables, toCsv } from '../core/export';
+import { download } from './download';
+import { delPhoto, forgetPhotoUrl } from '../store/photos';
+import { IconDownload } from './Icons';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
 import { ArmButton, Assumptions, Seg, Sheet, Stepper, Tip } from './common';
 import { Schematic } from './Schematic';
+import { ShareBlock } from './ShareBlock';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
 
@@ -191,7 +196,7 @@ export function ProjectsSheet({
                 <span className="pj-sub">{cur ? 'Открыт · ' : ''}{x.lines.length} {plural(x.lines.length, ['группа', 'группы', 'групп'])} · {dfmt(x.updated)}</span>
               </button>
               <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupProject', id: x.id }); note('Копия создана'); }}>Копия</button>
-              <ArmButton className="btn danger" label="Удалить" armedLabel="Точно удалить?" onRun={() => dispatch({ t: 'delProject', id: x.id })} />
+              <ArmButton className="btn danger" label="Удалить" armedLabel="Точно удалить?" onRun={() => { (x.photos ?? []).forEach(ph => { forgetPhotoUrl(ph.id); delPhoto(ph.id).catch(() => undefined); }); dispatch({ t: 'delProject', id: x.id }); }} />
             </div>
           );
         })}
@@ -233,6 +238,7 @@ export function ProjectsSheet({
         <button className="btn ghost" type="button" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</button>
         <button className="btn ghost" type="button" onClick={onLib}>Мои данные</button>
       </div>
+      <ShareBlock p={p} />
       <div className="data-row">
         <button className="btn ghost" type="button" onClick={exportFile}>Сохранить в файл</button>
         <button className="btn ghost" type="button" onClick={() => file.current?.click()}>Открыть из файла</button>
@@ -297,6 +303,14 @@ export function ReportSheet({
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setMsg(null), 4000);
   };
+  const saveFile = (kind: 'xlsx' | 'csv') => {
+    const tables = exportTables(a, lib.prices);
+    if (kind === 'xlsx') download(exportName(p.name, 'xlsx'), buildXlsx(tables), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    else download(exportName(p.name, 'csv'), toCsv(tables[0]), 'text/csv;charset=utf-8');
+    setMsg({ t: kind === 'xlsx' ? 'Файл Excel сохранён' : 'Файл CSV сохранён', ok: true });
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setMsg(null), 4000);
+  };
   const three = a.c.supply === 3;
   const { lib, dispatch: libDispatch } = useLib();
   const est = estimate(buildSpec(a), lib.prices);
@@ -305,6 +319,8 @@ export function ReportSheet({
       <div className="copy-row">
         <button className="btn primary" type="button" onClick={onPrint}>Печать / PDF</button>
         <button className="btn" type="button" onClick={copy}>Скопировать отчёт</button>
+        <button className="btn" type="button" onClick={() => saveFile('xlsx')} title="Смета и группы в Excel"><IconDownload /> Excel</button>
+        <button className="btn" type="button" onClick={() => saveFile('csv')} title="Смета в CSV"><IconDownload /> CSV</button>
         <button className="btn" type="button" onClick={onCompare}>Сравнить варианты</button>
         <span role="status" style={{ color: msg ? (msg.ok ? 'var(--ok)' : 'var(--ink-2)') : undefined }}>{msg ? msg.t : ''}</span>
       </div>

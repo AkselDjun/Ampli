@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react';
-import type { Calc, Line, LineType, Phase } from '../core/types';
+import type { Calc, Line, LineType, Phase, Photo } from '../core/types';
 import { NB, fmt, fs, pn, round2 } from '../core/format';
-import { PRESETS, STATUS, TYPES, TYPE_KEYS } from '../core/norms';
+import { STATUS, TYPES, TYPE_KEYS } from '../core/norms';
+import { byUsage, catalog, searchCatalog, topUsed } from '../core/catalog';
 import { whyRows } from '../core/why';
 import type { Action } from '../store/reducer';
-import { IconDown } from './Icons';
+import { IconDown, IconSearch } from './Icons';
+import { PhotoStrip } from './PhotoStrip';
 import { ArmButton, Seg, Stepper } from './common';
 import { useLib } from '../store/LibContext';
 import { parseApps } from '../core/quick';
@@ -20,8 +22,9 @@ function Tile({ label, val, sub }: { label: string; val: string; sub?: string })
 }
 
 export function Editor({
-  l, idx, a, dispatch, whyOpen, setWhyOpen, onDeleted
+  l, idx, a, dispatch, whyOpen, setWhyOpen, onDeleted, photos
 }: {
+  photos: Photo[];
   l: Line | null;
   idx: number;
   a: Calc;
@@ -34,6 +37,7 @@ export function Editor({
   const chips = useRef<HTMLDivElement>(null);
   const focusNew = useRef(false);
   const [measOpen, setMeasOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const [quick, setQuick] = useState<string | null>(null);
   const [quickMsg, setQuickMsg] = useState('');
   if (!l) {
@@ -55,6 +59,14 @@ export function Editor({
     requestAnimationFrame(() => {
       if (chips.current) chips.current.scrollLeft = sl;
     });
+  };
+  const cat = catalog(lib.apps);
+  const found = searchCatalog(cat, search, lib.usage, tag);
+  const often = topUsed(cat, lib.usage, tag);
+  const addFrom = (name: string, w: number) => {
+    keepChips(() => dispatch({ t: 'addApp', name, w }));
+    libDispatch({ t: 'use', name });
+    setSearch('');
   };
   const setLen = (v: number) => dispatch({ t: 'lineField', field: 'len', value: Math.max(0, Math.min(500, round2(v))) });
   return (
@@ -208,17 +220,60 @@ export function Editor({
           </div>
         </div>
         <div className="blk">
+          <span className="lbl">Фото группы</span>
+          <PhotoStrip
+            name={'line'}
+            line={l.id}
+            tags={['before', 'after', 'plate', 'meas']}
+            total={photos.length}
+            photos={photos.filter(ph => ph.line === l.id)}
+            onAdd={photo => dispatch({ t: 'photoAdd', photo })}
+            onDel={id => dispatch({ t: 'photoDel', id })}
+            onNote={(id, value) => dispatch({ t: 'photoNote', id, value })}
+          />
+        </div>
+        <div className="blk">
           <span className="lbl">Добавить прибор</span>
+          <div className="search">
+            <IconSearch />
+            <input type="search" aria-label="Найти прибор" placeholder="Найти прибор" value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+          {found.length > 0 && (
+            <ul className="found" aria-label="Найденные приборы">
+              {found.map(it => (
+                <li key={it.key + (it.mine ?? '')}>
+                  <button type="button" onClick={() => addFrom(it.name, it.w)}>
+                    <span>+ {it.name}</span>
+                    <span className="muted">{it.w} Вт</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {search.trim() && found.length === 0 && (
+            <button className="chip custom" type="button" onClick={() => { keepChips(() => dispatch({ t: 'addApp', name: search.trim() })); libDispatch({ t: 'use', name: search }); setSearch(''); }}>
+              + Добавить «{search.trim()}»
+            </button>
+          )}
+          {!search.trim() && often.length > 0 && (
+            <div className="chips often" aria-label="Часто используемые">
+              {often.map(it => (
+                <button key={'o' + it.key} className="chip hot" type="button" title={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>
+                  + {it.name}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="chips" ref={chips}>
-            {PRESETS.filter(p => p[2].indexOf(tag) >= 0).map(p => (
-              <button key={p[0]} className="chip" type="button" title={p[1] + ' Вт'} onClick={() => keepChips(() => dispatch({ t: 'addApp', name: p[0], w: p[1] }))}>
-                + {p[0]}
+            {byUsage(catalog([]).filter(it => it.tags.indexOf(tag) >= 0), lib.usage).map(it => (
+              <button key={it.key} className="chip" type="button" title={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>
+                + {it.name}
               </button>
             ))}
-            {lib.apps.filter(m => m.tag === tag).map(m => (
-              <span className="chip-mine" key={m.id}>
-                <button className="chip" type="button" title={m.w + ' Вт'} onClick={() => keepChips(() => dispatch({ t: 'addApp', name: m.name, w: m.w }))}>+ {m.name}</button>
-                <button className="chip-x" type="button" aria-label={'Убрать из моих приборов: ' + m.name} onClick={() => libDispatch({ t: 'delApp', id: m.id })}>×</button>
+            {byUsage(lib.apps.filter(m => m.tag === tag).map(m => ({ key: m.id, name: m.name, w: m.w, tags: m.tag, mine: m.id })), lib.usage).map(it => (
+              <span className="chip-mine" key={it.key}>
+                <button className="chip" type="button" title={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>+ {it.name}</button>
+                <button className="chip-x" type="button" aria-label={'Убрать из моих приборов: ' + it.name} onClick={() => libDispatch({ t: 'delApp', id: it.key })}>×</button>
               </span>
             ))}
             <button className="chip custom" type="button" onClick={() => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp' }); })}>+ Свой прибор</button>

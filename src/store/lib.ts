@@ -1,6 +1,8 @@
 import type { Cfg, Line } from '../core/types';
 import { pn } from '../core/format';
 import { nid } from '../core/ids';
+import { USAGE_LIMIT, normName } from '../core/catalog';
+import type { Usage } from '../core/catalog';
 
 export const LIB_KEY = 'ampli-lib-v1';
 
@@ -30,10 +32,11 @@ export interface Lib {
   templates: UserTpl[];
   prices: Record<string, number>;
   brand: Brand;
+  usage: Record<string, Usage>;
 }
 
 export const emptyBrand = (): Brand => ({ company: '', contacts: '', signer: '', logo: '' });
-export const emptyLib = (): Lib => ({ apps: [], templates: [], prices: {}, brand: emptyBrand() });
+export const emptyLib = (): Lib => ({ apps: [], templates: [], prices: {}, brand: emptyBrand(), usage: {} });
 
 const isTag = (t: unknown): t is CustomApp['tag'] => t === 'l' || t === 's' || t === 'p';
 
@@ -55,6 +58,13 @@ export function normLib(o: unknown): Lib {
     for (const [k, v] of Object.entries(x.prices as Record<string, unknown>)) {
       const n = pn(v, NaN);
       if (isFinite(n) && n >= 0) lib.prices[k] = n;
+    }
+  }
+  if (x.usage && typeof x.usage === 'object') {
+    for (const [k, v] of Object.entries(x.usage as Record<string, unknown>)) {
+      const u = v as Partial<Usage> | null;
+      const n = Number(u?.n);
+      if (u && n > 0 && isFinite(n)) lib.usage[k] = { n: Math.floor(n), at: Number(u.at) || 0 };
     }
   }
   if (x.brand && typeof x.brand === 'object') {
@@ -94,6 +104,8 @@ export type LibAction =
   | { t: 'delTpl'; id: string }
   | { t: 'price'; name: string; value: string }
   | { t: 'clearPrices' }
+  | { t: 'use'; name: string; at?: number }
+  | { t: 'clearUsage' }
   | { t: 'brand'; field: 'company' | 'contacts' | 'signer'; value: string }
   | { t: 'logo'; value: string };
 
@@ -127,6 +139,18 @@ export function libReducer(l: Lib, a: LibAction): Lib {
     }
     case 'clearPrices':
       return { ...l, prices: {} };
+    case 'use': {
+      const k = normName(a.name);
+      if (!k) return l;
+      const usage = { ...l.usage, [k]: { n: (l.usage[k]?.n ?? 0) + 1, at: a.at ?? Date.now() } };
+      const keys = Object.keys(usage);
+      if (keys.length > USAGE_LIMIT) {
+        keys.sort((p, q) => usage[p].at - usage[q].at).slice(0, keys.length - USAGE_LIMIT).forEach(d => { delete usage[d]; });
+      }
+      return { ...l, usage };
+    }
+    case 'clearUsage':
+      return { ...l, usage: {} };
     case 'brand':
       return { ...l, brand: { ...l.brand, [a.field]: a.value } };
     case 'logo':

@@ -31,6 +31,16 @@ export interface Meas {
   leak?: Num;
 }
 
+export type PhotoTag = 'before' | 'after' | 'plate' | 'meas';
+
+export interface Photo {
+  id: string;
+  tag: PhotoTag;
+  line: string | null;
+  note: string;
+  at: number;
+}
+
 export interface Proto {
   date: string;
   device: string;
@@ -76,6 +86,7 @@ export interface Project {
   checks?: Record<string, boolean>;
   proto?: Proto;
   rooms?: Room[];
+  photos?: Photo[];
 }
 
 export interface Content {

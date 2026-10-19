@@ -109,8 +109,9 @@ export function Tip({ children, label = 'Подсказка' }: { children: Reac
 }
 
 export function Sheet({
-  open, onClose, title, small, tip, children
+  open, onClose, title, small, full, tip, children
 }: {
+  full?: boolean;
   open: boolean;
   onClose: () => void;
   title: string;
@@ -139,7 +140,7 @@ export function Sheet({
   const id = 'ttl-' + title.length + title.charCodeAt(0);
   return (
     <div className="sheet" hidden={!open} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className={'sheet-panel' + (small ? ' sm' : '')} role="dialog" aria-modal="true" aria-labelledby={id}>
+      <div className={'sheet-panel' + (small ? ' sm' : '') + (full ? ' full' : '')} role="dialog" aria-modal="true" aria-labelledby={id}>
         <div className="sheet-head">
           <h2 id={id}>{title}</h2>
           {tip && <Tip>{tip}</Tip>}

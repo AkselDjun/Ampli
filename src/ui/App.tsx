@@ -9,19 +9,37 @@ import { loadStore, saveStore } from '../store/storage';
 import { libReducer, loadLib, saveLib } from '../store/lib';
 import { LibContext } from '../store/LibContext';
 import { LibSheet } from './LibSheet';
+import { gcPhotos } from '../store/photos';
+import { referencedPhotoIds } from '../core/photos';
 import { CompareSheet } from './CompareSheet';
 import { RoomsSheet } from './RoomsSheet';
-import { Brand, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconNet, IconPanel } from './Icons';
+import { Brand, IconAuto, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconMoon, IconNet, IconPanel, IconSun } from './Icons';
 import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
 import { NetSheet, ProjectsSheet, ReportSheet } from './sheets';
 import { PrintDoc } from './PrintDoc';
 import { WorkSheet } from './WorkSheet';
+import { PanelMode } from './PanelMode';
+import { THEME_LABEL, applyTheme, loadTheme, nextTheme, saveTheme } from './theme';
+import type { Theme } from './theme';
+import { IncomingSheet } from './IncomingSheet';
+import { readShareHash, unpackProject } from '../core/share';
+import { uniqName } from '../core/project';
+import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 
 type View = 'groups' | 'edit' | 'sum' | 'panel';
-type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | null;
+type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | null;
+
+const waitPhotos = async (n: number): Promise<void> => {
+  const deadline = Date.now() + 2500;
+  while (Date.now() < deadline) {
+    const imgs = Array.from(document.querySelectorAll<HTMLImageElement>('.pd-photo img'));
+    if (imgs.length >= n && imgs.every(i => i.complete)) return;
+    await new Promise<void>(r => window.setTimeout(r, 100));
+  }
+};
 
 const isWide = () => window.matchMedia('(min-width:1000px)').matches;
 
@@ -34,6 +52,11 @@ export function App() {
   const [whyOpen, setWhyOpen] = useState(false);
   const [printMode, setPrintMode] = useState<PrintMode>('report');
   const scrollPos = useRef(0);
+  const [theme, setTheme] = useState<Theme>(loadTheme);
+  const [incoming, setIncoming] = useState<Project | null>(() => {
+    const h = readShareHash(window.location.hash);
+    return h ? unpackProject(h) : null;
+  });
   const p = cur(state);
   const a = useMemo(() => calcAll(p.lines, p.cfg), [p.lines, p.cfg]);
   const selected = p.lines.find(l => l.id === state.sel) || null;
@@ -42,6 +65,15 @@ export function App() {
   useEffect(() => {
     saveLib(lib);
   }, [lib]);
+
+  useEffect(() => {
+    applyTheme(theme);
+    saveTheme(theme);
+  }, [theme]);
+
+  useEffect(() => {
+    gcPhotos(referencedPhotoIds(loadStore().list)).catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     saveStore({ cur: state.cur, list: state.list });
@@ -64,6 +96,34 @@ export function App() {
     return () => document.removeEventListener('keydown', key);
   }, []);
 
+  useEffect(() => {
+    const onHash = () => {
+      const h = readShareHash(window.location.hash);
+      if (h) setIncoming(unpackProject(h));
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  const clearHash = () => {
+    try {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } catch (e) {
+      void e;
+    }
+  };
+  const declineIncoming = () => {
+    setIncoming(null);
+    clearHash();
+  };
+  const acceptIncoming = () => {
+    if (incoming) {
+      const name = uniqName(state.list.map(x => x.name), incoming.name);
+      dispatch({ t: 'importProjects', projects: [{ ...incoming, name }] });
+    }
+    declineIncoming();
+  };
+
   const closeSheet = useCallback(() => setSheet(null), []);
 
   const goEdit = () => {
@@ -84,13 +144,18 @@ export function App() {
     setPrintMode(mode);
     const prev = document.title;
     document.title = 'Ampli — ' + (p.name || 'расчёт');
-    window.setTimeout(() => {
+    const printNow = () => {
       try {
         window.print();
       } catch (e) {
         void e;
       }
       document.title = prev;
+    };
+    window.setTimeout(() => {
+      const n = (p.photos ?? []).length;
+      if (mode === 'proto' && n > 0) waitPhotos(n).then(printNow);
+      else printNow();
     }, 50);
   };
 
@@ -114,6 +179,14 @@ export function App() {
               <button className="ab-btn" type="button" data-tip="Параметры сети" onClick={() => setSheet('net')} aria-label="Параметры сети">
                 <IconNet />
                 <span className="ab-txt">Параметры</span>
+              </button>
+              <button className="ab-btn" type="button" data-tip={THEME_LABEL[theme]} aria-label={THEME_LABEL[theme]} onClick={() => setTheme(nextTheme(theme))}>
+                {theme === 'auto' ? <IconAuto /> : (theme === 'light' ? <IconSun /> : <IconMoon />)}
+                <span className="ab-txt">{THEME_LABEL[theme]}</span>
+              </button>
+              <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
+                <IconPanel />
+                <span className="ab-txt">На щитке</span>
               </button>
               <button className="ab-btn desk" type="button" data-tip="Монтаж и приёмка" onClick={() => setSheet('work')}>
                 <IconCheck />
@@ -152,6 +225,7 @@ export function App() {
               whyOpen={whyOpen}
               setWhyOpen={setWhyOpen}
               onDeleted={() => { if (!isWide()) goBack(); }}
+              photos={p.photos ?? []}
             />
             <aside className="col col-res" aria-label="Итоги расчёта">
               <Summary a={a} onBalance={() => dispatch({ t: 'balance' })} />
@@ -190,6 +264,8 @@ export function App() {
         <CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} />
         <RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} />
         <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} onCompare={() => setSheet('cmp')} />
+        <PanelMode open={sheet === 'panel'} onClose={closeSheet} a={a} dispatch={dispatch} />
+        <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
         <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} />
       </div>
       <PrintDoc p={p} a={a} mode={printMode} />

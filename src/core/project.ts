@@ -2,6 +2,7 @@ import type { Content, Line, Project, Room } from './types';
 import { TYPES } from './norms';
 import { defaultCfg, sample } from './templates';
 import { nid, pid } from './ids';
+import { normPhotos } from './photos';
 
 type Loose = Partial<Project> & { cfg?: unknown; lines?: unknown };
 
@@ -28,7 +29,8 @@ export function normProject(o: unknown, keep = false): Project | null {
       ? (x.rooms as Room[]).filter(r => r && Array.isArray(r.apps)).map(r => ({ ...r, id: nid(), apps: r.apps.map(a => ({ ...a, id: nid() })) }))
       : [],
     checks: x.checks && typeof x.checks === 'object' ? { ...x.checks } : {},
-    proto: { date: '', device: '', by: '', ...(x.proto ?? {}) }
+    proto: { date: '', device: '', by: '', ...(x.proto ?? {}) },
+    photos: keep ? normPhotos(x.photos) : []
   };
 }
 
