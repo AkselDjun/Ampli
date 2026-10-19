@@ -690,3 +690,15 @@ tfoot td{font-weight:700;background:var(--surface-2)}
   .kv b{font-size:15px;white-space:nowrap;overflow-wrap:normal}
   .kvs{gap:8px}
 }
+
+.row-act{position:absolute;top:50%;right:10px;transform:translateY(-50%);z-index:2;display:none;gap:4px}
+.ra-b{width:34px;height:34px;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink-2);cursor:pointer}
+.ra-b svg{width:18px;height:18px}
+.ra-b:hover{color:var(--ink);border-color:var(--ink-2)}
+.ra-b.del:hover{color:var(--bad);border-color:var(--bad)}
+.ra-b:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+@media (hover:hover) and (pointer:fine){
+  .row-act{display:flex;opacity:0;pointer-events:none;transition:opacity .12s}
+  .row-wrap:hover .row-act,.row-wrap:focus-within .row-act{opacity:1;pointer-events:auto}
+  .row-wrap:hover .row .chev,.row-wrap:focus-within .row .chev,.row-wrap:hover .row .row-end,.row-wrap:focus-within .row .row-end{visibility:hidden}
+}

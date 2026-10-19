@@ -4,7 +4,7 @@ import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
 import { fixFor } from '../core/fixes';
 import type { FixAct } from '../core/fixes';
-import { IconChev, IconFolder, IconNet } from './Icons';
+import { IconChev, IconCopy, IconFolder, IconNet, IconTrash } from './Icons';
 import { ArmButton } from './common';
 import { AddMenu } from './AddMenu';
 import { FixBar } from './FixBar';
@@ -64,6 +64,10 @@ function GroupRow({
         </span>
         <IconChev className="chev" />
       </button>
+      <div className="row-act">
+        <button type="button" className="ra-b" aria-label={'Копировать группу Г' + (i + 1)} title="Копировать" onClick={() => onCopy(x.l.id)}><IconCopy /></button>
+        <button type="button" className="ra-b del" aria-label={'Удалить группу Г' + (i + 1)} title="Удалить" onClick={() => onDelete(x.l.id)}><IconTrash /></button>
+      </div>
       {fix && <FixBar fix={fix} onApply={() => fix.act && onFix(x.l.id, fix.act)} />}
     </div>
   );

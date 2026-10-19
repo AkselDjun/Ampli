@@ -691,3 +691,31 @@ describe('App flows', () => {
     expect(within(ed).getByRole('note').querySelector('button')).toBeNull();
   });
 });
+
+describe('row action buttons', () => {
+  it('copy and delete buttons act on the chosen group and show an undo toast', async () => {
+    const user = userEvent.setup();
+    wide(true);
+    seed(proj([mkLine('Первая', 'socket', 10, 1, 1, [['Чайник', 1000, 1]]), mkLine('Вторая', 'light', 10, 1, 1, [['Лампа', 60, 1]])]));
+    render(<App />);
+    expect(rowsOf()).toHaveLength(2);
+    await user.click(screen.getByRole('button', { name: 'Копировать группу Г2' }));
+    expect(rowsOf()).toHaveLength(3);
+    expect(screen.getByText('Создана копия группы')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Удалить группу Г1' }));
+    expect(rowsOf()).toHaveLength(2);
+    expect(rowsOf()[0].textContent).not.toContain('Первая');
+    expect(screen.getByText('Группа удалена')).toBeTruthy();
+    await user.click(within(document.querySelector('.toast') as HTMLElement).getByRole('button', { name: 'Отменить' }));
+    expect(rowsOf()).toHaveLength(3);
+  });
+  it('gives every row its own labelled buttons', () => {
+    wide(true);
+    seed(proj([mkLine('А', 'socket', 10, 1, 1, [['Чайник', 1000, 1]]), mkLine('Б', 'light', 10, 1, 1, [['Лампа', 60, 1]])]));
+    render(<App />);
+    ['Г1', 'Г2'].forEach(g => {
+      expect(screen.getByRole('button', { name: 'Копировать группу ' + g })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Удалить группу ' + g })).toBeTruthy();
+    });
+  });
+});

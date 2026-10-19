@@ -62,6 +62,12 @@ export const IconSearch = make(0, (
   </>
 ));
 export const IconTrash = make(0, <path d="M5 7h14M10 7V5h4v2m-8 0 1 12h8l1-12" />);
+export const IconCopy = make(0, (
+  <>
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+  </>
+));
 export const IconList = make(0, <path d="M4 6h16M4 12h16M4 18h16" />);
 export const IconBolt = make(0, <path d="M13 2 5 13h6l-1 9 8-11h-6z" />);
 export const IconPanel = make(0, (
