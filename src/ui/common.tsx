@@ -179,9 +179,9 @@ export function TabPanel({ scope, id, cur, children }: { scope: string; id: stri
 }
 
 export function Sheet({
-  open, onClose, title, compact, full, tip, bar, children
+  open, onClose, title, compact, tip, bar, children
 }: {
-  full?: boolean;
+ 
   compact?: boolean;
   bar?: ReactNode;
   open: boolean;
@@ -211,7 +211,7 @@ export function Sheet({
   const id = 'ttl-' + title.length + title.charCodeAt(0);
   return (
     <div className="sheet" hidden={!open} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className={'sheet-panel' + (compact ? ' compact' : '') + (full ? ' full' : '')} role="dialog" aria-modal="true" aria-labelledby={id}>
+      <div className={'sheet-panel' + (compact ? ' compact' : '')} role="dialog" aria-modal="true" aria-labelledby={id}>
         <div className="sheet-head">
           <h2 id={id}>{title}</h2>
           {tip && <Tip>{tip}</Tip>}

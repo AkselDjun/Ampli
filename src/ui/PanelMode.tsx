@@ -17,7 +17,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
   const rows = protocolRows(a);
   const byNo = new Map(a.rows.map((x, i) => ['Г' + (i + 1), x]));
   return (
-    <Sheet open={open} onClose={onClose} title="На щитке" full tip="Крупный режим для работы у щитка: номиналы групп и поля для замеров. Значения сразу попадают в проверки и протокол.">
+    <Sheet open={open} onClose={onClose} title="На щитке" tip="Крупный режим для работы у щитка: номиналы групп и поля для замеров. Значения сразу попадают в проверки и протокол.">
       {rows.length === 0 && <p className="muted">Добавьте группы с приборами, они появятся здесь.</p>}
       <ul className="pm-list">
         {rows.map(r => {

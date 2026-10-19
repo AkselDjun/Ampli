@@ -47,10 +47,8 @@ afterEach(() => {
 describe('Sheet props', () => {
   it('renders full and tip only when asked', () => {
     const { rerender } = render(<Sheet open onClose={() => undefined} title="Т1">x</Sheet>);
-    expect(dlg('Т1').classList.contains('full')).toBe(false);
     expect(dlg('Т1').querySelector('.tip')).toBeNull();
-    rerender(<Sheet open onClose={() => undefined} title="Т1" full tip="Подсказка!">x</Sheet>);
-    expect(dlg('Т1').classList.contains('full')).toBe(true);
+    rerender(<Sheet open onClose={() => undefined} title="Т1" tip="Подсказка!">x</Sheet>);
     expect(dlg('Т1').querySelector('.tip')).toBeTruthy();
     expect(within(dlg('Т1')).getByRole('tooltip', { hidden: true })).toHaveTextContent('Подсказка!');
   });
@@ -63,7 +61,6 @@ describe('PanelMode', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Режим на щитке' }));
     expect(isOpen('На щитке')).toBe(true);
     const d = dlg('На щитке');
-    expect(d.classList.contains('full')).toBe(true);
     const items = d.querySelectorAll('li.pm');
     expect(items.length).toBeGreaterThan(3);
     const first = items[0] as HTMLElement;
