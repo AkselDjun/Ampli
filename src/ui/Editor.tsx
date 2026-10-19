@@ -7,6 +7,8 @@ import { whyRows } from '../core/why';
 import type { Action } from '../store/reducer';
 import { IconDown, IconSearch } from './Icons';
 import { PhotoStrip } from './PhotoStrip';
+import { FixBar } from './FixBar';
+import { fixFor } from '../core/fixes';
 import { ArmButton, Seg, Stepper } from './common';
 import { useLib } from '../store/LibContext';
 import { parseApps } from '../core/quick';
@@ -60,6 +62,7 @@ export function Editor({
       if (chips.current) chips.current.scrollLeft = sl;
     });
   };
+  const fix = r ? fixFor(l, r, a.c) : null;
   const cat = catalog(lib.apps);
   const found = searchCatalog(cat, search, lib.usage, tag);
   const often = topUsed(cat, lib.usage, tag);
@@ -100,6 +103,16 @@ export function Editor({
             <p className="ed-load">
               {r.empty ? '' : 'Нагрузка ' + fmt(r.pd, 0) + ' Вт' + (r.kc < 1 ? ' (из ' + fmt(r.pInst, 0) + ' Вт, Кс ' + fs(round2(r.kc)) + ')' : '')}
             </p>
+            {fix && (
+              <FixBar
+                fix={fix}
+                onApply={() => {
+                  if (!fix.act) return;
+                  if (fix.act.k === 'len') dispatch({ t: 'lineField', field: 'len', value: fix.act.len });
+                  else dispatch({ t: 'splitLine', mode: fix.act.k });
+                }}
+              />
+            )}
             <ul className="notes">
               {!r.empty && r.notes.map(n => <li key={n}>{n}</li>)}
             </ul>

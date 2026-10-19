@@ -23,9 +23,12 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const n0 = rowsOf().length;
-    await user.click(screen.getByRole('button', { name: '+ Освещение' }));
-    expect(document.getElementById('app')).toHaveAttribute('data-view', 'edit');
+    await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Освещение' }));
+    expect(document.getElementById('app')).toHaveAttribute('data-view', 'groups');
     expect(rowsOf().length).toBe(n0 + 1);
+    await user.click(screen.getByRole('button', { name: 'Открыть' }));
+    expect(document.getElementById('app')).toHaveAttribute('data-view', 'edit');
     await user.click(screen.getByRole('button', { name: 'Копия группы' }));
     expect(rowsOf().length).toBe(n0 + 2);
     expect(document.querySelector('.ab-title')?.textContent).toContain('копия');
@@ -81,7 +84,8 @@ describe('App', () => {
     render(<App />);
     const n0 = rowsOf().length;
     expect(screen.getByRole('button', { name: 'Отменить' })).toBeDisabled();
-    await user.click(screen.getByRole('button', { name: '+ Розетки' }));
+    await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Розетки' }));
     expect(rowsOf().length).toBe(n0 + 1);
     fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true });
     expect(rowsOf().length).toBe(n0);
@@ -125,6 +129,7 @@ describe('App', () => {
     click(dlg('Проекты'), 'Мои данные');
     expect(isOpen('Мои данные')).toBe(true);
     click(dlg('Мои данные'), 'Закрыть');
+    click(document.querySelector('.col-list') as HTMLElement, '+ Добавить группу');
     click(document.querySelector('.col-list') as HTMLElement, 'Из комнат');
     expect(isOpen('Комнаты')).toBe(true);
     fireEvent.click(dlg('Комнаты').parentElement as HTMLElement);
@@ -141,6 +146,7 @@ describe('App', () => {
     click(bar, /Отчёт/);
     fireEvent.keyDown(document, { key: 'Escape' });
     click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
+    click(document.querySelector('.col-list') as HTMLElement, 'Изменить');
     expect(isOpen('Параметры сети')).toBe(true);
   });
 
@@ -187,9 +193,11 @@ describe('App', () => {
 
   it('balance button on three phases', () => {
     render(<App />);
-    click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
+    click(document.querySelector('.ab-main') as HTMLElement, 'Параметры сети');
     fireEvent.click(dlg('Параметры сети').querySelector('input[name="sup"][value="3"]') as HTMLElement);
     fireEvent.keyDown(document, { key: 'Escape' });
+    const fold = document.querySelector('.c-phase .fold-h') as HTMLElement;
+    if (fold.getAttribute('aria-expanded') !== 'true') fireEvent.click(fold);
     click(document, 'Выровнять');
     expect(screen.getByText('Нагрузка по фазам')).toBeInTheDocument();
   });

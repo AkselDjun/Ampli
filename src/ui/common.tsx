@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { IconInfo } from './Icons';
+import { IconDown, IconInfo } from './Icons';
 import type { CfgN } from '../core/types';
 import { BASIS_LABEL, assumptions } from '../core/assumptions';
 
@@ -169,6 +169,43 @@ export function Assumptions({ cfg }: { cfg: CfgN }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+export function Fold({
+  title, badge, open, className, children
+}: {
+  title: string;
+  badge?: ReactNode;
+  open?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  const [on, setOn] = useState(!!open);
+  return (
+    <section className={'card fold ' + (className ?? '')}>
+      <button className="fold-h" type="button" aria-expanded={on} onClick={() => setOn(v => !v)}>
+        <h2>{title}</h2>
+        {badge}
+        <IconDown className="fold-chev" />
+      </button>
+      {on && <div className="fold-b">{children}</div>}
+    </section>
+  );
+}
+
+export function Toast({ text, label, onAction, onClose }: { text: string; label?: string; onAction?: () => void; onClose: () => void }) {
+  useEffect(() => {
+    const t = window.setTimeout(onClose, 6000);
+    return () => window.clearTimeout(t);
+  }, [text, onClose]);
+  return (
+    <div className="toast" role="status">
+      <span>{text}</span>
+      {label && onAction && (
+        <button type="button" onClick={() => { onAction(); onClose(); }}>{label}</button>
+      )}
     </div>
   );
 }

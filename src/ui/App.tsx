@@ -4,6 +4,8 @@ import { fmt } from '../core/format';
 import type { LineType } from '../core/types';
 import { blank } from '../core/templates';
 import { cur, init } from '../store/reducer';
+import { TYPES } from '../core/norms';
+import { Toast } from './common';
 import { hreducer, initH } from '../store/history';
 import { loadStore, saveStore } from '../store/storage';
 import { libReducer, loadLib, saveLib } from '../store/lib';
@@ -50,6 +52,7 @@ export function App() {
   const [whyOpen, setWhyOpen] = useState(false);
   const [printMode, setPrintMode] = useState<PrintMode>('report');
   const scrollPos = useRef(0);
+  const [toast, setToast] = useState<{ text: string; label?: string; run?: () => void } | null>(null);
   const [incoming, setIncoming] = useState<Project | null>(() => {
     const h = readShareHash(window.location.hash);
     return h ? unpackProject(h) : null;
@@ -194,7 +197,26 @@ export function App() {
             a={a}
             sel={state.sel}
             onSelect={id => { dispatch({ t: 'select', id }); goEdit(); }}
-            onAdd={(t: LineType) => { dispatch({ t: 'addLine', type: t }); goEdit(); }}
+            onAdd={(t: LineType) => {
+              dispatch({ t: 'addLine', type: t });
+              setToast({ text: 'Добавлена группа: ' + TYPES[t].label, label: isWide() ? undefined : 'Открыть', run: goEdit });
+            }}
+            onCopy={id => {
+              dispatch({ t: 'select', id });
+              dispatch({ t: 'dupLine' });
+              setToast({ text: 'Создана копия группы', label: 'Отменить', run: () => dispatch({ t: 'undo' }) });
+            }}
+            onDelete={id => {
+              dispatch({ t: 'select', id });
+              dispatch({ t: 'delLine' });
+              setToast({ text: 'Группа удалена', label: 'Отменить', run: () => dispatch({ t: 'undo' }) });
+            }}
+            onFix={(id, act) => {
+              dispatch({ t: 'select', id });
+              if (act.k === 'len') dispatch({ t: 'lineField', field: 'len', value: act.len });
+              else dispatch({ t: 'splitLine', mode: act.k });
+              setToast({ text: 'Исправлено', label: 'Отменить', run: () => dispatch({ t: 'undo' }) });
+            }}
             onOpenProj={() => setSheet('proj')}
             onOpenNet={() => setSheet('net')}
             onRooms={() => setSheet('rooms')}
@@ -216,8 +238,8 @@ export function App() {
               photos={p.photos ?? []}
             />
             <aside className="col col-res" aria-label="Итоги расчёта">
-              <Summary a={a} onBalance={() => dispatch({ t: 'balance' })} />
-              <PanelPane a={a} />
+              <Summary key={'s' + (view === 'sum')} a={a} solo={view === 'sum'} onBalance={() => dispatch({ t: 'balance' })} />
+              <PanelPane key={'p' + (view === 'panel')} a={a} solo={view === 'panel'} />
             </aside>
           </div>
         </div>
@@ -252,6 +274,7 @@ export function App() {
         <CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} />
         <RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} />
         <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} onCompare={() => setSheet('cmp')} />
+        {toast && <Toast text={toast.text} label={toast.label} onAction={toast.run} onClose={() => setToast(null)} />}
         <PanelMode open={sheet === 'panel'} onClose={closeSheet} a={a} dispatch={dispatch} />
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
         <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} />

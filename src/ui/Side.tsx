@@ -1,7 +1,7 @@
 import type { Calc } from '../core/types';
-import { fmt, fs } from '../core/format';
+import { fmt, fs, plural } from '../core/format';
 import { ROWLEN } from '../core/norms';
-import { Tip } from './common';
+import { Fold, Tip } from './common';
 
 function Kv({ l, v }: { l: string; v: string }) {
   return (
@@ -35,7 +35,7 @@ function checksOf(a: Calc): Check[] {
   return out;
 }
 
-export function Summary({ a, onBalance }: { a: Calc; onBalance: () => void }) {
+export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: () => void; solo?: boolean }) {
   const c = a.c;
   const pct = c.alloc > 0 ? a.P / (c.alloc * 1000) * 100 : 0;
   let ac: 'ok' | 'warn' | 'bad' = 'ok';
@@ -52,6 +52,9 @@ export function Summary({ a, onBalance }: { a: Calc; onBalance: () => void }) {
   let inCab = '—';
   if (a.inIn) inCab = a.inS ? 'ВВГнг(А)-LS ' + (c.supply === 3 ? 5 : 3) + '×' + fs(a.inS) : 'больше 35 мм²';
   const gl = a.rows.filter(x => !x.r.empty && x.r.In);
+  const checks = checksOf(a);
+  const problems = checks.filter(x => x.k !== 'ok').length;
+  const worst: 'ok' | 'warn' | 'bad' = checks.some(x => x.k === 'bad') ? 'bad' : (problems ? 'warn' : 'ok');
   const mx = a.phases ? Math.max(a.phases.L1, a.phases.L2, a.phases.L3, 0.001) : 1;
   const cols = { L1: 'var(--l1)', L2: 'var(--l2)', L3: 'var(--l3)' };
   return (
@@ -79,23 +82,18 @@ export function Summary({ a, onBalance }: { a: Calc; onBalance: () => void }) {
           <dd>{inCab}</dd>
         </dl>
       </section>
-      {checksOf(a).length > 0 && (
-        <section className="card c-checks">
-          <div className="card-head"><h2>Проверки по нормам</h2></div>
+      {checks.length > 0 && (
+        <Fold title="Проверки по нормам" className="c-checks" open={solo || worst !== 'ok'} badge={<span className={'pill ' + worst}>{worst === 'ok' ? 'Всё в норме' : problems + ' ' + plural(problems, ['замечание', 'замечания', 'замечаний'])}</span>}>
           <ul className="chk">
-            {checksOf(a).map((x, i) => (
+            {checks.map((x, i) => (
               <li key={i} className={x.k}>{x.t}</li>
             ))}
           </ul>
-        </section>
+        </Fold>
       )}
       {a.phases && (
-        <section className="card c-phase">
-          <div className="card-head">
-            <h2>Нагрузка по фазам</h2>
-            <button className="btn sm" type="button" onClick={onBalance}>Выровнять</button>
-          </div>
-          <span className={'pill ' + (a.imb > 25 ? 'warn' : 'ok')}>{a.imb > 25 ? 'Перекос ' + fmt(a.imb, 0) + ' %' : 'Распределено ровно'}</span>
+        <Fold title="Нагрузка по фазам" className="c-phase" open={solo || a.imb > 25} badge={<span className={'pill ' + (a.imb > 25 ? 'warn' : 'ok')}>{a.imb > 25 ? 'Перекос ' + fmt(a.imb, 0) + ' %' : 'Ровно'}</span>}>
+          <button className="btn sm" type="button" onClick={onBalance}>Выровнять</button>
           {(['L1', 'L2', 'L3'] as const).map(k => (
             <div className="phase" key={k}>
               <span className="n">{k}</span>
@@ -103,11 +101,11 @@ export function Summary({ a, onBalance }: { a: Calc; onBalance: () => void }) {
               <b>{fmt((a.phases as NonNullable<Calc['phases']>)[k], 1)} А</b>
             </div>
           ))}
-        </section>
+        </Fold>
       )}
       {gl.length > 0 && (
-        <section className="card c-reserve">
-          <div className="card-head"><h2>Запас автоматов<Tip>Какую часть номинала автомата занимает ток группы.</Tip></h2></div>
+        <Fold title="Запас автоматов" className="c-reserve" open={solo}>
+          <Tip>Какую часть номинала автомата занимает ток группы.</Tip>
           <div className="gl">
             {gl.map(x => {
               const u = x.r.I / (x.r.In as number) * 100;
@@ -124,13 +122,13 @@ export function Summary({ a, onBalance }: { a: Calc; onBalance: () => void }) {
               );
             })}
           </div>
-        </section>
+        </Fold>
       )}
     </div>
   );
 }
 
-export function PanelPane({ a }: { a: Calc }) {
+export function PanelPane({ a, solo = false }: { a: Calc; solo?: boolean }) {
   const c = a.c;
   const free = Math.max(0, a.size - a.placed);
   const nameOf: Record<string, string> = {};
@@ -139,8 +137,7 @@ export function PanelPane({ a }: { a: Calc }) {
   });
   return (
     <div className="pane-panel">
-      <section className="card c-panel">
-        <div className="card-head"><h2>Щиток</h2></div>
+      <Fold title="Щиток" className="c-panel" open={solo}>
         <p className="muted">
           Приборов на {a.modSum} мод. Нужен корпус на <b>{a.size}</b> мод. с запасом 20 %{a.fits ? '.' : ', но и он тесен: разделите щиток на два.'}
         </p>
@@ -163,9 +160,8 @@ export function PanelPane({ a }: { a: Calc }) {
           <span><i className="dev-mcb" style={{ border: '1px solid var(--ink-2)' }} />Автомат</span>
           <span><i className="dev-free" style={{ border: '1px dashed var(--ink-2)' }} />Резерв</span>
         </div>
-      </section>
-      <section className="card c-sched">
-        <div className="card-head"><h2>Состав щитка</h2></div>
+      </Fold>
+      <Fold title="Состав щитка" className="c-sched" open={solo}>
         <div className="sc">
           {a.devs.map((d, i) => {
             const g = d.kind === 'in' ? '' : d.sub.split(' ')[0];
@@ -180,7 +176,7 @@ export function PanelPane({ a }: { a: Calc }) {
             );
           })}
         </div>
-      </section>
+      </Fold>
     </div>
   );
 }

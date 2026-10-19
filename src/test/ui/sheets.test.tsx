@@ -10,8 +10,14 @@ vi.setConfig({ testTimeout: 60000 });
 const list = () => document.querySelector('.col-list') as HTMLElement;
 const open = (title: string) => {
   if (title === 'Проекты') click(list(), 'Проекты');
-  else if (title === 'Параметры сети') click(list(), 'Параметры сети');
-  else if (title === 'Комнаты') click(list(), 'Из комнат');
+  else if (title === 'Параметры сети') {
+    const fold = list().querySelector('.netfold') as HTMLElement;
+    if (fold.getAttribute('aria-expanded') !== 'true') fireEvent.click(fold);
+    click(list(), 'Изменить');
+  } else if (title === 'Комнаты') {
+    click(list(), '+ Добавить группу');
+    click(list(), 'Из комнат');
+  }
   else click(document.querySelector('nav.tabs') as HTMLElement, title === 'Монтаж и приёмка' ? /Приёмка/ : /Отчёт/);
   return dlg(title);
 };

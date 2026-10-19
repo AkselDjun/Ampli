@@ -1,5 +1,6 @@
 import type { App, Cfg, Content, Line, LineType, Phase, Photo, Project, Room, RoomApp } from '../core/types';
 import { PHOTO_LIMIT } from '../core/photos';
+import { splitApps } from '../core/fixes';
 import { assemble } from '../core/rooms';
 import { TYPES, CLIMITS } from '../core/norms';
 import { balanceLines } from '../core/calc';
@@ -18,6 +19,7 @@ export type Action =
   | { t: 'addLine'; type: LineType }
   | { t: 'delLine' }
   | { t: 'dupLine' }
+  | { t: 'splitLine'; mode: 'largest' | 'half' }
   | { t: 'roomAdd'; room: Room }
   | { t: 'roomDel'; id: string }
   | { t: 'roomName'; id: string; value: string }
@@ -114,6 +116,25 @@ export function reducer(s: State, a: Action): State {
       if (!lines.length) return s;
       const next = patch(s, q => ({ ...q, lines }));
       return { ...next, sel: lines[0].id };
+    }
+    case 'splitLine': {
+      const i = p.lines.findIndex(l => l.id === s.sel);
+      if (i < 0) return s;
+      const src = p.lines[i];
+      const parts = splitApps(src, a.mode);
+      if (!parts || !parts.move.length) return s;
+      const moved: Line = {
+        ...mkLine(a.mode === 'largest' ? (parts.move[0].name || 'Мощный прибор') : (src.name || 'Без названия') + ' (2)', a.mode === 'largest' ? 'power' : src.type, pn(src.len, 15), null, null, [], src.phase),
+        wet: src.wet,
+        apps: parts.move.map(x => ({ ...x, id: nid() }))
+      };
+      const lines = [...p.lines];
+      lines[i] = { ...src, apps: parts.keep };
+      lines.splice(i + 1, 0, moved);
+      let next = patch(s, q => ({ ...q, lines }));
+      next = { ...next, sel: src.id };
+      if (pn(p.cfg.supply, 1) === 3) next = patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) }));
+      return next;
     }
     case 'dupLine': {
       const i = p.lines.findIndex(l => l.id === s.sel);

@@ -94,6 +94,7 @@ describe('CompareSheet', () => {
 describe('RoomsSheet', () => {
   it('adds rooms, edits apps and assembles groups', () => {
     render(<App />);
+    click(list(), '+ Добавить группу');
     click(list(), 'Из комнат');
     const d = dlg('Комнаты');
     const asm = () => Array.from(d.querySelectorAll('.copy-row .btn'))[0] as HTMLButtonElement;
