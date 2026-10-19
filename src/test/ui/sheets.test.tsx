@@ -247,3 +247,17 @@ describe('ReportSheet', () => {
     expect(d.textContent).toContain('—');
   });
 });
+
+describe('NetSheet temperature helper', () => {
+  it('shows the table factor and writes it into the correction', () => {
+    wide(true);
+    render(<App />);
+    const d = open('Параметры сети');
+    const t = byLabel(d, 'Температура воздуха, °C') as HTMLInputElement;
+    expect(d.textContent).toContain('1,00');
+    change(t, '35');
+    expect(d.textContent).toContain('0,87');
+    click(d, 'Подставить');
+    expect(Number(stored().list[0].cfg.k)).toBeCloseTo(0.87, 2);
+  });
+});

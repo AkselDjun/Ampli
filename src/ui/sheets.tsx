@@ -3,6 +3,7 @@ import type { Calc, Content, Project } from '../core/types';
 import type { TplKey } from '../core/templates';
 import { TPL_LIST, TPL_NAME, blank, contentFor, sample } from '../core/templates';
 import { cfgN } from '../core/calc';
+import { TEMP_MAX, tempFactor } from '../core/correction';
 import { dfmt, fmt, plural } from '../core/format';
 import { STATUS } from '../core/norms';
 import { buildSpec } from '../core/spec';
@@ -10,7 +11,7 @@ import { cableName, protName } from '../core/protection';
 import { reportText } from '../core/report';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
-import { ArmButton, Assumptions, Seg, Sheet, Stepper } from './common';
+import { ArmButton, Assumptions, Seg, Sheet, Stepper, Tip } from './common';
 import { Schematic } from './Schematic';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
@@ -24,6 +25,8 @@ export function NetSheet({
   dispatch: (a: Action) => void;
 }) {
   const c = cfgN(p.cfg);
+  const [temp, setTemp] = useState('25');
+  const tf = tempFactor(Number(temp));
   const replace = (content: Content) => {
     dispatch({ t: 'replace', content });
     onClose();
@@ -73,6 +76,15 @@ export function NetSheet({
           <span className="lbl">Поправка на нагрев и группировку</span>
           <Stepper value={p.cfg.k} d={0.05} min={0.5} max={1} step={0.05} label="Поправка на нагрев и группировку" onChange={v => dispatch({ t: 'cfg', field: 'k', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'k', d })} />
           <small>Уменьшает табличный допустимый ток кабеля.</small>
+          <div className="tcalc">
+            <label>
+              <span className="lbl">Температура воздуха, °C</span>
+              <input type="number" inputMode="decimal" min={25} max={TEMP_MAX} step={5} aria-label="Температура воздуха, °C" value={temp} onChange={e => setTemp(e.target.value)} />
+            </label>
+            <span>Коэффициент по ПУЭ, табл. 1.3.3: <b>{fmt(tf, 2)}</b></span>
+            <button className="btn ghost" type="button" onClick={() => dispatch({ t: 'cfg', field: 'k', value: String(tf) })}>Подставить</button>
+            <Tip>Для проводов с жилой до 65 °C, как в таблице допустимых токов. Группировку кабелей учтите отдельно: в трубе её уже учитывает число проводов, в пучке и лотке это дополнительный коэффициент.</Tip>
+          </div>
         </div>
       </div>
       <div className="data-row">

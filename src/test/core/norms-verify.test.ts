@@ -77,3 +77,40 @@ describe('assumptions list', () => {
     expect(open.find(a => a.name === 'Петля фаза-нуль питающей сети')?.value).toContain('0,50');
   });
 });
+
+import { tempFactor, TEMP_FACTOR_65 } from '../../core/correction';
+import { LEAK_PER_M_MA } from '../../core/norms';
+
+describe('temperature correction by ПУЭ 1.3.3 (65 °C conductor)', () => {
+  it('matches table rows', () => {
+    expect(TEMP_FACTOR_65.map(r => r[1])).toEqual([1, 0.94, 0.87, 0.79, 0.71, 0.61]);
+  });
+  it('is 1 up to 25 °C and for invalid input', () => {
+    expect(tempFactor(10)).toBe(1);
+    expect(tempFactor(25)).toBe(1);
+    expect(tempFactor(NaN)).toBe(1);
+  });
+  it('rounds up to the next table temperature', () => {
+    expect(tempFactor(26)).toBe(0.94);
+    expect(tempFactor(35)).toBe(0.87);
+    expect(tempFactor(41)).toBe(0.71);
+  });
+  it('clamps above 50 °C to the last row', () => {
+    expect(tempFactor(80)).toBe(0.61);
+  });
+});
+
+describe('leakage estimate by СН 4.04.01-2019, п. 16.3.7', () => {
+  const c = cfgN(defaultCfg());
+  it('network part is 10 µA per metre', () => {
+    const r = calcLine(mkLine('Свет', 'light', 50, null, null, [['Лампа', 100, 1]]), c);
+    expect(r.leakEst).toBeCloseTo(50 * LEAK_PER_M_MA, 9);
+  });
+  it('adds 0.4 mA per ampere only for loads above 32 A', () => {
+    const big = calcLine(mkLine('Печь', 'power', 10, null, null, [['Печь', 9000, 1]]), c);
+    expect(big.I).toBeGreaterThan(32);
+    expect(big.leakEst).toBeCloseTo(10 * LEAK_PER_M_MA + big.I * 0.4, 9);
+    const small = calcLine(mkLine('Печь', 'power', 10, null, null, [['Печь', 7000, 1]]), c);
+    expect(small.leakEst).toBeCloseTo(10 * LEAK_PER_M_MA, 9);
+  });
+});

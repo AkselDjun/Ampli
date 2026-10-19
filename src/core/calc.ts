@@ -1,5 +1,5 @@
 import type { Calc, Cfg, CfgN, Device, Line, LineResult, Phase, Row } from './types';
-import { ALL_STEPS, INS_MIN_MOHM, IZ, KZ_TIME, LEAK_FRACTION, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
+import { ALL_STEPS, INS_MIN_MOHM, IZ, KZ_TIME, LEAK_FRACTION, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs, pn } from './format';
 
 export function cfgN(c: Cfg): CfgN {
@@ -97,7 +97,7 @@ export function calcLine(l: Line, c: CfgN): LineResult {
   }
   if (r.rcd) {
     r.leakLim = r.ma * LEAK_FRACTION;
-    r.leakEst = len * LEAK_PER_M_MA;
+    r.leakEst = len * LEAK_PER_M_MA + (I > LEAK_LOAD_ABOVE_A ? I * LEAK_PER_A_MA : 0);
     const lm = pn(l.meas?.leak, 0);
     if (lm > 0) r.leakMeas = lm;
     if (r.leakMeas !== null && r.leakMeas > r.leakLim) {
