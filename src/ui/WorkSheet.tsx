@@ -4,8 +4,9 @@ import { CHECK_ITEMS, progress } from '../core/checklist';
 import { VERDICT, protocolRows } from '../core/protocol';
 import type { Action } from '../store/reducer';
 import { Sheet } from './common';
+import { ShareBlock } from './ShareBlock';
 
-export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags';
+export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport';
 
 export function WorkSheet({
   open, onClose, p, a, dispatch, onPrint
@@ -65,6 +66,12 @@ export function WorkSheet({
           </tbody>
         </table>
       </div>
+      <h3 className="sec-t">Паспорт для владельца</h3>
+      <p className="muted">Одна страница для заказчика: что на каком автомате, предел нагрузки и что делать, если выбило. Откройте её по ссылке или распечатайте с QR-кодом для щитка.</p>
+      <div className="copy-row">
+        <button className="btn primary" type="button" onClick={() => onPrint('passport')}>Печать паспорта</button>
+      </div>
+      <ShareBlock p={p} owner />
       <div className="copy-row">
         <button className="btn primary" type="button" onClick={() => onPrint('proto')}>Печать протокола</button>
         <button className="btn" type="button" onClick={() => onPrint('stickers')}>Наклейки щитка</button>

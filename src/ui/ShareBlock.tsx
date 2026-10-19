@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Project } from '../core/types';
-import { qrSvg, shareUrl } from '../core/share';
+import { ownerUrl, qrSvg, shareUrl } from '../core/share';
 import { IconShare } from './Icons';
 import { Tip } from './common';
 
-export function ShareBlock({ p }: { p: Project }) {
+export function ShareBlock({ p, owner = false }: { p: Project; owner?: boolean }) {
   const [msg, setMsg] = useState<{ t: string; bad: boolean } | null>(null);
   const [qr, setQr] = useState(false);
   const [fallback, setFallback] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export function ShareBlock({ p }: { p: Project }) {
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setMsg(null), 4000);
   };
-  const url = () => shareUrl(p, window.location.href);
+  const url = () => (owner ? ownerUrl : shareUrl)(p, window.location.href);
   const copy = async () => {
     const u = url();
     try {
@@ -39,14 +39,14 @@ export function ShareBlock({ p }: { p: Project }) {
   return (
     <div className="share">
       <div className="data-row">
-        <button className="btn ghost" type="button" onClick={copy}><IconShare /> Ссылка на проект</button>
+        <button className="btn ghost" type="button" onClick={copy}><IconShare /> {owner ? 'Ссылка для владельца' : 'Ссылка на проект'}</button>
         <button className="btn ghost" type="button" aria-pressed={qr} onClick={() => setQr(v => !v)}>QR-код</button>
-        <Tip>Проект целиком записывается в ссылку, сервер не нужен. Получатель откроет её в браузере и сможет добавить копию проекта к себе. Фото в ссылку не входят.</Tip>
+        <Tip>{owner ? 'По этой ссылке открывается паспорт щитка только для просмотра, без редактора. Данные записаны в саму ссылку, сервер не нужен. Фото в ссылку не входят.' : 'Проект целиком записывается в ссылку, сервер не нужен. Получатель откроет её в браузере и сможет добавить копию проекта к себе. Фото в ссылку не входят.'}</Tip>
       </div>
       {msg && <span className="muted" role="status" style={{ color: msg.bad ? 'var(--bad)' : 'var(--ok)' }}>{msg.t}</span>}
-      {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Ссылка на проект" />}
-      {qr && svg && <div className="qr" role="img" aria-label="QR-код проекта" dangerouslySetInnerHTML={{ __html: svg }} />}
-      {qr && !svg && <p className="muted">Проект слишком большой для QR-кода. Используйте ссылку.</p>}
+      {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label={owner ? 'Ссылка для владельца' : 'Ссылка на проект'} />}
+      {qr && svg && <div className="qr" role="img" aria-label={owner ? 'QR-код паспорта' : 'QR-код проекта'} dangerouslySetInnerHTML={{ __html: svg }} />}
+      {qr && !svg && <p className="muted">{owner ? 'Паспорт' : 'Проект'} слишком большой для QR-кода. Используйте ссылку.</p>}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import type { PrintMode } from './WorkSheet';
 import { CHECK_ITEMS } from '../core/checklist';
 import { photoCaption } from '../core/photos';
 import { usePhotoUrls } from './PhotoStrip';
+import { PassportDoc } from './Passport';
 
 function ProtoTable({ a }: { a: Calc }) {
   const rows = protocolRows(a);
@@ -170,6 +171,7 @@ function TagsDoc({ p, a }: { p: Project; a: Calc }) {
 export function PrintDoc({ p, a, mode = 'report' }: { p: Project; a: Calc; mode?: PrintMode }) {
   if (mode === 'proto') return <div className="printdoc" aria-hidden="true"><ProtoDoc p={p} a={a} /></div>;
   if (mode === 'stickers') return <div className="printdoc" aria-hidden="true"><StickersDoc p={p} a={a} /></div>;
+  if (mode === 'passport') return <div className="printdoc" aria-hidden="true"><BrandHead /><PassportDoc p={p} a={a} /></div>;
   if (mode === 'tags') return <div className="printdoc" aria-hidden="true"><TagsDoc p={p} a={a} /></div>;
   return <ReportDoc p={p} a={a} />;
 }

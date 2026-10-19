@@ -24,7 +24,8 @@ import { PrintDoc } from './PrintDoc';
 import { WorkSheet } from './WorkSheet';
 import { PanelMode } from './PanelMode';
 import { IncomingSheet } from './IncomingSheet';
-import { readShareHash, unpackProject } from '../core/share';
+import { readOwnerHash, readShareHash, unpackProject } from '../core/share';
+import { OwnerView } from './Passport';
 import { uniqName } from '../core/project';
 import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
@@ -55,6 +56,10 @@ export function App() {
   const [toast, setToast] = useState<{ text: string; label?: string; run?: () => void } | null>(null);
   const [incoming, setIncoming] = useState<Project | null>(() => {
     const h = readShareHash(window.location.hash);
+    return h ? unpackProject(h) : null;
+  });
+  const [owner, setOwner] = useState<Project | null>(() => {
+    const h = readOwnerHash(window.location.hash);
     return h ? unpackProject(h) : null;
   });
   const p = cur(state);
@@ -95,6 +100,8 @@ export function App() {
     const onHash = () => {
       const h = readShareHash(window.location.hash);
       if (h) setIncoming(unpackProject(h));
+      const o = readOwnerHash(window.location.hash);
+      setOwner(o ? unpackProject(o) : null);
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -153,6 +160,19 @@ export function App() {
       else printNow();
     }, 50);
   };
+
+  if (owner) {
+    return (
+      <OwnerView
+        project={owner}
+        onAdd={() => {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+          setIncoming(owner);
+          setOwner(null);
+        }}
+      />
+    );
+  }
 
   return (
     <LibContext.Provider value={{ lib, dispatch: libDispatch }}>

@@ -13,7 +13,7 @@ export function normProject(o: unknown, keep = false): Project | null {
   for (const l of src) {
     if (!l || !(l.type in TYPES) || !Array.isArray(l.apps)) return null;
   }
-  const lines: Line[] = src.map(l => ({ ...l, id: keep ? keepId(l.id) : nid(), apps: l.apps.map(a => ({ ...a, id: nid() })) }));
+  const lines: Line[] = src.map(l => ({ ...l, ...(typeof l.where === 'string' && l.where.trim() ? { where: l.where.slice(0, 80) } : { where: undefined }), id: keep ? keepId(l.id) : nid(), apps: l.apps.map(a => ({ ...a, id: nid() })) }));
   return {
     id: keep && x.id ? String(x.id) : pid(),
     name: String(x.name || 'Без названия').slice(0, 80),

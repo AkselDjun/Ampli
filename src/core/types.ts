@@ -50,6 +50,7 @@ export interface Proto {
 export interface Line {
   id: string;
   name: string;
+  where?: string;
   type: LineType;
   phase: Phase;
   wet?: boolean;

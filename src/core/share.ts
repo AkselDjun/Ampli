@@ -4,6 +4,7 @@ import type { Project } from './types';
 import { normProject } from './project';
 
 export const SHARE_PREFIX = '#p=';
+export const OWNER_PREFIX = '#o=';
 export const SHARE_VERSION = 'v1.';
 export const QR_MAX_BYTES = 2300;
 const INFLATE_LIMIT = 2_000_000;
@@ -53,6 +54,16 @@ export function unpackProject(text: string): Project | null {
 
 export function shareUrl(p: Project, base: string): string {
   return base.split('#')[0] + SHARE_PREFIX + packProject(p);
+}
+
+export function ownerUrl(p: Project, base: string): string {
+  return base.split('#')[0] + OWNER_PREFIX + packProject(p);
+}
+
+export function readOwnerHash(hash: string): string | null {
+  if (!hash.startsWith(OWNER_PREFIX)) return null;
+  const v = hash.slice(OWNER_PREFIX.length);
+  return v.length > 0 ? v : null;
 }
 
 export function readShareHash(hash: string): string | null {

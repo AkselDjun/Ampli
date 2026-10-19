@@ -31,7 +31,7 @@ export type Action =
   | { t: 'photoDel'; id: string }
   | { t: 'photoNote'; id: string; value: string }
   | { t: 'addApps'; apps: { name: string; w: number; n: number }[] }
-  | { t: 'lineField'; field: 'name' | 'len' | 'kc' | 'cos'; value: string | number }
+  | { t: 'lineField'; field: 'name' | 'where' | 'len' | 'kc' | 'cos'; value: string | number }
   | { t: 'lineType'; type: LineType }
   | { t: 'linePhase'; phase: Phase }
   | { t: 'lineWet'; wet: boolean }

@@ -490,3 +490,81 @@ describe('print with photos', () => {
     expect(p.photos?.[0].line).toBe('gone');
   });
 });
+
+describe('Owner passport', () => {
+  const clip = () => {
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: vi.fn(() => Promise.resolve()) }, configurable: true });
+    return (navigator.clipboard as unknown as { writeText: ReturnType<typeof vi.fn> }).writeText;
+  };
+
+  it('stores the group location typed in the editor', () => {
+    seed(() => undefined);
+    render(<App />);
+    change(byLabel(ed(), 'Где находится группа'), 'Кухня и коридор');
+    expect(stored().list[0].lines[0].where).toBe('Кухня и коридор');
+  });
+
+  it('prints the passport with a QR code and the location', () => {
+    seed(p => { p.lines[0].where = 'Спальня'; });
+    const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
+    render(<App />);
+    click(nav(), /Приёмка/);
+    click(dlg('Монтаж и приёмка'), 'Печать паспорта');
+    const doc = document.querySelector('.printdoc') as HTMLElement;
+    expect(doc.querySelector('h1')?.textContent).toBe('Паспорт электрощита');
+    expect(doc.textContent).toContain('Спальня');
+    expect(doc.querySelector('.pp-qr svg')).toBeTruthy();
+    expect(doc.querySelector('.pp-steps')).toBeTruthy();
+    print.mockRestore();
+  });
+
+  it('copies the owner link from the work sheet', async () => {
+    const write = clip();
+    render(<App />);
+    click(nav(), /Приёмка/);
+    const d = dlg('Монтаж и приёмка');
+    await act(async () => { click(d, /Ссылка для владельца/); });
+    expect(write.mock.calls[0][0]).toContain('#o=v1.');
+    click(d, 'QR-код');
+    expect(d.querySelector('[aria-label="QR-код паспорта"]')).toBeTruthy();
+  });
+
+  it('opens a read-only passport from an owner link and can hand the project over', () => {
+    const p = sampleProject();
+    p.lines[0].where = 'Прихожая';
+    window.location.hash = '#o=' + packProject(p);
+    render(<App />);
+    expect(document.querySelector('.owner h1')?.textContent).toBe('Паспорт электрощита');
+    expect(document.querySelector('.owner')?.textContent).toContain('Прихожая');
+    expect(document.querySelector('.col-edit')).toBeNull();
+    click(document.querySelector('.owner') as HTMLElement, 'Открыть проект в Ампли'.replace('Ампли', 'Ampli'));
+    expect(document.querySelector('.owner')).toBeNull();
+    expect(isOpen('Присланный проект')).toBe(true);
+  });
+
+  it('shows the passport when the hash changes while the app is open', () => {
+    render(<App />);
+    expect(document.querySelector('.owner')).toBeNull();
+    act(() => {
+      window.location.hash = '#o=' + packProject(sampleProject());
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+    expect(document.querySelector('.owner')).toBeTruthy();
+    act(() => {
+      window.location.hash = '#o=broken';
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+    expect(document.querySelector('.owner')).toBeNull();
+  });
+
+  it('warns about simultaneous use and explains the test button for residual-current devices', () => {
+    const p = sampleProject();
+    p.lines = [mkLine('Кухня', 'socket', 10, null, null, [['Духовка', 3500, 1], ['Чайник', 2200, 1], ['Тостер', 900, 1]])];
+
+    window.location.hash = '#o=' + packProject(p);
+    render(<App />);
+    const o = document.querySelector('.owner') as HTMLElement;
+    expect(o.querySelector('.pp-warn')?.textContent).toContain('Духовка и Чайник');
+    expect(o.textContent).toContain('кнопка «Т»');
+  });
+});

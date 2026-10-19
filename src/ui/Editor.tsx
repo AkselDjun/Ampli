@@ -80,6 +80,7 @@ export function Editor({
           <input className="ed-name" aria-label="Название группы" value={l.name} onChange={e => dispatch({ t: 'lineField', field: 'name', value: e.target.value })} />
           {r && !r.empty && <span className={'pill ' + r.status}>{STATUS[r.status]}</span>}
         </div>
+        <input className="ed-where" aria-label="Где находится группа" placeholder="Где находится: например, кухня и коридор" maxLength={80} value={l.where ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'where', value: e.target.value })} />
         {r && (
           <>
             <div className={'ed-res' + (r.empty ? '' : ' ' + r.status)}>
