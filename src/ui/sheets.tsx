@@ -18,6 +18,7 @@ import type { Action } from '../store/reducer';
 import { ArmButton, Assumptions, Seg, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
 import { Schematic } from './Schematic';
 import { toast, toastBad, toastOk } from './toast';
+import { IOS_STEPS, install, usePwa } from './pwa';
 import { ShareBlock } from './ShareBlock';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
@@ -261,6 +262,7 @@ export function ProjectsSheet({
           }}
         />
       </div>
+      <InstallBlock />
       </TabPanel>
     </Sheet>
   );
@@ -418,5 +420,26 @@ export function ReportSheet({
       </div>
       </TabPanel>
     </Sheet>
+  );
+}
+
+export function InstallBlock() {
+  const s = usePwa();
+  let body: JSX.Element | null = null;
+  if (s.standalone) body = <p className="muted">Ampli установлен на это устройство и работает без интернета.</p>;
+  else if (s.can) {
+    body = (
+      <div className="data-row">
+        <button className="btn" type="button" onClick={() => { void install(); }}><IconDownload /> Установить приложение</button>
+        <Tip>Ampli откроется с экрана устройства как обычное приложение и будет работать без интернета. Проекты останутся на этом устройстве.</Tip>
+      </div>
+    );
+  } else if (s.ios) body = <p className="muted">На iPhone и iPad Ampli можно добавить на экран «Домой», тогда он работает без интернета. {IOS_STEPS}</p>;
+  if (!body) return null;
+  return (
+    <>
+      <h3 className="sec-t">Приложение</h3>
+      {body}
+    </>
   );
 }
