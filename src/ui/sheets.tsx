@@ -19,6 +19,7 @@ import { ArmButton, Assumptions, Seg, Sheet, Stepper, TabPanel, Tabs, Tip } from
 import { Schematic } from './Schematic';
 import { toast, toastBad, toastOk } from './toast';
 import { IOS_STEPS, install, usePwa } from './pwa';
+import { PWA_ENABLED } from '../core/flags';
 import { ShareBlock } from './ShareBlock';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
@@ -426,6 +427,7 @@ export function ReportSheet({
 export function InstallBlock() {
   const s = usePwa();
   let body: JSX.Element | null = null;
+  if (!PWA_ENABLED) return null;
   if (s.standalone) body = <p className="muted">Ampli установлен на это устройство и работает без интернета.</p>;
   else if (s.can) {
     body = (

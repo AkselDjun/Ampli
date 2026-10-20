@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { PWA_ENABLED } from './src/core/flags';
 
 export default defineConfig({
   base: './',
@@ -9,8 +10,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,
+      selfDestroying: !PWA_ENABLED,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
-      manifest: {
+      manifest: PWA_ENABLED && {
         id: './',
         name: 'Ampli: расчёт электрощитка квартиры',
         short_name: 'Ampli',

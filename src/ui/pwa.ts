@@ -124,6 +124,18 @@ export const usePwa = (): PwaState =>
     () => state
   );
 
+export async function retirePwa(): Promise<void> {
+  const sw = typeof navigator !== 'undefined' ? navigator.serviceWorker : undefined;
+  if (sw && typeof sw.getRegistrations === 'function') {
+    const regs = await sw.getRegistrations().catch(() => [] as readonly ServiceWorkerRegistration[]);
+    await Promise.all(regs.map(r => r.unregister().catch(() => false)));
+  }
+  if (typeof caches !== 'undefined') {
+    const keys = await caches.keys().catch(() => [] as string[]);
+    await Promise.all(keys.filter(k => k.startsWith('workbox-')).map(k => caches.delete(k)));
+  }
+}
+
 export function resetPwa(): void {
   deferred = null;
   state = { can: false, ios: false, standalone: false };

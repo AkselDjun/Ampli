@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+
+vi.mock('../../core/flags', () => ({ PWA_ENABLED: true }));
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { HINT_KEY, VISITS_KEY, initPwa, install, isIos, isStandalone, resetPwa } from '../../ui/pwa';
 import { InstallBlock } from '../../ui/sheets';
