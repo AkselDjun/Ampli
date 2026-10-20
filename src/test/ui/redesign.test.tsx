@@ -485,24 +485,33 @@ describe('Side folds', () => {
     expect(b).toHaveAttribute('aria-expanded', 'false');
     expect(document.querySelector('.chk')).toBeNull();
   });
-  it('solo opens every fold in the summary and the panel', () => {
+  it('solo opens the summary folds and the panel is one tabbed block', () => {
     const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]]), mkLine('B', 'socket', 5, 1, 1, [['x', 100, 1]])], { supply: 3 });
     const a = calcAll(p.lines, p.cfg);
-    render(<><Summary a={a} solo onBalance={() => undefined} /><PanelPane a={a} solo /></>);
-    ['Проверки по нормам', 'Нагрузка по фазам', 'Запас автоматов', 'Щиток', 'Состав щитка'].forEach(t => {
+    render(<><Summary a={a} solo onBalance={() => undefined} /><PanelPane a={a} /></>);
+    ['Проверки по нормам', 'Нагрузка по фазам', 'Щиток'].forEach(t => {
       expect(foldBtn(t)).toHaveAttribute('aria-expanded', 'true');
     });
+    expect(screen.queryByRole('heading', { name: 'Запас автоматов' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Состав щитка' })).toBeNull();
   });
-  it('without solo the reserve and panel folds are closed', () => {
+  it('the panel block switches between scheme, reserve and schedule', async () => {
+    const user = userEvent.setup();
     const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]);
     const a = calcAll(p.lines, p.cfg);
-    render(<><Summary a={a} onBalance={() => undefined} /><PanelPane a={a} /></>);
-    ['Запас автоматов', 'Состав щитка'].forEach(t => {
-      expect(foldBtn(t)).toHaveAttribute('aria-expanded', 'false');
-    });
-    expect(foldBtn('Щиток')).toHaveAttribute('aria-expanded', 'true');
+    render(<PanelPane a={a} />);
+    const tabs = screen.getAllByRole('tab').map(t => t.textContent);
+    expect(tabs).toEqual(['Схема', 'Запас автоматов', 'Состав']);
     expect(document.querySelector('.rail')).not.toBeNull();
-    expect(document.querySelector('.sc')).toBeNull();
+    await user.click(screen.getByRole('tab', { name: 'Запас автоматов' }));
+    expect(document.querySelector('.gl')).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Состав' }));
+    expect(document.querySelector('.sc')).toBeInTheDocument();
+  });
+  it('hides the reserve tab when no group has a breaker', () => {
+    const a = calcAll([], defaultCfg());
+    render(<PanelPane a={a} />);
+    expect(screen.getAllByRole('tab').map(t => t.textContent)).toEqual(['Схема', 'Состав']);
   });
   it('phase fold opens on imbalance with a badge and balance button', async () => {
     const user = userEvent.setup();
@@ -537,8 +546,11 @@ describe('Side folds', () => {
   it('expands a closed fold on click', async () => {
     const user = userEvent.setup();
     sumOf(proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]));
-    await user.click(foldBtn('Запас автоматов'));
-    expect(document.querySelector('.gl')).toBeInTheDocument();
+    const b = foldBtn('Проверки по нормам');
+    expect(b).toHaveAttribute('aria-expanded', 'false');
+    await user.click(b);
+    expect(b).toHaveAttribute('aria-expanded', 'true');
+    expect(document.querySelector('.chk')).toBeInTheDocument();
   });
 });
 

@@ -2,7 +2,7 @@ import type { Calc } from '../core/types';
 import { fmt, fs, plural } from '../core/format';
 import { ROWLEN } from '../core/norms';
 import { useState } from 'react';
-import { Fold, Tip } from './common';
+import { Fold, TabPanel, Tabs, Tip } from './common';
 
 function Kv({ l, v }: { l: string; v: string }) {
   return (
@@ -52,7 +52,6 @@ export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: ()
   const inDev = a.inIn ? (c.supply === 3 ? '4P' : '2P') + ' C' + a.inIn : '—';
   let inCab = '—';
   if (a.inIn) inCab = a.inS ? 'ВВГнг(А)-LS ' + (c.supply === 3 ? 5 : 3) + '×' + fs(a.inS) : 'больше 35 мм²';
-  const gl = a.rows.filter(x => !x.r.empty && x.r.In);
   const checks = checksOf(a);
   const problems = checks.filter(x => x.k !== 'ok').length;
   const worst: 'ok' | 'warn' | 'bad' = checks.some(x => x.k === 'bad') ? 'bad' : (problems ? 'warn' : 'ok');
@@ -104,34 +103,15 @@ export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: ()
           ))}
         </Fold>
       )}
-      {gl.length > 0 && (
-        <Fold title="Запас автоматов" className="c-reserve" open={solo}>
-          <Tip>Какую часть номинала автомата занимает ток группы.</Tip>
-          <div className="gl">
-            {gl.map(x => {
-              const u = x.r.I / (x.r.In as number) * 100;
-              const cl = u > 100 ? 'bad' : (u > 80 ? 'warn' : '');
-              return (
-                <div className="gl-r" key={x.l.id}>
-                  <span className="no">Г{a.rows.indexOf(x) + 1}</span>
-                  <span className="gl-name">{x.l.name || 'Без названия'}</span>
-                  <b>{fmt(x.r.I, 1)} из {x.r.In} А</b>
-                  <div className="gl-bar" role="img" aria-label={'Загрузка автомата ' + Math.round(u) + ' %'}>
-                    <i className={cl} style={{ width: Math.min(100, u) + '%' }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Fold>
-      )}
     </div>
   );
 }
 
-export function PanelPane({ a, solo = false, onPick, onMove }: { a: Calc; solo?: boolean; onPick?: (id: string) => void; onMove?: (id: string, to: string) => void }) {
+export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string) => void; onMove?: (id: string, to: string) => void }) {
   const [drag, setDrag] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
+  const [tab, setTab] = useState('rail');
+  const gl = a.rows.filter(x => !x.r.empty && x.r.In);
   const c = a.c;
   const free = Math.max(0, a.size - a.placed);
   const nameOf: Record<string, string> = {};
@@ -141,6 +121,8 @@ export function PanelPane({ a, solo = false, onPick, onMove }: { a: Calc; solo?:
   return (
     <div className="pane-panel">
       <Fold title="Щиток" className="c-panel" open>
+        <Tabs scope="bd" label="Разделы щитка" cur={tab} onChange={setTab} items={[{ id: 'rail', label: 'Схема' }, ...(gl.length > 0 ? [{ id: 'reserve', label: 'Запас автоматов' }] : []), { id: 'sched', label: 'Состав' }]} />
+        <TabPanel scope="bd" id="rail" cur={tab}>
         <p className="muted">
           Приборов на {a.modSum} мод. Нужен корпус на <b>{a.size}</b> мод. с запасом 20 %{a.fits ? '.' : ', но и он тесен: разделите щиток на два.'}
         </p>
@@ -198,8 +180,29 @@ export function PanelPane({ a, solo = false, onPick, onMove }: { a: Calc; solo?:
           <span><i className="dev-free" style={{ border: '1px dashed var(--ink-2)' }} />Резерв</span>
           <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Перетащите его или нажмите Alt и стрелку, чтобы поменять порядок. Цвет рычажка показывает статус группы.</Tip>
         </div>
-      </Fold>
-      <Fold title="Состав щитка" className="c-sched" open={solo}>
+        </TabPanel>
+        {gl.length > 0 && (
+          <TabPanel scope="bd" id="reserve" cur={tab}>
+            <Tip>Какую часть номинала автомата занимает ток группы.</Tip>
+            <div className="gl">
+              {gl.map(x => {
+                const u = x.r.I / (x.r.In as number) * 100;
+                const cl = u > 100 ? 'bad' : (u > 80 ? 'warn' : '');
+                return (
+                  <div className="gl-r" key={x.l.id}>
+                    <span className="no">Г{a.rows.indexOf(x) + 1}</span>
+                    <span className="gl-name">{x.l.name || 'Без названия'}</span>
+                    <b>{fmt(x.r.I, 1)} из {x.r.In} А</b>
+                    <div className="gl-bar" role="img" aria-label={'Загрузка автомата ' + Math.round(u) + ' %'}>
+                      <i className={cl} style={{ width: Math.min(100, u) + '%' }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </TabPanel>
+        )}
+        <TabPanel scope="bd" id="sched" cur={tab}>
         <div className="sc">
           {a.devs.map((d, i) => {
             const g = d.kind === 'in' ? '' : d.sub.split(' ')[0];
@@ -214,6 +217,7 @@ export function PanelPane({ a, solo = false, onPick, onMove }: { a: Calc; solo?:
             );
           })}
         </div>
+        </TabPanel>
       </Fold>
     </div>
   );

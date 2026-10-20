@@ -377,8 +377,6 @@ tfoot td{font-weight:700;background:var(--surface-2)}
   .c-checks{order:3}
   .c-phase{order:4}
   .c-panel{order:1}
-  .c-reserve{order:5}
-  .c-sched{order:6}
   .tabs{display:none}
   body{overflow:hidden}
   .workspace{height:calc(100vh - var(--bar) - env(safe-area-inset-top,0px));height:calc(100dvh - var(--bar) - env(safe-area-inset-top,0px));padding-block:16px;display:grid;grid-template-columns:350px minmax(0,1fr);gap:20px}
@@ -861,3 +859,5 @@ button.dev:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   button.dev:hover{transform:none}
 }
 .legend{align-items:center}
+.c-panel .tabbar{padding:0;margin:8px 0 14px}
+.c-panel .tabbar-b{padding:0 12px}
