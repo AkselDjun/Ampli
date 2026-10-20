@@ -1,6 +1,7 @@
 import type { Calc } from '../core/types';
 import { fmt, fs, plural } from '../core/format';
 import { ROWLEN } from '../core/norms';
+import { useState } from 'react';
 import { Fold, Tip } from './common';
 
 function Kv({ l, v }: { l: string; v: string }) {
@@ -128,7 +129,9 @@ export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: ()
   );
 }
 
-export function PanelPane({ a, solo = false }: { a: Calc; solo?: boolean }) {
+export function PanelPane({ a, solo = false, onPick, onMove }: { a: Calc; solo?: boolean; onPick?: (id: string) => void; onMove?: (id: string, to: string) => void }) {
+  const [drag, setDrag] = useState<string | null>(null);
+  const [over, setOver] = useState<string | null>(null);
   const c = a.c;
   const free = Math.max(0, a.size - a.placed);
   const nameOf: Record<string, string> = {};
@@ -137,18 +140,52 @@ export function PanelPane({ a, solo = false }: { a: Calc; solo?: boolean }) {
   });
   return (
     <div className="pane-panel">
-      <Fold title="Щиток" className="c-panel" open={solo}>
+      <Fold title="Щиток" className="c-panel" open>
         <p className="muted">
           Приборов на {a.modSum} мод. Нужен корпус на <b>{a.size}</b> мод. с запасом 20 %{a.fits ? '.' : ', но и он тесен: разделите щиток на два.'}
         </p>
         <div className="rail-wrap">
           <div className="rail" data-rc={ROWLEN[a.size]} style={{ ['--rc' as string]: ROWLEN[a.size] }}>
-            {a.devs.map((d, i) => (
-              <div key={i} className={'dev dev-' + d.kind} style={{ gridColumn: 'span ' + d.mod }} title={d.title}>
-                <b>{d.label}</b>
-                <i>{d.sub}</i>
-              </div>
-            ))}
+            {a.devs.map((d, i) => {
+              const cls = 'dev dev-' + d.kind + (d.st ? ' st-' + d.st : '') + (d.lid && drag === d.lid ? ' drag' : '') + (d.lid && over === d.lid && drag !== d.lid ? ' over' : '');
+              const style = { gridColumn: 'span ' + d.mod, ['--i' as string]: i };
+              if (!d.lid) {
+                return (
+                  <div key={'in' + i} className={cls} style={style} title={d.title}>
+                    <b>{d.label}</b>
+                    <i>{d.sub}</i>
+                  </div>
+                );
+              }
+              const lid = d.lid;
+              const idx = a.devs.filter(x => x.lid).findIndex(x => x.lid === lid);
+              const lids = a.devs.filter(x => x.lid).map(x => x.lid as string);
+              return (
+                <button
+                  key={lid}
+                  type="button"
+                  className={cls}
+                  style={style}
+                  title={d.title}
+                  aria-label={d.title + ', ' + d.label + '. Открыть группу. Alt и стрелки меняют порядок'}
+                  data-ph={d.ph}
+                  draggable={!!onMove}
+                  onClick={() => onPick?.(lid)}
+                  onDragStart={e => { setDrag(lid); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', lid); }}
+                  onDragOver={e => { if (drag) { e.preventDefault(); setOver(lid); } }}
+                  onDragEnd={() => { setDrag(null); setOver(null); }}
+                  onDrop={e => { e.preventDefault(); if (drag && drag !== lid) onMove?.(drag, lid); setDrag(null); setOver(null); }}
+                  onKeyDown={e => {
+                    if (!e.altKey || !onMove) return;
+                    const t = e.key === 'ArrowLeft' ? lids[idx - 1] : (e.key === 'ArrowRight' ? lids[idx + 1] : undefined);
+                    if (t) { e.preventDefault(); onMove(lid, t); }
+                  }}
+                >
+                  <b>{d.label}</b>
+                  <i>{d.sub}</i>
+                </button>
+              );
+            })}
             {Array.from({ length: free }, (_, i) => (
               <div key={'f' + i} className="dev dev-free" title="Резерв" />
             ))}
@@ -159,6 +196,7 @@ export function PanelPane({ a, solo = false }: { a: Calc; solo?: boolean }) {
           <span><i className="dev-rcd" />Дифавтомат</span>
           <span><i className="dev-mcb" style={{ border: '1px solid var(--ink-2)' }} />Автомат</span>
           <span><i className="dev-free" style={{ border: '1px dashed var(--ink-2)' }} />Резерв</span>
+          <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Перетащите его или нажмите Alt и стрелку, чтобы поменять порядок. Цвет рычажка показывает статус группы.</Tip>
         </div>
       </Fold>
       <Fold title="Состав щитка" className="c-sched" open={solo}>

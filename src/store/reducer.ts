@@ -18,6 +18,7 @@ export type Action =
   | { t: 'select'; id: string }
   | { t: 'addLine'; type: LineType }
   | { t: 'delLine' }
+  | { t: 'moveLine'; id: string; to: string }
   | { t: 'dupLine' }
   | { t: 'splitLine'; mode: 'largest' | 'half' }
   | { t: 'roomAdd'; room: Room }
@@ -135,6 +136,15 @@ export function reducer(s: State, a: Action): State {
       next = { ...next, sel: src.id };
       if (pn(p.cfg.supply, 1) === 3) next = patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) }));
       return next;
+    }
+    case 'moveLine': {
+      const from = p.lines.findIndex(l => l.id === a.id);
+      const to = p.lines.findIndex(l => l.id === a.to);
+      if (from < 0 || to < 0 || from === to) return s;
+      const lines = [...p.lines];
+      const [m] = lines.splice(from, 1);
+      lines.splice(to, 0, m);
+      return patch(s, q => ({ ...q, lines }));
     }
     case 'dupLine': {
       const i = p.lines.findIndex(l => l.id === s.sel);

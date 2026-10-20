@@ -259,8 +259,8 @@ export function App() {
               photos={p.photos ?? []}
             />
             <aside className="col col-res" aria-label="Итоги расчёта">
+              <PanelPane key={'p' + (view === 'panel')} a={a} solo={view === 'panel'} onPick={id => { dispatch({ t: 'select', id }); goEdit(); }} onMove={(id, to) => dispatch({ t: 'moveLine', id, to })} />
               <Summary key={'s' + (view === 'sum')} a={a} solo={view === 'sum'} onBalance={() => dispatch({ t: 'balance' })} />
-              <PanelPane key={'p' + (view === 'panel')} a={a} solo={view === 'panel'} />
             </aside>
           </div>
         </div>

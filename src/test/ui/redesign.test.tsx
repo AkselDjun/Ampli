@@ -497,10 +497,11 @@ describe('Side folds', () => {
     const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]);
     const a = calcAll(p.lines, p.cfg);
     render(<><Summary a={a} onBalance={() => undefined} /><PanelPane a={a} /></>);
-    ['Запас автоматов', 'Щиток', 'Состав щитка'].forEach(t => {
+    ['Запас автоматов', 'Состав щитка'].forEach(t => {
       expect(foldBtn(t)).toHaveAttribute('aria-expanded', 'false');
     });
-    expect(document.querySelector('.rail')).toBeNull();
+    expect(foldBtn('Щиток')).toHaveAttribute('aria-expanded', 'true');
+    expect(document.querySelector('.rail')).not.toBeNull();
     expect(document.querySelector('.sc')).toBeNull();
   });
   it('phase fold opens on imbalance with a badge and balance button', async () => {

@@ -144,6 +144,9 @@ export interface Device {
   sub: string;
   ma?: number;
   title: string;
+  lid?: string;
+  ph?: Phase;
+  st?: Status;
 }
 
 export interface Row {

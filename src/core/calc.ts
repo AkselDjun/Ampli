@@ -194,7 +194,10 @@ export function calcAll(lines: Line[], cfg: Cfg): Calc {
       label: x.r.curve + x.r.In,
       sub: 'Г' + (idx + 1) + (x.r.rcd ? ' ' + x.r.ma + 'мА' : ''),
       ma: x.r.ma,
-      title: 'Г' + (idx + 1) + ' ' + x.l.name
+      title: 'Г' + (idx + 1) + ' ' + x.l.name,
+      lid: x.l.id,
+      ph: c.supply === 3 ? (x.r.three ? '3' : x.l.phase) : undefined,
+      st: x.r.status
     });
   });
   const modSum = devs.reduce((s, d) => s + d.mod, 0);
