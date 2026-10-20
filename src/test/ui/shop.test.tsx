@@ -5,7 +5,7 @@ import { KEY } from '../../store/storage';
 import { LIB_KEY } from '../../store/lib';
 import { PL_KEY } from '../../store/pricelists';
 import { sampleProject } from '../../core/project';
-import { click, dlg, isOpen, wide } from './util';
+import { click, dlg, isOpen, wide, toastText } from './util';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -62,7 +62,7 @@ describe('Where to buy', () => {
     await waitFor(() => expect(d.querySelector('.pl-list')).toBeTruthy());
     expect(d.querySelector('.pl-list')?.textContent).toContain('opt');
     expect(JSON.parse(localStorage.getItem(PL_KEY) as string)).toHaveLength(1);
-    expect(d.querySelector('[role="status"]')?.textContent).toMatch(/Загружено позиций: 5/);
+    expect(toastText()).toMatch(/Загружено позиций: 5/);
     const foot = d.querySelector('.shop-foot') as HTMLElement;
     expect(foot.textContent).toMatch(/Найдено цен/);
     const select = d.querySelector('select[aria-label^="Вариант для"]') as HTMLSelectElement;
@@ -71,7 +71,7 @@ describe('Where to buy', () => {
     fireEvent.change(select, { target: { value: '1' } });
     expect(select.options[select.selectedIndex].textContent).toContain('21');
     click(d, 'Подставить в смету');
-    expect(d.querySelector('[role="status"]')?.textContent).toMatch(/Цены подставлены в смету/);
+    expect(toastText()).toMatch(/Цены подставлены в смету/);
     expect(Object.keys(lib().prices).length).toBeGreaterThan(0);
     expect(Object.values(lib().prices as Record<string, number>)).toContain(3);
   });
@@ -80,7 +80,7 @@ describe('Where to buy', () => {
     render(<App />);
     const d = openShop();
     await upload(d, csv('просто;текст\nещё;строка'));
-    await waitFor(() => expect(d.querySelector('[role="status"]')?.textContent).toMatch(/Не нашёл в файле/));
+    await waitFor(() => expect(toastText()).toMatch(/нет колонок/));
     await upload(d, csv('Наименование;Цена\nРозетка;5'));
     await waitFor(() => expect(d.querySelector('.shop-foot')).toBeTruthy());
     expect(d.querySelectorAll('.shop-offer .muted')[0].textContent).toMatch(/не найдено/);
@@ -104,10 +104,10 @@ describe('Where to buy', () => {
     const bad = new File(['x'], 'a.csv');
     Object.defineProperty(bad, 'arrayBuffer', { value: () => Promise.reject(new Error('x')) });
     await upload(d, bad);
-    await waitFor(() => expect(d.querySelector('[role="status"]')?.textContent).toMatch(/Не удалось прочитать/));
+    await waitFor(() => expect(toastText()).toMatch(/Не удалось прочитать/));
     const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
     await upload(d, csv('Наименование;Цена\nШина N;3'));
-    await waitFor(() => expect(d.querySelector('[role="status"]')?.textContent).toMatch(/Не хватило места/));
+    await waitFor(() => expect(toastText()).toMatch(/не поместился/));
     spy.mockRestore();
     fireEvent.change(d.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [] } });
   });

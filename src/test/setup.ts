@@ -3,6 +3,7 @@ import { afterEach, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { IDBFactory } from 'fake-indexeddb';
 import { resetPhotoCache } from '../store/photos';
+import { dismissToast } from '../ui/toast';
 
 let seq = 0;
 
@@ -32,6 +33,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  dismissToast();
   vi.useRealTimers();
   vi.restoreAllMocks();
 });

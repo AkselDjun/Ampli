@@ -4,7 +4,8 @@ import { NB, fmt, fs, pn, round2 } from '../core/format';
 import { STATUS, TYPES, TYPE_KEYS } from '../core/norms';
 import { byUsage, catalog, searchCatalog, topUsed } from '../core/catalog';
 import { whyRows } from '../core/why';
-import type { Action } from '../store/reducer';
+import type { HAction } from '../store/history';
+import { toastOk, toastUndo } from './toast';
 import { IconDown, IconSearch } from './Icons';
 import { PhotoStrip } from './PhotoStrip';
 import { FixBar } from './FixBar';
@@ -30,12 +31,13 @@ export function Editor({
   l: Line | null;
   idx: number;
   a: Calc;
-  dispatch: (x: Action) => void;
+  dispatch: (x: HAction) => void;
   whyOpen: boolean;
   setWhyOpen: (v: boolean) => void;
   onDeleted: () => void;
 }) {
   const { lib, dispatch: libDispatch } = useLib();
+  const undo = () => dispatch({ t: 'undo' });
   const chips = useRef<HTMLDivElement>(null);
   const focusNew = useRef(false);
   const [measOpen, setMeasOpen] = useState(false);
@@ -110,6 +112,7 @@ export function Editor({
                   if (!fix.act) return;
                   if (fix.act.k === 'len') dispatch({ t: 'lineField', field: 'len', value: fix.act.len });
                   else dispatch({ t: 'splitLine', mode: fix.act.k });
+                  toastUndo('Исправлено', undo);
                 }}
               />
             )}
@@ -211,7 +214,7 @@ export function Editor({
                     <button type="button" aria-label="Больше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(99, pn(ap.n, 1) + 1)) })}>+</button>
                   </div>
                 </div>
-                <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" title="Удалить прибор" onClick={() => keepChips(() => dispatch({ t: 'delApp', id: ap.id }))}>×</button>
+                <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" data-tip="Удалить прибор" onClick={() => keepChips(() => dispatch({ t: 'delApp', id: ap.id }))}>×</button>
               </div>
             ))}
           </div>
@@ -275,7 +278,7 @@ export function Editor({
           {!search.trim() && often.length > 0 && (
             <div className="chips often" aria-label="Часто используемые">
               {often.map(it => (
-                <button key={'o' + it.key} className="chip hot" type="button" title={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>
+                <button key={'o' + it.key} className="chip hot" type="button" data-tip={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>
                   + {it.name}
                 </button>
               ))}
@@ -283,20 +286,24 @@ export function Editor({
           )}
           <div className="chips" ref={chips}>
             {byUsage(catalog([]).filter(it => it.tags.indexOf(tag) >= 0), lib.usage).map(it => (
-              <button key={it.key} className="chip" type="button" title={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>
+              <button key={it.key} className="chip" type="button" data-tip={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>
                 + {it.name}
               </button>
             ))}
             {byUsage(lib.apps.filter(m => m.tag === tag).map(m => ({ key: m.id, name: m.name, w: m.w, tags: m.tag, mine: m.id })), lib.usage).map(it => (
               <span className="chip-mine" key={it.key}>
-                <button className="chip" type="button" title={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>+ {it.name}</button>
+                <button className="chip" type="button" data-tip={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>+ {it.name}</button>
                 <button className="chip-x" type="button" aria-label={'Убрать из моих приборов: ' + it.name} onClick={() => libDispatch({ t: 'delApp', id: it.key })}>×</button>
               </span>
             ))}
             <button className="chip custom" type="button" onClick={() => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp' }); })}>+ Свой прибор</button>
           </div>
           {l.apps.some(ap => ap.name.trim() && pn(ap.w, 0) > 0) && (
-            <button className="link" type="button" onClick={() => libDispatch({ t: 'addApps', apps: l.apps.filter(ap => ap.name.trim() && pn(ap.w, 0) > 0).map(ap => ({ name: ap.name, w: pn(ap.w, 0), tag: tag as 'l' | 's' | 'p' })) })}>Сохранить приборы группы в мои</button>
+            <button className="link" type="button" onClick={() => {
+              const apps = l.apps.filter(ap => ap.name.trim() && pn(ap.w, 0) > 0).map(ap => ({ name: ap.name, w: pn(ap.w, 0), tag: tag as 'l' | 's' | 'p' }));
+              libDispatch({ t: 'addApps', apps });
+              toastOk('Сохранено в «Мои приборы»: ' + apps.length);
+            }}>Сохранить приборы группы в мои</button>
           )}
         </div>
         <div className="blk">
@@ -317,8 +324,8 @@ export function Editor({
           )}
         </div>
         <div className="ed-end">
-          <button className="btn" type="button" onClick={() => dispatch({ t: 'dupLine' })}>Копировать группу</button>
-          <ArmButton className="btn danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); }} />
+          <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupLine' }); toastUndo('Создана копия группы', undo); }}>Копировать группу</button>
+          <ArmButton className="btn danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); toastUndo('Группа удалена', undo); }} />
         </div>
       </div>
     </section>

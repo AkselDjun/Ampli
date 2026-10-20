@@ -58,15 +58,15 @@ function GroupRow({
         </span>
         <span className="row-end">
           {x.r.status !== 'ok' && !x.r.empty && (
-            <span className={'flag ' + x.r.status} title={STATUS[x.r.status]} aria-label={STATUS[x.r.status]}>!</span>
+            <span className={'flag ' + x.r.status} data-tip={STATUS[x.r.status]} aria-label={STATUS[x.r.status]}>!</span>
           )}
           {x.r.In && <span className={'brk' + (x.r.rcd ? ' rcd' : '')}>{x.r.curve}{x.r.In}</span>}
         </span>
         <IconChev className="chev" />
       </button>
       <div className="row-act">
-        <button type="button" className="ra-b" aria-label={'Копировать группу Г' + (i + 1)} title="Копировать" onClick={() => onCopy(x.l.id)}><IconCopy /></button>
-        <button type="button" className="ra-b del" aria-label={'Удалить группу Г' + (i + 1)} title="Удалить" onClick={() => onDelete(x.l.id)}><IconTrash /></button>
+        <button type="button" className="ra-b" aria-label={'Копировать группу Г' + (i + 1)} data-tip="Копировать" onClick={() => onCopy(x.l.id)}><IconCopy /></button>
+        <button type="button" className="ra-b del" aria-label={'Удалить группу Г' + (i + 1)} data-tip="Удалить" onClick={() => onDelete(x.l.id)}><IconTrash /></button>
       </div>
       {fix && <FixBar fix={fix} onApply={() => fix.act && onFix(x.l.id, fix.act)} />}
     </div>
@@ -148,8 +148,8 @@ export function GroupList({
       <div className="list-head">
         <h2>Группы линий</h2>
         <span className="hist">
-          <button className="icon-btn" type="button" disabled={!canUndo} onClick={onUndo} aria-label="Отменить" title="Отменить (Ctrl+Z)">↶</button>
-          <button className="icon-btn" type="button" disabled={!canRedo} onClick={onRedo} aria-label="Вернуть" title="Вернуть (Ctrl+Shift+Z)">↷</button>
+          <button className="icon-btn" type="button" disabled={!canUndo} onClick={onUndo} aria-label="Отменить" data-tip="Отменить (Ctrl+Z)">↶</button>
+          <button className="icon-btn" type="button" disabled={!canRedo} onClick={onRedo} aria-label="Вернуть" data-tip="Вернуть (Ctrl+Shift+Z)">↷</button>
           <span className="count">{count ? count + ' шт.' : ''}</span>
         </span>
       </div>

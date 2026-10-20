@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { App } from '../../ui/App';
 import { AddMenu } from '../../ui/AddMenu';
 import { FixBar } from '../../ui/FixBar';
-import { Fold, Toast } from '../../ui/common';
+import { Fold } from '../../ui/common';
 import { GroupList } from '../../ui/GroupList';
 import { PanelPane, Summary } from '../../ui/Side';
 import { SWIPE_MAX, SWIPE_TRIGGER, useSwipe } from '../../ui/swipe';
@@ -262,45 +262,6 @@ describe('Fold', () => {
     render(<Fold title="Секция" open><p>тело</p></Fold>);
     expect(screen.getByText('тело')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Секция/ })).toHaveAttribute('aria-expanded', 'true');
-  });
-});
-
-describe('Toast', () => {
-  it('runs the action then closes', async () => {
-    const user = userEvent.setup();
-    const onAction = vi.fn();
-    const onClose = vi.fn();
-    render(<Toast text="Готово" label="Отменить" onAction={onAction} onClose={onClose} />);
-    expect(screen.getByRole('status')).toHaveTextContent('Готово');
-    await user.click(screen.getByRole('button', { name: 'Отменить' }));
-    expect(onAction).toHaveBeenCalledTimes(1);
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
-  it('has no button without a label or an action', () => {
-    const { rerender } = render(<Toast text="Т" onClose={() => undefined} />);
-    expect(screen.queryByRole('button')).toBeNull();
-    rerender(<Toast text="Т" label="Ок" onClose={() => undefined} />);
-    expect(screen.queryByRole('button')).toBeNull();
-  });
-  it('closes by itself after 6 seconds and restarts on a new text', () => {
-    vi.useFakeTimers();
-    const onClose = vi.fn();
-    const { rerender } = render(<Toast text="Один" onClose={onClose} />);
-    act(() => { vi.advanceTimersByTime(5900); });
-    expect(onClose).not.toHaveBeenCalled();
-    rerender(<Toast text="Два" onClose={onClose} />);
-    act(() => { vi.advanceTimersByTime(5900); });
-    expect(onClose).not.toHaveBeenCalled();
-    act(() => { vi.advanceTimersByTime(200); });
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
-  it('clears the timer on unmount', () => {
-    vi.useFakeTimers();
-    const onClose = vi.fn();
-    const { unmount } = render(<Toast text="Один" onClose={onClose} />);
-    unmount();
-    act(() => { vi.advanceTimersByTime(7000); });
-    expect(onClose).not.toHaveBeenCalled();
   });
 });
 
@@ -567,7 +528,7 @@ describe('App flows', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Добавлена группа: Мощный прибор');
     await user.click(screen.getByRole('button', { name: 'Открыть' }));
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'edit');
-    expect(screen.queryByRole('status')).toBeNull();
+    expect(document.querySelector('.toast')).toBeNull();
   });
   it('adding on a wide screen shows a toast without the open action', async () => {
     wide(true);
@@ -578,15 +539,15 @@ describe('App flows', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Добавлена группа: Освещение');
     expect(screen.queryByRole('button', { name: 'Открыть' })).toBeNull();
   });
-  it('the toast disappears after six seconds', () => {
+  it('the toast disappears by itself', () => {
     vi.useFakeTimers();
     wide(true);
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Добавить группу' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Освещение' }));
-    expect(screen.getByRole('status')).toBeInTheDocument();
-    act(() => { vi.advanceTimersByTime(6100); });
-    expect(screen.queryByRole('status')).toBeNull();
+    expect(document.querySelector('.toast')).toBeInTheDocument();
+    act(() => { vi.advanceTimersByTime(4600); });
+    expect(document.querySelector('.toast')).toBeNull();
   });
   it('swipe left deletes a group and the toast restores it', async () => {
     const user = userEvent.setup();
@@ -599,7 +560,7 @@ describe('App flows', () => {
     await user.click(within(screen.getByRole('status')).getByRole('button', { name: 'Отменить' }));
     expect(rowsOf().length).toBe(n0);
     expect(rowsOf()[1].querySelector('.row-name')?.textContent).toBe(name);
-    expect(screen.queryByRole('status')).toBeNull();
+    expect(document.querySelector('.toast')).toBeNull();
   });
   it('swipe right copies a group and the toast undoes it', async () => {
     const user = userEvent.setup();

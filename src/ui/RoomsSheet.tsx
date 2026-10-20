@@ -4,8 +4,9 @@ import { PRESETS } from '../core/norms';
 import { ROOM_PRESETS, assemble, makeRoom } from '../core/rooms';
 import { nid } from '../core/ids';
 import { plural } from '../core/format';
-import type { Action } from '../store/reducer';
-import { ArmButton, Sheet, Tip } from './common';
+import type { HAction } from '../store/history';
+import { toastUndo } from './toast';
+import { ArmButton, Sheet } from './common';
 
 export function RoomsSheet({
   open, onClose, p, dispatch
@@ -13,13 +14,13 @@ export function RoomsSheet({
   open: boolean;
   onClose: () => void;
   p: Project;
-  dispatch: (a: Action) => void;
+  dispatch: (a: HAction) => void;
 }) {
   const rooms = p.rooms ?? [];
   const planned = useMemo(() => assemble(rooms).length, [rooms]);
   const addApp = (rid: string, app: RoomApp) => dispatch({ t: 'roomAppAdd', rid, app });
   return (
-    <Sheet open={open} onClose={onClose} title="Комнаты" tip="Опишите комнаты и приборы в них, группы соберутся автоматически: свет по комнатам, розетки по комнатам, мощные приборы по отдельным линиям. Принципы сборки приняты по практике, их можно поправить в группах вручную.">
+    <Sheet open={open} onClose={onClose} title="Комнаты" tip="Опишите комнаты и приборы, группы соберутся сами: свет и розетки по комнатам, мощные приборы отдельными линиями. Потом группы можно поправить вручную.">
       <div className="chips room-add">
         {ROOM_PRESETS.map(r => (
           <button key={r.key} className="chip" type="button" onClick={() => dispatch({ t: 'roomAdd', room: makeRoom(r) })}>+ {r.title}</button>
@@ -58,8 +59,7 @@ export function RoomsSheet({
         </section>
       ))}
       <div className="copy-row">
-        <ArmButton className="btn primary" label={'Собрать группы: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])} armedLabel="Заменить текущие группы?" disabled={planned === 0} onRun={() => { dispatch({ t: 'assemble' }); onClose(); }} />
-        <Tip>Текущие группы проекта будут заменены.</Tip>
+        <ArmButton className="btn primary" label={'Собрать группы: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])} armedLabel="Заменить текущие группы?" disabled={planned === 0} onRun={() => { dispatch({ t: 'assemble' }); onClose(); toastUndo('Собрано из комнат: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп']), () => dispatch({ t: 'undo' })); }} />
       </div>
     </Sheet>
   );

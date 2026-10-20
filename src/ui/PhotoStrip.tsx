@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Photo, PhotoTag } from '../core/types';
+import { toastBad } from './toast';
 import { PHOTO_LIMIT, PHOTO_TAGS, PHOTO_TAG_LABEL } from '../core/photos';
 import { nid } from '../core/ids';
 import { delPhoto, forgetPhotoUrl, photoUrl, putPhoto } from '../store/photos';
@@ -37,14 +38,12 @@ export function PhotoStrip({
   name: string;
 }) {
   const [tag, setTag] = useState<PhotoTag>(tags[0]);
-  const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const urls = usePhotoUrls(photos.map(p => p.id));
   const full = total >= PHOTO_LIMIT;
   const add = async (f: File) => {
     setBusy(true);
-    setMsg(null);
     try {
       const blob = await scalePhoto(f);
       const id = nid();
@@ -52,7 +51,7 @@ export function PhotoStrip({
       onAdd({ id, tag, line, note: '', at: Date.now() });
     } catch (e) {
       void e;
-      setMsg('Не удалось сохранить фото на этом устройстве');
+      toastBad('Не удалось сохранить фото: в браузере не хватает места');
     }
     setBusy(false);
   };
@@ -65,9 +64,10 @@ export function PhotoStrip({
     <div className="photos">
       <div className="photo-add">
         <Seg name={'ptag-' + name} value={tag} items={PHOTO_TAGS.filter(t => tags.includes(t[0]))} onChange={setTag} />
-        <button className="btn ghost" type="button" disabled={busy || full} onClick={() => input.current?.click()} title={full ? 'Достигнут предел фото в проекте' : 'Сделать или выбрать фото'}>
+        <button className="btn ghost" type="button" disabled={busy || full} onClick={() => input.current?.click()}>
           <IconCamera /> Фото
         </button>
+        {full && <span className="muted">В проекте уже {PHOTO_LIMIT} фото, это предел. Удалите лишние, чтобы добавить новые.</span>}
         <input
           ref={input}
           className="pj-file"
@@ -84,7 +84,6 @@ export function PhotoStrip({
           }}
         />
       </div>
-      {msg && <span className="muted" role="status" style={{ color: 'var(--bad)' }}>{msg}</span>}
       {photos.length > 0 && (
         <ul className="photo-list">
           {photos.map(ph => (
@@ -92,7 +91,7 @@ export function PhotoStrip({
               <div className="ph-img">
                 {urls[ph.id] ? <img src={urls[ph.id]} alt={PHOTO_TAG_LABEL[ph.tag]} /> : <span className="muted">…</span>}
                 <span className="ph-tag">{PHOTO_TAG_LABEL[ph.tag]}</span>
-                <button className="icon-btn ph-del" type="button" aria-label="Удалить фото" title="Удалить фото" onClick={() => del(ph.id)}><IconTrash /></button>
+                <button className="icon-btn ph-del" type="button" aria-label="Удалить фото" data-tip="Удалить фото" onClick={() => del(ph.id)}><IconTrash /></button>
               </div>
               <input type="text" maxLength={120} aria-label="Подпись к фото" placeholder="Подпись" value={ph.note} onChange={e => onNote(ph.id, e.target.value)} />
             </li>

@@ -3,7 +3,7 @@ import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '../../ui/App';
 import { KEY } from '../../store/storage';
-import { click, dlg, isOpen, wide } from './util';
+import { click, dlg, isOpen, wide, toastText } from './util';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -189,7 +189,7 @@ describe('App', () => {
     click(d, '+ Новый проект');
     click(d, /Студия/);
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'groups');
-    expect(d.textContent).toContain('Создан проект');
+    expect(toastText()).toContain('Создан проект');
   });
 
   it('balance button on three phases', () => {

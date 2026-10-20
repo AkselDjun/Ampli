@@ -9,6 +9,7 @@ import { MAX_LISTS, addList, loadLists, saveLists } from '../store/pricelists';
 import type { PriceList } from '../store/pricelists';
 import { useLib } from '../store/LibContext';
 import { Sheet, TabPanel, Tabs, Tip } from './common';
+import { toastBad, toastOk } from './toast';
 
 const BYN = ' BYN';
 
@@ -16,7 +17,6 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
   const { dispatch } = useLib();
   const [lists, setLists] = useState<PriceList[]>(loadLists);
   const [pick, setPick] = useState<Record<string, number>>({});
-  const [msg, setMsg] = useState<{ t: string; bad: boolean } | null>(null);
   const [tab, setTab] = useState('buy');
   const file = useRef<HTMLInputElement>(null);
   const items = useMemo(() => buildSpec(a), [a]);
@@ -28,7 +28,7 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
   });
   const total = rows.reduce((s, r) => s + (r.chosen && r.item.n !== null ? r.chosen.price * r.item.n : 0), 0);
   const matched = rows.filter(r => r.chosen).length;
-  const note = (t: string, bad = false) => setMsg({ t, bad });
+  const note = (t: string, bad = false) => (bad ? toastBad(t) : toastOk(t));
 
   const onFile = async (f: File | undefined) => {
     if (!f) return;
@@ -42,12 +42,12 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
     }
     const parsed = parsePriceFile(f.name, buf);
     if (!parsed) {
-      note('Не нашёл в файле наименования и цены. Подойдёт CSV или Excel (.xlsx) с колонками «Наименование» и «Цена».', true);
+      note('В файле нет колонок «Наименование» и «Цена». Нужен CSV или Excel (.xlsx).', true);
       return;
     }
     const next = addList(lists, f.name.replace(/\.[^.]+$/, '').slice(0, 60), parsed.offers);
     if (!saveLists(next)) {
-      note('Не хватило места в браузере для этого прайса', true);
+      note('Прайс не поместился в память браузера. Удалите старый прайс и загрузите снова.', true);
       return;
     }
     setLists(next);
@@ -57,10 +57,12 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
   };
 
   const removeList = (id: string) => {
+    const gone = lists.find(l => l.id === id);
     const next = lists.filter(l => l.id !== id);
     saveLists(next);
     setLists(next);
     setPick({});
+    if (gone) toastOk('Прайс удалён: ' + gone.name);
   };
 
   const apply = () => {
@@ -71,16 +73,16 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
         n++;
       }
     });
-    note(n ? 'Цены подставлены в смету: ' + n + ' поз.' : 'Нет подходящих цен для подстановки', !n);
+    note(n ? 'Цены подставлены в смету: ' + n + ' поз.' : 'В прайсах нет цен для позиций сметы', !n);
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Где купить" bar={<Tabs scope="shop" label="Разделы закупки" cur={tab} onChange={setTab} items={[{ id: 'buy', label: 'Что купить' }, { id: 'lists', label: 'Прайсы' + (lists.length ? ' (' + lists.length + ')' : '') }]} />} tip="Список закупки собран из вашей спецификации. Кнопки магазинов открывают поиск по нужной позиции. Загрузите прайс поставщика, и приложение подберёт подходящие позиции и самую низкую цену. Цены берутся только из ваших файлов, приложение их не угадывает.">
+    <Sheet open={open} onClose={onClose} title="Где купить" bar={<Tabs scope="shop" label="Разделы закупки" cur={tab} onChange={setTab} items={[{ id: 'buy', label: 'Что купить' }, { id: 'lists', label: 'Прайсы' + (lists.length ? ' (' + lists.length + ')' : '') }]} />} tip="Список собран из спецификации. Кнопка магазина ищет позицию на его сайте. Цены берутся только из ваших прайсов, приложение их не угадывает.">
       <TabPanel scope="shop" id="lists" cur={tab}>
       <h3 className="sec-t">Прайсы поставщиков</h3>
       <div className="data-row">
         <button className="btn" type="button" onClick={() => file.current?.click()}>Загрузить прайс</button>
-        <Tip>Файл CSV или Excel (.xlsx) с колонками «Наименование» и «Цена». Цены за штуку, а для кабеля за метр. Можно загрузить до {MAX_LISTS} прайсов, приложение выберет самый дешёвый вариант. Прайсы хранятся только на этом устройстве.</Tip>
+        <Tip>CSV или Excel (.xlsx) с колонками «Наименование» и «Цена»: за штуку, кабель за метр. До {MAX_LISTS} прайсов, из них выбирается самая низкая цена. Хранятся только на этом устройстве.</Tip>
         <input
           ref={file}
           className="pj-file"
@@ -151,7 +153,6 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
         </div>
       )}
       </TabPanel>
-      {msg && <p role="status" className="muted" style={{ color: msg.bad ? 'var(--bad)' : 'var(--ok)' }}>{msg.t}</p>}
     </Sheet>
   );
 }

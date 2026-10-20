@@ -133,7 +133,7 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
               const style = { gridColumn: 'span ' + d.mod, ['--i' as string]: i };
               if (!d.lid) {
                 return (
-                  <div key={'in' + i} className={cls} style={style} title={d.title}>
+                  <div key={'in' + i} className={cls} style={style} data-tip={d.title}>
                     <b>{d.label}</b>
                     <i>{d.sub}</i>
                   </div>
@@ -148,7 +148,7 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
                   type="button"
                   className={cls}
                   style={style}
-                  title={d.title}
+                  data-tip={d.title}
                   aria-label={d.title + ', ' + d.label + '. Открыть группу. Alt и стрелки меняют порядок'}
                   data-ph={d.ph}
                   draggable={!!onMove}
@@ -169,7 +169,7 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
               );
             })}
             {Array.from({ length: free }, (_, i) => (
-              <div key={'f' + i} className="dev dev-free" title="Резерв" />
+              <div key={'f' + i} className="dev dev-free" data-tip="Резерв" />
             ))}
           </div>
         </div>
@@ -178,12 +178,12 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
           <span><i className="dev-rcd" />Дифавтомат</span>
           <span><i className="dev-mcb" style={{ border: '1px solid var(--ink-2)' }} />Автомат</span>
           <span><i className="dev-free" style={{ border: '1px dashed var(--ink-2)' }} />Резерв</span>
-          <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Перетащите его или нажмите Alt и стрелку, чтобы поменять порядок. Цвет рычажка показывает статус группы.</Tip>
+          <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Порядок меняется перетаскиванием или клавишами Alt и стрелка. Цвет рычажка показывает статус группы.</Tip>
         </div>
         </TabPanel>
         {gl.length > 0 && (
           <TabPanel scope="bd" id="reserve" cur={tab}>
-            <Tip>Какую часть номинала автомата занимает ток группы.</Tip>
+            <p className="muted">Доля номинала автомата, которую занимает ток группы. Жёлтый — больше 80 %, красный — перегруз.</p>
             <div className="gl">
               {gl.map(x => {
                 const u = x.r.I / (x.r.In as number) * 100;

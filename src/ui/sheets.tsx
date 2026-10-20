@@ -17,6 +17,7 @@ import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
 import { ArmButton, Assumptions, Seg, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
 import { Schematic } from './Schematic';
+import { toast, toastBad, toastOk } from './toast';
 import { ShareBlock } from './ShareBlock';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
@@ -114,19 +115,12 @@ export function ProjectsSheet({
   const [tplOpen, setTplOpen] = useState(false);
   const [tab, setTab] = useState('main');
   const [elec, setElec] = useState(true);
-  const [msg, setMsg] = useState<{ t: string; bad: boolean } | null>(null);
   const file = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
-  const timer = useRef<number | undefined>(undefined);
   useEffect(() => {
     if (open) setTplOpen(false);
   }, [open]);
-  useEffect(() => () => window.clearTimeout(timer.current), []);
-  const note = (t: string, bad = false) => {
-    setMsg({ t, bad });
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setMsg(null), 5000);
-  };
+  const note = (t: string, bad = false) => (bad ? toastBad(t) : toastOk(t));
   const create = (k: TplKey) => {
     const nm = k === 'blank' ? 'Проект ' + (state.list.length + 1) : TPL_NAME[k];
     dispatch({ t: 'addProject', content: contentFor(k, elec), name: nm });
@@ -175,7 +169,7 @@ export function ProjectsSheet({
   };
   const n = state.list.length;
   return (
-    <Sheet open={open} onClose={onClose} title="Проекты" bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся в этом браузере на этом устройстве. Чтобы перенести проект на другое устройство, сохраните его в файл и откройте там.">
+    <Sheet open={open} onClose={onClose} title="Проекты" bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся только в этом браузере. Чтобы перенести проект на другое устройство, сохраните его в файл или отправьте ссылкой.">
       <TabPanel scope="pj" id="main" cur={tab}>
       <h3 className="sec-t">Текущий проект</h3>
       <div className="meta-grid">
@@ -198,7 +192,7 @@ export function ProjectsSheet({
                 <span className="pj-sub">{cur ? 'Открыт · ' : ''}{x.lines.length} {plural(x.lines.length, ['группа', 'группы', 'групп'])} · {dfmt(x.updated)}</span>
               </button>
               <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupProject', id: x.id }); note('Копия создана'); }}>Копировать</button>
-              <ArmButton className="btn danger" label="Удалить" armedLabel="Точно удалить?" onRun={() => { (x.photos ?? []).forEach(ph => { forgetPhotoUrl(ph.id); delPhoto(ph.id).catch(() => undefined); }); dispatch({ t: 'delProject', id: x.id }); }} />
+              <ArmButton className="btn danger" label="Удалить" armedLabel="Точно удалить?" onRun={() => { (x.photos ?? []).forEach(ph => { forgetPhotoUrl(ph.id); delPhoto(ph.id).catch(() => undefined); }); dispatch({ t: 'delProject', id: x.id }); toastOk('Проект удалён: ' + (x.name || 'Без названия')); }} />
             </div>
           );
         })}
@@ -268,7 +262,6 @@ export function ProjectsSheet({
         />
       </div>
       </TabPanel>
-      <span className="muted" role="status" style={{ color: msg ? (msg.bad ? 'var(--bad)' : 'var(--ok)') : undefined }}>{msg ? msg.t : ''}</span>
     </Sheet>
   );
 }
@@ -284,11 +277,8 @@ export function ReportSheet({
   onCompare: () => void;
   onShop: () => void;
 }) {
-  const [msg, setMsg] = useState<{ t: string; ok: boolean } | null>(null);
   const [fallback, setFallback] = useState<string | null>(null);
   const ta = useRef<HTMLTextAreaElement>(null);
-  const timer = useRef<number | undefined>(undefined);
-  useEffect(() => () => window.clearTimeout(timer.current), []);
   useEffect(() => {
     if (fallback !== null && ta.current) {
       ta.current.focus();
@@ -300,22 +290,18 @@ export function ReportSheet({
     try {
       await navigator.clipboard.writeText(txt);
       setFallback(null);
-      setMsg({ t: 'Отчёт скопирован', ok: true });
+      toastOk('Отчёт скопирован');
     } catch (e) {
       void e;
       setFallback(txt);
-      setMsg({ t: 'Текст выделен, скопируйте его вручную', ok: false });
+      toast('Текст выделен, скопируйте его вручную');
     }
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setMsg(null), 4000);
   };
   const saveFile = (kind: 'xlsx' | 'csv') => {
     const tables = exportTables(a, lib.prices);
     if (kind === 'xlsx') download(exportName(p.name, 'xlsx'), buildXlsx(tables), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     else download(exportName(p.name, 'csv'), toCsv(tables[0]), 'text/csv;charset=utf-8');
-    setMsg({ t: kind === 'xlsx' ? 'Файл Excel сохранён' : 'Файл CSV сохранён', ok: true });
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setMsg(null), 4000);
+    toastOk(kind === 'xlsx' ? 'Файл Excel сохранён' : 'Файл CSV сохранён');
   };
   const three = a.c.supply === 3;
   const { lib, dispatch: libDispatch } = useLib();
@@ -388,8 +374,8 @@ export function ReportSheet({
       </TabPanel>
       <TabPanel scope="rep" id="estimate" cur={tab}>
       <div className="copy-row">
-        <button className="btn" type="button" onClick={() => saveFile('xlsx')} title="Смета и группы в Excel"><IconDownload /> Excel</button>
-        <button className="btn" type="button" onClick={() => saveFile('csv')} title="Смета в CSV"><IconDownload /> CSV</button>
+        <button className="btn" type="button" onClick={() => saveFile('xlsx')} data-tip="Смета и группы в Excel"><IconDownload /> Excel</button>
+        <button className="btn" type="button" onClick={() => saveFile('csv')} data-tip="Смета в CSV"><IconDownload /> CSV</button>
         <button className="btn" type="button" onClick={onShop}>Где купить</button>
       </div>
       <h3 className="sec-t">Спецификация</h3>
@@ -431,7 +417,6 @@ export function ReportSheet({
         <p>Результат предварительный. Проект щитка и монтаж согласуйте с аттестованным электриком.</p>
       </div>
       </TabPanel>
-      <span role="status" style={{ color: msg ? (msg.ok ? 'var(--ok)' : 'var(--ink-2)') : undefined }}>{msg ? msg.t : ''}</span>
     </Sheet>
   );
 }

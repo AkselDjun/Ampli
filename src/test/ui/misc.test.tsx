@@ -3,7 +3,7 @@ import { render, fireEvent, act } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { KEY } from '../../store/storage';
 import { LIB_KEY } from '../../store/lib';
-import { byLabel, change, click, dlg, isOpen, wide } from './util';
+import { byLabel, change, click, dlg, isOpen, wide, toastText } from './util';
 import { fitSize, scaleLogo, LOGO_MAX_H, LOGO_MAX_W } from '../../ui/logo';
 import { Brand, IconBack } from '../../ui/Icons';
 
@@ -217,9 +217,9 @@ describe('LibSheet', () => {
     click(d, 'Заменить логотип');
     fireEvent.change(input, { target: { files: [new File(['x'], 'l.txt', { type: 'text/plain' })] } });
     await act(async () => { await new Promise(r => setTimeout(r, 30)); });
-    expect(d.querySelector('[role="status"]')?.textContent).toContain('Не удалось');
+    expect(toastText()).toContain('Не удалось');
     fireEvent.change(input, { target: { files: [] } });
-    click(d, 'Убрать');
+    click(d, 'Убрать логотип');
     expect(lib().brand.logo).toBe('');
     vi.unstubAllGlobals();
   });

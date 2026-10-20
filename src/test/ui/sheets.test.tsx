@@ -3,7 +3,7 @@ import { render, fireEvent, act } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { KEY } from '../../store/storage';
 import { LIB_KEY } from '../../store/lib';
-import { btn, byLabel, change, click, dlg, isOpen, wide } from './util';
+import { btn, byLabel, change, click, dlg, isOpen, wide, toastText } from './util';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -111,7 +111,7 @@ describe('ProjectsSheet', () => {
     fireEvent.click(mine);
     expect(stored().list.length).toBe(4);
     act(() => { vi.advanceTimersByTime(6000); });
-    expect(d.querySelector('[role="status"]')?.textContent).toBe('');
+    expect(toastText()).toBe('');
   });
 
   it('opens, duplicates and deletes projects', () => {
@@ -144,7 +144,7 @@ describe('ProjectsSheet', () => {
     click(d, 'Сохранить в файл');
     expect(create).toHaveBeenCalled();
     expect(clickSpy).toHaveBeenCalled();
-    expect(d.querySelector('[role="status"]')?.textContent).toBe('Файл сохранён');
+    expect(toastText()).toBe('Файл сохранён');
     act(() => { vi.advanceTimersByTime(2100); });
     expect(revoke).toHaveBeenCalled();
   });
@@ -154,7 +154,7 @@ describe('ProjectsSheet', () => {
     render(<App />);
     const d = open('Проекты');
     click(d, 'Сохранить в файл');
-    expect(d.querySelector('[role="status"]')?.textContent).toContain('Не удалось сохранить');
+    expect(toastText()).toContain('Не удалось сохранить');
   });
 
   const importFile = async (d: HTMLElement, text: string, type = 'application/json') => {
@@ -170,7 +170,7 @@ describe('ProjectsSheet', () => {
     const clickInput = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => undefined);
     click(d, 'Открыть из файла');
     expect(clickInput).toHaveBeenCalled();
-    const status = () => d.querySelector('[role="status"]')?.textContent;
+    const status = toastText;
     const proj = { name: 'Имп', lines: [], cfg: {} };
     await importFile(d, JSON.stringify(proj));
     expect(status()).toContain('Добавлено проектов: 1');
@@ -197,7 +197,7 @@ describe('ProjectsSheet', () => {
     render(<App />);
     const d = open('Проекты');
     fireEvent.change(d.querySelector('input[type="file"]') as HTMLElement, { target: { files: [new File(['x'], 'a.json')] } });
-    expect(d.querySelector('[role="status"]')?.textContent).toContain('Не удалось прочитать');
+    expect(toastText()).toContain('Не удалось прочитать');
     vi.unstubAllGlobals();
   });
 });
@@ -219,7 +219,7 @@ describe('ReportSheet', () => {
     click(d, 'Скопировать отчёт');
     await act(async () => { await Promise.resolve(); });
     expect(write).toHaveBeenCalled();
-    expect(d.querySelector('[role="status"]')?.textContent).toBe('Отчёт скопирован');
+    expect(toastText()).toBe('Отчёт скопирован');
   });
 
   it('falls back to a selectable textarea when clipboard fails and clears status', async () => {
@@ -230,8 +230,8 @@ describe('ReportSheet', () => {
     click(d, 'Скопировать отчёт');
     await act(async () => { await Promise.resolve(); await Promise.resolve(); });
     expect(d.querySelector('textarea')).toBeTruthy();
-    act(() => { vi.advanceTimersByTime(4100); });
-    expect(d.querySelector('[role="status"]')?.textContent).toBe('');
+    act(() => { vi.advanceTimersByTime(4600); });
+    expect(toastText()).toBe('');
   });
 
   it('shows empty groups, three-phase columns and unfit rows', () => {

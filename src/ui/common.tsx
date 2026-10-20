@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { KeyboardEvent as ReactKeyEvent, ReactNode } from 'react';
-import { IconDown, IconInfo } from './Icons';
+import { IconAlert, IconClose, IconDone, IconDown, IconInfo } from './Icons';
+import { currentToast, dismissToast, subscribeToast, toastLife } from './toast';
 import type { CfgN } from '../core/types';
 import { BASIS_LABEL, assumptions } from '../core/assumptions';
 
@@ -267,17 +268,124 @@ export function Fold({
   );
 }
 
-export function Toast({ text, label, onAction, onClose }: { text: string; label?: string; onAction?: () => void; onClose: () => void }) {
+export function Toaster() {
+  const t = useSyncExternalStore(subscribeToast, currentToast);
+  const [hold, setHold] = useState(false);
   useEffect(() => {
-    const t = window.setTimeout(onClose, 6000);
-    return () => window.clearTimeout(t);
-  }, [text, onClose]);
-  return (
-    <div className="toast" role="status">
-      <span>{text}</span>
-      {label && onAction && (
-        <button type="button" onClick={() => { onAction(); onClose(); }}>{label}</button>
+    if (!t || hold) return;
+    const id = t.id;
+    const tm = window.setTimeout(() => dismissToast(id), toastLife(t));
+    return () => window.clearTimeout(tm);
+  }, [t, hold]);
+  useEffect(() => {
+    setHold(false);
+  }, [t]);
+  const card = t && (
+    <div
+      key={t.id}
+      className={'toast ' + t.tone}
+      onMouseEnter={() => setHold(true)}
+      onMouseLeave={() => setHold(false)}
+      onFocus={() => setHold(true)}
+      onBlur={() => setHold(false)}
+    >
+      {t.tone === 'ok' && <IconDone className="toast-i" />}
+      {t.tone === 'bad' && <IconAlert className="toast-i" />}
+      <span className="toast-t">{t.text}</span>
+      {t.label && t.run && (
+        <button type="button" className="toast-a" onClick={() => { const run = t.run as () => void; dismissToast(t.id); run(); }}>{t.label}</button>
       )}
+      <button type="button" className="toast-x" aria-label="Закрыть уведомление" onClick={() => dismissToast(t.id)}><IconClose /></button>
     </div>
+  );
+  return (
+    <>
+      <div className="toast-zone" role="status" aria-live="polite">{t && t.tone !== 'bad' ? card : null}</div>
+      <div className="toast-zone" role="alert">{t && t.tone === 'bad' ? card : null}</div>
+    </>
+  );
+}
+
+const canHover = (): boolean => typeof window.matchMedia === 'function' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+export function HoverTips() {
+  const [st, setSt] = useState<{ text: string; el: HTMLElement } | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const shown = useRef(false);
+  shown.current = st !== null;
+  useEffect(() => {
+    let timer = 0;
+    let keys = false;
+    const find = (x: EventTarget | null): HTMLElement | null => (x instanceof Element ? x.closest<HTMLElement>('[data-tip]') : null);
+    const hide = () => {
+      window.clearTimeout(timer);
+      setSt(null);
+    };
+    const press = () => {
+      keys = false;
+      hide();
+    };
+    const over = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse' && !canHover()) return;
+      const el = find(e.target);
+      if (!el) return;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setSt({ text: el.dataset.tip ?? '', el }), 350);
+    };
+    const out = (e: PointerEvent) => {
+      const el = find(e.target);
+      if (!el) return;
+      const to = e.relatedTarget;
+      if (to instanceof Node && (el.contains(to) || box.current?.contains(to))) return;
+      hide();
+    };
+    const focus = (e: FocusEvent) => {
+      const el = find(e.target);
+      if (el && keys) setSt({ text: el.dataset.tip ?? '', el });
+    };
+    const key = (e: KeyboardEvent) => {
+      keys = true;
+      if (e.key === 'Escape' && shown.current) {
+        e.stopPropagation();
+        hide();
+      }
+    };
+    document.addEventListener('pointerover', over);
+    document.addEventListener('pointerout', out);
+    document.addEventListener('pointerdown', press);
+    document.addEventListener('focusin', focus);
+    document.addEventListener('focusout', hide);
+    document.addEventListener('keydown', key, true);
+    document.addEventListener('scroll', hide, true);
+    window.addEventListener('resize', hide);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('pointerover', over);
+      document.removeEventListener('pointerout', out);
+      document.removeEventListener('pointerdown', press);
+      document.removeEventListener('focusin', focus);
+      document.removeEventListener('focusout', hide);
+      document.removeEventListener('keydown', key, true);
+      document.removeEventListener('scroll', hide, true);
+      window.removeEventListener('resize', hide);
+    };
+  }, []);
+  useLayoutEffect(() => {
+    const b = box.current;
+    if (!st || !b) return;
+    const vw = document.documentElement.clientWidth;
+    const vh = window.innerHeight;
+    const r = st.el.getBoundingClientRect();
+    const w = b.offsetWidth;
+    const h = b.offsetHeight;
+    const left = Math.max(TIP_EDGE, Math.min(r.left + r.width / 2 - w / 2, vw - w - TIP_EDGE));
+    const below = r.bottom + TIP_GAP;
+    const top = below + h <= vh - TIP_EDGE ? below : Math.max(TIP_EDGE, r.top - TIP_GAP - h);
+    b.style.left = left + 'px';
+    b.style.top = top + 'px';
+  }, [st]);
+  if (!st || !st.text) return null;
+  return (
+    <div className="hover-tip" role="tooltip" ref={box} onPointerLeave={() => setSt(null)}>{st.text}</div>
   );
 }

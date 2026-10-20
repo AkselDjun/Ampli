@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import { fireEvent } from '@testing-library/react';
+import { currentToast } from '../../ui/toast';
 
 export const wide = (v: boolean) => {
   window.matchMedia = ((q: string) => ({
@@ -42,3 +43,5 @@ export const byLabel = (root: ParentNode, label: string): HTMLInputElement => {
 };
 
 export const change = (el: HTMLElement, value: string) => fireEvent.change(el, { target: { value } });
+
+export const toastText = (): string => currentToast()?.text ?? '';

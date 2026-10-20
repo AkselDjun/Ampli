@@ -3,11 +3,11 @@ import { fmt, plural } from '../core/format';
 import { useLib } from '../store/LibContext';
 import { ArmButton, Sheet, TabPanel, Tabs, Tip } from './common';
 import { scaleLogo } from './logo';
+import { toastBad } from './toast';
 
 export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lib, dispatch } = useLib();
   const file = useRef<HTMLInputElement>(null);
-  const [msg, setMsg] = useState('');
   const [tab, setTab] = useState('brand');
   const b = lib.brand;
   const nPrices = Object.keys(lib.prices).length;
@@ -24,7 +24,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
       <div className="logo-row">
         {b.logo ? <img className="logo-img" src={b.logo} alt="Логотип" /> : <span className="muted">Логотип не загружен</span>}
         <button className="btn" type="button" onClick={() => file.current?.click()}>{b.logo ? 'Заменить логотип' : 'Загрузить логотип'}</button>
-        {b.logo && <button className="btn ghost" type="button" onClick={() => dispatch({ t: 'logo', value: '' })}>Убрать</button>}
+        {b.logo && <button className="btn ghost" type="button" onClick={() => dispatch({ t: 'logo', value: '' })}>Убрать логотип</button>}
         <input
           ref={file}
           className="pj-file"
@@ -37,17 +37,13 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
             const input = e.target;
             if (!f) return;
             scaleLogo(f).then(
-              v => {
-                dispatch({ t: 'logo', value: v });
-                setMsg('');
-              },
-              () => setMsg('Не удалось прочитать изображение')
+              v => dispatch({ t: 'logo', value: v }),
+              () => toastBad('Не удалось прочитать изображение. Подойдёт PNG, JPG или SVG.')
             );
             input.value = '';
           }}
         />
       </div>
-      <span className="muted" role="status" style={{ color: msg ? 'var(--bad)' : undefined }}>{msg}</span>
 
       </TabPanel>
       <TabPanel scope="lib" id="apps" cur={tab}>
@@ -55,7 +51,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
         <h3 className="sec-t">Мои приборы</h3>
         <span className="muted">{lib.apps.length} {plural(lib.apps.length, ['прибор', 'прибора', 'приборов'])}</span>
       </div>
-      {lib.apps.length === 0 && <p className="muted">Пока пусто<Tip>В карточке группы нажмите «Сохранить приборы группы в мои».</Tip></p>}
+      {lib.apps.length === 0 && <p className="muted">Пока пусто. Здесь появятся приборы, которые вы сохраните из карточки группы кнопкой «Сохранить приборы группы в мои».</p>}
       <div className="lib-list">
         {lib.apps.map(a => (
           <div className="lib-r" key={a.id}>
@@ -72,7 +68,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
         <h3 className="sec-t">Мои шаблоны</h3>
         <span className="muted">{lib.templates.length} {plural(lib.templates.length, ['шаблон', 'шаблона', 'шаблонов'])}</span>
       </div>
-      {lib.templates.length === 0 && <p className="muted">Пока пусто<Tip>В окне «Проекты» можно сохранить текущий проект как шаблон.</Tip></p>}
+      {lib.templates.length === 0 && <p className="muted">Пока пусто. Сохраните текущий проект как шаблон в окне «Проекты», вкладка «Обмен и данные».</p>}
       <div className="lib-list">
         {lib.templates.map(t => (
           <div className="lib-r" key={t.id}>
@@ -84,7 +80,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
       </div>
 
       <div className="sec-row">
-        <h3 className="sec-t">Цены в смете<Tip>Цены вводятся в отчёте, в таблице спецификации, и запоминаются по названию позиции.</Tip></h3>
+        <h3 className="sec-t">Цены в смете<Tip>Цены вводятся в отчёте, на вкладке «Смета», и запоминаются по названию позиции.</Tip></h3>
         <span className="muted">{nPrices} {plural(nPrices, ['позиция', 'позиции', 'позиций'])}</span>
       </div>
       <div className="data-row">

@@ -25,7 +25,7 @@ export function WorkSheet({
   const rows = protocolRows(a);
   const proto = p.proto ?? { date: '', device: '', by: '' };
   return (
-    <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Значения замеров вводятся в карточке группы, раздел «Замеры после монтажа». Они подставляются в проверку КЗ, УЗО и изоляции.">
+    <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Замеры вводятся в карточке группы, раздел «Замеры после монтажа», или в режиме «На щитке». По ним проверяются КЗ, УЗО и изоляция.">
       <TabPanel scope="wk" id="check" cur={tab}>
       <div className="wk-prog">
         <span><b>{pr.done}</b> из {pr.total} пунктов выполнено</span>
@@ -74,7 +74,7 @@ export function WorkSheet({
       </TabPanel>
       <TabPanel scope="wk" id="docs" cur={tab}>
       <h3 className="sec-t">Паспорт для владельца</h3>
-      <p className="muted">Одна страница для заказчика: что на каком автомате, предел нагрузки и что делать, если выбило. Откройте её по ссылке или распечатайте с QR-кодом для щитка.</p>
+      <p className="muted">Страница для заказчика: что на каком автомате, сколько можно включать и что делать, если выбило. Отправьте ссылкой или распечатайте с QR-кодом для дверцы щитка.</p>
       <div className="copy-row">
         <button className="btn primary" type="button" onClick={() => onPrint('passport')}>Печать паспорта</button>
       </div>

@@ -15,7 +15,7 @@ import { PHOTO_LIMIT } from '../../core/photos';
 import type { Photo, Project } from '../../core/types';
 import { download } from '../../ui/download';
 import { scalePhoto } from '../../ui/photoScale';
-import { byLabel, change, click, dlg, isOpen, wide } from './util';
+import { byLabel, change, click, dlg, isOpen, wide, toastText } from './util';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -184,10 +184,10 @@ describe('ShareBlock', () => {
     await act(async () => { click(d, /Ссылка на проект/); });
     expect(write).toHaveBeenCalledTimes(1);
     expect(write.mock.calls[0][0]).toContain(SHARE_PREFIX + 'v1.');
-    expect(d.querySelector('.share [role="status"]')?.textContent).toBe('Ссылка скопирована');
+    expect(toastText()).toBe('Ссылка скопирована');
     expect(d.querySelector('.share textarea')).toBeNull();
-    act(() => { vi.advanceTimersByTime(4000); });
-    expect(d.querySelector('.share [role="status"]')).toBeNull();
+    act(() => { vi.advanceTimersByTime(4600); });
+    expect(toastText()).toBe('');
   });
   it('falls back to a selected textarea when the clipboard fails and clears it on success', async () => {
     let fail = true;
@@ -198,7 +198,7 @@ describe('ShareBlock', () => {
     const ta = d.querySelector('.share textarea') as HTMLTextAreaElement;
     expect(ta.value).toContain(SHARE_PREFIX);
     expect(document.activeElement).toBe(ta);
-    expect(d.querySelector('.share [role="status"]')?.textContent).toContain('вручную');
+    expect(toastText()).toContain('вручную');
     fail = false;
     await act(async () => { click(d, /Ссылка на проект/); });
     expect(d.querySelector('.share textarea')).toBeNull();
@@ -244,13 +244,13 @@ describe('ReportSheet downloads', () => {
     expect(x[0]).toMatch(/-smeta\.xlsx$/);
     expect(x[1]).toBeInstanceOf(Uint8Array);
     expect(x[2]).toContain('spreadsheetml');
-    expect(d.querySelector('[role="status"]')?.textContent).toBe('Файл Excel сохранён');
+    expect(toastText()).toBe('Файл Excel сохранён');
     click(d, /CSV/);
     const c = vi.mocked(download).mock.calls[1];
     expect(c[0]).toMatch(/-smeta\.csv$/);
     expect(typeof c[1]).toBe('string');
     expect(c[2]).toBe('text/csv;charset=utf-8');
-    expect(d.querySelector('[role="status"]')?.textContent).toBe('Файл CSV сохранён');
+    expect(toastText()).toBe('Файл CSV сохранён');
   });
 });
 
@@ -365,19 +365,18 @@ describe('photos', () => {
     await act(async () => { fireEvent.change(input(), { target: { files: [] } }); });
     expect(scalePhoto).not.toHaveBeenCalled();
     await attach(jpg());
-    await waitFor(() => expect(strip().querySelector('[role="status"]')?.textContent).toContain('Не удалось сохранить фото'));
+    await waitFor(() => expect(toastText()).toContain('Не удалось сохранить фото'));
     expect(stored().list[0].photos ?? []).toEqual([]);
     vi.mocked(scalePhoto).mockResolvedValue(blob());
     await attach(jpg());
     await waitFor(() => expect(strip().querySelector('.photo-list')).toBeTruthy());
-    expect(strip().querySelector('[role="status"]')).toBeNull();
   });
   it('reports failure when IndexedDB is unavailable', async () => {
     vi.mocked(scalePhoto).mockResolvedValue(blob());
     (globalThis as { indexedDB?: unknown }).indexedDB = undefined;
     boot();
     await attach(jpg());
-    await waitFor(() => expect(strip().querySelector('[role="status"]')).toBeTruthy());
+    await waitFor(() => expect(toastText()).not.toBe(''));
     expect(stored().list[0].photos ?? []).toEqual([]);
   });
   it('disables the add button at the limit', () => {
@@ -387,7 +386,7 @@ describe('photos', () => {
     boot();
     const b = within(strip()).getByRole('button', { name: /Фото/ });
     expect(b).toBeDisabled();
-    expect(b.getAttribute('title')).toBe('Достигнут предел фото в проекте');
+    expect(strip().textContent).toContain('это предел');
   });
   it('shows stored photos and a placeholder for missing blobs', async () => {
     await putPhoto('have', blob());
