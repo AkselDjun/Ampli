@@ -313,10 +313,8 @@ export function Editor({
             </div>
           )}
         </div>
-        <div className="blk">
+        <div className="ed-end">
           <button className="btn" type="button" onClick={() => dispatch({ t: 'dupLine' })}>Копия группы</button>
-        </div>
-        <div className="blk">
           <ArmButton className="btn danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); }} />
         </div>
       </div>
