@@ -880,3 +880,29 @@ input,select,textarea,.step{border-color:var(--line-strong)}
 .quick textarea,.share textarea,.pm-in input{border-color:var(--line-strong)}
 .room-app select,.room-tools select,.tcalc input,.photo-list input{border-color:var(--line-strong)}
 .ed-end .btn{padding-inline:10px}
+
+.btn,.ab-btn,.netline,.kpi,.ed,.row,.brk,.brk.rcd{box-shadow:none}
+.netline:hover,.row:hover{box-shadow:none}
+.btn.primary{background:var(--accent);box-shadow:none}
+.btn.primary:hover{filter:none;background:color-mix(in srgb,var(--accent) 88%,var(--ink))}
+
+.proj-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);overflow:clip}
+.proj-box .projbar,.proj-box .netfold{border:0;border-radius:0;background:transparent}
+.proj-box .projbar:hover,.proj-box .netfold:hover{background:var(--field)}
+.proj-box .netchips{border-top:1px solid var(--line)}
+.proj-box .nf-body{margin:0;border:0;border-top:1px dashed var(--line);border-radius:0;background:var(--field)}
+.proj-box .projbar:focus-visible,.proj-box .netfold:focus-visible{outline-offset:-3px}
+
+.rows{gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);overflow:clip}
+.rows:has(>.empty){background:transparent;border:0;border-radius:0;overflow:visible}
+.row-wrap{border-radius:0}
+.row-wrap+.row-wrap{border-top:1px solid var(--line)}
+.row{border:0;border-radius:0;background:var(--surface);min-height:64px}
+.row:hover{background:var(--field)}
+.row.sel,.row.sel:hover{background:var(--accent-soft)}
+.row:focus-visible{outline-offset:-3px}
+.row-sub{display:flex;flex-wrap:wrap;gap:0 10px}
+.row-sub>span{white-space:nowrap}
+.row-sub>span:first-child{color:var(--ink)}
+.row-wrap .fixbar,.row-wrap>.fix{border-radius:0}
+

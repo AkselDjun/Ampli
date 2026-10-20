@@ -10,7 +10,7 @@ import { AddMenu } from './AddMenu';
 import { FixBar } from './FixBar';
 import { useSwipe } from './swipe';
 
-function rowSub(x: Row, three: boolean): string {
+function rowSub(x: Row, three: boolean): string[] {
   const { l, r } = x;
   const parts = [TYPES[l.type].short];
   if (three) parts.push(r.three ? '3Ф' : l.phase);
@@ -20,7 +20,7 @@ function rowSub(x: Row, three: boolean): string {
     parts.push(fmt(r.I, 1) + NB + 'А');
     if (r.S) parts.push(fs(r.S) + NB + 'мм²');
   }
-  return parts.join(' · ');
+  return parts;
 }
 
 function GroupRow({
@@ -54,7 +54,7 @@ function GroupRow({
         <span className="no">Г{i + 1}</span>
         <span className="row-main">
           <span className="row-name">{x.l.name || 'Без названия'}</span>
-          <span className="row-sub">{rowSub(x, three)}</span>
+          <span className="row-sub">{rowSub(x, three).map((t, k) => <span key={k}>{t}</span>)}</span>
         </span>
         <span className="row-end">
           {x.r.status !== 'ok' && !x.r.empty && (
@@ -112,30 +112,32 @@ export function GroupList({
   ];
   return (
     <section className="col col-list" aria-label="Группы линий">
-      <button className="projbar" type="button" onClick={onOpenProj} aria-label="Проекты">
-        <IconFolder />
-        <span className="pb-main">
-          <span className="pb-name">{p.name || 'Без названия'}</span>
-          <span className="pb-sub">{sub.join(' · ')}</span>
-        </span>
-        <span className="pb-more">Проекты</span>
-      </button>
-      <div className="netchips">
-        <button className="netfold" type="button" aria-expanded={netOpen} aria-label="Параметры сети" onClick={() => setNetOpen(v => !v)}>
-          <IconNet />
-          <span className="nf-main">Параметры сети<small>{net[0][1]} · {net[3][1]}</small></span>
-          <IconChev className={'chev' + (netOpen ? ' open' : '')} />
+      <div className="proj-box">
+        <button className="projbar" type="button" onClick={onOpenProj} aria-label="Проекты">
+          <IconFolder />
+          <span className="pb-main">
+            <span className="pb-name">{p.name || 'Без названия'}</span>
+            <span className="pb-sub">{sub.join(' · ')}</span>
+          </span>
+          <span className="pb-more">Проекты</span>
         </button>
-        {netOpen && (
-          <div className="nf-body">
-            <span className="nl-items">
-              {net.map(t => (
-                <span key={t[0]}><small>{t[0]}</small>{t[1]}</span>
-              ))}
-            </span>
-            <button className="link" type="button" onClick={onOpenNet}>Изменить</button>
-          </div>
-        )}
+        <div className="netchips">
+          <button className="netfold" type="button" aria-expanded={netOpen} aria-label="Параметры сети" onClick={() => setNetOpen(v => !v)}>
+            <IconNet />
+            <span className="nf-main">Параметры сети<small>{net[0][1]} · {net[3][1]}</small></span>
+            <IconChev className={'chev' + (netOpen ? ' open' : '')} />
+          </button>
+          {netOpen && (
+            <div className="nf-body">
+              <span className="nl-items">
+                {net.map(t => (
+                  <span key={t[0]}><small>{t[0]}</small>{t[1]}</span>
+                ))}
+              </span>
+              <button className="link" type="button" onClick={onOpenNet}>Изменить</button>
+            </div>
+          )}
+        </div>
       </div>
       {p.sample && (
         <div className="sample">
