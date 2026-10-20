@@ -182,11 +182,11 @@ export function App() {
           <div className="in">
             <div className="ab-edit">
               <button className="ab-back" type="button" onClick={goBack} aria-label="Назад к группам"><IconBack /></button>
-              <span className="ab-title">{selected ? 'Г' + (idx + 1) + ' ' + (selected.name || 'Без названия') : ''}</span>
+              <h1 className="ab-title">{selected ? 'Г' + (idx + 1) + ' ' + (selected.name || 'Без названия') : ''}</h1>
               <button className="btn primary sm" type="button" onClick={goBack}>Готово</button>
             </div>
             <div className="ab-main">
-              <div className="brand"><Brand /><span>Ampli</span></div>
+              <h1 className="brand"><Brand /><span>Ampli</span></h1>
               <div className="kpis" aria-live="polite">
                 <div><span className="lbl">Мощность</span><b>{a.P > 0 ? fmt(a.P / 1000, 1) + ' кВт' : '—'}</b></div>
                 <div><span className="lbl">Ток</span><b>{a.Itot > 0 ? fmt(a.Itot, 0) + ' А' : '—'}</b></div>
@@ -212,7 +212,7 @@ export function App() {
           </div>
         </header>
 
-        <div className="workspace">
+        <main className="workspace">
           <GroupList
             p={p}
             a={a}
@@ -263,7 +263,7 @@ export function App() {
               <Summary key={'s' + (view === 'sum')} a={a} solo={view === 'sum'} onBalance={() => dispatch({ t: 'balance' })} />
             </aside>
           </div>
-        </div>
+        </main>
 
         <nav className="tabs" aria-label="Разделы">
           <button type="button" onClick={() => tab('groups')} aria-current={view === 'groups' || view === 'edit' ? 'page' : undefined}>

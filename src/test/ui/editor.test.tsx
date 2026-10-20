@@ -177,7 +177,7 @@ describe('Editor', () => {
   it('duplicates a group', () => {
     boot();
     const n = rows().length;
-    click(ed(), 'Копия группы');
+    click(ed(), 'Копировать группу');
     expect(rows().length).toBe(n + 1);
   });
 

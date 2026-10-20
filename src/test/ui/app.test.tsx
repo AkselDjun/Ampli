@@ -29,7 +29,7 @@ describe('App', () => {
     expect(rowsOf().length).toBe(n0 + 1);
     await user.click(screen.getByRole('button', { name: 'Открыть' }));
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'edit');
-    await user.click(screen.getByRole('button', { name: 'Копия группы' }));
+    await user.click(screen.getByRole('button', { name: 'Копировать группу' }));
     expect(rowsOf().length).toBe(n0 + 2);
     expect(document.querySelector('.ab-title')?.textContent).toContain('копия');
     const del = screen.getByRole('button', { name: 'Удалить группу' });

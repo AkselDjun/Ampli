@@ -80,7 +80,6 @@ export function Editor({
           <input className="ed-name" aria-label="Название группы" value={l.name} onChange={e => dispatch({ t: 'lineField', field: 'name', value: e.target.value })} />
           {r && !r.empty && <span className={'pill ' + r.status}>{STATUS[r.status]}</span>}
         </div>
-        <input className="ed-where" aria-label="Где находится группа" placeholder="Где: например, кухня и коридор" maxLength={80} value={l.where ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'where', value: e.target.value })} />
         {r && (
           <>
             <div className={'ed-res' + (r.empty ? '' : ' ' + r.status)}>
@@ -140,6 +139,10 @@ export function Editor({
             </div>
           </>
         )}
+        <label className="blk">
+          <span className="lbl">Где находится</span>
+          <input className="ed-where" aria-label="Где находится группа" placeholder="Например, кухня и коридор" maxLength={80} value={l.where ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'where', value: e.target.value })} />
+        </label>
         <div className="blk">
           <span className="lbl">Тип группы</span>
           <Seg<LineType> name={'t-' + l.id} value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', type: v })} />
@@ -314,7 +317,7 @@ export function Editor({
           )}
         </div>
         <div className="ed-end">
-          <button className="btn" type="button" onClick={() => dispatch({ t: 'dupLine' })}>Копия группы</button>
+          <button className="btn" type="button" onClick={() => dispatch({ t: 'dupLine' })}>Копировать группу</button>
           <ArmButton className="btn danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); }} />
         </div>
       </div>

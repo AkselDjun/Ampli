@@ -119,7 +119,7 @@ describe('ProjectsSheet', () => {
     let d = open('Проекты');
     click(d, '+ Новый проект');
     fireEvent.click(d.querySelector('.tpl-b') as HTMLElement);
-    click(d, 'Копия');
+    click(d, 'Копировать');
     expect(stored().list.length).toBe(3);
     const opens = d.querySelectorAll<HTMLElement>('.pj-open');
     fireEvent.click(opens[0]);

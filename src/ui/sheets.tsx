@@ -197,7 +197,7 @@ export function ProjectsSheet({
                 <span className="pj-name">{x.name || 'Без названия'}</span>
                 <span className="pj-sub">{cur ? 'Открыт · ' : ''}{x.lines.length} {plural(x.lines.length, ['группа', 'группы', 'групп'])} · {dfmt(x.updated)}</span>
               </button>
-              <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupProject', id: x.id }); note('Копия создана'); }}>Копия</button>
+              <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupProject', id: x.id }); note('Копия создана'); }}>Копировать</button>
               <ArmButton className="btn danger" label="Удалить" armedLabel="Точно удалить?" onRun={() => { (x.photos ?? []).forEach(ph => { forgetPhotoUrl(ph.id); delPhoto(ph.id).catch(() => undefined); }); dispatch({ t: 'delProject', id: x.id }); }} />
             </div>
           );
