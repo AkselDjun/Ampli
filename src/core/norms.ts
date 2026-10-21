@@ -18,6 +18,7 @@ export const KZ_TIME = 0.4;
 export const SINGLE_INPUT_KW = 12;
 export const INS_MIN_MOHM = 0.5;
 export const LEAK_FRACTION = 1 / 3;
+export const rcdTripMs = (ma: number): number => (ma > 30 ? 2000 : (ma > 10 ? 500 : 5000));
 export const LEAK_PER_M_MA = 0.01;
 export const LEAK_PER_A_MA = 0.4;
 export const LEAK_LOAD_ABOVE_A = 32;

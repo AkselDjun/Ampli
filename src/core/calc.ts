@@ -1,5 +1,5 @@
 import type { Calc, Cfg, CfgN, Device, Line, LineResult, Phase, Row } from './types';
-import { ALL_STEPS, INS_MIN_MOHM, IZ, KZ_TIME, LEAK_FRACTION, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
+import { ALL_STEPS, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs, pn } from './format';
 
 export function cfgN(c: Cfg): CfgN {
@@ -40,7 +40,7 @@ export function calcLine(l: Line, c: CfgN): LineResult {
     limit: lim, pInst, pd, I, three, len, cos, kc, notes: [], status: 'ok', rcd: t.rcd,
     ma: t.rcd ? (l.wet ? 10 : (I > 32 ? 100 : 30)) : 0, curve: t.curve, In: null, S: null, drop: 0, empty: false,
     mod: three ? (t.rcd ? 4 : 3) : (t.rcd ? 2 : 1), ik: 0, ikNeed: 0, ikSrc: 'calc',
-    zsMeas: null, insMeas: null, leakMeas: null, leakLim: 0, leakEst: 0
+    zsMeas: null, insMeas: null, leakMeas: null, leakLim: 0, leakEst: 0, rcdMeas: null, rcdLim: 0
   };
   if (pInst <= 0) {
     r.empty = true;
@@ -106,6 +106,15 @@ export function calcLine(l: Line, c: CfgN): LineResult {
     } else if (r.leakMeas === null && r.leakEst > r.leakLim) {
       r.status = r.status === 'bad' ? 'bad' : 'warn';
       r.notes.push('Утечка самой линии около ' + fmt(r.leakEst, 1) + ' мА больше трети уставки УЗО (' + fmt(r.leakLim, 1) + ' мА, СН 4.04.01-2019, п. 16.3.7).');
+    }
+    r.rcdLim = rcdTripMs(r.ma);
+    const tm = pn(l.meas?.rcd, 0);
+    if (tm > 0) {
+      r.rcdMeas = tm;
+      if (tm > r.rcdLim) {
+        r.status = 'bad';
+        r.notes.push('УЗО отключилось за ' + fmt(tm, 0) + ' мс при номинальном дифференциальном токе, допустимо не более ' + fmt(r.rcdLim, 0) + ' мс (ТКП 339-2022 с изм. № 1, табл. ' + (r.ma > 30 ? '4.4.47' : '4.4.48') + '). Замените аппарат.');
+      }
     }
   }
   const im = pn(l.meas?.ins, 0);

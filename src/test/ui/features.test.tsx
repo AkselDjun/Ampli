@@ -565,3 +565,23 @@ describe('Owner passport', () => {
     expect(o.textContent).toContain('кнопка «Т»');
   });
 });
+
+describe('RCD trip time measurement', () => {
+  it('is entered in panel mode and shows in the acceptance table', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Режим на щитке' }));
+    const d = dlg('На щитке');
+    const first = d.querySelectorAll('li.pm')[0] as HTMLElement;
+    change(byLabel(d, 'Г1: УЗО, мс'), '28');
+    expect(first.querySelector('.pill')?.textContent).toBe('Соответствует');
+    expect(first.querySelector('.pm-note')?.textContent).toContain('УЗО до 500 мс');
+    change(byLabel(d, 'Г1: УЗО, мс'), '700');
+    expect(first.querySelector('.pill')?.textContent).toBe('Не соответствует');
+    expect(stored().list[0].lines[0].meas.rcd).toBe('700');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    fireEvent.click(screen.getAllByRole('button', { name: /Приёмка/ })[0]);
+    const w = dlg('Монтаж и приёмка');
+    fireEvent.click(within(w).getByRole('tab', { name: 'Замеры', hidden: true }));
+    expect(w.querySelector('td[data-label="УЗО, мс"]')?.textContent).toBe('700 / 500');
+  });
+});

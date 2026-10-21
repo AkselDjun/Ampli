@@ -188,3 +188,14 @@ describe('Editor', () => {
     expect(ed().querySelector('.ed-load')?.textContent).toContain('Кс');
   });
 });
+
+describe('Editor RCD trip time', () => {
+  it('stores the trip time and marks a slow RCD', () => {
+    boot();
+    click(ed(), 'Замеры после монтажа');
+    const input = byLabel(ed(), 'Замер времени отключения УЗО, мс');
+    expect(input.placeholder).toBe('до 500');
+    change(input, '800');
+    expect(ed().textContent).toContain('табл. 4.4.48');
+  });
+});

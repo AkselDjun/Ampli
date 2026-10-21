@@ -54,7 +54,7 @@ export function WorkSheet({
       <div className="tablewrap">
         <table className="t2">
           <thead>
-            <tr><th>Гр.</th><th>Защита</th><th className="num">Петля, Ом</th><th className="num">Iк, А</th><th className="num">Изоляция, МОм</th><th className="num">Утечка, мА</th><th>Итог</th></tr>
+            <tr><th>Гр.</th><th>Защита</th><th className="num">Петля, Ом</th><th className="num">Iк, А</th><th className="num">Изоляция, МОм</th><th className="num">Утечка, мА</th><th className="num">УЗО, мс</th><th>Итог</th></tr>
           </thead>
           <tbody>
             {rows.map(r => (
@@ -65,6 +65,7 @@ export function WorkSheet({
                 <td className="num" data-label="Iк, А">{r.ik === null ? '—' : fmt(r.ik, 0) + ' / ' + fmt(r.need, 0)}</td>
                 <td className="num" data-label="Изоляция, МОм">{r.ins === null ? '—' : fmt(r.ins, 2)}</td>
                 <td className="num" data-label="Утечка, мА">{r.leak === null ? '—' : fmt(r.leak, 1) + ' / ' + fmt(r.leakLim, 1)}</td>
+                <td className="num" data-label="УЗО, мс">{r.rcdT === null ? '—' : fmt(r.rcdT, 0) + ' / ' + fmt(r.rcdLim, 0)}</td>
                 <td data-label="Итог"><span className={'pill ' + (r.verdict === 'ok' ? 'ok' : (r.verdict === 'bad' ? 'bad' : 'warn'))}>{VERDICT[r.verdict]}</span></td>
               </tr>
             ))}

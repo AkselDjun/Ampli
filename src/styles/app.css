@@ -564,7 +564,7 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 .pm-name{flex:1;font-size:var(--t-xl);font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pm-prot{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
 .pm-prot b{font-size:var(--t-3xl)}
-.pm-in{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pm-in{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
 .pm-in input{width:100%;height:56px;font-size:var(--t-2xl);text-align:center;border:1px solid var(--line);border-radius:var(--r-m);background:var(--bg);color:var(--ink);font-family:inherit}
 .pm-note{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:var(--t-m);color:var(--ink-2)}
 @media (max-width:520px){.pm-in{gap:6px}.pm-in input{height:52px;font-size:var(--t-2xl);padding:0 4px}.pm-prot b{font-size:var(--t-2xl)}.pm-in .lbl{font-size:var(--t-s)}}
@@ -923,3 +923,4 @@ input,select,textarea,.step{border-color:var(--line-strong)}
 @media (prefers-reduced-motion:reduce){.toast{animation:none}}
 @media print{.toast-zone,.hover-tip{display:none}}
 .toast{border:1px solid rgba(255,255,255,0.08)}
+@media (max-width:520px){.pm-in{grid-template-columns:repeat(2,minmax(0,1fr))}}

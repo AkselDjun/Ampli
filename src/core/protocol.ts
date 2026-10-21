@@ -10,6 +10,8 @@ export interface ProtoRow {
   leak: number | null;
   leakLim: number;
   ins: number | null;
+  rcdT: number | null;
+  rcdLim: number;
   verdict: 'ok' | 'bad' | 'none';
 }
 
@@ -18,11 +20,12 @@ export function protocolRows(a: Calc): ProtoRow[] {
   a.rows.forEach((x, i) => {
     const r = x.r;
     if (r.empty || !r.In) return;
-    const measured = r.zsMeas !== null || r.insMeas !== null || r.leakMeas !== null;
+    const measured = r.zsMeas !== null || r.insMeas !== null || r.leakMeas !== null || r.rcdMeas !== null;
     const bad =
       (r.zsMeas !== null && r.ik < r.ikNeed) ||
       (r.leakMeas !== null && r.leakMeas > r.leakLim) ||
-      (r.insMeas !== null && r.insMeas < 0.5);
+      (r.insMeas !== null && r.insMeas < 0.5) ||
+      (r.rcdMeas !== null && r.rcdMeas > r.rcdLim);
     out.push({
       no: 'Г' + (i + 1),
       name: x.l.name || 'Без названия',
@@ -33,6 +36,8 @@ export function protocolRows(a: Calc): ProtoRow[] {
       leak: r.leakMeas,
       leakLim: r.leakLim,
       ins: r.insMeas,
+      rcdT: r.rcdMeas,
+      rcdLim: r.rcdLim,
       verdict: !measured ? 'none' : (bad ? 'bad' : 'ok')
     });
   });

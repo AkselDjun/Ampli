@@ -2,15 +2,14 @@ import type { Calc } from '../core/types';
 import { fmt } from '../core/format';
 import { VERDICT, protocolRows } from '../core/protocol';
 import { cableName } from '../core/protection';
-import type { Action } from '../store/reducer';
+import type { Action, MeasField } from '../store/reducer';
 import { Sheet } from './common';
 
-type Field = 'zs' | 'ins' | 'leak';
-
-const FIELDS: { f: Field; label: string; unit: string; step: number }[] = [
+const FIELDS: { f: MeasField; label: string; unit: string; step: number }[] = [
   { f: 'zs', label: 'Петля', unit: 'Ом', step: 0.01 },
   { f: 'ins', label: 'Изоляция', unit: 'МОм', step: 0.1 },
-  { f: 'leak', label: 'Утечка', unit: 'мА', step: 0.1 }
+  { f: 'leak', label: 'Утечка', unit: 'мА', step: 0.1 },
+  { f: 'rcd', label: 'УЗО', unit: 'мс', step: 1 }
 ];
 
 export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClose: () => void; a: Calc; dispatch: (x: Action) => void }) {
@@ -36,7 +35,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
                 <span className="mono">{x.r.In ? cableName(x.r) : ''}</span>
               </div>
               <div className="pm-in">
-                {FIELDS.map(fd => (
+                {FIELDS.filter(fd => fd.f !== 'rcd' || x.r.rcd).map(fd => (
                   <label key={fd.f} className="f">
                     <span className="lbl">{fd.label}, {fd.unit}</span>
                     <input
@@ -54,6 +53,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
               <div className="pm-note">
                 {r.zs !== null && <span>Iк {fmt(r.ik as number, 0)} А, нужно {fmt(r.need, 0)} А</span>}
                 {r.leak !== null && <span>Утечка до {fmt(r.leakLim, 1)} мА</span>}
+                {r.rcdT !== null && <span>УЗО до {fmt(r.rcdLim, 0)} мс</span>}
               </div>
             </li>
           );

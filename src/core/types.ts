@@ -29,6 +29,7 @@ export interface Meas {
   zs?: Num;
   ins?: Num;
   leak?: Num;
+  rcd?: Num;
 }
 
 export type PhotoTag = 'before' | 'after' | 'plate' | 'meas';
@@ -133,6 +134,8 @@ export interface LineResult {
   zsMeas: number | null;
   insMeas: number | null;
   leakMeas: number | null;
+  rcdMeas: number | null;
+  rcdLim: number;
   leakLim: number;
   leakEst: number;
 }

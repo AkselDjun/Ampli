@@ -14,6 +14,8 @@ export interface State extends Store {
   sel: string | null;
 }
 
+export type MeasField = 'zs' | 'ins' | 'leak' | 'rcd';
+
 export type Action =
   | { t: 'select'; id: string }
   | { t: 'addLine'; type: LineType }
@@ -36,8 +38,8 @@ export type Action =
   | { t: 'lineType'; type: LineType }
   | { t: 'linePhase'; phase: Phase }
   | { t: 'lineWet'; wet: boolean }
-  | { t: 'lineMeas'; field: 'zs' | 'ins' | 'leak'; value: string }
-  | { t: 'lineMeasAt'; id: string; field: 'zs' | 'ins' | 'leak'; value: string }
+  | { t: 'lineMeas'; field: MeasField; value: string }
+  | { t: 'lineMeasAt'; id: string; field: MeasField; value: string }
   | { t: 'check'; id: string; on: boolean }
   | { t: 'proto'; field: 'date' | 'device' | 'by'; value: string }
   | { t: 'appField'; id: string; field: 'name' | 'w' | 'n'; value: string | number }

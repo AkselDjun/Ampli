@@ -237,6 +237,12 @@ export function Editor({
               <span className="lbl">Ток утечки, мА</span>
               <input type="number" inputMode="decimal" min={0} step={0.1} aria-label="Замер тока утечки, мА" value={String(l.meas?.leak ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'leak', value: e.target.value })} />
             </label>
+            {r?.rcd && (
+              <label className="f">
+                <span className="lbl">УЗО при IΔn, мс</span>
+                <input type="number" inputMode="numeric" min={0} step={1} aria-label="Замер времени отключения УЗО, мс" placeholder={'до ' + fmt(r.rcdLim, 0)} value={String(l.meas?.rcd ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'rcd', value: e.target.value })} />
+              </label>
+            )}
           </div>
         </div>
         <div className="blk">
