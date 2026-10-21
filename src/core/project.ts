@@ -3,6 +3,7 @@ import { TYPES } from './norms';
 import { defaultCfg, sample } from './templates';
 import { keepId, nid, pid } from './ids';
 import { normPhotos } from './photos';
+import { normWork } from './labor';
 
 type Loose = Partial<Project> & { cfg?: unknown; lines?: unknown };
 
@@ -30,7 +31,8 @@ export function normProject(o: unknown, keep = false): Project | null {
       : [],
     checks: x.checks && typeof x.checks === 'object' ? { ...x.checks } : {},
     proto: { date: '', device: '', by: '', ...(x.proto ?? {}) },
-    photos: keep ? normPhotos(x.photos) : []
+    photos: keep ? normPhotos(x.photos) : [],
+    ...(x.work && Object.keys(normWork(x.work)).length ? { work: normWork(x.work) } : {})
   };
 }
 

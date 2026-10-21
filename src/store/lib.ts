@@ -3,6 +3,8 @@ import { pn } from '../core/format';
 import { nid } from '../core/ids';
 import { USAGE_LIMIT, normName } from '../core/catalog';
 import type { Usage } from '../core/catalog';
+import { isWorkKey } from '../core/labor';
+import type { WorkKey, WorkPrices } from '../core/labor';
 
 export const LIB_KEY = 'ampli-lib-v1';
 
@@ -33,10 +35,11 @@ export interface Lib {
   prices: Record<string, number>;
   brand: Brand;
   usage: Record<string, Usage>;
+  labor: WorkPrices;
 }
 
 export const emptyBrand = (): Brand => ({ company: '', contacts: '', signer: '', logo: '' });
-export const emptyLib = (): Lib => ({ apps: [], templates: [], prices: {}, brand: emptyBrand(), usage: {} });
+export const emptyLib = (): Lib => ({ apps: [], templates: [], prices: {}, brand: emptyBrand(), usage: {}, labor: {} });
 
 const isTag = (t: unknown): t is CustomApp['tag'] => t === 'l' || t === 's' || t === 'p';
 
@@ -58,6 +61,12 @@ export function normLib(o: unknown): Lib {
     for (const [k, v] of Object.entries(x.prices as Record<string, unknown>)) {
       const n = pn(v, NaN);
       if (isFinite(n) && n >= 0) lib.prices[k] = n;
+    }
+  }
+  if (x.labor && typeof x.labor === 'object') {
+    for (const [k, v] of Object.entries(x.labor as Record<string, unknown>)) {
+      const n = pn(v, NaN);
+      if (isWorkKey(k) && isFinite(n) && n >= 0) lib.labor[k] = n;
     }
   }
   if (x.usage && typeof x.usage === 'object') {
@@ -104,6 +113,7 @@ export type LibAction =
   | { t: 'delTpl'; id: string }
   | { t: 'price'; name: string; value: string }
   | { t: 'clearPrices' }
+  | { t: 'labor'; key: WorkKey; value: string }
   | { t: 'use'; name: string; at?: number }
   | { t: 'clearUsage' }
   | { t: 'brand'; field: 'company' | 'contacts' | 'signer'; value: string }
@@ -139,6 +149,14 @@ export function libReducer(l: Lib, a: LibAction): Lib {
     }
     case 'clearPrices':
       return { ...l, prices: {} };
+    case 'labor': {
+      const labor = { ...l.labor };
+      const v = a.value.trim();
+      const n = pn(v, NaN);
+      if (v === '' || !isFinite(n) || n < 0) delete labor[a.key];
+      else labor[a.key] = n;
+      return { ...l, labor };
+    }
     case 'use': {
       const k = normName(a.name);
       if (!k) return l;

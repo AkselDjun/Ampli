@@ -7,6 +7,7 @@ import { balanceLines } from '../core/calc';
 import { blank, mkLine } from '../core/templates';
 import { nid } from '../core/ids';
 import { newProject, normProject, uniqName } from '../core/project';
+import type { WorkKey } from '../core/labor';
 import { pn, round2 } from '../core/format';
 import type { Store } from './storage';
 
@@ -41,6 +42,7 @@ export type Action =
   | { t: 'lineMeas'; field: MeasField; value: string }
   | { t: 'lineMeasAt'; id: string; field: MeasField; value: string }
   | { t: 'check'; id: string; on: boolean }
+  | { t: 'workQty'; key: WorkKey; value: string }
   | { t: 'proto'; field: 'date' | 'device' | 'by'; value: string }
   | { t: 'appField'; id: string; field: 'name' | 'w' | 'n'; value: string | number }
   | { t: 'addApp'; name?: string; w?: number }
@@ -183,6 +185,16 @@ export function reducer(s: State, a: Action): State {
       return patchLine(s, l => ({ ...l, meas: { ...(l.meas ?? {}), [a.field]: a.value } }));
     case 'lineMeasAt':
       return patch(s, q => ({ ...q, lines: q.lines.map(l => (l.id === a.id ? { ...l, meas: { ...(l.meas ?? {}), [a.field]: a.value } } : l)) }));
+    case 'workQty': {
+      const v = a.value.trim();
+      const n = Number(v.replace(',', '.'));
+      return patch(s, q => {
+        const work = { ...(q.work ?? {}) };
+        if (v === '' || !isFinite(n) || n < 0) delete work[a.key];
+        else work[a.key] = Math.round(n * 100) / 100;
+        return { ...q, work };
+      });
+    }
     case 'check':
       return patch(s, q => ({ ...q, checks: { ...(q.checks ?? {}), [a.id]: a.on } }));
     case 'proto':

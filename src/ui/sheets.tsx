@@ -21,6 +21,7 @@ import { toast, toastBad, toastOk } from './toast';
 import { IOS_STEPS, install, usePwa } from './pwa';
 import { PWA_ENABLED } from '../core/flags';
 import { ShareBlock } from './ShareBlock';
+import { LaborTable, Totals, totals } from './Labor';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
 
@@ -270,12 +271,13 @@ export function ProjectsSheet({
 }
 
 export function ReportSheet({
-  open, onClose, p, a, onPrint, onCompare, onShop
+  open, onClose, p, a, onPrint, onCompare, onShop, dispatch
 }: {
   open: boolean;
   onClose: () => void;
   p: Project;
   a: Calc;
+  dispatch: (x: Action) => void;
   onPrint: () => void;
   onCompare: () => void;
   onShop: () => void;
@@ -301,7 +303,7 @@ export function ReportSheet({
     }
   };
   const saveFile = (kind: 'xlsx' | 'csv') => {
-    const tables = exportTables(a, lib.prices);
+    const tables = exportTables(a, lib.prices, lib.labor, p.work);
     if (kind === 'xlsx') download(exportName(p.name, 'xlsx'), buildXlsx(tables), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     else download(exportName(p.name, 'csv'), toCsv(tables[0]), 'text/csv;charset=utf-8');
     toastOk(kind === 'xlsx' ? 'Файл Excel сохранён' : 'Файл CSV сохранён');
@@ -403,10 +405,13 @@ export function ReportSheet({
         </table>
       </div>
       <div className="est">
-        <span>Итого по смете</span>
+        <span>Материалы</span>
         <span className="mono">{fmt(est.total, 2)} BYN</span>
       </div>
       {est.missing > 0 && Object.keys(lib.prices).length > 0 && <p className="muted">Для {est.missing} поз. цена или количество не заданы, они не входят в итог.</p>}
+      <LaborTable p={p} a={a} dispatch={dispatch} />
+      <Totals {...totals(a, p, lib.prices, lib.labor)} />
+      <ShareBlock p={p} kind="estimate" />
       </TabPanel>
       <TabPanel scope="rep" id="notes" cur={tab}>
       <h3 className="sec-t">Допущения и источники</h3>

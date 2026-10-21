@@ -1,3 +1,5 @@
+import type { WorkQty } from './labor';
+
 export type LineType = 'light' | 'socket' | 'power';
 export type Phase = 'L1' | 'L2' | 'L3' | '3';
 export type Status = 'ok' | 'warn' | 'bad';
@@ -89,6 +91,7 @@ export interface Project {
   proto?: Proto;
   rooms?: Room[];
   photos?: Photo[];
+  work?: WorkQty;
 }
 
 export interface Content {

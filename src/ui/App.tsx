@@ -26,7 +26,9 @@ import { WorkSheet } from './WorkSheet';
 import { PanelMode } from './PanelMode';
 import { IncomingSheet } from './IncomingSheet';
 import { ShopSheet } from './ShopSheet';
-import { readOwnerHash, readShareHash, unpackProject } from '../core/share';
+import { readEstimateHash, readOwnerHash, readShareHash, unpackEstimate, unpackProject } from '../core/share';
+import type { EstimateShare } from '../core/share';
+import { EstimateView } from './EstimateView';
 import { OwnerView } from './Passport';
 import { uniqName } from '../core/project';
 import type { Project } from '../core/types';
@@ -58,6 +60,10 @@ export function App() {
   const [incoming, setIncoming] = useState<Project | null>(() => {
     const h = readShareHash(window.location.hash);
     return h ? unpackProject(h) : null;
+  });
+  const [shared, setShared] = useState<EstimateShare | null>(() => {
+    const h = readEstimateHash(window.location.hash);
+    return h ? unpackEstimate(h) : null;
   });
   const [owner, setOwner] = useState<Project | null>(() => {
     const h = readOwnerHash(window.location.hash);
@@ -103,6 +109,8 @@ export function App() {
       if (h) setIncoming(unpackProject(h));
       const o = readOwnerHash(window.location.hash);
       setOwner(o ? unpackProject(o) : null);
+      const e = readEstimateHash(window.location.hash);
+      setShared(e ? unpackEstimate(e) : null);
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -163,6 +171,18 @@ export function App() {
       else printNow();
     }, 50);
   };
+
+  if (shared) {
+    return (
+      <EstimateView
+        data={shared}
+        onClose={() => {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+          setShared(null);
+        }}
+      />
+    );
+  }
 
   if (owner) {
     return (
@@ -296,7 +316,7 @@ export function App() {
         <LibSheet open={sheet === 'lib'} onClose={closeSheet} />
         <CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} />
         <RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} />
-        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} onCompare={() => setSheet('cmp')} onShop={() => setSheet('shop')} />
+        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} onCompare={() => setSheet('cmp')} onShop={() => setSheet('shop')} dispatch={dispatch} />
         <ShopSheet open={sheet === 'shop'} onClose={closeSheet} a={a} />
         <Toaster />
         <HoverTips />

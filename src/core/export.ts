@@ -3,6 +3,8 @@ import type { Calc } from './types';
 import { STATUS } from './norms';
 import { buildSpec, estimate } from './spec';
 import { cableName, protName } from './protection';
+import { grandTotal, laborEstimate } from './labor';
+import type { WorkPrices, WorkQty } from './labor';
 
 export type Cell = string | number | null;
 
@@ -54,8 +56,25 @@ export function groupsTable(a: Calc): Table {
   };
 }
 
-export function exportTables(a: Calc, prices: Record<string, number>): Table[] {
-  return [estimateTable(a, prices), groupsTable(a)];
+export function laborTable(a: Calc, prices: Record<string, number>, labor: WorkPrices, work?: WorkQty): Table | null {
+  const le = laborEstimate(a, work, labor);
+  if (!le.priced) return null;
+  const materials = estimate(buildSpec(a), prices).total;
+  const rows: Cell[][] = le.rows.filter(r => r.qty > 0).map((r, i) => [i + 1, r.def.name, r.qty, r.def.unit, r.price, r.sum]);
+  rows.push([null, 'Материалы', null, null, null, materials]);
+  rows.push([null, 'Работы', null, null, null, le.total]);
+  return {
+    name: 'Работы',
+    head: ['№', 'Работа', 'Количество', 'Ед.', 'Цена, BYN', 'Сумма, BYN'],
+    rows,
+    total: { label: 'Итого', col: 5, value: grandTotal(materials, le.total) },
+    widths: [5, 40, 14, 8, 12, 14]
+  };
+}
+
+export function exportTables(a: Calc, prices: Record<string, number>, labor: WorkPrices = {}, work?: WorkQty): Table[] {
+  const lt = laborTable(a, prices, labor, work);
+  return lt ? [estimateTable(a, prices), lt, groupsTable(a)] : [estimateTable(a, prices), groupsTable(a)];
 }
 
 const csvCell = (v: Cell): string => {

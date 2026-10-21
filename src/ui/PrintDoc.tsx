@@ -2,6 +2,7 @@ import type { Calc, Project } from '../core/types';
 import { dfmt, fmt, fs } from '../core/format';
 import { STATUS } from '../core/norms';
 import { buildSpec, estimate } from '../core/spec';
+import { grandTotal, laborEstimate } from '../core/labor';
 import { useLib } from '../store/LibContext';
 import { cableName, protName } from '../core/protection';
 import { dropText } from '../core/report';
@@ -183,6 +184,8 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
   const { lib } = useLib();
   const est = estimate(buildSpec(a), lib.prices);
   const priced = Object.keys(lib.prices).length > 0;
+  const le = laborEstimate(a, p.work, lib.labor);
+  const works = le.rows.filter(r => r.qty > 0 && r.price !== null);
   const now = dfmt(Date.now());
   return (
     <div className="printdoc" aria-hidden="true">
@@ -276,10 +279,34 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
         </tbody>
         {priced && (
           <tfoot>
-            <tr><td colSpan={4}>Итого по смете</td><td className="r">{fmt(est.total, 2)}</td></tr>
+            <tr><td colSpan={4}>{le.priced ? 'Материалы' : 'Итого по смете'}</td><td className="r">{fmt(est.total, 2)}</td></tr>
           </tfoot>
         )}
       </table>
+      {le.priced && (
+        <>
+          <h2>Работы</h2>
+          <table>
+            <thead>
+              <tr><th>Работа</th><th className="r">Количество</th><th className="r">Цена, BYN</th><th className="r">Сумма, BYN</th></tr>
+            </thead>
+            <tbody>
+              {works.map(r => (
+                <tr key={r.def.key}>
+                  <td>{r.def.name}</td>
+                  <td className="r">{fmt(r.qty, r.qty % 1 ? 1 : 0)} {r.def.unit}</td>
+                  <td className="r">{fmt(r.price as number, 2)}</td>
+                  <td className="r">{fmt(r.sum as number, 2)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr><td colSpan={3}>Работы</td><td className="r">{fmt(le.total, 2)}</td></tr>
+              <tr><td colSpan={3}>Итого: работы и материалы</td><td className="r">{fmt(grandTotal(est.total, le.total), 2)}</td></tr>
+            </tfoot>
+          </table>
+        </>
+      )}
       <p className="pd-note">
         Допустимые токи по таблице 1.3.4 ПУЭ, на которую ссылается ТКП 339-2022, с поправкой; УЗО 30 мА на розетки и свет по ТКП 339-2022 с изм. № 1, п. 4.3.18.5; коэффициенты спроса и одновременности приняты по практике. Потеря напряжения: 3 % для освещения и 5 % для остальных групп, на линиях длиннее 100 м допуск растёт на 0,005 % за метр, но не более чем на 0,5 % (СН 4.04.01-2019, п. 9.14); сопротивление меди 0,0225 Ом·мм²/м. Допустимые токи взяты из ПУЭ и не сверены с таблицами МЭК 364-5-523 (ГОСТ 30331.15-2001 их не содержит); минимальное сечение жилы 1,5 мм² по табл. 52J. Ввод по СН 4.04.01-2019, п. 9.12, селективность по п. 10.5; отключение короткого замыкания за 0,4 с проверено по заданной петле фаза-нуль питающей сети (ТКП 339-2022, п. 4.3.5.4). Длины кабеля даны с запасом 10 %, ввод и мелочь уточняются по месту. Нормы: ТКП 339-2022 с изм. № 1, СН 4.04.01-2019 «Системы электрооборудования жилых и общественных зданий» (изм. № 2 вступает 07.12.2026 и не учтено), ПУЭ, ГОСТ 30331.15-2001. Результат предварительный: проект щитка и монтаж согласуйте с аттестованным электриком.
       </p>
