@@ -16,7 +16,9 @@ import { gcPhotos } from '../store/photos';
 import { referencedPhotoIds } from '../core/photos';
 import { CompareSheet } from './CompareSheet';
 import { RoomsSheet } from './RoomsSheet';
-import { Brand, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconNet, IconPanel } from './Icons';
+import { Brand, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconPanel, IconSearch } from './Icons';
+import { Palette } from './Palette';
+import type { Cmd } from './Palette';
 import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
@@ -56,6 +58,8 @@ export function App() {
   const [sheet, setSheet] = useState<SheetId>(null);
   const [whyOpen, setWhyOpen] = useState(false);
   const [printMode, setPrintMode] = useState<PrintMode>('report');
+  const [pal, setPal] = useState(false);
+  const [repWant, setRepWant] = useState<{ tab: string; n: number } | undefined>(undefined);
   const scrollPos = useRef(0);
   const [incoming, setIncoming] = useState<Project | null>(() => {
     const h = readShareHash(window.location.hash);
@@ -93,9 +97,20 @@ export function App() {
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return;
       const el = e.target as HTMLElement | null;
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return;
+      const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPal(v => !v);
+        return;
+      }
+      if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey && !document.querySelector('.sheet:not([hidden]) [role="dialog"], dialog[open]')) {
+        e.preventDefault();
+        setPal(true);
+        return;
+      }
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return;
+      if (typing) return;
       e.preventDefault();
       dispatch({ t: e.shiftKey ? 'redo' : 'undo' });
     };
@@ -149,6 +164,37 @@ export function App() {
     setView('groups');
     window.setTimeout(() => window.scrollTo(0, scrollPos.current), 0);
   };
+  const addGroup = (t: LineType) => {
+    dispatch({ t: 'addLine', type: t });
+    toast('Добавлена группа: ' + TYPES[t].label, isWide() ? {} : { label: 'Открыть', run: goEdit });
+  };
+  const openRep = (t: string) => {
+    setRepWant({ tab: t, n: Date.now() });
+    setSheet('rep');
+  };
+  const cmds: Cmd[] = [
+    ...p.lines.map((l, i) => ({ id: 'g' + l.id, group: 'Группы', label: 'Г' + (i + 1) + ' ' + (l.name || 'Без названия'), hint: l.where || TYPES[l.type].short, words: 'группа', run: () => { setSheet(null); dispatch({ t: 'select', id: l.id }); goEdit(); } })),
+    { id: 'add-l', group: 'Добавить', label: 'Добавить группу освещения', words: 'свет новая', run: () => addGroup('light') },
+    { id: 'add-s', group: 'Добавить', label: 'Добавить розеточную группу', words: 'розетки новая', run: () => addGroup('socket') },
+    { id: 'add-p', group: 'Добавить', label: 'Добавить мощный прибор', words: 'плита бойлер новая группа', run: () => addGroup('power') },
+    { id: 'rooms', group: 'Добавить', label: 'Собрать группы из комнат', words: 'комнаты', run: () => setSheet('rooms') },
+    { id: 'rep', group: 'Документы', label: 'Отчёт и спецификация', words: 'отчет', run: () => openRep('groups') },
+    { id: 'est', group: 'Документы', label: 'Смета: работы и материалы', words: 'цены стоимость клиент', run: () => openRep('estimate') },
+    { id: 'scheme', group: 'Документы', label: 'Однолинейная схема', words: 'схема', run: () => openRep('scheme') },
+    { id: 'print', group: 'Документы', label: 'Печать отчёта в PDF', words: 'pdf распечатать', run: () => doPrint('report') },
+    { id: 'shop', group: 'Документы', label: 'Где купить', words: 'магазин прайс закупка', run: () => setSheet('shop') },
+    { id: 'cmp', group: 'Документы', label: 'Сравнить варианты', words: 'что если', run: () => setSheet('cmp') },
+    { id: 'work', group: 'Монтаж', label: 'Монтаж и приёмка', words: 'чек-лист протокол паспорт', run: () => setSheet('work') },
+    { id: 'panel', group: 'Монтаж', label: 'Режим «На щитке»', words: 'замеры', run: () => setSheet('panel') },
+    { id: 'proto', group: 'Монтаж', label: 'Печать протокола замеров', words: 'pdf', run: () => doPrint('proto') },
+    { id: 'pass', group: 'Монтаж', label: 'Печать паспорта для владельца', words: 'pdf qr', run: () => doPrint('passport') },
+    { id: 'net', group: 'Проект', label: 'Параметры сети', words: 'фазы ввод мощность прокладка', run: () => setSheet('net') },
+    { id: 'proj', group: 'Проект', label: 'Проекты', words: 'открыть новый файл ссылка', run: () => setSheet('proj') },
+    { id: 'lib', group: 'Проект', label: 'Мои данные', words: 'реквизиты приборы шаблоны логотип', run: () => setSheet('lib') },
+    ...(a.phases ? [{ id: 'bal', group: 'Проект', label: 'Выровнять нагрузку по фазам', words: 'фазы', run: () => { dispatch({ t: 'balance' }); toastUndo('Фазы выровнены', undo); } }] : []),
+    ...(hist.past.length ? [{ id: 'undo', group: 'Проект', label: 'Отменить', hint: 'Ctrl+Z', run: undo }] : []),
+    ...(hist.future.length ? [{ id: 'redo', group: 'Проект', label: 'Вернуть', hint: 'Ctrl+Shift+Z', run: () => dispatch({ t: 'redo' }) }] : [])
+  ];
   const tab = (v: View) => {
     setView(v);
     window.scrollTo(0, 0);
@@ -214,9 +260,9 @@ export function App() {
                 <div><span className="lbl">Ток</span><b>{a.Itot > 0 ? fmt(a.Itot, 0) + ' А' : '—'}</b></div>
                 <div><span className="lbl">Ввод</span><b>{a.inIn ? 'C' + a.inIn : '—'}</b></div>
               </div>
-              <button className="ab-btn" type="button" data-tip="Параметры сети" onClick={() => setSheet('net')} aria-label="Параметры сети">
-                <IconNet />
-                <span className="ab-txt">Параметры</span>
+              <button className="ab-btn" type="button" data-tip="Быстрые действия (Ctrl+K)" aria-label="Быстрые действия" aria-keyshortcuts="Control+K" onClick={() => setPal(true)}>
+                <IconSearch />
+                <span className="ab-txt">Найти</span>
               </button>
               <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
                 <IconPanel />
@@ -240,10 +286,7 @@ export function App() {
             a={a}
             sel={state.sel}
             onSelect={id => { dispatch({ t: 'select', id }); goEdit(); }}
-            onAdd={(t: LineType) => {
-              dispatch({ t: 'addLine', type: t });
-              toast('Добавлена группа: ' + TYPES[t].label, isWide() ? {} : { label: 'Открыть', run: goEdit });
-            }}
+            onAdd={addGroup}
             onCopy={id => {
               dispatch({ t: 'select', id });
               dispatch({ t: 'dupLine' });
@@ -316,7 +359,8 @@ export function App() {
         <LibSheet open={sheet === 'lib'} onClose={closeSheet} />
         <CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} />
         <RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} />
-        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} onCompare={() => setSheet('cmp')} onShop={() => setSheet('shop')} dispatch={dispatch} />
+        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} onCompare={() => setSheet('cmp')} onShop={() => setSheet('shop')} dispatch={dispatch} want={repWant} />
+        <Palette open={pal} onClose={() => setPal(false)} cmds={cmds} />
         <ShopSheet open={sheet === 'shop'} onClose={closeSheet} a={a} />
         <Toaster />
         <HoverTips />

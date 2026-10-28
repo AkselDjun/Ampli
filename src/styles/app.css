@@ -946,3 +946,31 @@ input,select,textarea,.step{border-color:var(--line-strong)}
   .owner{position:static;overflow:visible;padding:0;background:#fff}
   .owner-act,.ev-fallback{display:none!important}
 }
+
+.ed-links{display:flex;flex-wrap:wrap;gap:0 20px}
+.ed-links .link{min-height:44px}
+.fold-in{border-top:1px solid var(--line);padding-top:2px;gap:0}
+.fold-in>.why-t{width:100%;justify-content:flex-start;gap:10px}
+.fold-in>.why-t>small{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;font-weight:400;font-size:var(--t-sm)}
+.fold-in-b{display:grid;gap:16px;padding:6px 0 4px}
+.fold-in-b[hidden]{display:none}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.nf-main small{white-space:normal}
+.nf-main{min-width:0}
+dialog.pal{width:min(600px,calc(100vw - 24px));max-height:min(72dvh,600px);margin:12vh auto auto;padding:0;border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);color:var(--ink);box-shadow:var(--sh-2),0 24px 80px rgba(0,0,0,0.3);overflow:hidden}
+dialog.pal[open]{display:flex;flex-direction:column}
+dialog.pal:modal{overscroll-behavior:contain}
+dialog.pal::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);overflow:hidden;overscroll-behavior:contain}
+.pal-in{display:flex;align-items:center;gap:10px;padding:8px 8px 8px 16px;border-bottom:1px solid var(--line)}
+.pal-in svg{width:20px;height:20px;color:var(--ink-2)}
+.pal-in input{flex:1;border:0;background:transparent;height:48px;padding:0;font-size:var(--t-l);box-shadow:none}
+.pal-in input:focus{box-shadow:none}
+.pal-x{min-height:40px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);color:var(--ink-2);font:inherit;font-size:var(--t-s);cursor:pointer}
+.pal-list{list-style:none;margin:0;padding:6px;overflow-y:auto;overscroll-behavior:contain}
+.pal-g{padding:10px 10px 4px;font-size:var(--t-s);font-weight:600;color:var(--ink-2)}
+.pal-o{display:flex;align-items:baseline;justify-content:space-between;gap:12px;min-height:44px;padding:10px 12px;border-radius:var(--r-s);cursor:pointer}
+.pal-o[aria-selected="true"]{background:var(--accent-soft);color:var(--ink)}
+.pal-o small{color:var(--ink-2);font-size:var(--t-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+.pal-empty{margin:0;padding:18px 16px;color:var(--ink-2)}
+@media (max-width:760px){dialog.pal{margin-top:8px;max-height:calc(100dvh - 16px)}}

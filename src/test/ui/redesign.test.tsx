@@ -293,33 +293,24 @@ describe('GroupList', () => {
     return { h, el: <GroupList p={p} a={calcAll(p.lines, p.cfg)} sel={p.lines[0]?.id ?? null} canUndo canRedo {...h} /> };
   };
 
-  it('folds the network parameters and opens the sheet via Изменить', async () => {
+  it('summarises the network and opens the settings in one tap', async () => {
     const user = userEvent.setup();
     const { h, el } = props(proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]));
     render(el);
-    const fold = screen.getByRole('button', { name: 'Параметры сети' });
-    expect(fold).toHaveAttribute('aria-expanded', 'false');
-    expect(fold).toHaveTextContent('1 фаза, 230 В');
-    expect(screen.queryByRole('button', { name: 'Изменить' })).toBeNull();
-    await user.click(fold);
-    expect(fold).toHaveAttribute('aria-expanded', 'true');
-    const body = document.querySelector('.nf-body') as HTMLElement;
-    expect(body).toHaveTextContent('Скрытая');
-    expect(body).toHaveTextContent('по СН: 3 / 5 %');
-    await user.click(screen.getByRole('button', { name: 'Изменить' }));
+    const b = screen.getByRole('button', { name: 'Параметры сети' });
+    expect(b).toHaveTextContent('1 фаза, 230 В');
+    expect(b).toHaveTextContent('Скрытая');
+    expect(b).toHaveTextContent('по СН: 3 / 5 %');
+    await user.click(b);
     expect(h.onOpenNet).toHaveBeenCalledTimes(1);
-    await user.click(fold);
-    expect(document.querySelector('.nf-body')).toBeNull();
   });
-  it('describes an open three-phase network with a voltage-drop limit', async () => {
-    const user = userEvent.setup();
+  it('describes an open three-phase network with a voltage-drop limit', () => {
     const { el } = props(proj([mkLine('A', 'power', 5, 1, 1, [['x', 100, 1]], '3')], { supply: 3, method: 'open', drop: 4 }));
     render(el);
-    await user.click(screen.getByRole('button', { name: 'Параметры сети' }));
-    const body = document.querySelector('.nf-body') as HTMLElement;
-    expect(body).toHaveTextContent('3 фазы, 400 В');
-    expect(body).toHaveTextContent('Открытая');
-    expect(body).toHaveTextContent('до 4 %');
+    const b = screen.getByRole('button', { name: 'Параметры сети' });
+    expect(b).toHaveTextContent('3 фазы, 400 В');
+    expect(b).toHaveTextContent('Открытая');
+    expect(b).toHaveTextContent('до 4 %');
     expect(document.querySelector('.row-sub')).toHaveTextContent('3Ф');
   });
   it('shows the empty text and hides the count', () => {

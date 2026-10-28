@@ -25,7 +25,7 @@ export function WorkSheet({
   const rows = protocolRows(a);
   const proto = p.proto ?? { date: '', device: '', by: '' };
   return (
-    <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Замеры вводятся в карточке группы, раздел «Замеры после монтажа», или в режиме «На щитке». По ним проверяются КЗ, УЗО и изоляция.">
+    <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Замеры вводятся в карточке группы, раздел «Замеры и фото», или в режиме «На щитке». По ним проверяются КЗ, УЗО и изоляция.">
       <TabPanel scope="wk" id="check" cur={tab}>
       <div className="wk-prog">
         <span><b>{pr.done}</b> из {pr.total} пунктов выполнено</span>

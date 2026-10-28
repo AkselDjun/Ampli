@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { Calc, Line, LineType, Phase, Photo } from '../core/types';
-import { NB, fmt, fs, pn, round2 } from '../core/format';
+import { NB, fmt, fs, plural, pn, round2 } from '../core/format';
 import { STATUS, TYPES, TYPE_KEYS } from '../core/norms';
 import { byUsage, catalog, searchCatalog, topUsed } from '../core/catalog';
 import { whyRows } from '../core/why';
@@ -41,6 +41,7 @@ export function Editor({
   const chips = useRef<HTMLDivElement>(null);
   const focusNew = useRef(false);
   const [measOpen, setMeasOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [quick, setQuick] = useState<string | null>(null);
   const [quickMsg, setQuickMsg] = useState('');
@@ -73,6 +74,10 @@ export function Editor({
     libDispatch({ t: 'use', name });
     setSearch('');
   };
+  const nMeas = (['zs', 'ins', 'leak', 'rcd'] as const).filter(k => pn(l.meas?.[k], 0) > 0).length;
+  const nPhotos = photos.filter(ph => ph.line === l.id).length;
+  const measSum = [nMeas ? nMeas + ' ' + plural(nMeas, ['замер', 'замера', 'замеров']) : '', nPhotos ? nPhotos + ' фото' : ''].filter(Boolean).join(', ');
+  const moreSum = [l.where?.trim() ?? '', l.wet && l.type !== 'light' ? 'особо опасное помещение' : '', 'Кс ' + fs(pn(l.kc, 1)), 'cos φ ' + fs(pn(l.cos, 1))].filter(Boolean).join(', ');
   const setLen = (v: number) => dispatch({ t: 'lineField', field: 'len', value: Math.max(0, Math.min(500, round2(v))) });
   return (
     <section className="col col-edit" aria-label="Редактор группы">
@@ -142,50 +147,6 @@ export function Editor({
             </div>
           </>
         )}
-        <label className="blk">
-          <span className="lbl">Где находится</span>
-          <input className="ed-where" aria-label="Где находится группа" placeholder="Например, кухня и коридор" maxLength={80} value={l.where ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'where', value: e.target.value })} />
-        </label>
-        <div className="blk">
-          <span className="lbl">Тип группы</span>
-          <Seg<LineType> name={'t-' + l.id} value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', type: v })} />
-        </div>
-        {l.type !== 'light' && (
-          <div className="blk">
-            <span className="lbl">Помещение</span>
-            <Seg<string> name={'w-' + l.id} value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычное'], ['wet', 'Вне помещения или особо опасное']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet' })} />
-          </div>
-        )}
-        {three && (
-          <div className="blk">
-            <span className="lbl">Фаза</span>
-            <Seg<Phase> name={'p-' + l.id} value={l.phase} items={phItems} onChange={v => dispatch({ t: 'linePhase', phase: v })} />
-          </div>
-        )}
-        <div className="grid3">
-          <div className="f len-f">
-            <span className="lbl">Длина линии</span>
-            <Stepper
-              value={l.len}
-              onChange={v => dispatch({ t: 'lineField', field: 'len', value: v })}
-              onStep={d => setLen(pn(l.len, 0) + d)}
-              d={1}
-              min={0}
-              step="any"
-              label="Длина линии, м"
-              less="Короче"
-              more="Длиннее"
-            />
-          </div>
-          <label className="f">
-            <span className="lbl">Коэффициент спроса</span>
-            <input type="number" inputMode="decimal" min={0.05} max={1} step={0.05} value={String(l.kc)} onChange={e => dispatch({ t: 'lineField', field: 'kc', value: e.target.value })} />
-          </label>
-          <label className="f">
-            <span className="lbl">cos φ</span>
-            <input type="number" inputMode="decimal" min={0.3} max={1} step={0.05} value={String(l.cos)} onChange={e => dispatch({ t: 'lineField', field: 'cos', value: e.target.value })} />
-          </label>
-        </div>
         <div className="blk">
           <span className="lbl">Приборы</span>
           <div className="apps">
@@ -218,48 +179,6 @@ export function Editor({
               </div>
             ))}
           </div>
-        </div>
-        <div className="blk meas">
-          <button className="why-t" type="button" aria-expanded={measOpen} onClick={() => setMeasOpen(!measOpen)}>
-            <span>Замеры после монтажа</span>
-            <IconDown />
-          </button>
-          <div className="grid3" hidden={!measOpen}>
-            <label className="f">
-              <span className="lbl">Петля фаза-нуль, Ом</span>
-              <input type="number" inputMode="decimal" min={0} step={0.01} aria-label="Замер петли фаза-нуль, Ом" value={String(l.meas?.zs ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'zs', value: e.target.value })} />
-            </label>
-            <label className="f">
-              <span className="lbl">Изоляция, МОм</span>
-              <input type="number" inputMode="decimal" min={0} step={0.1} aria-label="Замер сопротивления изоляции, МОм" value={String(l.meas?.ins ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'ins', value: e.target.value })} />
-            </label>
-            <label className="f">
-              <span className="lbl">Ток утечки, мА</span>
-              <input type="number" inputMode="decimal" min={0} step={0.1} aria-label="Замер тока утечки, мА" value={String(l.meas?.leak ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'leak', value: e.target.value })} />
-            </label>
-            {r?.rcd && (
-              <label className="f">
-                <span className="lbl">УЗО при IΔn, мс</span>
-                <input type="number" inputMode="numeric" min={0} step={1} aria-label="Замер времени отключения УЗО, мс" placeholder={'до ' + fmt(r.rcdLim, 0)} value={String(l.meas?.rcd ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'rcd', value: e.target.value })} />
-              </label>
-            )}
-          </div>
-        </div>
-        <div className="blk">
-          <span className="lbl">Фото группы</span>
-          <PhotoStrip
-            name={'line'}
-            line={l.id}
-            tags={['before', 'after', 'plate', 'meas']}
-            total={photos.length}
-            photos={photos.filter(ph => ph.line === l.id)}
-            onAdd={photo => dispatch({ t: 'photoAdd', photo })}
-            onDel={id => dispatch({ t: 'photoDel', id })}
-            onNote={(id, value) => dispatch({ t: 'photoNote', id, value })}
-          />
-        </div>
-        <div className="blk">
-          <span className="lbl">Добавить прибор</span>
           <div className="search">
             <IconSearch />
             <input type="search" aria-label="Найти прибор" placeholder="Найти прибор" value={search} onChange={e => setSearch(e.target.value)} />
@@ -304,16 +223,16 @@ export function Editor({
             ))}
             <button className="chip custom" type="button" onClick={() => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp' }); })}>+ Свой прибор</button>
           </div>
-          {l.apps.some(ap => ap.name.trim() && pn(ap.w, 0) > 0) && (
-            <button className="link" type="button" onClick={() => {
-              const apps = l.apps.filter(ap => ap.name.trim() && pn(ap.w, 0) > 0).map(ap => ({ name: ap.name, w: pn(ap.w, 0), tag: tag as 'l' | 's' | 'p' }));
-              libDispatch({ t: 'addApps', apps });
-              toastOk('Сохранено в «Мои приборы»: ' + apps.length);
-            }}>Сохранить приборы группы в мои</button>
-          )}
-        </div>
-        <div className="blk">
-          <button className="link" type="button" aria-expanded={quick !== null} onClick={() => { setQuick(quick === null ? '' : null); setQuickMsg(''); }}>Вставить список текстом</button>
+          <div className="ed-links">
+            <button className="link" type="button" aria-expanded={quick !== null} onClick={() => { setQuick(quick === null ? '' : null); setQuickMsg(''); }}>Вставить список текстом</button>
+            {l.apps.some(ap => ap.name.trim() && pn(ap.w, 0) > 0) && (
+              <button className="link" type="button" onClick={() => {
+                const apps = l.apps.filter(ap => ap.name.trim() && pn(ap.w, 0) > 0).map(ap => ({ name: ap.name, w: pn(ap.w, 0), tag: tag as 'l' | 's' | 'p' }));
+                libDispatch({ t: 'addApps', apps });
+                toastOk('Сохранено в «Мои приборы»: ' + apps.length);
+              }}>Сохранить приборы группы в мои</button>
+            )}
+          </div>
           {quick !== null && (
             <div className="quick">
               <textarea aria-label="Список приборов" rows={3} placeholder="чайник 2200, духовка 2,5 кВт, лампы 60 x5" value={quick} onChange={e => setQuick(e.target.value)} />
@@ -328,6 +247,103 @@ export function Editor({
               </div>
             </div>
           )}
+        </div>
+        <div className="blk">
+          <span className="lbl">Тип группы</span>
+          <Seg<LineType> name={'t-' + l.id} value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', type: v })} />
+        </div>
+        <div className="grid3 ed-core">
+          <div className="f len-f">
+            <span className="lbl">Длина линии</span>
+            <Stepper
+              value={l.len}
+              onChange={v => dispatch({ t: 'lineField', field: 'len', value: v })}
+              onStep={d => setLen(pn(l.len, 0) + d)}
+              d={1}
+              min={0}
+              step="any"
+              label="Длина линии, м"
+              less="Короче"
+              more="Длиннее"
+            />
+          </div>
+          {three && (
+            <div className="f ph-f">
+              <span className="lbl">Фаза</span>
+              <Seg<Phase> name={'p-' + l.id} value={l.phase} items={phItems} onChange={v => dispatch({ t: 'linePhase', phase: v })} />
+            </div>
+          )}
+        </div>
+        <div className="blk fold-in">
+          <button className="why-t" type="button" aria-expanded={moreOpen} onClick={() => setMoreOpen(!moreOpen)}>
+            <span>Дополнительно</span>
+            <small className="muted">{moreSum}</small>
+            <IconDown />
+          </button>
+          <div className="fold-in-b" hidden={!moreOpen}>
+            <label className="blk">
+              <span className="lbl">Где находится</span>
+              <input className="ed-where" aria-label="Где находится группа" placeholder="Например, кухня и коридор" maxLength={80} value={l.where ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'where', value: e.target.value })} />
+            </label>
+            {l.type !== 'light' && (
+              <div className="blk">
+                <span className="lbl">Помещение</span>
+                <Seg<string> name={'w-' + l.id} value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычное'], ['wet', 'Вне помещения или особо опасное']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet' })} />
+              </div>
+            )}
+            <div className="grid3">
+              <label className="f">
+                <span className="lbl">Коэффициент спроса</span>
+                <input type="number" inputMode="decimal" min={0.05} max={1} step={0.05} value={String(l.kc)} onChange={e => dispatch({ t: 'lineField', field: 'kc', value: e.target.value })} />
+              </label>
+              <label className="f">
+                <span className="lbl">cos φ</span>
+                <input type="number" inputMode="decimal" min={0.3} max={1} step={0.05} value={String(l.cos)} onChange={e => dispatch({ t: 'lineField', field: 'cos', value: e.target.value })} />
+              </label>
+            </div>
+          </div>
+        </div>
+        <div className="blk meas fold-in">
+          <button className="why-t" type="button" aria-expanded={measOpen} onClick={() => setMeasOpen(!measOpen)}>
+            <span>Замеры и фото</span>
+            <small className="muted">{measSum}</small>
+            <IconDown />
+          </button>
+          <div className="fold-in-b" hidden={!measOpen}>
+            <div className="grid3">
+              <label className="f">
+                <span className="lbl">Петля фаза-нуль, Ом</span>
+                <input type="number" inputMode="decimal" min={0} step={0.01} aria-label="Замер петли фаза-нуль, Ом" value={String(l.meas?.zs ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'zs', value: e.target.value })} />
+              </label>
+              <label className="f">
+                <span className="lbl">Изоляция, МОм</span>
+                <input type="number" inputMode="decimal" min={0} step={0.1} aria-label="Замер сопротивления изоляции, МОм" value={String(l.meas?.ins ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'ins', value: e.target.value })} />
+              </label>
+              <label className="f">
+                <span className="lbl">Ток утечки, мА</span>
+                <input type="number" inputMode="decimal" min={0} step={0.1} aria-label="Замер тока утечки, мА" value={String(l.meas?.leak ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'leak', value: e.target.value })} />
+              </label>
+              {r?.rcd && (
+                <label className="f">
+                  <span className="lbl">УЗО при IΔn, мс</span>
+                  <input type="number" inputMode="numeric" min={0} step={1} aria-label="Замер времени отключения УЗО, мс" placeholder={'до ' + fmt(r.rcdLim, 0)} value={String(l.meas?.rcd ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'rcd', value: e.target.value })} />
+                </label>
+              )}
+            </div>
+            <div className="blk">
+              <span className="lbl">Фото группы</span>
+            <PhotoStrip
+              name={'line'}
+              line={l.id}
+              tags={['before', 'after', 'plate', 'meas']}
+              total={photos.length}
+              photos={photos.filter(ph => ph.line === l.id)}
+              onAdd={photo => dispatch({ t: 'photoAdd', photo })}
+              onDel={id => dispatch({ t: 'photoDel', id })}
+              onNote={(id, value) => dispatch({ t: 'photoNote', id, value })}
+            />
+            </div>
+          </div>
         </div>
         <div className="ed-end">
           <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupLine' }); toastUndo('Создана копия группы', undo); }}>Копировать группу</button>

@@ -83,7 +83,7 @@ describe('Editor', () => {
     expect(why).toHaveAttribute('aria-expanded', 'true');
     expect(ed().querySelector('.why-b')).not.toHaveAttribute('hidden');
     fireEvent.click(why);
-    const meas = btn(ed(), 'Замеры после монтажа');
+    const meas = btn(ed(), 'Замеры и фото');
     fireEvent.click(meas);
     const zs = byLabel(ed(), 'Замер петли фаза-нуль, Ом');
     change(zs, '0.4');
@@ -192,7 +192,7 @@ describe('Editor', () => {
 describe('Editor RCD trip time', () => {
   it('stores the trip time and marks a slow RCD', () => {
     boot();
-    click(ed(), 'Замеры после монтажа');
+    click(ed(), 'Замеры и фото');
     const input = byLabel(ed(), 'Замер времени отключения УЗО, мс');
     expect(input.placeholder).toBe('до 500');
     change(input, '800');

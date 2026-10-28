@@ -271,13 +271,14 @@ export function ProjectsSheet({
 }
 
 export function ReportSheet({
-  open, onClose, p, a, onPrint, onCompare, onShop, dispatch
+  open, onClose, p, a, onPrint, onCompare, onShop, dispatch, want
 }: {
   open: boolean;
   onClose: () => void;
   p: Project;
   a: Calc;
   dispatch: (x: Action) => void;
+  want?: { tab: string; n: number };
   onPrint: () => void;
   onCompare: () => void;
   onShop: () => void;
@@ -312,6 +313,9 @@ export function ReportSheet({
   const { lib, dispatch: libDispatch } = useLib();
   const est = estimate(buildSpec(a), lib.prices);
   const [tab, setTab] = useState('groups');
+  useEffect(() => {
+    if (want) setTab(want.tab);
+  }, [want]);
   return (
     <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Допущения' }]} />}>
       <TabPanel scope="rep" id="groups" cur={tab}>

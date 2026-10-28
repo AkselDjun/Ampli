@@ -11,9 +11,7 @@ const list = () => document.querySelector('.col-list') as HTMLElement;
 const open = (title: string) => {
   if (title === 'Проекты') click(list(), 'Проекты');
   else if (title === 'Параметры сети') {
-    const fold = list().querySelector('.netfold') as HTMLElement;
-    if (fold.getAttribute('aria-expanded') !== 'true') fireEvent.click(fold);
-    click(list(), 'Изменить');
+    fireEvent.click(list().querySelector('.netfold') as HTMLElement);
   } else if (title === 'Комнаты') {
     click(list(), '+ Добавить группу');
     click(list(), 'Из комнат');

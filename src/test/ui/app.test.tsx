@@ -120,8 +120,9 @@ describe('App', () => {
     render(<App />);
     const bar = document.querySelector('.ab-main') as HTMLElement;
     const nav = document.querySelector('nav.tabs') as HTMLElement;
-    click(bar, 'Параметры сети');
+    click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
     expect(isOpen('Параметры сети')).toBe(true);
+    void bar;
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(isOpen('Параметры сети')).toBe(false);
     click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
@@ -146,7 +147,6 @@ describe('App', () => {
     click(bar, /Отчёт/);
     fireEvent.keyDown(document, { key: 'Escape' });
     click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
-    click(document.querySelector('.col-list') as HTMLElement, 'Изменить');
     expect(isOpen('Параметры сети')).toBe(true);
   });
 
@@ -194,7 +194,7 @@ describe('App', () => {
 
   it('balance button on three phases', () => {
     render(<App />);
-    click(document.querySelector('.ab-main') as HTMLElement, 'Параметры сети');
+    click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
     fireEvent.click(dlg('Параметры сети').querySelector('input[name="sup"][value="3"]') as HTMLElement);
     fireEvent.keyDown(document, { key: 'Escape' });
     const fold = document.querySelector('.c-phase .fold-h') as HTMLElement;

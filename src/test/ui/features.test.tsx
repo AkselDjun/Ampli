@@ -341,6 +341,7 @@ describe('photos', () => {
     vi.mocked(scalePhoto).mockResolvedValue(blob());
     vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => undefined);
     boot();
+    click(ed(), /Замеры и фото/);
     expect(strip().querySelector('.photo-list')).toBeNull();
     fireEvent.click(within(strip()).getByRole('button', { name: /Фото/ }));
     fireEvent.click(strip().querySelector('input[name="ptag-line"][value="after"]') as HTMLElement);
@@ -384,6 +385,7 @@ describe('photos', () => {
       p.photos = Array.from({ length: PHOTO_LIMIT }, (_, i) => ph('x' + i, p.lines[0].id));
     });
     boot();
+    click(ed(), /Замеры и фото/);
     const b = within(strip()).getByRole('button', { name: /Фото/ });
     expect(b).toBeDisabled();
     expect(strip().textContent).toContain('это предел');

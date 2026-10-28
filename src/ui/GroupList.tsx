@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import type { Calc, CfgN, LineType, Project, Row } from '../core/types';
 import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
@@ -95,7 +95,6 @@ export function GroupList({
 }) {
   const c = a.c;
   const three = c.supply === 3;
-  const [netOpen, setNetOpen] = useState(false);
   const count = p.lines.length;
   useEffect(() => {
     const el = document.querySelector('.col-list .row.sel');
@@ -122,21 +121,11 @@ export function GroupList({
           <span className="pb-more">Проекты</span>
         </button>
         <div className="netchips">
-          <button className="netfold" type="button" aria-expanded={netOpen} aria-label="Параметры сети" onClick={() => setNetOpen(v => !v)}>
+          <button className="netfold" type="button" aria-label="Параметры сети" onClick={onOpenNet}>
             <IconNet />
-            <span className="nf-main">Параметры сети<small>{net[0][1]} · {net[3][1]}</small></span>
-            <IconChev className={'chev' + (netOpen ? ' open' : '')} />
+            <span className="nf-main">Параметры сети<small>{net.map(t => t[1]).join(', ')}</small></span>
+            <IconChev className="chev" />
           </button>
-          {netOpen && (
-            <div className="nf-body">
-              <span className="nl-items">
-                {net.map(t => (
-                  <span key={t[0]}><small>{t[0]}</small>{t[1]}</span>
-                ))}
-              </span>
-              <button className="link" type="button" onClick={onOpenNet}>Изменить</button>
-            </div>
-          )}
         </div>
       </div>
       {p.sample && (
