@@ -9,14 +9,17 @@ vi.setConfig({ testTimeout: 60000 });
 
 const list = () => document.querySelector('.col-list') as HTMLElement;
 const open = (title: string) => {
-  if (title === 'Проекты') click(list(), 'Проекты');
+  if (title === 'Проекты') {
+    click(list(), 'Проекты');
+    return dlg('Проекты и данные');
+  }
   else if (title === 'Параметры сети') {
     fireEvent.click(list().querySelector('.netfold') as HTMLElement);
   } else if (title === 'Комнаты') {
     click(list(), '+ Добавить группу');
     click(list(), 'Из комнат');
   }
-  else click(document.querySelector('nav.tabs') as HTMLElement, title === 'Монтаж и приёмка' ? /Приёмка/ : /Отчёт/);
+  else click(document.querySelector('nav.tabs') as HTMLElement, title === 'Монтаж и приёмка' ? /Приёмка/ : /Документы/);
   return dlg(title);
 };
 const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
@@ -128,7 +131,7 @@ describe('ProjectsSheet', () => {
     expect(stored().list.length).toBe(3);
     const opens = d.querySelectorAll<HTMLElement>('.pj-open');
     fireEvent.click(opens[0]);
-    expect(isOpen('Проекты')).toBe(false);
+    expect(isOpen('Проекты и данные')).toBe(false);
     expect(stored().cur).toBe(stored().list[0].id);
     d = open('Проекты');
     const del = d.querySelectorAll<HTMLElement>('.pj .btn.danger')[2];
@@ -213,7 +216,7 @@ describe('ReportSheet', () => {
     Object.defineProperty(navigator, 'clipboard', { value: { writeText: write }, configurable: true });
     wide(true);
     render(<App />);
-    const d = open('Отчёт и спецификация');
+    const d = open('Документы');
     expect(d.querySelectorAll('tbody tr').length).toBeGreaterThan(5);
     expect(d.querySelector('svg.schem')).toBeTruthy();
     const price = d.querySelector('.price-in') as HTMLInputElement;
@@ -231,7 +234,7 @@ describe('ReportSheet', () => {
     vi.useFakeTimers();
     Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.reject(new Error('x')) }, configurable: true });
     render(<App />);
-    const d = open('Отчёт и спецификация');
+    const d = open('Документы');
     click(d, 'Скопировать отчёт');
     await act(async () => { await Promise.resolve(); await Promise.resolve(); });
     expect(d.querySelector('textarea')).toBeTruthy();
@@ -247,14 +250,14 @@ describe('ReportSheet', () => {
     d = open('Параметры сети');
     fireEvent.click(d.querySelector('input[name="sup"][value="3"]') as HTMLElement);
     fireEvent.keyDown(document, { key: 'Escape' });
-    d = open('Отчёт и спецификация');
+    d = open('Документы');
     expect(d.textContent).toContain('нет приборов');
     expect(d.textContent).toContain('Фаза');
     fireEvent.keyDown(document, { key: 'Escape' });
     fireEvent.click(document.querySelectorAll<HTMLElement>('.rows .row')[0]);
     fireEvent.click(btn(document.querySelector('.col-edit') as HTMLElement, '+ Свой прибор'));
     change(byLabel(document.querySelector('.col-edit') as HTMLElement, 'Мощность, Вт'), '90000');
-    d = open('Отчёт и спецификация');
+    d = open('Документы');
     expect(d.textContent).toContain('—');
   });
 });

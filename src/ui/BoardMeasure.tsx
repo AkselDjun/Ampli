@@ -7,7 +7,6 @@ import { VERDICT, protocolRows } from '../core/protocol';
 import type { ProtoRow } from '../core/protocol';
 import { cableName } from '../core/protection';
 import type { Action, MeasField } from '../store/reducer';
-import { Sheet } from './common';
 import { shortName } from './Side';
 
 const FIELDS: { f: MeasField; label: string; unit: string; step: number }[] = [
@@ -19,7 +18,7 @@ const FIELDS: { f: MeasField; label: string; unit: string; step: number }[] = [
 
 const pillOf = (v: ProtoRow['verdict']): string => (v === 'ok' ? 'ok' : (v === 'bad' ? 'bad' : 'warn'));
 
-export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClose: () => void; a: Calc; dispatch: (x: Action) => void }) {
+export function BoardMeasure({ open, a, dispatch }: { open: boolean; a: Calc; dispatch: (x: Action) => void }) {
   const rows = protocolRows(a);
   const byNo = new Map(rows.map(r => [r.no, r]));
   const noOf = (lid: string): string => 'Г' + (a.rows.findIndex(x => x.l.id === lid) + 1);
@@ -54,7 +53,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
   };
   const plate = (key: string) => <div key={key} className="pmb-dev pmb-free" aria-hidden="true"><span className="pmb-strip" /><span className="pmb-blank" /></div>;
   return (
-    <Sheet open={open} onClose={onClose} title="На щитке" tip="Щиток показан так же, как он собран: нажмите на автомат и введите замеры. Цвет рычажка: зелёный соответствует, красный не соответствует, серый ещё не измерено.">
+    <>
       {rows.length === 0 && <p className="muted">Добавьте группы с приборами, они появятся здесь.</p>}
       {rows.length > 0 && (
         <>
@@ -157,6 +156,6 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
           </div>
         </section>
       )}
-    </Sheet>
+    </>
   );
 }

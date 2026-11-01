@@ -21,6 +21,8 @@ import { toast, toastBad, toastOk } from './toast';
 import { IOS_STEPS, install, usePwa } from './pwa';
 import { PWA_ENABLED } from '../core/flags';
 import { ShareBlock } from './ShareBlock';
+import type { PrintMode } from './WorkSheet';
+import { LibPanels } from './LibPanels';
 import { LaborTable, Totals, totals } from './Labor';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
@@ -105,18 +107,21 @@ export function NetSheet({
 }
 
 export function ProjectsSheet({
-  open, onClose, state, p, dispatch, onLib
+  open, onClose, state, p, dispatch, want
 }: {
   open: boolean;
   onClose: () => void;
   state: { list: Project[]; cur: string };
   p: Project;
   dispatch: (a: Action) => void;
-  onLib: () => void;
+  want?: { tab: string; n: number };
 }) {
   const { lib, dispatch: libDispatch } = useLib();
   const [tplOpen, setTplOpen] = useState(false);
   const [tab, setTab] = useState('main');
+  useEffect(() => {
+    if (want) setTab(want.tab);
+  }, [want]);
   const [elec, setElec] = useState(true);
   const file = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -172,7 +177,7 @@ export function ProjectsSheet({
   };
   const n = state.list.length;
   return (
-    <Sheet open={open} onClose={onClose} title="Проекты" bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся только в этом браузере. Чтобы перенести проект на другое устройство, сохраните его в файл или отправьте ссылкой.">
+    <Sheet open={open} onClose={onClose} title="Проекты и данные" bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен' }, { id: 'brand', label: 'Реквизиты' }, { id: 'apps', label: 'Приборы' }, { id: 'tpl', label: 'Шаблоны и цены' }]} />} tip="Проекты, реквизиты, свои приборы и цены хранятся только в этом браузере. Чтобы перенести проект на другое устройство, сохраните его в файл или отправьте ссылкой.">
       <TabPanel scope="pj" id="main" cur={tab}>
       <h3 className="sec-t">Текущий проект</h3>
       <div className="meta-grid">
@@ -237,7 +242,6 @@ export function ProjectsSheet({
       <TabPanel scope="pj" id="share" cur={tab}>
       <div className="data-row">
         <button className="btn ghost" type="button" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</button>
-        <button className="btn ghost" type="button" onClick={onLib}>Мои данные</button>
       </div>
       <ShareBlock p={p} />
       <div className="data-row">
@@ -266,6 +270,7 @@ export function ProjectsSheet({
       </div>
       <InstallBlock />
       </TabPanel>
+      <LibPanels tab={tab} scope="pj" />
     </Sheet>
   );
 }
@@ -279,7 +284,7 @@ export function ReportSheet({
   a: Calc;
   dispatch: (x: Action) => void;
   want?: { tab: string; n: number };
-  onPrint: () => void;
+  onPrint: (m: PrintMode) => void;
   onCompare: () => void;
   onShop: () => void;
 }) {
@@ -317,15 +322,12 @@ export function ReportSheet({
     if (want) setTab(want.tab);
   }, [want]);
   return (
-    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Допущения' }]} />}>
+    <Sheet open={open} onClose={onClose} title="Документы" bar={<Tabs scope="rep" label="Разделы документов" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'print', label: 'Печать' }]} />} tip="Всё, что выдаётся наружу: таблица групп, схема, смета для заказчика и печатные документы.">
       <TabPanel scope="rep" id="groups" cur={tab}>
-      <div className="copy-row">
-        <button className="btn primary" type="button" onClick={onPrint}>Печать / PDF</button>
-        <button className="btn" type="button" onClick={copy}>Скопировать отчёт</button>
-        <button className="btn" type="button" onClick={onCompare}>Сравнить варианты</button>
+      <div className="sec-row">
+        <h3 className="sec-t">Группы линий</h3>
+        <button className="btn sm" type="button" onClick={onCompare}>Сравнить варианты</button>
       </div>
-      {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
-      <h3 className="sec-t">Группы линий</h3>
       <div className="tablewrap">
         <table className="gtab">
           <thead>
@@ -376,6 +378,19 @@ export function ReportSheet({
           </tfoot>
         </table>
       </div>
+      <details className="bd-help assum-d">
+        <summary>Допущения и источники</summary>
+      <Assumptions cfg={cfgN(p.cfg)} />
+      <div className="foot">
+        <p>Допустимые токи медных жил взяты из таблицы 1.3.4 главы 1.3 ПУЭ, на которую ссылается ТКП 339-2022, и умножены на поправку; прокладка по ГОСТ 30331.15. Групповые сети выполняются медными жилами, наименьшее сечение жилы 1,5 мм² (ГОСТ 30331.15-2001, табл. 52J).</p>
+        <p>УЗО до 30 мА предусмотрены для розеток и светильников (ТКП 339-2022 с изм. № 1, п. 4.3.18.5) и по практике для мощных приборов, при расчётном токе больше 32 А до 100 мА (СН 4.04.01-2019, п. 16.3.13). Время отключения УЗО в протоколе сравнивается с табл. 4.4.47 и 4.4.48 ТКП 339-2022 в редакции изм. № 1. Потеря напряжения: 3 % для освещения и 5 % для остальных групп, на линиях длиннее 100 м допуск растёт на 0,005 % за метр, но не более чем на 0,5 % (СН 4.04.01-2019, п. 9.14); сопротивление меди 0,0225 Ом·мм²/м. Коэффициенты спроса и одновременности приняты по практике, их сверка с таблицами СН 4.04.01-2019 не выполнена.</p>
+        <p>Ввод: до 12 кВт расчётной нагрузки однофазный, больше 12 кВт трёхфазный (СН 4.04.01-2019, п. 9.12). Вводной автомат выбирается на две ступени выше наибольшего группового (п. 10.5). Отключение короткого замыкания проверяется при времени 0,4 с для 230 В (ТКП 339-2022, п. 4.3.5.4, табл. 4.3.1) по сопротивлению петли фаза-нуль питающей сети, которое задаёт пользователь; сопротивление жил считается без учёта индуктивности, расчёт по ГОСТ 28249 не выполнялся.</p>
+        <p>Потеря напряжения не более 4 % от номинального напряжения установки по ГОСТ 30331.15-2001, п. 525: этот предел можно включить в параметрах. Сечение нулевого проводника принято равным фазному до 16 мм² (п. 524.2). Допустимые токи самого ГОСТ 30331.15 не содержит (п. 523 отсылает к другому стандарту), поэтому значения взяты из ПУЭ и не сверены с таблицами МЭК 364-5-523.</p>
+        <p>Длины кабеля в спецификации взяты из длин групп с запасом 10 %. Сам ввод, трассу в щиток и расход мелочи уточняйте по месту.</p>
+        <p>Нормативная база: ТКП 339-2022 с изменением № 1 (действует с 01.08.2025); СН 4.04.01-2019 «Системы электрооборудования жилых и общественных зданий»; ПУЭ, табл. 1.3.3 и 1.3.4; ГОСТ 30331.15-2001. Изменение № 2 к СН 4.04.01-2019 вступает в силу 07.12.2026 и в расчёте пока не учтено. Раздел 8 ТКП 339-2022 исключён изменением № 1, требования к жилым зданиям перенесены в СП 4.04.04-2023, сверка с ним не выполнена.</p>
+        <p>Результат предварительный. Проект щитка и монтаж согласуйте с аттестованным электриком.</p>
+      </div>
+      </details>
       </TabPanel>
       <TabPanel scope="rep" id="scheme" cur={tab}>
       <h3 className="sec-t">Схема щитка</h3>
@@ -417,18 +432,26 @@ export function ReportSheet({
       <Totals {...totals(a, p, lib.prices, lib.labor)} />
       <ShareBlock p={p} kind="estimate" />
       </TabPanel>
-      <TabPanel scope="rep" id="notes" cur={tab}>
-      <h3 className="sec-t">Допущения и источники</h3>
-      <Assumptions cfg={cfgN(p.cfg)} />
-      <div className="foot">
-        <p>Допустимые токи медных жил взяты из таблицы 1.3.4 главы 1.3 ПУЭ, на которую ссылается ТКП 339-2022, и умножены на поправку; прокладка по ГОСТ 30331.15. Групповые сети выполняются медными жилами, наименьшее сечение жилы 1,5 мм² (ГОСТ 30331.15-2001, табл. 52J).</p>
-        <p>УЗО до 30 мА предусмотрены для розеток и светильников (ТКП 339-2022 с изм. № 1, п. 4.3.18.5) и по практике для мощных приборов, при расчётном токе больше 32 А до 100 мА (СН 4.04.01-2019, п. 16.3.13). Время отключения УЗО в протоколе сравнивается с табл. 4.4.47 и 4.4.48 ТКП 339-2022 в редакции изм. № 1. Потеря напряжения: 3 % для освещения и 5 % для остальных групп, на линиях длиннее 100 м допуск растёт на 0,005 % за метр, но не более чем на 0,5 % (СН 4.04.01-2019, п. 9.14); сопротивление меди 0,0225 Ом·мм²/м. Коэффициенты спроса и одновременности приняты по практике, их сверка с таблицами СН 4.04.01-2019 не выполнена.</p>
-        <p>Ввод: до 12 кВт расчётной нагрузки однофазный, больше 12 кВт трёхфазный (СН 4.04.01-2019, п. 9.12). Вводной автомат выбирается на две ступени выше наибольшего группового (п. 10.5). Отключение короткого замыкания проверяется при времени 0,4 с для 230 В (ТКП 339-2022, п. 4.3.5.4, табл. 4.3.1) по сопротивлению петли фаза-нуль питающей сети, которое задаёт пользователь; сопротивление жил считается без учёта индуктивности, расчёт по ГОСТ 28249 не выполнялся.</p>
-        <p>Потеря напряжения не более 4 % от номинального напряжения установки по ГОСТ 30331.15-2001, п. 525: этот предел можно включить в параметрах. Сечение нулевого проводника принято равным фазному до 16 мм² (п. 524.2). Допустимые токи самого ГОСТ 30331.15 не содержит (п. 523 отсылает к другому стандарту), поэтому значения взяты из ПУЭ и не сверены с таблицами МЭК 364-5-523.</p>
-        <p>Длины кабеля в спецификации взяты из длин групп с запасом 10 %. Сам ввод, трассу в щиток и расход мелочи уточняйте по месту.</p>
-        <p>Нормативная база: ТКП 339-2022 с изменением № 1 (действует с 01.08.2025); СН 4.04.01-2019 «Системы электрооборудования жилых и общественных зданий»; ПУЭ, табл. 1.3.3 и 1.3.4; ГОСТ 30331.15-2001. Изменение № 2 к СН 4.04.01-2019 вступает в силу 07.12.2026 и в расчёте пока не учтено. Раздел 8 ТКП 339-2022 исключён изменением № 1, требования к жилым зданиям перенесены в СП 4.04.04-2023, сверка с ним не выполнена.</p>
-        <p>Результат предварительный. Проект щитка и монтаж согласуйте с аттестованным электриком.</p>
+      <TabPanel scope="rep" id="print" cur={tab}>
+      <h3 className="sec-t">Отчёт</h3>
+      <p className="muted">Группы, схема, спецификация, смета и допущения с реквизитами и подписью.</p>
+      <div className="copy-row">
+        <button className="btn primary" type="button" onClick={() => onPrint('report')}>Печать / PDF</button>
+        <button className="btn" type="button" onClick={copy}>Скопировать отчёт</button>
       </div>
+      {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
+      <h3 className="sec-t">Для монтажа</h3>
+      <div className="copy-row">
+        <button className="btn" type="button" onClick={() => onPrint('proto')}>Печать протокола</button>
+        <button className="btn" type="button" onClick={() => onPrint('stickers')}>Наклейки щитка</button>
+        <button className="btn" type="button" onClick={() => onPrint('tags')}>Бирки кабелей</button>
+      </div>
+      <h3 className="sec-t">Паспорт для владельца</h3>
+      <p className="muted">Страница для заказчика: что на каком автомате, сколько можно включать и что делать, если выбило. Отправьте ссылкой или распечатайте с QR-кодом для дверцы щитка.</p>
+      <div className="copy-row">
+        <button className="btn" type="button" onClick={() => onPrint('passport')}>Печать паспорта</button>
+      </div>
+      <ShareBlock p={p} owner />
       </TabPanel>
     </Sheet>
   );

@@ -10,7 +10,6 @@ import { hreducer, initH } from '../store/history';
 import { loadStore, saveStore } from '../store/storage';
 import { libReducer, loadLib, saveLib } from '../store/lib';
 import { LibContext } from '../store/LibContext';
-import { LibSheet } from './LibSheet';
 import { gcPhotos } from '../store/photos';
 import { referencedPhotoIds } from '../core/photos';
 import { CompareSheet } from './CompareSheet';
@@ -25,7 +24,6 @@ import { Totals } from './Totals';
 import { NetSheet, ProjectsSheet, ReportSheet } from './sheets';
 import { PrintDoc } from './PrintDoc';
 import { WorkSheet } from './WorkSheet';
-import { PanelMode } from './PanelMode';
 import { IncomingSheet } from './IncomingSheet';
 import { ShopSheet } from './ShopSheet';
 import { readEstimateHash, readOwnerHash, readShareHash, unpackEstimate, unpackProject } from '../core/share';
@@ -37,7 +35,7 @@ import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 
 type View = 'groups' | 'edit' | 'sum' | 'panel';
-type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | null;
+type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'cmp' | 'rooms' | 'shop' | null;
 
 const waitPhotos = async (n: number): Promise<void> => {
   const deadline = Date.now() + 2500;
@@ -60,6 +58,8 @@ export function App() {
   const [printMode, setPrintMode] = useState<PrintMode>('report');
   const [pal, setPal] = useState(false);
   const [repWant, setRepWant] = useState<{ tab: string; n: number } | undefined>(undefined);
+  const [workWant, setWorkWant] = useState<{ tab: string; n: number } | undefined>(undefined);
+  const [projWant, setProjWant] = useState<{ tab: string; n: number } | undefined>(undefined);
   const scrollPos = useRef(0);
   const [incoming, setIncoming] = useState<Project | null>(() => {
     const h = readShareHash(window.location.hash);
@@ -172,25 +172,34 @@ export function App() {
     setRepWant({ tab: t, n: Date.now() });
     setSheet('rep');
   };
+  const openWork = (t: string) => {
+    setWorkWant({ tab: t, n: Date.now() });
+    setSheet('work');
+  };
+  const openProj = (t: string) => {
+    setProjWant({ tab: t, n: Date.now() });
+    setSheet('proj');
+  };
   const cmds: Cmd[] = [
     ...p.lines.map((l, i) => ({ id: 'g' + l.id, group: 'Группы', label: 'Г' + (i + 1) + ' ' + (l.name || 'Без названия'), hint: l.where || TYPES[l.type].short, words: 'группа', run: () => { setSheet(null); dispatch({ t: 'select', id: l.id }); goEdit(); } })),
     { id: 'add-l', group: 'Добавить', label: 'Добавить группу освещения', words: 'свет новая', run: () => addGroup('light') },
     { id: 'add-s', group: 'Добавить', label: 'Добавить розеточную группу', words: 'розетки новая', run: () => addGroup('socket') },
     { id: 'add-p', group: 'Добавить', label: 'Добавить мощный прибор', words: 'плита бойлер новая группа', run: () => addGroup('power') },
     { id: 'rooms', group: 'Добавить', label: 'Собрать группы из комнат', words: 'комнаты', run: () => setSheet('rooms') },
-    { id: 'rep', group: 'Документы', label: 'Отчёт и спецификация', words: 'отчет', run: () => openRep('groups') },
+    { id: 'rep', group: 'Документы', label: 'Документы: группы, схема, смета, печать', words: 'отчет отчёт спецификация', run: () => openRep('groups') },
     { id: 'est', group: 'Документы', label: 'Смета: работы и материалы', words: 'цены стоимость клиент', run: () => openRep('estimate') },
     { id: 'scheme', group: 'Документы', label: 'Однолинейная схема', words: 'схема', run: () => openRep('scheme') },
     { id: 'print', group: 'Документы', label: 'Печать отчёта в PDF', words: 'pdf распечатать', run: () => doPrint('report') },
     { id: 'shop', group: 'Документы', label: 'Где купить', words: 'магазин прайс закупка', run: () => setSheet('shop') },
     { id: 'cmp', group: 'Документы', label: 'Сравнить варианты', words: 'что если', run: () => setSheet('cmp') },
-    { id: 'work', group: 'Монтаж', label: 'Монтаж и приёмка', words: 'чек-лист протокол паспорт', run: () => setSheet('work') },
-    { id: 'panel', group: 'Монтаж', label: 'Режим «На щитке»', words: 'замеры', run: () => setSheet('panel') },
+    { id: 'work', group: 'Монтаж', label: 'Монтаж и приёмка', words: 'чек-лист', run: () => openWork('check') },
+    { id: 'panel', group: 'Монтаж', label: 'Замеры на щитке', words: 'замеры петля изоляция узо', run: () => openWork('meas') },
+    { id: 'docs', group: 'Документы', label: 'Печать документов', words: 'наклейки бирки паспорт протокол pdf', run: () => openRep('print') },
     { id: 'proto', group: 'Монтаж', label: 'Печать протокола замеров', words: 'pdf', run: () => doPrint('proto') },
     { id: 'pass', group: 'Монтаж', label: 'Печать паспорта для владельца', words: 'pdf qr', run: () => doPrint('passport') },
     { id: 'net', group: 'Проект', label: 'Параметры сети', words: 'фазы ввод мощность прокладка', run: () => setSheet('net') },
-    { id: 'proj', group: 'Проект', label: 'Проекты', words: 'открыть новый файл ссылка', run: () => setSheet('proj') },
-    { id: 'lib', group: 'Проект', label: 'Мои данные', words: 'реквизиты приборы шаблоны логотип', run: () => setSheet('lib') },
+    { id: 'proj', group: 'Проект', label: 'Проекты', words: 'открыть новый файл ссылка', run: () => openProj('main') },
+    { id: 'lib', group: 'Проект', label: 'Мои данные: реквизиты, приборы, цены', words: 'реквизиты приборы шаблоны логотип', run: () => openProj('brand') },
     ...(a.phases ? [{ id: 'bal', group: 'Проект', label: 'Выровнять нагрузку по фазам', words: 'фазы', run: () => { dispatch({ t: 'balance' }); toastUndo('Фазы выровнены', undo); } }] : []),
     ...(hist.past.length ? [{ id: 'undo', group: 'Проект', label: 'Отменить', hint: 'Ctrl+Z', run: undo }] : []),
     ...(hist.future.length ? [{ id: 'redo', group: 'Проект', label: 'Вернуть', hint: 'Ctrl+Shift+Z', run: () => dispatch({ t: 'redo' }) }] : [])
@@ -260,17 +269,13 @@ export function App() {
                 <IconSearch />
                 <span className="ab-txt">Найти</span>
               </button>
-              <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
-                <IconPanel />
-                <span className="ab-txt">На щитке</span>
-              </button>
               <button className="ab-btn desk" type="button" data-tip="Монтаж и приёмка" onClick={() => setSheet('work')}>
                 <IconCheck />
                 <span className="ab-txt">Приёмка</span>
               </button>
-              <button className="ab-btn desk" type="button" data-tip="Отчёт и спецификация" onClick={() => setSheet('rep')}>
+              <button className="ab-btn desk" type="button" data-tip="Таблица групп, схема, смета и печать" onClick={() => setSheet('rep')}>
                 <IconDoc />
-                <span className="ab-txt">Отчёт</span>
+                <span className="ab-txt">Документы</span>
               </button>
             </div>
           </div>
@@ -342,23 +347,21 @@ export function App() {
           </button>
           <button type="button" onClick={() => setSheet('rep')}>
             <IconDoc />
-            <span>Отчёт</span>
+            <span>Документы</span>
           </button>
         </nav>
 
         <NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} />
-        <ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => setSheet('lib')} />
-        <LibSheet open={sheet === 'lib'} onClose={closeSheet} />
+        <ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} want={projWant} />
         <CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} />
         <RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} />
-        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} onCompare={() => setSheet('cmp')} onShop={() => setSheet('shop')} dispatch={dispatch} want={repWant} />
+        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onCompare={() => setSheet('cmp')} onShop={() => setSheet('shop')} dispatch={dispatch} want={repWant} />
         <Palette open={pal} onClose={() => setPal(false)} cmds={cmds} />
         <ShopSheet open={sheet === 'shop'} onClose={closeSheet} a={a} />
         <Toaster />
         <HoverTips />
-        <PanelMode open={sheet === 'panel'} onClose={closeSheet} a={a} dispatch={dispatch} />
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
-        <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} />
+        <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} want={workWant} />
       </div>
       <PrintDoc p={p} a={a} mode={printMode} />
     </LibContext.Provider>
