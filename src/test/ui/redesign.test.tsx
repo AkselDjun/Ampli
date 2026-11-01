@@ -444,23 +444,35 @@ describe('Side folds', () => {
     expect(screen.queryByRole('heading', { name: 'Запас автоматов' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Состав щитка' })).toBeNull();
   });
-  it('the panel block switches between scheme, reserve and schedule', async () => {
+  it('the panel block shows the rail and one list with load bars, no tabs', async () => {
     const user = userEvent.setup();
-    const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]);
+    const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]]), mkLine('B', 'power', 5, 1, 1, [['x', 2200, 1]])]);
     const a = calcAll(p.lines, p.cfg);
-    render(<PanelPane a={a} />);
-    const tabs = screen.getAllByRole('tab').map(t => t.textContent);
-    expect(tabs).toEqual(['Схема', 'Запас автоматов', 'Состав']);
+    const pick = vi.fn();
+    render(<PanelPane a={a} onPick={pick} />);
+    expect(screen.queryAllByRole('tab')).toEqual([]);
     expect(document.querySelector('.rail')).not.toBeNull();
-    await user.click(screen.getByRole('tab', { name: 'Запас автоматов' }));
-    expect(document.querySelector('.gl')).toBeInTheDocument();
-    await user.click(screen.getByRole('tab', { name: 'Состав' }));
-    expect(document.querySelector('.sc')).toBeInTheDocument();
+    const items = Array.from(document.querySelectorAll<HTMLElement>('.bd-r'));
+    expect(items.length).toBe(3);
+    expect(items[0].querySelector('.bd-name')?.textContent).toBe('Вводной автомат');
+    expect(items[0].querySelector('.bd-load small')?.textContent).toMatch(/\/ \d+ А$/);
+    expect(items[1].querySelector('.bd-sub')?.textContent).toBe('дифавтомат 30 мА, 1,5 мм²');
+    expect(items[2].querySelector('.gl-bar i')).toHaveClass('warn');
+    await user.click(items[1].querySelector('button.bd-b') as HTMLElement);
+    expect(pick).toHaveBeenCalledWith(p.lines[0].id);
+    const help = document.querySelector('.bd-help') as HTMLDetailsElement;
+    expect(help.open).toBe(false);
+    expect(help.textContent).toContain('Полоса загрузки');
   });
-  it('hides the reserve tab when no group has a breaker', () => {
-    const a = calcAll([], defaultCfg());
-    render(<PanelPane a={a} />);
-    expect(screen.getAllByRole('tab').map(t => t.textContent)).toEqual(['Схема', 'Состав']);
+  it('shows a static list without a pick handler and an empty board', () => {
+    const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]);
+    render(<PanelPane a={calcAll(p.lines, p.cfg)} />);
+    expect(document.querySelector('button.bd-b')).toBeNull();
+    expect(document.querySelectorAll('div.bd-b').length).toBe(2);
+  });
+  it('lists nothing for an empty project', () => {
+    render(<PanelPane a={calcAll([], defaultCfg())} />);
+    expect(document.querySelectorAll('.bd-r').length).toBe(0);
   });
   it('phase fold opens on imbalance with a badge and balance button', async () => {
     const user = userEvent.setup();

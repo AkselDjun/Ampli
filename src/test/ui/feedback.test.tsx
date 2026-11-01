@@ -38,18 +38,18 @@ describe('panel board in RCD mode', () => {
     expect(legend.textContent).not.toContain('Дифавтомат');
     const ex = document.querySelector('.explain') as HTMLElement;
     expect(ex.textContent).toContain('своя нулевая шина');
-    expect(ex.textContent).toContain('Комнаты');
-    expect(ex.textContent).toContain('Группы Г1, Г2');
-    expect(ex.textContent).toContain('Ванная');
+    const list = document.querySelector('.bd-list') as HTMLElement;
+    expect(list.textContent).toContain('УЗО: Комнаты');
+    expect(list.textContent).toContain('Г1, Г2');
   });
-  it('lists RCDs in the schedule tab with their own neutral bus', () => {
+  it('lists RCDs with their own neutral bus and indents their breakers', () => {
     const p = proj(lines(), { prot: 'rcd' });
     render(<PanelPane a={calcAll(p.lines, p.cfg)} />);
-    fireEvent.click(screen.getByRole('tab', { name: 'Состав' }));
-    const sc = document.querySelector('.sc') as HTMLElement;
+    const sc = document.querySelector('.bd-list') as HTMLElement;
     expect(sc.textContent).toContain('своя шина N');
-    expect(sc.textContent).toContain('Ванная');
-    expect(sc.textContent).toContain('автомат');
+    expect(sc.textContent).toContain('УЗО: Ванная');
+    expect(sc.querySelectorAll('.bd-r.sub').length).toBe(3);
+    expect(sc.querySelector('.bd-r.sub .bd-sub')?.textContent).toBe('автомат, 1,5 мм²');
   });
   it('explains residual-current breakers in the default mode', () => {
     const p = proj(lines());

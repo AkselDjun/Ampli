@@ -1,9 +1,9 @@
 import type { Calc } from '../core/types';
-import { fmt, plural } from '../core/format';
+import { fmt, fs, plural } from '../core/format';
 import { ROWLEN } from '../core/norms';
 import { layout } from '../core/calc';
 import { Fragment, useState } from 'react';
-import { Fold, TabPanel, Tabs, Tip } from './common';
+import { Fold, Tip } from './common';
 import { inCableName } from '../core/protection';
 
 function Kv({ l, v }: { l: string; v: string }) {
@@ -120,8 +120,6 @@ export function shortName(t: string): string {
 export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string) => void; onMove?: (id: string, to: string) => void }) {
   const [drag, setDrag] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
-  const [tab, setTab] = useState('rail');
-  const gl = a.rows.filter(x => !x.r.empty && x.r.In);
   const kinds = new Set(a.devs.map(d => d.kind));
   const c = a.c;
   const rl = ROWLEN[a.size];
@@ -135,8 +133,6 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
   return (
     <div className="pane-panel">
       <Fold title="Щиток" className="c-panel" open>
-        <Tabs scope="bd" label="Разделы щитка" cur={tab} onChange={setTab} items={[{ id: 'rail', label: 'Схема' }, ...(gl.length > 0 ? [{ id: 'reserve', label: 'Запас автоматов' }] : []), { id: 'sched', label: 'Состав' }]} />
-        <TabPanel scope="bd" id="rail" cur={tab}>
         <p className="muted">
           Приборов на {a.modSum} мод. Нужен корпус на <b>{a.size}</b> мод. с запасом 20 %{a.fits ? '.' : ', но и он тесен: разделите щиток на два.'}
         </p>
@@ -197,51 +193,48 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
           <span><i className="dev-free" style={{ border: '1px dashed var(--ink-2)' }} />Резерв</span>
           <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Порядок меняется перетаскиванием или клавишами Alt и стрелка. Цвет рычажка показывает статус группы.</Tip>
         </div>
-        <dl className="explain">
-          {a.inIn && <div><dt>Вводной автомат C{a.inIn}</dt><dd>Отключает всю квартиру. Стоит первым, номинал на две ступени выше самого большого группового.</dd></div>}
-          {kinds.has('rcd') && <div><dt>Дифавтомат</dt><dd>Защищает свою группу от перегрузки, короткого замыкания и утечки тока. При неисправности отключается только эта группа.</dd></div>}
-          {kinds.has('uzo') && <div><dt>УЗО</dt><dd>Отключает помещение при утечке тока (касание провода, пробой изоляции). От перегрузки не защищает, поэтому после него стоят автоматы. У каждого УЗО своя нулевая шина: нули его групп нельзя смешивать с другими.</dd></div>}
-          {kinds.has('mcb') && <div><dt>Автомат</dt><dd>Защищает кабель группы от перегрузки и короткого замыкания.</dd></div>}
-          {a.uzos.map(u => <div key={u.zone}><dt>УЗО {u.In} А {u.ma} мА: {u.zone}</dt><dd>Группы {u.groups.map(g => 'Г' + (g + 1)).join(', ')}; сумма автоматов {u.sumIn} А{a.inIn ? ', вводной C' + a.inIn : ''}.</dd></div>)}
-        </dl>
-        </TabPanel>
-        {gl.length > 0 && (
-          <TabPanel scope="bd" id="reserve" cur={tab}>
-            <p className="muted">Доля номинала автомата, которую занимает ток группы. Жёлтый — больше 80 %, красный — перегруз.</p>
-            <div className="gl">
-              {gl.map(x => {
-                const u = x.r.I / (x.r.In as number) * 100;
-                const cl = u > 100 ? 'bad' : (u > 80 ? 'warn' : '');
-                return (
-                  <div className="gl-r" key={x.l.id}>
-                    <span className="no">Г{a.rows.indexOf(x) + 1}</span>
-                    <span className="gl-name">{x.l.name || 'Без названия'}</span>
-                    <b>{fmt(x.r.I, 1)} из {x.r.In} А</b>
-                    <div className="gl-bar" role="img" aria-label={'Загрузка автомата ' + Math.round(u) + ' %'}>
-                      <i className={cl} style={{ width: Math.min(100, u) + '%' }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </TabPanel>
-        )}
-        <TabPanel scope="bd" id="sched" cur={tab}>
-        <div className="sc">
+        <ul className="bd-list" aria-label="Состав щитка">
           {a.devs.map((d, i) => {
-            const g = d.kind === 'in' || d.kind === 'uzo' ? '' : d.sub.split(' ')[0];
+            const row = d.lid ? a.rows.find(y => y.l.id === d.lid) : undefined;
+            const g = d.lid ? d.sub.split(' ')[0] : '';
+            const load = d.kind === 'in' ? (a.inIn ? a.Itot / a.inIn * 100 : 0) : (row && row.r.In ? row.r.I / row.r.In * 100 : null);
+            const cl = load === null ? '' : (load > 100 ? 'bad' : (load > 80 ? 'warn' : ''));
+            const u = d.kind === 'uzo' ? a.uzos.find(z => z.zone === d.zone) : undefined;
+            const name = d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? 'УЗО: ' + d.zone : nameOf[g]);
+            const kind = d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'rcd' ? 'дифавтомат ' + d.ma + ' мА' : (d.kind === 'uzo' ? d.sub.replace('мА', ' мА') + ', своя шина N' : 'автомат'));
+            const body = (
+              <>
+                <span className={'bd-no k-' + d.kind}>{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : g)}</span>
+                <span className="bd-main">
+                  <span className="bd-name">{name}</span>
+                  <span className="bd-sub">{kind}{row && row.r.S ? ', ' + fs(row.r.S) + ' мм²' : ''}{u ? ' · ' + u.groups.map(k => 'Г' + (k + 1)).join(', ') : ''}</span>
+                </span>
+                <b className="bd-lbl">{d.label}</b>
+                {load !== null && (
+                  <span className="bd-load">
+                    <span className="gl-bar" role="img" aria-label={'Загрузка ' + Math.round(load) + ' %'}><i className={cl} style={{ width: Math.min(100, load) + '%' }} /></span>
+                    <small>{d.kind === 'in' ? fmt(a.Itot, 0) : fmt((row as NonNullable<typeof row>).r.I, 1)} / {d.kind === 'in' ? a.inIn : (row as NonNullable<typeof row>).r.In} А</small>
+                  </span>
+                )}
+              </>
+            );
             return (
-              <div className="sc-r" key={i}>
-                <span className="no">{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : g)}</span>
-                <span className="sc-name">{d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? (d.zone as string) : nameOf[g])}</span>
-                <b>{d.label}</b>
-                <span className="sc-sub">{d.kind === 'rcd' ? 'дифавтомат ' + d.ma + ' мА' : (d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'uzo' ? d.ma + ' мА, своя шина N' : 'автомат'))}</span>
-                <span className="sc-m">{d.mod} мод.</span>
-              </div>
+              <li key={d.kind + i} className={'bd-r' + (d.kind === 'mcb' && c.rcdMode && d.zone ? ' sub' : '')}>
+                {d.lid && onPick ? <button type="button" className="bd-b" onClick={() => onPick(d.lid as string)}>{body}</button> : <div className="bd-b">{body}</div>}
+              </li>
             );
           })}
-        </div>
-        </TabPanel>
+        </ul>
+        <details className="bd-help">
+          <summary>Что означают аппараты</summary>
+          <dl className="explain">
+            {a.inIn && <div><dt>Вводной автомат C{a.inIn}</dt><dd>Отключает всю квартиру. Стоит первым, номинал на две ступени выше самого большого группового.</dd></div>}
+            {kinds.has('rcd') && <div><dt>Дифавтомат</dt><dd>Защищает свою группу от перегрузки, короткого замыкания и утечки тока. При неисправности отключается только эта группа.</dd></div>}
+            {kinds.has('uzo') && <div><dt>УЗО</dt><dd>Отключает помещение при утечке тока (касание провода, пробой изоляции). От перегрузки не защищает, поэтому после него стоят автоматы. У каждого УЗО своя нулевая шина: нули его групп нельзя смешивать с другими.</dd></div>}
+            {kinds.has('mcb') && <div><dt>Автомат</dt><dd>Защищает кабель группы от перегрузки и короткого замыкания.</dd></div>}
+            <div><dt>Полоса загрузки</dt><dd>Доля номинала автомата, которую занимает ток группы. Жёлтая больше 80 %, красная означает перегруз.</dd></div>
+          </dl>
+        </details>
       </Fold>
     </div>
   );
