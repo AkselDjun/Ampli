@@ -31,12 +31,12 @@ describe('Command palette', () => {
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
     expect(pal().open).toBe(true);
     expect(opts().some(t => t?.startsWith('Г1'))).toBe(true);
-    change(q(), 'работы');
+    change(q(), 'смета');
     expect(opts()).toEqual(['Смета: работы и материалы']);
     fireEvent.keyDown(q(), { key: 'Enter' });
     expect(pal().open).toBe(false);
-    expect(isOpen('Документы')).toBe(true);
-    const tab = within(dlg('Документы')).getByRole('tab', { name: 'Смета', hidden: true });
+    expect(isOpen('Отчёт и спецификация')).toBe(true);
+    const tab = within(dlg('Отчёт и спецификация')).getByRole('tab', { name: 'Смета', hidden: true });
     expect(tab).toHaveAttribute('aria-selected', 'true');
     fireEvent.keyDown(document, { key: 'k', metaKey: true });
     expect(pal().open).toBe(true);
@@ -107,7 +107,7 @@ describe('Command palette', () => {
     wide(true);
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     render(<App />);
-    const labels = ['Добавить группу освещения', 'Добавить розеточную группу', 'Добавить мощный прибор', 'Собрать группы из комнат', 'Документы: группы, схема, смета, печать', 'Однолинейная схема', 'Печать отчёта в PDF', 'Где купить', 'Сравнить варианты', 'Монтаж и приёмка', 'Замеры на щитке', 'Печать документов', 'Печать протокола замеров', 'Печать паспорта для владельца', 'Проекты', 'Мои данные: реквизиты, приборы, цены'];
+    const labels = ['Добавить группу освещения', 'Добавить розеточную группу', 'Добавить мощный прибор', 'Собрать группы из комнат', 'Отчёт и спецификация', 'Однолинейная схема', 'Печать отчёта в PDF', 'Где купить', 'Сравнить варианты', 'Монтаж и приёмка', 'Режим «На щитке»', 'Печать протокола замеров', 'Печать паспорта для владельца', 'Проекты', 'Мои данные'];
     labels.forEach(l => {
       fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true });
       if (!pal().open) fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true });

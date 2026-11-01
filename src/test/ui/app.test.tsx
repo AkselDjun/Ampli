@@ -122,17 +122,17 @@ describe('App', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(isOpen('Параметры сети')).toBe(false);
     click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
-    expect(isOpen('Проекты и данные')).toBe(true);
-    click(dlg('Проекты и данные'), 'Реквизиты');
-    expect(isOpen('Проекты и данные')).toBe(true);
-    click(dlg('Проекты и данные'), 'Закрыть');
+    expect(isOpen('Проекты')).toBe(true);
+    click(dlg('Проекты'), 'Мои данные');
+    expect(isOpen('Мои данные')).toBe(true);
+    click(dlg('Мои данные'), 'Закрыть');
     click(document.querySelector('.col-list') as HTMLElement, '+ Добавить группу');
     click(document.querySelector('.col-list') as HTMLElement, 'Из комнат');
     expect(isOpen('Комнаты')).toBe(true);
     fireEvent.click(dlg('Комнаты').parentElement as HTMLElement);
     expect(isOpen('Комнаты')).toBe(false);
-    click(nav, /Документы/);
-    click(dlg('Документы'), 'Сравнить варианты');
+    click(nav, /Отчёт/);
+    click(dlg('Отчёт и спецификация'), 'Сравнить варианты');
     expect(isOpen('Сравнение вариантов')).toBe(true);
     fireEvent.keyDown(document, { key: 'Escape' });
     click(nav, /Приёмка/);
@@ -140,7 +140,7 @@ describe('App', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     click(bar, /Приёмка/);
     fireEvent.keyDown(document, { key: 'Escape' });
-    click(bar, /Документы/);
+    click(bar, /Отчёт/);
     fireEvent.keyDown(document, { key: 'Escape' });
     click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
     expect(isOpen('Параметры сети')).toBe(true);
@@ -151,13 +151,14 @@ describe('App', () => {
     document.title = 'orig';
     render(<App />);
     const nav = screen.getByRole('navigation', { name: 'Разделы' });
-    fireEvent.click(within(nav).getByRole('button', { name: /Документы/ }));
-    fireEvent.click(screen.getByRole('tab', { name: 'Печать' }));
+    fireEvent.click(within(nav).getByRole('button', { name: /Отчёт/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Печать / PDF' }));
     expect(document.title).toContain('Ampli');
     act(() => { vi.advanceTimersByTime(60); });
     expect(window.print).toHaveBeenCalledTimes(1);
     expect(document.title).toBe('orig');
+    fireEvent.click(within(nav).getByRole('button', { name: /Приёмка/ }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Документы' }));
     fireEvent.click(screen.getByRole('button', { name: 'Печать протокола' }));
     expect(document.querySelector('.printdoc h1')?.textContent).toBe('Протокол замеров');
     fireEvent.click(screen.getByRole('button', { name: 'Наклейки щитка' }));
@@ -172,8 +173,7 @@ describe('App', () => {
     vi.useFakeTimers();
     (window.print as ReturnType<typeof vi.fn>).mockImplementation(() => { throw new Error('x'); });
     render(<App />);
-    fireEvent.click(within(screen.getByRole('navigation', { name: 'Разделы' })).getByRole('button', { name: /Документы/ }));
-    fireEvent.click(screen.getByRole('tab', { name: 'Печать' }));
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Разделы' })).getByRole('button', { name: /Отчёт/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Печать / PDF' }));
     expect(() => act(() => { vi.advanceTimersByTime(60); })).not.toThrow();
   });
@@ -181,7 +181,7 @@ describe('App', () => {
   it('switching project resets the view', () => {
     render(<App />);
     click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
-    const d = dlg('Проекты и данные');
+    const d = dlg('Проекты');
     click(d, '+ Новый проект');
     click(d, /Студия/);
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'groups');

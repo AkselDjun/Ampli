@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, fireEvent, act, within } from '@testing-library/react';
+import { render, fireEvent, act } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { KEY } from '../../store/storage';
 import { LIB_KEY } from '../../store/lib';
@@ -31,24 +31,18 @@ describe('WorkSheet', () => {
     change(d.querySelector('#pBy') as HTMLElement, 'Иванов');
     change(d.querySelector('#pDev') as HTMLElement, 'MI-3152');
     expect(stored().list[0].proto.by).toBe('Иванов');
-    expect(d.querySelector('.proto-d summary')?.textContent).toBe('Данные протокола: 04.03.2026, Иванов, MI-3152');
-    expect(d.textContent).not.toContain('Печать протокола');
-    fireEvent.keyDown(document, { key: 'Escape' });
-    click(nav(), /Документы/);
-    const docs = dlg('Документы');
-    fireEvent.click(within(docs).getByRole('tab', { name: 'Печать', hidden: true }));
-    click(docs, 'Печать протокола');
+    click(d, 'Печать протокола');
     act(() => { vi.advanceTimersByTime(60); });
     expect(document.querySelector('.printdoc')?.textContent).toContain('MI-3152');
     expect(document.querySelector('.printdoc')?.textContent).toContain('☑');
-    click(docs, 'Наклейки щитка');
+    click(d, 'Наклейки щитка');
     expect(document.querySelectorAll('.stk-i').length).toBeGreaterThan(2);
-    click(docs, 'Бирки кабелей');
+    click(d, 'Бирки кабелей');
     expect(document.querySelectorAll('.tag').length).toBeGreaterThan(2);
     act(() => { vi.advanceTimersByTime(60); });
   });
 
-  it('fills measurements in the editor and shows verdicts on the board and in print', () => {
+  it('fills measurements and shows verdicts in table and print', () => {
     wide(true);
     render(<App />);
     fireEvent.click(document.querySelectorAll<HTMLElement>('.rows .row')[0]);
@@ -65,9 +59,8 @@ describe('WorkSheet', () => {
     change(byLabel(ed, 'Замер петли фаза-нуль, Ом'), '0.9');
     click(nav(), /Приёмка/);
     const d = dlg('Монтаж и приёмка');
-    fireEvent.click(within(d).getByRole('tab', { name: /Замеры на щитке/, hidden: true }));
-    expect(d.querySelectorAll('.pmb-lever.v-ok').length).toBeGreaterThan(0);
-    expect(d.querySelectorAll('.pmb-lever.v-bad').length).toBeGreaterThan(0);
+    expect(d.querySelectorAll('.pill.ok').length).toBeGreaterThan(0);
+    expect(d.querySelectorAll('.pill.bad, .pill.warn').length).toBeGreaterThan(0);
     expect(document.querySelector('.printdoc')?.textContent).toContain('Протокол замеров');
   });
 });
@@ -75,8 +68,8 @@ describe('WorkSheet', () => {
 describe('CompareSheet', () => {
   it('toggles exclusions and add-ons and resets', () => {
     render(<App />);
-    click(nav(), /Документы/);
-    click(dlg('Документы'), 'Сравнить варианты');
+    click(nav(), /Отчёт/);
+    click(dlg('Отчёт и спецификация'), 'Сравнить варианты');
     const d = dlg('Сравнение вариантов');
     const reset = Array.from(d.querySelectorAll('button')).find(b => b.textContent === 'Сбросить') as HTMLButtonElement;
     expect(reset.disabled).toBe(true);
@@ -146,8 +139,8 @@ describe('RoomsSheet', () => {
 describe('LibSheet', () => {
   const openLib = () => {
     click(list(), 'Проекты');
-    click(dlg('Проекты и данные'), 'Реквизиты');
-    return dlg('Проекты и данные');
+    click(dlg('Проекты'), 'Мои данные');
+    return dlg('Мои данные');
   };
 
   it('shows empty states and edits brand, with price clearing disabled', () => {
@@ -169,26 +162,25 @@ describe('LibSheet', () => {
     fireEvent.click(document.querySelectorAll<HTMLElement>('.rows .row')[0]);
     click(document.querySelector('.col-edit') as HTMLElement, 'Сохранить приборы группы в мои');
     click(list(), 'Проекты');
-    const pj = dlg('Проекты и данные');
+    const pj = dlg('Проекты');
     click(pj, 'Сохранить как шаблон');
-    click(pj, 'Реквизиты');
-    const d = dlg('Проекты и данные');
-    const P = (id: string) => d.querySelector('#pj-tp-' + id) as HTMLElement;
+    click(pj, 'Мои данные');
+    const d = dlg('Мои данные');
     const n = d.querySelectorAll('.lib-r').length;
     expect(n).toBeGreaterThan(1);
     fireEvent.click(d.querySelector('.lib-r .icon-btn') as HTMLElement);
-    click(P('tpl'), 'Удалить');
-    click(P('tpl'), 'Точно?');
+    click(d, 'Удалить');
+    click(d, 'Точно?');
     expect(lib().templates.length).toBe(0);
     fireEvent.keyDown(document, { key: 'Escape' });
-    click(nav(), /Документы/);
-    change(dlg('Документы').querySelector('.price-in') as HTMLElement, '5');
+    click(nav(), /Отчёт/);
+    change(dlg('Отчёт и спецификация').querySelector('.price-in') as HTMLElement, '5');
     fireEvent.keyDown(document, { key: 'Escape' });
     click(list(), 'Проекты');
-    click(pj, 'Реквизиты');
+    click(pj, 'Мои данные');
     expect(d.textContent).toContain('1 позиция');
-    click(P('tpl'), 'Очистить все цены');
-    click(P('tpl'), 'Точно очистить?');
+    click(d, 'Очистить все цены');
+    click(d, 'Точно очистить?');
     expect(lib().prices).toEqual({});
   });
 
@@ -213,8 +205,8 @@ describe('LibSheet', () => {
     vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => undefined);
     render(<App />);
     click(list(), 'Проекты');
-    click(dlg('Проекты и данные'), 'Реквизиты');
-    const d = dlg('Проекты и данные').querySelector('#pj-tp-brand') as HTMLElement;
+    click(dlg('Проекты'), 'Мои данные');
+    const d = dlg('Мои данные');
     click(d, 'Загрузить логотип');
     const input = d.querySelector('input[type="file"]') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [new File(['x'], 'l.png', { type: 'image/png' })] } });

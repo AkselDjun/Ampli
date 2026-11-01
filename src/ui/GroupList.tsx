@@ -62,15 +62,7 @@ function GroupRow({
           {x.r.status !== 'ok' && !x.r.empty && (
             <span className={'flag ' + x.r.status} data-tip={STATUS[x.r.status]} aria-label={STATUS[x.r.status]}>!</span>
           )}
-          {x.r.In && (() => {
-            const u = x.r.I / (x.r.In as number) * 100;
-            return (
-              <span className="brk-w" data-tip={'Загрузка автомата ' + Math.round(u) + ' %'}>
-                <span className={'brk' + (x.r.rcbo ? ' rcd' : '')}>{x.r.curve}{x.r.In}</span>
-                <span className="brk-load" role="img" aria-label={'Загрузка автомата ' + Math.round(u) + ' %'}><i className={u > 100 ? 'bad' : (u > 80 ? 'warn' : '')} style={{ width: Math.min(100, u) + '%' }} /></span>
-              </span>
-            );
-          })()}
+          {x.r.In && <span className={'brk' + (x.r.rcbo ? ' rcd' : '')}>{x.r.curve}{x.r.In}</span>}
         </span>
         <IconChev className="chev" />
       </button>

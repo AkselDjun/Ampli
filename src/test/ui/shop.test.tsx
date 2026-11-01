@@ -17,8 +17,8 @@ const csv = (text: string, name = 'opt.csv') => {
   return f;
 };
 const openShop = () => {
-  click(nav(), /Документы/);
-  click(dlg('Документы'), 'Где купить');
+  click(nav(), /Отчёт/);
+  click(dlg('Отчёт и спецификация'), 'Где купить');
   return dlg('Где купить');
 };
 const upload = async (d: HTMLElement, f: File) => {
@@ -116,6 +116,6 @@ describe('Where to buy', () => {
     wide(false);
     render(<App />);
     expect(isOpen('Где купить')).toBe(false);
-    expect(within(dlg('Документы')).getByRole('button', { name: 'Где купить', hidden: true })).toBeTruthy();
+    expect(within(dlg('Отчёт и спецификация')).getByRole('button', { name: 'Где купить', hidden: true })).toBeTruthy();
   });
 });
