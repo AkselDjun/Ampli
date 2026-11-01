@@ -5,7 +5,8 @@ import { PanelPane, shortName } from '../../ui/Side';
 import { Schematic } from '../../ui/Schematic';
 import { PrintDoc } from '../../ui/PrintDoc';
 import { PassportBody } from '../../ui/Passport';
-import { PanelMode } from '../../ui/PanelMode';
+import { BoardMeasure } from '../../ui/BoardMeasure';
+import { WorkSheet } from '../../ui/WorkSheet';
 import { Totals, allocState } from '../../ui/Totals';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
@@ -39,18 +40,6 @@ describe('panel board in RCD mode', () => {
     expect(legend.textContent).not.toContain('Дифавтомат');
     const ex = document.querySelector('.explain') as HTMLElement;
     expect(ex.textContent).toContain('своя нулевая шина');
-    const list = document.querySelector('.bd-list') as HTMLElement;
-    expect(list.textContent).toContain('УЗО: Комнаты');
-    expect(list.textContent).toContain('Г1, Г2');
-  });
-  it('lists RCDs with their own neutral bus and indents their breakers', () => {
-    const p = proj(lines(), { prot: 'rcd' });
-    render(<PanelPane a={calcAll(p.lines, p.cfg)} />);
-    const sc = document.querySelector('.bd-list') as HTMLElement;
-    expect(sc.textContent).toContain('своя шина N');
-    expect(sc.textContent).toContain('УЗО: Ванная');
-    expect(sc.querySelectorAll('.bd-r.sub').length).toBe(3);
-    expect(sc.querySelector('.bd-r.sub .bd-sub')?.textContent).toBe('автомат, 1,5 мм²');
   });
   it('explains residual-current breakers in the default mode', () => {
     const p = proj(lines());
@@ -243,8 +232,8 @@ describe('panel mode as a real board', () => {
     ls[0].meas = { zs: '0.2' };
     const p = proj(ls, cfg);
     const dispatch = vi.fn();
-    render(<PanelMode open onClose={() => undefined} a={calcAll(p.lines, p.cfg)} dispatch={dispatch} />);
-    return { ls, dispatch, d: document.querySelector('.sheet-panel') as HTMLElement };
+    render(<BoardMeasure open a={calcAll(p.lines, p.cfg)} dispatch={dispatch} />);
+    return { ls, dispatch, d: document.body };
   };
   it('draws breakers on rails with verdict levers and opens the first unmeasured group', () => {
     const { d } = mk();
@@ -290,7 +279,7 @@ describe('panel mode as a real board', () => {
   it('wraps a long board onto several rails with blank plates', () => {
     const many = Array.from({ length: 14 }, (_, i) => mkLine('Группа ' + i, 'light', 5, null, null, [['x', 100, 1]]));
     const p = proj(many);
-    render(<PanelMode open onClose={() => undefined} a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} />);
+    render(<BoardMeasure open a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} />);
     expect(document.querySelectorAll('button.pmb-dev').length).toBe(14);
     expect(document.querySelectorAll('.pmb-free').length).toBeGreaterThan(0);
   });
@@ -342,5 +331,51 @@ describe('apartment totals in the header', () => {
     fireEvent.click(b);
     expect(document.getElementById('tot-pop')?.textContent).toContain('Макс. фаза');
     expect(document.getElementById('tot-pop')?.textContent).toContain('Нет нагрузки');
+  });
+});
+
+describe('blocks without repeats', () => {
+  it('shows the breaker load under the rating in the group list', () => {
+    wide(true);
+    render(<App />);
+    const w = rows()[0].querySelector('.brk-w') as HTMLElement;
+    expect(w.getAttribute('data-tip')).toMatch(/^Загрузка автомата \d+ %$/);
+    expect(w.querySelector('.brk-load i')).not.toHaveClass('warn');
+    const kitchen = rows().find(x => x.textContent?.includes('Розетки: кухня')) as HTMLElement;
+    expect(kitchen.querySelector('.brk-load i')).toHaveClass('warn');
+  });
+  it('keeps one place for printing and no board button in the header', () => {
+    wide(true);
+    render(<App />);
+    expect(screen.queryByRole('button', { name: 'Режим на щитке' })).toBeNull();
+    fireEvent.click(screen.getAllByRole('button', { name: /Приёмка/ })[0]);
+    const w = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Монтаж и приёмка') as HTMLElement;
+    expect(w.textContent).not.toContain('Печать протокола');
+    expect(w.textContent).not.toContain('Паспорт для владельца');
+  });
+  it('resets the chosen group when the board is closed', () => {
+    const p = proj(lines());
+    const a = calcAll(p.lines, p.cfg);
+    const { rerender } = render(<BoardMeasure open a={a} dispatch={vi.fn()} />);
+    fireEvent.click(document.querySelectorAll<HTMLElement>('button.pmb-dev')[2]);
+    expect(document.querySelector('.pm .no')?.textContent).toBe('Г3');
+    rerender(<BoardMeasure open={false} a={a} dispatch={vi.fn()} />);
+    rerender(<BoardMeasure open a={a} dispatch={vi.fn()} />);
+    expect(document.querySelector('.pm .no')?.textContent).toBe('Г1');
+  });
+});
+
+describe('acceptance window', () => {
+  it('works without saved checks or protocol and summarises partial protocol data', () => {
+    const p = proj(lines());
+    delete (p as { checks?: unknown }).checks;
+    delete (p as { proto?: unknown }).proto;
+    const a = calcAll(p.lines, p.cfg);
+    const { rerender } = render(<WorkSheet open onClose={() => undefined} p={p} a={a} dispatch={vi.fn()} />);
+    expect(document.querySelector('.proto-d summary')?.textContent).toBe('Данные протокола');
+    expect(screen.getByRole('tab', { name: 'Замеры на щитке 0/3' })).toBeTruthy();
+    rerender(<WorkSheet open onClose={() => undefined} p={{ ...p, proto: { date: '', by: '', device: 'MI-3152' } }} a={a} dispatch={vi.fn()} want={{ tab: 'meas', n: 1 }} />);
+    expect(document.querySelector('.proto-d summary')?.textContent).toBe('Данные протокола: MI-3152');
+    expect(screen.getByRole('tab', { name: 'Замеры на щитке 0/3' })).toHaveAttribute('aria-selected', 'true');
   });
 });

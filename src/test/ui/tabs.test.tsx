@@ -57,8 +57,8 @@ describe('sheets use tabs and one panel at a time', () => {
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
   };
   const cases: [string, string, string[]][] = [
-    ['Отчёт', 'Отчёт и спецификация', ['Группы', 'Схема', 'Смета', 'Допущения']],
-    ['Приёмка', 'Монтаж и приёмка', ['Чек-лист 0/10', 'Замеры', 'Документы']]
+    ['Документы', 'Документы', ['Группы', 'Схема', 'Смета', 'Печать']],
+    ['Приёмка', 'Монтаж и приёмка', ['Чек-лист 0/10', 'Замеры на щитке 0/7']]
   ];
   cases.forEach(([opener, title, labels]) => {
     it(title + ' has tabs and shows only one panel', () => {
@@ -77,37 +77,38 @@ describe('sheets use tabs and one panel at a time', () => {
       });
     });
   });
-  it('report: estimate and notes hold the spec table and the assumptions', () => {
+  it('documents: estimate, print and the assumptions under the groups table', () => {
     seed();
     render(<App />);
-    click(nav(), /Отчёт/);
-    const d = dlg('Отчёт и спецификация');
+    click(nav(), /Документы/);
+    const d = dlg('Документы');
     fireEvent.click(within(d).getByRole('tab', { name: 'Смета' }));
     expect(within(d).getByRole('button', { name: /Excel/ })).toBeTruthy();
     expect(within(d).getByRole('button', { name: 'Где купить' })).toBeTruthy();
     expect(d.querySelector('#rep-tp-estimate .est')).toBeTruthy();
-    fireEvent.click(within(d).getByRole('tab', { name: 'Допущения' }));
-    expect(d.querySelector('#rep-tp-notes .assum')).toBeTruthy();
+    fireEvent.click(within(d).getByRole('tab', { name: 'Печать' }));
+    ['Печать / PDF', 'Скопировать отчёт', 'Печать протокола', 'Наклейки щитка', 'Бирки кабелей', 'Печать паспорта'].forEach(n => expect(within(d).getByRole('button', { name: n })).toBeTruthy());
+    fireEvent.click(within(d).getByRole('tab', { name: 'Группы' }));
+    const det = d.querySelector('#rep-tp-groups details.assum-d') as HTMLDetailsElement;
+    expect(det.querySelector('summary')?.textContent).toBe('Допущения и источники');
+    expect(det.querySelector('.assum')).toBeTruthy();
     fireEvent.click(within(d).getByRole('tab', { name: 'Схема' }));
     expect(d.querySelector('#rep-tp-scheme svg')).toBeTruthy();
   });
-  it('projects and data: two sections each and Мои данные has three', () => {
+  it('projects and my data live in one window with five sections', () => {
     seed();
     render(<App />);
     click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
-    const d = dlg('Проекты');
-    expect(within(d).getAllByRole('tab').map(t => t.textContent)).toEqual(['Проекты', 'Обмен и данные']);
-    click(d, 'Мои данные');
-    const l = dlg('Мои данные');
-    expect(within(l).getAllByRole('tab').map(t => t.textContent)).toEqual(['Реквизиты', 'Приборы', 'Шаблоны и цены']);
-    fireEvent.click(within(l).getByRole('tab', { name: 'Шаблоны и цены' }));
-    expect(visible(l)).toEqual(['lib-tp-tpl']);
+    const d = dlg('Проекты и данные');
+    expect(within(d).getAllByRole('tab').map(t => t.textContent)).toEqual(['Проекты', 'Обмен', 'Реквизиты', 'Приборы', 'Шаблоны и цены']);
+    fireEvent.click(within(d).getByRole('tab', { name: 'Шаблоны и цены' }));
+    expect(visible(d)).toEqual(['pj-tp-tpl']);
   });
   it('where to buy switches to the list after a price list is loaded', () => {
     seed();
     render(<App />);
-    click(nav(), /Отчёт/);
-    click(dlg('Отчёт и спецификация'), 'Где купить');
+    click(nav(), /Документы/);
+    click(dlg('Документы'), 'Где купить');
     const d = dlg('Где купить');
     fireEvent.click(within(d).getByRole('tab', { name: 'Прайсы' }));
     expect(visible(d)).toEqual(['shop-tp-lists']);

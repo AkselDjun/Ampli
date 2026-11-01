@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { App } from '../../ui/App';
-import { PanelMode } from '../../ui/PanelMode';
+import { BoardMeasure } from '../../ui/BoardMeasure';
 import { IncomingSheet } from '../../ui/IncomingSheet';
 import { Sheet } from '../../ui/common';
 import { KEY } from '../../store/storage';
@@ -54,13 +54,17 @@ describe('Sheet props', () => {
   });
 });
 
-describe('PanelMode', () => {
-  it('opens from the header and updates verdicts while typing', () => {
+describe('Measurements on the board', () => {
+  const openMeas = () => {
+    fireEvent.click(screen.getAllByRole('button', { name: /Приёмка/ })[0]);
+    const w = dlg('Монтаж и приёмка');
+    fireEvent.click(within(w).getByRole('tab', { name: /Замеры на щитке/, hidden: true }));
+    return w;
+  };
+  it('opens from acceptance and updates verdicts while typing', () => {
     render(<App />);
-    expect(isOpen('На щитке')).toBe(false);
-    fireEvent.click(screen.getByRole('button', { name: 'Режим на щитке' }));
-    expect(isOpen('На щитке')).toBe(true);
-    const d = dlg('На щитке');
+    expect(screen.queryByRole('button', { name: 'Режим на щитке' })).toBeNull();
+    const d = openMeas();
     expect(d.querySelectorAll('button.pmb-dev').length).toBeGreaterThan(3);
     const first = d.querySelector('.pm') as HTMLElement;
     expect(first.querySelector('.no')?.textContent).toBe('Г1');
@@ -69,6 +73,7 @@ describe('PanelMode', () => {
     change(byLabel(d, 'Г1: Петля, Ом'), '0.2');
     expect(first.querySelector('.pill')?.textContent).toBe('Соответствует');
     expect(first.querySelector('.pm-note')?.textContent).toContain('Iк');
+    expect(within(d).getByRole('tab', { name: /Замеры на щитке 1\//, hidden: true })).toBeTruthy();
     change(byLabel(d, 'Г1: Петля, Ом'), '500');
     expect(first.querySelector('.pill')?.textContent).toBe('Не соответствует');
     expect(first).toHaveClass('bad');
@@ -79,21 +84,29 @@ describe('PanelMode', () => {
     expect(first.querySelector('.pill')?.textContent).toBe('Не соответствует');
     expect(stored().list[0].lines[0].meas.ins).toBe('0.1');
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(isOpen('На щитке')).toBe(false);
+    expect(isOpen('Монтаж и приёмка')).toBe(false);
   });
-  it('shows the empty state and skips unmatched rows', () => {
+  it('opens straight on the board from the command palette', () => {
+    render(<App />);
+    fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Замеры на щитке' } });
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Enter' });
+    expect(isOpen('Монтаж и приёмка')).toBe(true);
+    expect(within(dlg('Монтаж и приёмка')).getByRole('tab', { name: /Замеры на щитке/, hidden: true })).toHaveAttribute('aria-selected', 'true');
+  });
+  it('shows the empty state', () => {
     const a = calcAll([], defaultCfg());
-    render(<PanelMode open onClose={() => undefined} a={a} dispatch={() => undefined} />);
-    expect(dlg('На щитке').textContent).toContain('Добавьте группы');
-    expect(dlg('На щитке').querySelectorAll('.pmb-dev').length).toBe(0);
-    expect(dlg('На щитке').querySelector('.pm')).toBeNull();
+    render(<BoardMeasure open a={a} dispatch={() => undefined} />);
+    expect(document.body.textContent).toContain('Добавьте группы');
+    expect(document.querySelectorAll('.pmb-dev').length).toBe(0);
+    expect(document.querySelector('.pm')).toBeNull();
   });
-  it('shows no cable name when the protection is missing', () => {
+  it('sends measurements of the selected group', () => {
     const l = mkLine('Пустая', 'socket', 10, null, null, [['Чайник', 2200, 1]]);
     const a = calcAll([l], defaultCfg());
     const dispatch = vi.fn();
-    render(<PanelMode open onClose={() => undefined} a={a} dispatch={dispatch} />);
-    change(byLabel(dlg('На щитке'), 'Г1: Утечка, мА'), '2');
+    render(<BoardMeasure open a={a} dispatch={dispatch} />);
+    change(byLabel(document.body, 'Г1: Утечка, мА'), '2');
     expect(dispatch).toHaveBeenCalledWith({ t: 'lineMeasAt', id: l.id, field: 'leak', value: '2' });
   });
 });
@@ -169,8 +182,8 @@ describe('incoming project flow', () => {
 describe('ShareBlock', () => {
   const openProj = () => {
     click(list(), 'Проекты');
-    fireEvent.click(within(dlg('Проекты')).getByRole('tab', { name: 'Обмен и данные' }));
-    return dlg('Проекты');
+    fireEvent.click(within(dlg('Проекты и данные')).getByRole('tab', { name: 'Обмен' }));
+    return dlg('Проекты и данные');
   };
   const clip = (impl: () => Promise<void>) => {
     Object.defineProperty(navigator, 'clipboard', { value: { writeText: vi.fn(impl) }, configurable: true });
@@ -237,8 +250,8 @@ const btnQr = (d: HTMLElement) => within(d).getByRole('button', { name: 'QR-ко
 describe('ReportSheet downloads', () => {
   it('saves Excel and CSV files', () => {
     render(<App />);
-    click(nav(), /Отчёт/);
-    const d = dlg('Отчёт и спецификация');
+    click(nav(), /Документы/);
+    const d = dlg('Документы');
     click(d, /Excel/);
     expect(download).toHaveBeenCalledTimes(1);
     const x = vi.mocked(download).mock.calls[0];
@@ -438,6 +451,11 @@ describe('photos', () => {
   });
 });
 
+const openPrint = () => {
+  click(nav(), /Документы/);
+  fireEvent.click(within(dlg('Документы')).getByRole('tab', { name: 'Печать', hidden: true }));
+};
+
 describe('print with photos', () => {
   const setup = async (complete: boolean) => {
     await putPhoto('have', blob());
@@ -447,8 +465,8 @@ describe('print with photos', () => {
     vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(complete);
     wide(true);
     render(<App />);
-    click(nav(), /Приёмка/);
-    click(dlg('Монтаж и приёмка'), 'Печать протокола');
+    openPrint();
+    click(dlg('Документы'), 'Печать протокола');
     await waitFor(() => expect(document.querySelector('.pd-photo img')).toBeTruthy());
     await waitFor(() => expect(window.print).toHaveBeenCalledTimes(1), { timeout: 5000 });
     vi.mocked(window.print).mockClear();
@@ -462,14 +480,14 @@ describe('print with photos', () => {
   it('waits for images to load before printing', async () => {
     await setup(true);
     vi.useFakeTimers();
-    click(dlg('Монтаж и приёмка'), 'Печать протокола');
+    click(dlg('Документы'), 'Печать протокола');
     await act(async () => { await vi.advanceTimersByTimeAsync(60); });
     expect(window.print).toHaveBeenCalledTimes(1);
   });
   it('gives up waiting after the deadline', async () => {
     await setup(false);
     vi.useFakeTimers();
-    click(dlg('Монтаж и приёмка'), 'Печать протокола');
+    click(dlg('Документы'), 'Печать протокола');
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
     expect(window.print).not.toHaveBeenCalled();
     await act(async () => { await vi.advanceTimersByTimeAsync(2500); });
@@ -478,9 +496,9 @@ describe('print with photos', () => {
   it('prints at once in proto mode without photos', async () => {
     wide(true);
     render(<App />);
-    click(nav(), /Приёмка/);
+    openPrint();
     vi.useFakeTimers();
-    click(dlg('Монтаж и приёмка'), 'Печать протокола');
+    click(dlg('Документы'), 'Печать протокола');
     await act(async () => { await vi.advanceTimersByTimeAsync(60); });
     expect(window.print).toHaveBeenCalledTimes(1);
     expect(document.querySelector('.pd-photo')).toBeNull();
@@ -508,8 +526,8 @@ describe('Owner passport', () => {
     seed(p => { p.lines[0].where = 'Спальня'; });
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     render(<App />);
-    click(nav(), /Приёмка/);
-    click(dlg('Монтаж и приёмка'), 'Печать паспорта');
+    openPrint();
+    click(dlg('Документы'), 'Печать паспорта');
     const doc = document.querySelector('.printdoc') as HTMLElement;
     expect(doc.querySelector('h1')?.textContent).toBe('Паспорт электрощита');
     expect(doc.textContent).toContain('Спальня');
@@ -518,11 +536,11 @@ describe('Owner passport', () => {
     print.mockRestore();
   });
 
-  it('copies the owner link from the work sheet', async () => {
+  it('copies the owner link from the documents print tab', async () => {
     const write = clip();
     render(<App />);
-    click(nav(), /Приёмка/);
-    const d = dlg('Монтаж и приёмка');
+    openPrint();
+    const d = dlg('Документы').querySelector('#rep-tp-print') as HTMLElement;
     await act(async () => { click(d, /Ссылка для владельца/); });
     expect(write.mock.calls[0][0]).toContain('#o=v1.');
     click(d, 'QR-код');
@@ -570,21 +588,19 @@ describe('Owner passport', () => {
 });
 
 describe('RCD trip time measurement', () => {
-  it('is entered in panel mode and shows in the acceptance table', () => {
+  it('is entered on the board and marks the breaker lever', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Режим на щитке' }));
-    const d = dlg('На щитке');
+    fireEvent.click(screen.getAllByRole('button', { name: /Приёмка/ })[0]);
+    const d = dlg('Монтаж и приёмка');
+    fireEvent.click(within(d).getByRole('tab', { name: /Замеры на щитке/, hidden: true }));
     const first = d.querySelector('.pm') as HTMLElement;
     change(byLabel(d, 'Г1: УЗО, мс'), '28');
     expect(first.querySelector('.pill')?.textContent).toBe('Соответствует');
     expect(first.querySelector('.pm-note')?.textContent).toContain('УЗО до 500 мс');
     change(byLabel(d, 'Г1: УЗО, мс'), '700');
     expect(first.querySelector('.pill')?.textContent).toBe('Не соответствует');
+    expect(d.querySelector('button.pmb-dev .pmb-lever')).toHaveClass('v-bad');
     expect(stored().list[0].lines[0].meas.rcd).toBe('700');
-    fireEvent.keyDown(document, { key: 'Escape' });
-    fireEvent.click(screen.getAllByRole('button', { name: /Приёмка/ })[0]);
-    const w = dlg('Монтаж и приёмка');
-    fireEvent.click(within(w).getByRole('tab', { name: 'Замеры', hidden: true }));
-    expect(w.querySelector('td[data-label="УЗО, мс"]')?.textContent).toBe('700 / 500');
   });
 });
+

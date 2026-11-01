@@ -1,5 +1,5 @@
 import type { Calc } from '../core/types';
-import { fmt, fs, plural } from '../core/format';
+import { fmt, plural } from '../core/format';
 import { ROWLEN } from '../core/norms';
 import { layout } from '../core/calc';
 import { Fragment, useState } from 'react';
@@ -73,7 +73,6 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
   const [drag, setDrag] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
   const kinds = new Set(a.devs.map(d => d.kind));
-  const c = a.c;
   const rl = ROWLEN[a.size];
   const slots = layout(a.devs, rl);
   const gapBefore = slots.map((sl, i) => (i > 0 && sl.row > slots[i - 1].row ? sl.row * rl - (slots[i - 1].row * rl + slots[i - 1].col + a.devs[i - 1].mod) : 0));
@@ -145,38 +144,6 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
           <span><i className="dev-free" style={{ border: '1px dashed var(--ink-2)' }} />Резерв</span>
           <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Порядок меняется перетаскиванием или клавишами Alt и стрелка. Цвет рычажка показывает статус группы.</Tip>
         </div>
-        <ul className="bd-list" aria-label="Состав щитка">
-          {a.devs.map((d, i) => {
-            const row = d.lid ? a.rows.find(y => y.l.id === d.lid) : undefined;
-            const g = d.lid ? d.sub.split(' ')[0] : '';
-            const load = d.kind === 'in' ? (a.inIn ? a.Itot / a.inIn * 100 : 0) : (row && row.r.In ? row.r.I / row.r.In * 100 : null);
-            const cl = load === null ? '' : (load > 100 ? 'bad' : (load > 80 ? 'warn' : ''));
-            const u = d.kind === 'uzo' ? a.uzos.find(z => z.zone === d.zone) : undefined;
-            const name = d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? 'УЗО: ' + d.zone : nameOf[g]);
-            const kind = d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'rcd' ? 'дифавтомат ' + d.ma + ' мА' : (d.kind === 'uzo' ? d.sub.replace('мА', ' мА') + ', своя шина N' : 'автомат'));
-            const body = (
-              <>
-                <span className={'bd-no k-' + d.kind}>{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : g)}</span>
-                <span className="bd-main">
-                  <span className="bd-name">{name}</span>
-                  <span className="bd-sub">{kind}{row && row.r.S ? ', ' + fs(row.r.S) + ' мм²' : ''}{u ? ' · ' + u.groups.map(k => 'Г' + (k + 1)).join(', ') : ''}</span>
-                </span>
-                <b className="bd-lbl">{d.label}</b>
-                {load !== null && (
-                  <span className="bd-load">
-                    <span className="gl-bar" role="img" aria-label={'Загрузка ' + Math.round(load) + ' %'}><i className={cl} style={{ width: Math.min(100, load) + '%' }} /></span>
-                    <small>{d.kind === 'in' ? fmt(a.Itot, 0) : fmt((row as NonNullable<typeof row>).r.I, 1)} / {d.kind === 'in' ? a.inIn : (row as NonNullable<typeof row>).r.In} А</small>
-                  </span>
-                )}
-              </>
-            );
-            return (
-              <li key={d.kind + i} className={'bd-r' + (d.kind === 'mcb' && c.rcdMode && d.zone ? ' sub' : '')}>
-                {d.lid && onPick ? <button type="button" className="bd-b" onClick={() => onPick(d.lid as string)}>{body}</button> : <div className="bd-b">{body}</div>}
-              </li>
-            );
-          })}
-        </ul>
         <details className="bd-help">
           <summary>Что означают аппараты</summary>
           <dl className="explain">
@@ -184,7 +151,7 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
             {kinds.has('rcd') && <div><dt>Дифавтомат</dt><dd>Защищает свою группу от перегрузки, короткого замыкания и утечки тока. При неисправности отключается только эта группа.</dd></div>}
             {kinds.has('uzo') && <div><dt>УЗО</dt><dd>Отключает помещение при утечке тока (касание провода, пробой изоляции). От перегрузки не защищает, поэтому после него стоят автоматы. У каждого УЗО своя нулевая шина: нули его групп нельзя смешивать с другими.</dd></div>}
             {kinds.has('mcb') && <div><dt>Автомат</dt><dd>Защищает кабель группы от перегрузки и короткого замыкания.</dd></div>}
-            <div><dt>Полоса загрузки</dt><dd>Доля номинала автомата, которую занимает ток группы. Жёлтая больше 80 %, красная означает перегруз.</dd></div>
+            <div><dt>Полоса под автоматом в списке групп</dt><dd>Доля номинала, которую занимает ток группы. Зелёная в норме, жёлтая больше 80 %, красная означает перегруз.</dd></div>
           </dl>
         </details>
       </Fold>

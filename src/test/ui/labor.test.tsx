@@ -15,8 +15,8 @@ const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const lib = () => JSON.parse(localStorage.getItem(LIB_KEY) as string);
 const nav = () => document.querySelector('nav.tabs') as HTMLElement;
 const openEstimate = () => {
-  click(nav(), /Отчёт/);
-  const d = dlg('Отчёт и спецификация');
+  click(nav(), /Документы/);
+  const d = dlg('Документы');
   fireEvent.click(within(d).getByRole('tab', { name: 'Смета', hidden: true }));
   return d;
 };
