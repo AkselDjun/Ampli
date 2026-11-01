@@ -70,7 +70,7 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const nav = screen.getByRole('navigation', { name: 'Разделы' });
-    await user.click(within(nav).getByRole('button', { name: /Итоги/ }));
+    await user.click(within(nav).getByRole('button', { name: /Проверки/ }));
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'sum');
     await user.click(within(nav).getByRole('button', { name: /Щиток/ }));
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'panel');

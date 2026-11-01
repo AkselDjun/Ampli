@@ -6,6 +6,7 @@ import { Schematic } from '../../ui/Schematic';
 import { PrintDoc } from '../../ui/PrintDoc';
 import { PassportBody } from '../../ui/Passport';
 import { PanelMode } from '../../ui/PanelMode';
+import { Totals, allocState } from '../../ui/Totals';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
@@ -292,5 +293,54 @@ describe('panel mode as a real board', () => {
     render(<PanelMode open onClose={() => undefined} a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} />);
     expect(document.querySelectorAll('button.pmb-dev').length).toBe(14);
     expect(document.querySelectorAll('.pmb-free').length).toBeGreaterThan(0);
+  });
+});
+
+describe('apartment totals in the header', () => {
+  it('shows load against the allocation and opens the details', () => {
+    wide(true);
+    render(<App />);
+    const b = screen.getByRole('button', { name: /^Итого по квартире/ });
+    expect(b).toHaveClass('st-warn');
+    expect(b.textContent).toContain('/15');
+    expect(b).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(b);
+    const pop = document.getElementById('tot-pop') as HTMLElement;
+    expect(pop.textContent).toContain('На пределе');
+    expect(pop.textContent).toContain('Установлено');
+    expect(pop.textContent).toContain('2P C63');
+    expect(pop.textContent).toContain('ВВГнг(А)-LS 3×');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(document.getElementById('tot-pop')).toBeNull();
+    fireEvent.click(b);
+    fireEvent.pointerDown(document.body);
+    expect(document.getElementById('tot-pop')).toBeNull();
+    fireEvent.click(b);
+    fireEvent.pointerDown(document.getElementById('tot-pop') as HTMLElement);
+    expect(document.getElementById('tot-pop')).not.toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Изменить выделенную мощность' }));
+    expect(document.getElementById('tot-pop')).toBeNull();
+    const net = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Параметры сети') as HTMLElement;
+    expect((net.parentElement as HTMLElement).hidden).toBe(false);
+  });
+  it('rates the allocation for empty, normal, high and exceeded loads', () => {
+    const mk = (w: number, alloc = 15, supply = 1) => calcAll(w ? [mkLine('A', 'power', 5, null, null, [['x', w, 1]])] : [], { ...defaultCfg(), alloc, supply });
+    expect(allocState(mk(0))).toEqual({ pct: 0, k: 'ok', text: 'Нет нагрузки' });
+    expect(allocState(mk(2000)).k).toBe('ok');
+    expect(allocState(mk(2000)).text).toBe('Укладывается');
+    expect(allocState(mk(13000, 10, 3)).k).toBe('warn');
+    const bad = allocState(mk(20000, 10, 3));
+    expect(bad.k).toBe('bad');
+    expect(bad.text).toMatch(/^Превышение на \d+,\d кВт$/);
+  });
+  it('labels the phase current and dashes for an empty project', () => {
+    const a = calcAll([], { ...defaultCfg(), supply: 3 });
+    render(<Totals a={a} onNet={() => undefined} />);
+    const b = screen.getByRole('button', { name: /^Итого по квартире/ });
+    expect(b.textContent).toContain('Фаза');
+    expect(b.textContent).toContain('—');
+    fireEvent.click(b);
+    expect(document.getElementById('tot-pop')?.textContent).toContain('Макс. фаза');
+    expect(document.getElementById('tot-pop')?.textContent).toContain('Нет нагрузки');
   });
 });

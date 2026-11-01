@@ -4,16 +4,6 @@ import { ROWLEN } from '../core/norms';
 import { layout } from '../core/calc';
 import { Fragment, useState } from 'react';
 import { Fold, Tip } from './common';
-import { inCableName } from '../core/protection';
-
-function Kv({ l, v }: { l: string; v: string }) {
-  return (
-    <div className="kv">
-      <span className="lbl">{l}</span>
-      <b>{v}</b>
-    </div>
-  );
-}
 
 interface Check {
   k: 'ok' | 'warn' | 'bad';
@@ -39,21 +29,6 @@ function checksOf(a: Calc): Check[] {
 }
 
 export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: () => void; solo?: boolean }) {
-  const c = a.c;
-  const pct = c.alloc > 0 ? a.P / (c.alloc * 1000) * 100 : 0;
-  let ac: 'ok' | 'warn' | 'bad' = 'ok';
-  let at = 'Укладывается';
-  if (a.P <= 0) at = 'Нет нагрузки';
-  else if (pct > 100) {
-    ac = 'bad';
-    at = 'Превышение на ' + fmt((a.P - c.alloc * 1000) / 1000, 1) + ' кВт';
-  } else if (pct >= 90) {
-    ac = 'warn';
-    at = 'На пределе';
-  }
-  const inDev = a.inIn ? (c.supply === 3 ? '4P' : '2P') + ' C' + a.inIn : '—';
-  let inCab = '—';
-  if (a.inIn) inCab = a.inS ? inCableName(c, a.inS) : 'больше 35 мм²';
   const checks = checksOf(a);
   const problems = checks.filter(x => x.k !== 'ok').length;
   const worst: 'ok' | 'warn' | 'bad' = checks.some(x => x.k === 'bad') ? 'bad' : (problems ? 'warn' : 'ok');
@@ -61,29 +36,6 @@ export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: ()
   const cols = { L1: 'var(--l1)', L2: 'var(--l2)', L3: 'var(--l3)' };
   return (
     <div className="pane-sum">
-      <section className="card c-total">
-        <div className="card-head"><h2>Итого по квартире</h2></div>
-        <div className="kvs">
-          <Kv l="Установлено" v={fmt(a.sumInst / 1000, 1) + ' кВт'} />
-          <Kv l="Расчётная" v={fmt(a.P / 1000, 1) + ' кВт'} />
-          <Kv l={c.supply === 3 ? 'Макс. фаза' : 'Ток ввода'} v={fmt(a.Itot, 0) + ' А'} />
-        </div>
-        <div className="alloc">
-          <div className="alloc-top">
-            <span className="lbl">Выделено {fmt(c.alloc, 1)} кВт</span>
-            <span className={'pill ' + ac}>{at}</span>
-          </div>
-          <div className="meter" role="img" aria-label={'Загрузка выделенной мощности ' + Math.round(pct) + ' %'}>
-            <i className={ac === 'ok' ? '' : ac} style={{ width: Math.min(100, Math.max(0, pct)) + '%' }} />
-          </div>
-        </div>
-        <dl className="dl">
-          <dt>Вводной автомат</dt>
-          <dd>{inDev}</dd>
-          <dt>Вводной кабель</dt>
-          <dd>{inCab}</dd>
-        </dl>
-      </section>
       {checks.length > 0 && (
         <Fold title="Проверки по нормам" className="c-checks" open={solo || worst !== 'ok'} badge={<span className={'pill ' + worst}>{worst === 'ok' ? 'Всё в норме' : problems + ' ' + plural(problems, ['замечание', 'замечания', 'замечаний'])}</span>}>
           <ul className="chk">

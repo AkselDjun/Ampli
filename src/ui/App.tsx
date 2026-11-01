@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { calcAll } from '../core/calc';
-import { fmt } from '../core/format';
 import type { LineType } from '../core/types';
 import { blank } from '../core/templates';
 import { cur, init } from '../store/reducer';
@@ -22,6 +21,7 @@ import type { Cmd } from './Palette';
 import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
+import { Totals } from './Totals';
 import { NetSheet, ProjectsSheet, ReportSheet } from './sheets';
 import { PrintDoc } from './PrintDoc';
 import { WorkSheet } from './WorkSheet';
@@ -255,11 +255,7 @@ export function App() {
             </div>
             <div className="ab-main">
               <h1 className="brand"><Brand /><span>Ampli</span></h1>
-              <div className="kpis" aria-live="polite">
-                <div><span className="lbl">Мощность</span><b>{a.P > 0 ? fmt(a.P / 1000, 1) + ' кВт' : '—'}</b></div>
-                <div><span className="lbl">Ток</span><b>{a.Itot > 0 ? fmt(a.Itot, 0) + ' А' : '—'}</b></div>
-                <div><span className="lbl">Ввод</span><b>{a.inIn ? 'C' + a.inIn : '—'}</b></div>
-              </div>
+              <Totals a={a} onNet={() => setSheet('net')} />
               <button className="ab-btn" type="button" data-tip="Быстрые действия (Ctrl+K)" aria-label="Быстрые действия" aria-keyshortcuts="Control+K" onClick={() => setPal(true)}>
                 <IconSearch />
                 <span className="ab-txt">Найти</span>
@@ -334,7 +330,7 @@ export function App() {
           </button>
           <button type="button" onClick={() => tab('sum')} aria-current={view === 'sum' ? 'page' : undefined}>
             <IconBolt />
-            <span>Итоги</span>
+            <span>Проверки</span>
           </button>
           <button type="button" onClick={() => tab('panel')} aria-current={view === 'panel' ? 'page' : undefined}>
             <IconPanel />
