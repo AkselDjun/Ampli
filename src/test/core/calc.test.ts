@@ -12,7 +12,7 @@ const pw = (w: number, len = 10, type: 'light' | 'socket' | 'power' = 'power', e
 
 describe('cfgN', () => {
   it('normalizes defaults', () => {
-    expect(cfgN(cfg())).toEqual({ supply: 1, method: 'wall', drop: 0, ko: 0.75, k: 0.9, alloc: 15, safe: true, zs: 0.3, feeder: 0 });
+    expect(cfgN(cfg())).toEqual({ supply: 1, method: 'wall', drop: 0, ko: 0.75, k: 0.9, alloc: 15, safe: true, zs: 0.3, feeder: 0, rcdMode: false, box: 'brick', boxAuto: true, inCable: 'vvg' });
   });
   it('accepts three phase, open method and norm minS', () => {
     const c = cfgN(cfg({ supply: '3', method: 'open', minS: 'norm' }));
@@ -59,7 +59,8 @@ describe('calcLine basics', () => {
     const r = run(pw(2000, 10, 'socket'));
     expect([r.In, r.S, r.curve, r.rcd, r.ma, r.mod, r.status]).toEqual([16, 2.5, 'C', true, 30, 2, 'ok']);
     expect(r.pInst).toBe(2000);
-    expect(r.pd).toBeCloseTo(1400, 6);
+    expect(r.pd).toBeCloseTo(2000, 6);
+    expect(r.I).toBeCloseTo(2000 / 230, 6);
     expect(r.ikNeed).toBe(160);
     expect(r.leakLim).toBeCloseTo(10, 6);
     expect(r.leakEst).toBeCloseTo(0.1, 6);
@@ -74,21 +75,17 @@ describe('calcLine basics', () => {
     expect(run(pw(100, 500, 'light')).limit).toBeCloseTo(3.5, 6);
     expect(run(pw(100, 10, 'light'), { feeder: 1 }).limit).toBeCloseTo(2, 6);
     expect(run(pw(100, 10, 'light'), { feeder: 3 }).limit).toBe(0.5);
-    expect(run(pw(100, 10, 'light'), { drop: 2 }).limit).toBe(2);
-    expect(run(pw(100, 10, 'light'), { drop: 10 }).limit).toBe(3);
+    expect(run(pw(100, 10, 'light'), { drop: 2 }).limit).toBe(3);
   });
   it('uses 100 mA rcd above 32 A and 10 mA for wet rooms', () => {
     expect(run(pw(8000, 5)).ma).toBe(100);
     expect(run(pw(8000, 5, 'power', { wet: true })).ma).toBe(10);
     expect(run(pw(8000, 5, 'power', { wet: true })).leakLim).toBeCloseTo(10 / 3, 6);
   });
-  it('clamps kc and cos', () => {
-    const r = run(pw(1000, 10, 'power', { kc: 0, cos: 0 }));
-    expect([r.kc, r.cos]).toEqual([0.05, 0.3]);
-    const r2 = run(pw(1000, 10, 'power', { kc: 5, cos: 5 }));
-    expect([r2.kc, r2.cos]).toEqual([1, 1]);
-    const r3 = run(pw(1000, 10, 'socket', { kc: 'x', cos: 'y' }));
-    expect([r3.kc, r3.cos]).toEqual([0.7, 0.95]);
+  it('ignores stored kc and cos', () => {
+    const r = run(pw(1000, 10, 'power', { kc: 0.2, cos: 0.5 }));
+    expect([r.kc, r.cos, r.pd]).toEqual([1, 1, 1000]);
+    expect(r.I).toBeCloseTo(1000 / 230, 6);
     expect(run(pw(1000, 'bad' as unknown as number)).len).toBe(0);
   });
 });
@@ -218,7 +215,7 @@ describe('leakage and insulation', () => {
 describe('socket limits', () => {
   it('warns on large socket group', () => {
     const r = run(pw(8000, 10, 'socket'));
-    expect(r.In).toBe(32);
+    expect(r.In).toBe(40);
     expect(r.status).toBe('warn');
     expect(r.notes.some(n => n.includes('розеточной'))).toBe(true);
   });
@@ -258,7 +255,7 @@ describe('calcAll', () => {
     expect(a.devs[0].mod).toBe(2);
     expect(a.devs[1].sub).toBe('Г1 30мА');
     expect(a.inStep).toBeGreaterThan(0);
-    expect(a.hint3).toBe(false);
+    expect(a.hint3).toBe(true);
     expect(a.fits).toBe(true);
   });
   it('computes three phase totals, imbalance and fallback phase', () => {

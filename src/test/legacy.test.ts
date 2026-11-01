@@ -7,7 +7,7 @@ describe('sample apartment', () => {
   const s = sample();
   const a = calcAll(s.lines, s.cfg);
   it('picks breakers and cables', () => {
-    expect(a.rows.map(x => [x.r.In, x.r.S])).toEqual([[10, 1.5], [16, 2.5], [16, 2.5], [25, 4], [16, 2.5], [10, 2.5], [10, 2.5]]);
+    expect(a.rows.map(x => [x.r.In, x.r.S])).toEqual([[10, 1.5], [16, 2.5], [16, 2.5], [32, 4], [10, 2.5], [10, 2.5], [10, 2.5]]);
     expect([a.inIn, a.inS, a.size]).toEqual([63, 10, 24]);
     expect(a.rows.every(x => x.r.In !== null && x.r.S !== null)).toBe(true);
   });
@@ -142,9 +142,9 @@ describe('voltage drop limits', () => {
     expect(a.limit).toBe(3);
     expect(b.limit).toBe(2);
   });
-  it('caps the limit at 4 percent when chosen', () => {
+  it('uses only the СН limits even if an old drop setting is stored', () => {
     const p = mkLine('Печь', 'power', 20, null, null, [['Печь', 3000, 1]]);
     expect(calcLine(p, cfgN(defaultCfg())).limit).toBe(5);
-    expect(calcLine(p, cfgN({ ...defaultCfg(), drop: 4 })).limit).toBe(4);
+    expect(calcLine(p, cfgN({ ...defaultCfg(), drop: 4 })).limit).toBe(5);
   });
 });

@@ -142,9 +142,10 @@ describe('Editor folds', () => {
     render(<App />);
     const more = within(ed()).getByRole('button', { name: /Дополнительно/ });
     expect(more).toHaveAttribute('aria-expanded', 'false');
-    expect(more.textContent).toContain('Кс 1');
     fireEvent.click(more);
     expect(more).toHaveAttribute('aria-expanded', 'true');
+    change(screen.getByLabelText('Где находится группа'), 'Прихожая');
+    expect(more.textContent).toContain('Прихожая');
     const meas = within(ed()).getByRole('button', { name: /Замеры и фото/ });
     fireEvent.click(meas);
     change(screen.getByLabelText('Замер петли фаза-нуль, Ом'), '0.3');

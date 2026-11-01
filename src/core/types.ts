@@ -4,12 +4,16 @@ export type LineType = 'light' | 'socket' | 'power';
 export type Phase = 'L1' | 'L2' | 'L3' | '3';
 export type Status = 'ok' | 'warn' | 'bad';
 export type Num = number | string;
+export type BoxType = 'brick' | 'gkl' | 'surface';
+export type InCable = 'vvg' | 'frls' | 'nym';
 
 export interface App {
   id: string;
   name: string;
   w: Num;
   n: Num;
+  br?: Num;
+  m?: Num;
 }
 
 export interface RoomApp {
@@ -58,6 +62,9 @@ export interface Line {
   phase: Phase;
   wet?: boolean;
   meas?: Meas;
+  zone?: string;
+  sockets?: Num;
+  perSocket?: Num;
   len: Num;
   kc: Num;
   cos: Num;
@@ -74,6 +81,9 @@ export interface Cfg {
   minS: string;
   zs: Num;
   feeder: Num;
+  prot?: string;
+  box?: string;
+  inCable?: string;
 }
 
 export interface Project {
@@ -110,6 +120,10 @@ export interface CfgN {
   safe: boolean;
   zs: number;
   feeder: number;
+  rcdMode: boolean;
+  box: BoxType;
+  boxAuto: boolean;
+  inCable: InCable;
 }
 
 export interface LineResult {
@@ -124,6 +138,11 @@ export interface LineResult {
   notes: string[];
   status: Status;
   rcd: boolean;
+  rcbo: boolean;
+  zone: string;
+  uzo: number | null;
+  cable: number;
+  sockets: number;
   ma: number;
   curve: string;
   In: number | null;
@@ -144,13 +163,14 @@ export interface LineResult {
 }
 
 export interface Device {
-  kind: 'in' | 'rcd' | 'mcb';
+  kind: 'in' | 'rcd' | 'uzo' | 'mcb';
   mod: number;
   label: string;
   sub: string;
   ma?: number;
   title: string;
   lid?: string;
+  zone?: string;
   ph?: Phase;
   st?: Status;
 }
@@ -164,6 +184,16 @@ export interface Phases {
   L1: number;
   L2: number;
   L3: number;
+}
+
+export interface Uzo {
+  zone: string;
+  In: number;
+  ma: number;
+  four: boolean;
+  groups: number[];
+  leak: number;
+  sumIn: number;
 }
 
 export interface Calc {
@@ -184,6 +214,8 @@ export interface Calc {
   issues: number;
   inStep: number;
   hint3: boolean;
+  uzos: Uzo[];
+  boxes: number;
 }
 
 export interface SpecItem {

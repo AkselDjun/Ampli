@@ -40,17 +40,18 @@ export function normWork(o: unknown): WorkQty {
 
 export function autoQty(a: Calc): Record<WorkKey, number> {
   const groups = a.rows.filter(x => !x.r.empty && x.r.In);
-  const cable = Math.ceil(groups.reduce((s, x) => s + x.r.len, 0) * 1.1);
+  const cable = Math.ceil(groups.reduce((s, x) => s + x.r.cable, 0) * 1.1);
   const points = (t: LineType): number =>
     a.rows
       .filter(x => x.l.type === t)
       .reduce((s, x) => s + x.l.apps.filter(ap => pn(ap.w, 0) > 0).reduce((q, ap) => q + Math.max(1, Math.round(pn(ap.n, 1))), 0), 0);
+  const points1 = (x: Calc['rows'][number]): number => x.l.apps.filter(ap => pn(ap.w, 0) > 0).reduce((q, ap) => q + Math.max(1, Math.round(pn(ap.n, 1))), 0);
   return {
     panel: groups.length ? 1 : 0,
     module: groups.length ? a.modSum : 0,
     chase: a.c.method === 'wall' ? cable : 0,
     cable,
-    socket: points('socket'),
+    socket: a.rows.some(x => x.l.type === 'socket' && x.r.sockets > 0) ? a.rows.reduce((s, x) => s + (x.l.type === 'socket' ? (x.r.sockets || points1(x)) : 0), 0) : points('socket'),
     switch: 0,
     light: points('light'),
     power: points('power')

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import type { Calc, Line, LineType, Phase, Photo } from '../core/types';
 import { NB, fmt, fs, plural, pn, round2 } from '../core/format';
 import { STATUS, TYPES, TYPE_KEYS } from '../core/norms';
+import { ZONES } from '../core/rooms';
 import { byUsage, catalog, searchCatalog, topUsed } from '../core/catalog';
 import { whyRows } from '../core/why';
 import type { HAction } from '../store/history';
@@ -70,14 +71,16 @@ export function Editor({
   const found = searchCatalog(cat, search, lib.usage, tag);
   const often = topUsed(cat, lib.usage, tag);
   const addFrom = (name: string, w: number) => {
-    keepChips(() => dispatch({ t: 'addApp', name, w }));
+    keepChips(() => dispatch({ t: 'addApp', name, w, ...(/лент/i.test(name) ? { m: 5 } : {}) }));
     libDispatch({ t: 'use', name });
     setSearch('');
   };
   const nMeas = (['zs', 'ins', 'leak', 'rcd'] as const).filter(k => pn(l.meas?.[k], 0) > 0).length;
   const nPhotos = photos.filter(ph => ph.line === l.id).length;
   const measSum = [nMeas ? nMeas + ' ' + plural(nMeas, ['замер', 'замера', 'замеров']) : '', nPhotos ? nPhotos + ' фото' : ''].filter(Boolean).join(', ');
-  const moreSum = [l.where?.trim() ?? '', l.wet && l.type !== 'light' ? 'особо опасное помещение' : '', 'Кс ' + fs(pn(l.kc, 1)), 'cos φ ' + fs(pn(l.cos, 1))].filter(Boolean).join(', ');
+  const moreSum = [l.where?.trim() ?? '', l.type !== 'light' ? (l.wet ? 'особо опасные условия' : 'обычные условия') : ''].filter(Boolean).join(', ');
+  const zones = Array.from(new Set([...a.rows.map(y => (y.l.zone ?? '').trim()).filter(Boolean), ...ZONES]));
+  const hasBr = !!r && r.len > pn(l.len, 0);
   const setLen = (v: number) => dispatch({ t: 'lineField', field: 'len', value: Math.max(0, Math.min(500, round2(v))) });
   return (
     <section className="col col-edit" aria-label="Редактор группы">
@@ -97,7 +100,7 @@ export function Editor({
                   <Tile label="Ток" val={fmt(r.I, 1) + NB + 'А'} />
                   {r.In ? (
                     <>
-                      <Tile label="Автомат" val={r.curve + r.In} sub={r.rcd ? 'дифавтомат ' + r.ma + ' мА' : 'автомат'} />
+                      <Tile label="Автомат" val={r.curve + r.In} sub={r.rcbo ? 'дифавтомат ' + r.ma + ' мА' : r.rcd ? 'УЗО «' + r.zone + '» ' + r.ma + ' мА' : 'автомат'} />
                       <Tile label="Кабель" val={fs(r.S as number) + NB + 'мм²'} sub={(r.three ? 5 : 3) + '-жильный'} />
                       <Tile label="ΔU" val={fmt(r.drop, 1) + NB + '%'} sub={'допустимо ' + fmt(r.limit, 1) + NB + '%'} />
                     </>
@@ -147,6 +150,18 @@ export function Editor({
             </div>
           </>
         )}
+        {l.type === 'socket' && (
+          <div className="grid3 sock">
+            <label className="f">
+              <span className="lbl">Розеток в группе, шт</span>
+              <input type="number" inputMode="numeric" min={0} step={1} aria-label="Розеток в группе, шт" placeholder="0" value={String(l.sockets ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'sockets', value: e.target.value })} />
+            </label>
+            <label className="f">
+              <span className="lbl">Нагрузка на розетку, Вт</span>
+              <input type="number" inputMode="numeric" min={0} step="any" aria-label="Нагрузка на розетку, Вт" placeholder="не учитывать" value={String(l.perSocket ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'perSocket', value: e.target.value })} />
+            </label>
+          </div>
+        )}
         <div className="blk">
           <span className="lbl">Приборы</span>
           <div className="apps">
@@ -154,7 +169,8 @@ export function Editor({
               <div className="app app-h">
                 <span>Прибор</span>
                 <span>Мощность</span>
-                <span>Штук</span>
+                <span>Штук / длина</span>
+                <span>Отвод от коробки</span>
                 <span />
               </div>
             )}
@@ -163,18 +179,33 @@ export function Editor({
                 <input className="a-name" aria-label="Название прибора" placeholder="Название прибора" value={ap.name} ref={el => { if (el && focusNew.current && i === l.apps.length - 1) { focusNew.current = false; el.focus(); } }} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'name', value: e.target.value })} />
                 <label className="a-w">
                   <span className="lbl a-lbl">Мощность</span>
-                  <span className="fld" data-sfx="Вт">
-                    <input aria-label="Мощность, Вт" type="number" inputMode="numeric" min={0} step="any" placeholder="0" value={String(ap.w)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'w', value: e.target.value })} />
+                  <span className="fld" data-sfx={ap.m !== undefined ? 'Вт/м' : 'Вт'}>
+                    <input aria-label={ap.m !== undefined ? 'Мощность, Вт на метр' : 'Мощность, Вт'} type="number" inputMode="numeric" min={0} step="any" placeholder="0" value={String(ap.w)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'w', value: e.target.value })} />
                   </span>
                 </label>
-                <div className="a-n">
-                  <span className="lbl a-lbl">Штук</span>
-                  <div className="step">
-                    <button type="button" aria-label="Меньше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(99, pn(ap.n, 1) - 1)) })}>−</button>
-                    <input aria-label="Количество" type="number" inputMode="numeric" min={0} step={1} value={String(ap.n)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'n', value: e.target.value })} />
-                    <button type="button" aria-label="Больше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(99, pn(ap.n, 1) + 1)) })}>+</button>
+                {ap.m !== undefined ? (
+                  <label className="a-n">
+                    <span className="lbl a-lbl">Длина ленты</span>
+                    <span className="fld" data-sfx="м">
+                      <input aria-label="Длина ленты, м" type="number" inputMode="decimal" min={0} step="any" value={String(ap.m)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'm', value: e.target.value })} />
+                    </span>
+                  </label>
+                ) : (
+                  <div className="a-n">
+                    <span className="lbl a-lbl">Штук</span>
+                    <div className="step">
+                      <button type="button" aria-label="Меньше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(99, pn(ap.n, 1) - 1)) })}>−</button>
+                      <input aria-label="Количество" type="number" inputMode="numeric" min={0} step={1} value={String(ap.n)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'n', value: e.target.value })} />
+                      <button type="button" aria-label="Больше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(99, pn(ap.n, 1) + 1)) })}>+</button>
+                    </div>
                   </div>
-                </div>
+                )}
+                <label className="a-br">
+                  <span className="lbl a-lbl">Отвод от коробки</span>
+                  <span className="fld" data-sfx="м">
+                    <input aria-label="Отвод от коробки, м" type="number" inputMode="decimal" min={0} step="any" placeholder="0" value={String(ap.br ?? '')} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'br', value: e.target.value })} />
+                  </span>
+                </label>
                 <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" data-tip="Удалить прибор" onClick={() => keepChips(() => dispatch({ t: 'delApp', id: ap.id }))}>×</button>
               </div>
             ))}
@@ -248,13 +279,22 @@ export function Editor({
             </div>
           )}
         </div>
+        {a.c.rcdMode && (
+          <label className="blk">
+            <span className="lbl">Помещение (группы помещения идут на одно УЗО)</span>
+            <input className="ed-zone" list={'zones-' + l.id} aria-label="Помещение для УЗО" placeholder="Например, кухня" maxLength={60} value={l.zone ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'zone', value: e.target.value })} />
+            <datalist id={'zones-' + l.id}>
+              {zones.map(z => <option key={z} value={z} />)}
+            </datalist>
+          </label>
+        )}
         <div className="blk">
           <span className="lbl">Тип группы</span>
           <Seg<LineType> name={'t-' + l.id} value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', type: v })} />
         </div>
         <div className="grid3 ed-core">
           <div className="f len-f">
-            <span className="lbl">Длина линии</span>
+            <span className="lbl">Длина до распредкоробки</span>
             <Stepper
               value={l.len}
               onChange={v => dispatch({ t: 'lineField', field: 'len', value: v })}
@@ -267,6 +307,7 @@ export function Editor({
               more="Длиннее"
             />
           </div>
+          <p className="muted len-note">{hasBr && r ? 'До дальней точки ' + fmt(r.len, 0) + ' м, кабеля всего ' + fmt(r.cable, 0) + ' м.' : 'Если коробки нет, это вся длина линии. Отводы к точкам задаются у приборов.'}</p>
           {three && (
             <div className="f ph-f">
               <span className="lbl">Фаза</span>
@@ -287,20 +328,10 @@ export function Editor({
             </label>
             {l.type !== 'light' && (
               <div className="blk">
-                <span className="lbl">Помещение</span>
-                <Seg<string> name={'w-' + l.id} value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычное'], ['wet', 'Вне помещения или особо опасное']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet' })} />
+                <span className="lbl">Условия</span>
+                <Seg<string> name={'w-' + l.id} value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычные'], ['wet', 'Вне помещения или особо опасные']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet' })} />
               </div>
             )}
-            <div className="grid3">
-              <label className="f">
-                <span className="lbl">Коэффициент спроса</span>
-                <input type="number" inputMode="decimal" min={0.05} max={1} step={0.05} value={String(l.kc)} onChange={e => dispatch({ t: 'lineField', field: 'kc', value: e.target.value })} />
-              </label>
-              <label className="f">
-                <span className="lbl">cos φ</span>
-                <input type="number" inputMode="decimal" min={0.3} max={1} step={0.05} value={String(l.cos)} onChange={e => dispatch({ t: 'lineField', field: 'cos', value: e.target.value })} />
-              </label>
-            </div>
           </div>
         </div>
         <div className="blk meas fold-in">

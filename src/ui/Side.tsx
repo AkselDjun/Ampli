@@ -1,8 +1,10 @@
 import type { Calc } from '../core/types';
-import { fmt, fs, plural } from '../core/format';
+import { fmt, plural } from '../core/format';
 import { ROWLEN } from '../core/norms';
-import { useState } from 'react';
+import { layout } from '../core/calc';
+import { Fragment, useState } from 'react';
 import { Fold, TabPanel, Tabs, Tip } from './common';
+import { inCableName } from '../core/protection';
 
 function Kv({ l, v }: { l: string; v: string }) {
   return (
@@ -51,7 +53,7 @@ export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: ()
   }
   const inDev = a.inIn ? (c.supply === 3 ? '4P' : '2P') + ' C' + a.inIn : '—';
   let inCab = '—';
-  if (a.inIn) inCab = a.inS ? 'ВВГнг(А)-LS ' + (c.supply === 3 ? 5 : 3) + '×' + fs(a.inS) : 'больше 35 мм²';
+  if (a.inIn) inCab = a.inS ? inCableName(c, a.inS) : 'больше 35 мм²';
   const checks = checksOf(a);
   const problems = checks.filter(x => x.k !== 'ok').length;
   const worst: 'ok' | 'warn' | 'bad' = checks.some(x => x.k === 'bad') ? 'bad' : (problems ? 'warn' : 'ok');
@@ -107,13 +109,25 @@ export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: ()
   );
 }
 
+export function shortName(t: string): string {
+  const w = (t.trim().split(/[\s,:;]+/)[0] ?? '').replace(/[^\p{L}\d-]/gu, '');
+  if (w.length <= 6) return w;
+  let cut = w.slice(0, 5);
+  while (cut.length > 3 && /[аеёиоуыэюяaeiouy]$/i.test(cut)) cut = cut.slice(0, -1);
+  return cut + '.';
+}
+
 export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string) => void; onMove?: (id: string, to: string) => void }) {
   const [drag, setDrag] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
   const [tab, setTab] = useState('rail');
   const gl = a.rows.filter(x => !x.r.empty && x.r.In);
+  const kinds = new Set(a.devs.map(d => d.kind));
   const c = a.c;
-  const free = Math.max(0, a.size - a.placed);
+  const rl = ROWLEN[a.size];
+  const slots = layout(a.devs, rl);
+  const gapBefore = slots.map((sl, i) => (i > 0 && sl.row > slots[i - 1].row ? sl.row * rl - (slots[i - 1].row * rl + slots[i - 1].col + a.devs[i - 1].mod) : 0));
+  const free = Math.max(0, Math.max(a.size, Math.ceil(a.placed / rl) * rl) - a.placed);
   const nameOf: Record<string, string> = {};
   a.rows.forEach((x, i) => {
     nameOf['Г' + (i + 1)] = x.l.name || 'Без названия';
@@ -127,8 +141,8 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
           Приборов на {a.modSum} мод. Нужен корпус на <b>{a.size}</b> мод. с запасом 20 %{a.fits ? '.' : ', но и он тесен: разделите щиток на два.'}
         </p>
         <div className="rail-wrap">
-          <div className="rail" data-rc={ROWLEN[a.size]} style={{ ['--rc' as string]: ROWLEN[a.size] }}>
-            {a.devs.map((d, i) => {
+          <div className="rail" data-rc={rl} style={{ ['--rc' as string]: rl }}>
+            {a.devs.map((d, i) => <Fragment key={(d.lid ?? d.kind) + i}>{Array.from({ length: gapBefore[i] }, (_, g) => <div key={'g' + g} className="dev dev-free" data-tip="Резерв" />)}{((): JSX.Element => {
               const cls = 'dev dev-' + d.kind + (d.st ? ' st-' + d.st : '') + (d.lid && drag === d.lid ? ' drag' : '') + (d.lid && over === d.lid && drag !== d.lid ? ' over' : '');
               const style = { gridColumn: 'span ' + d.mod, ['--i' as string]: i };
               if (!d.lid) {
@@ -136,6 +150,7 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
                   <div key={'in' + i} className={cls} style={style} data-tip={d.title}>
                     <b>{d.label}</b>
                     <i>{d.sub}</i>
+                    <em className="dev-cap">{d.kind === 'in' ? 'Ввод' : d.zone}</em>
                   </div>
                 );
               }
@@ -165,9 +180,10 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
                 >
                   <b>{d.label}</b>
                   <i>{d.sub}</i>
+                  <em className={'dev-cap' + (d.mod === 1 ? ' sm' : '')}>{d.mod === 1 ? shortName(nameOf[d.sub.split(' ')[0]]) : nameOf[d.sub.split(' ')[0]]}</em>
                 </button>
               );
-            })}
+            })()}</Fragment>)}
             {Array.from({ length: free }, (_, i) => (
               <div key={'f' + i} className="dev dev-free" data-tip="Резерв" />
             ))}
@@ -175,11 +191,19 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
         </div>
         <div className="legend">
           <span><i className="dev-in" />Ввод</span>
-          <span><i className="dev-rcd" />Дифавтомат</span>
-          <span><i className="dev-mcb" style={{ border: '1px solid var(--ink-2)' }} />Автомат</span>
+          {kinds.has('rcd') && <span><i className="dev-rcd" />Дифавтомат</span>}
+          {kinds.has('uzo') && <span><i className="dev-uzo" />УЗО</span>}
+          {kinds.has('mcb') && <span><i className="dev-mcb" style={{ border: '1px solid var(--ink-2)' }} />Автомат</span>}
           <span><i className="dev-free" style={{ border: '1px dashed var(--ink-2)' }} />Резерв</span>
           <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Порядок меняется перетаскиванием или клавишами Alt и стрелка. Цвет рычажка показывает статус группы.</Tip>
         </div>
+        <dl className="explain">
+          {a.inIn && <div><dt>Вводной автомат C{a.inIn}</dt><dd>Отключает всю квартиру. Стоит первым, номинал на две ступени выше самого большого группового.</dd></div>}
+          {kinds.has('rcd') && <div><dt>Дифавтомат</dt><dd>Защищает свою группу от перегрузки, короткого замыкания и утечки тока. При неисправности отключается только эта группа.</dd></div>}
+          {kinds.has('uzo') && <div><dt>УЗО</dt><dd>Отключает помещение при утечке тока (касание провода, пробой изоляции). От перегрузки не защищает, поэтому после него стоят автоматы. У каждого УЗО своя нулевая шина: нули его групп нельзя смешивать с другими.</dd></div>}
+          {kinds.has('mcb') && <div><dt>Автомат</dt><dd>Защищает кабель группы от перегрузки и короткого замыкания.</dd></div>}
+          {a.uzos.map(u => <div key={u.zone}><dt>УЗО {u.In} А {u.ma} мА: {u.zone}</dt><dd>Группы {u.groups.map(g => 'Г' + (g + 1)).join(', ')}; сумма автоматов {u.sumIn} А{a.inIn ? ', вводной C' + a.inIn : ''}.</dd></div>)}
+        </dl>
         </TabPanel>
         {gl.length > 0 && (
           <TabPanel scope="bd" id="reserve" cur={tab}>
@@ -205,13 +229,13 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
         <TabPanel scope="bd" id="sched" cur={tab}>
         <div className="sc">
           {a.devs.map((d, i) => {
-            const g = d.kind === 'in' ? '' : d.sub.split(' ')[0];
+            const g = d.kind === 'in' || d.kind === 'uzo' ? '' : d.sub.split(' ')[0];
             return (
               <div className="sc-r" key={i}>
-                <span className="no">{d.kind === 'in' ? 'Ввод' : g}</span>
-                <span className="sc-name">{d.kind === 'in' ? 'Вводной автомат' : nameOf[g]}</span>
+                <span className="no">{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : g)}</span>
+                <span className="sc-name">{d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? (d.zone as string) : nameOf[g])}</span>
                 <b>{d.label}</b>
-                <span className="sc-sub">{d.kind === 'rcd' ? 'дифавтомат ' + d.ma + ' мА' : (d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : 'автомат')}</span>
+                <span className="sc-sub">{d.kind === 'rcd' ? 'дифавтомат ' + d.ma + ' мА' : (d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'uzo' ? d.ma + ' мА, своя шина N' : 'автомат'))}</span>
                 <span className="sc-m">{d.mod} мод.</span>
               </div>
             );

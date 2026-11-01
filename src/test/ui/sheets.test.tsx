@@ -31,11 +31,18 @@ describe('NetSheet', () => {
     expect(stored().list[0].cfg.supply).toBe(3);
     seg('sup', '1');
     seg('met', 'open');
-    seg('drop', '4');
-    seg('drop', '0');
+    expect(d.querySelector('input[name="drop"]')).toBeNull();
+    seg('prot', 'rcd');
+    expect(stored().list[0].cfg.prot).toBe('rcd');
+    seg('prot', 'rcbo');
+    seg('box', 'gkl');
+    expect(stored().list[0].cfg.box).toBe('gkl');
+    seg('box', 'auto');
+    seg('inc', 'frls');
+    expect(stored().list[0].cfg.inCable).toBe('frls');
     seg('mins', 'norm');
     seg('mins', 'safe');
-    for (const l of ['Потеря напряжения от ВРУ до щитка квартиры, %', 'Сопротивление петли фаза-нуль питающей сети, Ом', 'Выделенная мощность, кВт', 'Коэффициент одновременности', 'Поправка на нагрев и группировку']) {
+    for (const l of ['Потеря напряжения от ВРУ до щитка квартиры, %', 'Сопротивление петли фаза-нуль питающей сети, Ом', 'Выделенная мощность, кВт', 'Коэффициент одновременности', 'Поправка на группировку кабелей']) {
       const inp = byLabel(d, l);
       const row = inp.parentElement as HTMLElement;
       const before = inp.value;
@@ -252,16 +259,3 @@ describe('ReportSheet', () => {
   });
 });
 
-describe('NetSheet temperature helper', () => {
-  it('shows the table factor and writes it into the correction', () => {
-    wide(true);
-    render(<App />);
-    const d = open('Параметры сети');
-    const t = byLabel(d, 'Температура воздуха, °C') as HTMLInputElement;
-    expect(d.textContent).toContain('1,00');
-    change(t, '35');
-    expect(d.textContent).toContain('0,87');
-    click(d, 'Подставить');
-    expect(Number(stored().list[0].cfg.k)).toBeCloseTo(0.87, 2);
-  });
-});

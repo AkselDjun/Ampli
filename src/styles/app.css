@@ -974,3 +974,49 @@ dialog.pal::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(4px);b
 .pal-o small{color:var(--ink-2);font-size:var(--t-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
 .pal-empty{margin:0;padding:18px 16px;color:var(--ink-2)}
 @media (max-width:760px){dialog.pal{margin-top:8px;max-height:calc(100dvh - 16px)}}
+
+.app{grid-template-columns:minmax(0,1fr) 120px 140px 110px 44px}
+.a-br{display:flex;flex-direction:column;gap:4px;min-width:0}
+.sock{grid-template-columns:repeat(2,minmax(0,1fr))}
+.len-note{grid-column:1/-1;margin:-4px 0 0;font-size:var(--t-sm)}
+@media (max-width:760px){
+  .app{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px;grid-template-areas:"name name del" "w n n" "br br br"}
+  .a-br{grid-area:br}
+  .a-br .fld{max-width:50%}
+}
+
+.rail{grid-auto-rows:96px;background-image:linear-gradient(to bottom,transparent 0 97px,#b4bdc4 97px,#eef2f4 99px,#9aa5ad 101px,#7e8a93 104px,transparent 104px 110px);background-size:100% 110px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .rail{background-image:linear-gradient(to bottom,transparent 0 97px,#3c4854 97px,#5a6875 99px,#33404b 101px,#232d37 104px,transparent 104px 110px)}}
+:root[data-theme="dark"] .rail{background-image:linear-gradient(to bottom,transparent 0 97px,#3c4854 97px,#5a6875 99px,#33404b 101px,#232d37 104px,transparent 104px 110px)}
+.rail .dev{justify-content:flex-start;padding-top:20px}
+button.dev{padding-top:20px}
+.dev-cap{position:absolute;left:3px;right:3px;bottom:8px;min-height:22px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding:2px;border-radius:2px;background:#fff;color:#0E1822;font:500 9px/1.15 var(--font-body);text-align:center;font-style:normal;overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}
+.dev-cap:empty{display:none}
+.dev-cap.sm{left:2px;right:2px;padding:2px 0;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-size:8px;letter-spacing:-.02em}
+.dev-uzo{background:linear-gradient(180deg,#fff,#eef3f8);color:#0B5CD5;border:1.5px solid #0B5CD5}
+.dev-uzo::before{background:#0B5CD5}
+.legend .dev-uzo{border:1.5px solid #0B5CD5}
+.explain{margin:12px 0 0;display:grid;gap:8px;font-size:var(--t-sm)}
+.explain>div{display:grid;gap:2px}
+.explain dt{font-weight:600}
+.explain dd{margin:0;color:var(--ink-2)}
+@media print{
+  .printdoc .stk-legend{display:flex;flex-wrap:wrap;gap:3mm 6mm;margin:0 0 4mm;font-size:8pt}
+  .printdoc .stk-k{display:inline-flex;align-items:center;gap:1.5mm;padding:0.8mm 2mm;border-radius:1mm}
+  .printdoc .stk-k svg,.printdoc .stk-top svg{width:3.4mm;height:3.4mm}
+  .printdoc .stk-row{position:relative;display:flex;box-sizing:border-box;border:0.3mm solid #000;margin:6mm 0 0;break-inside:avoid}
+  .printdoc .stk-rn{position:absolute;top:-4.2mm;left:0;font-size:7pt;color:#555}
+  .printdoc .stk-row .stk-i{height:19mm;border:0;border-right:0.3mm dashed #000;justify-content:flex-start;padding:0;gap:0.6mm;overflow:hidden}
+  .printdoc .stk-row .stk-i:last-child{border-right:0}
+  .printdoc .stk-top{display:flex;align-items:center;justify-content:center;gap:1mm;width:100%;height:5mm;font-size:7.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .printdoc .stk-nm{font-size:6.5pt;line-height:1.1;padding:0 0.8mm;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .printdoc .stk-i small{font-size:8pt;font-weight:700;margin-top:auto;padding-bottom:0.8mm}
+  .printdoc .k-in .stk-top,.printdoc .stk-k.k-in{background:#111;color:#fff}
+  .printdoc .k-uzo .stk-top,.printdoc .stk-k.k-uzo{background:#fff;color:#0B5CD5;box-shadow:inset 0 0 0 0.4mm #0B5CD5}
+  .printdoc .k-light .stk-top,.printdoc .stk-k.k-light{background:#F6C445;color:#111}
+  .printdoc .k-socket .stk-top,.printdoc .stk-k.k-socket{background:#2F7EE6;color:#fff}
+  .printdoc .k-power .stk-top,.printdoc .stk-k.k-power{background:#D93A2F;color:#fff}
+  .printdoc .stk-k{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .printdoc .stk-free{justify-content:center;color:#999}
+  .printdoc .stk-free small{margin:0;font-weight:400}
+}

@@ -32,7 +32,9 @@ describe('passportRows', () => {
   it('warns about simultaneous use only when the sum exceeds the limit', () => {
     const light = passportRows(calcAll([line('Г', [['Лампа', 60, 1], ['Радио', 20, 1]])], defaultCfg()))[0];
     expect(light.together).toBeNull();
-    const heavy = passportRows(calcAll([line('Г', [['Духовка', 3500, 1], ['Чайник', 2200, 1], ['Тостер', 900, 1]])], defaultCfg()))[0];
+    const hc = calcAll([line('Г', [['Духовка', 3500, 1], ['Чайник', 2200, 1], ['Тостер', 900, 1]])], defaultCfg());
+    hc.rows[0].r.In = 16;
+    const heavy = passportRows(hc)[0];
     expect(heavy.totalW).toBeGreaterThan(heavy.capW);
     expect(heavy.together).toBe('Духовка и Чайник');
   });

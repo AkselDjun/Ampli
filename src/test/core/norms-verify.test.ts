@@ -43,10 +43,10 @@ describe('hand-checked line results', () => {
   it('2200 W kettle line of 20 m: 10 A, B/C16, 2.5 mm²', () => {
     const l = mkLine('Розетки', 'socket', 20, null, null, [['Чайник', 2200, 1]]);
     const r = calcLine(l, c);
-    expect(r.I).toBeCloseTo(2200 * 0.7 / (230 * 0.95), 6);
+    expect(r.I).toBeCloseTo(2200 / 230, 6);
     expect(r.In).toBe(16);
     expect(r.S).toBe(2.5);
-    const du = 2 * 0.0225 * 20 * r.I * 0.95 / (2.5 * 230) * 100;
+    const du = 2 * 0.0225 * 20 * r.I / (2.5 * 230) * 100;
     expect(r.drop).toBeCloseTo(du, 6);
   });
   it('7 kW power line of 15 m: C32 and 4 mm² since 38 A × 0.9 = 34.2 A', () => {
@@ -78,27 +78,8 @@ describe('assumptions list', () => {
   });
 });
 
-import { tempFactor, TEMP_FACTOR_65 } from '../../core/correction';
 import { LEAK_PER_M_MA } from '../../core/norms';
 
-describe('temperature correction by ПУЭ 1.3.3 (65 °C conductor)', () => {
-  it('matches table rows', () => {
-    expect(TEMP_FACTOR_65.map(r => r[1])).toEqual([1, 0.94, 0.87, 0.79, 0.71, 0.61]);
-  });
-  it('is 1 up to 25 °C and for invalid input', () => {
-    expect(tempFactor(10)).toBe(1);
-    expect(tempFactor(25)).toBe(1);
-    expect(tempFactor(NaN)).toBe(1);
-  });
-  it('rounds up to the next table temperature', () => {
-    expect(tempFactor(26)).toBe(0.94);
-    expect(tempFactor(35)).toBe(0.87);
-    expect(tempFactor(41)).toBe(0.71);
-  });
-  it('clamps above 50 °C to the last row', () => {
-    expect(tempFactor(80)).toBe(0.61);
-  });
-});
 
 describe('leakage estimate by СН 4.04.01-2019, п. 16.3.7', () => {
   const c = cfgN(defaultCfg());

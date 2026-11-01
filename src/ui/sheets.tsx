@@ -3,7 +3,7 @@ import type { Calc, Content, Project } from '../core/types';
 import type { TplKey } from '../core/templates';
 import { TPL_LIST, TPL_NAME, blank, contentFor, sample } from '../core/templates';
 import { cfgN } from '../core/calc';
-import { TEMP_MAX, tempFactor } from '../core/correction';
+import { BOX_NAME, IN_CABLE } from '../core/norms';
 import { dfmt, fmt, plural } from '../core/format';
 import { STATUS } from '../core/norms';
 import { buildSpec } from '../core/spec';
@@ -34,8 +34,6 @@ export function NetSheet({
   dispatch: (a: Action) => void;
 }) {
   const c = cfgN(p.cfg);
-  const [temp, setTemp] = useState('25');
-  const tf = tempFactor(Number(temp));
   const replace = (content: Content) => {
     dispatch({ t: 'replace', content });
     onClose();
@@ -52,13 +50,24 @@ export function NetSheet({
         <small>Скрытая: кабель в трубе в стене или кладке (способы 2 и 5A, табл. 52Н ГОСТ 30331.15). Открытая: в коробе или по поверхности (способы 4A и 11).</small>
       </div>
       <div className="f">
-        <span className="lbl" id="l-drop">Допустимая потеря напряжения</span>
-        <Seg<number> name="drop" labelledBy="l-drop" value={c.drop} items={[[0, 'По СН'], [4, 'До 4 %'], [3, 'До 3 %'], [2, 'До 2 %']]} onChange={v => dispatch({ t: 'cfg', field: 'drop', value: v })} />
+        <span className="lbl" id="l-prot">Защита групп</span>
+        <Seg<string> name="prot" labelledBy="l-prot" value={c.rcdMode ? 'rcd' : 'rcbo'} items={[['rcbo', 'Дифавтомат на группу'], ['rcd', 'УЗО на помещение + автоматы']]} onChange={v => dispatch({ t: 'cfg', field: 'prot', value: v })} />
+        <small>{c.rcdMode ? 'Группы одного помещения подключаются через общее УЗО, у каждого УЗО своя нулевая шина. Помещение задаётся в карточке группы.' : 'На каждой группе свой дифавтомат: отключается только неисправная группа, щиток шире.'}</small>
+      </div>
+      <div className="f">
+        <span className="lbl" id="l-box">Распределительные коробки</span>
+        <Seg<string> name="box" labelledBy="l-box" value={c.boxAuto ? 'auto' : c.box} items={[['auto', 'Подобрать'], ['brick', 'Бетон, кирпич'], ['gkl', 'Гипсокартон'], ['surface', 'Накладные IP54']]} onChange={v => dispatch({ t: 'cfg', field: 'box', value: v })} />
+        <small>{c.boxAuto ? 'Подобрано по прокладке: коробка ' + BOX_NAME[c.box] + '. ' : ''}Для скрытой проводки в бетон и кирпич берут коробки под штукатурку, в гипсокартон с прижимными лапками, для открытой проводки и мокрых зон накладные IP54.</small>
+      </div>
+      <div className="f">
+        <span className="lbl" id="l-inc">Кабель ввода</span>
+        <Seg<string> name="inc" labelledBy="l-inc" value={c.inCable} items={(Object.keys(IN_CABLE) as (keyof typeof IN_CABLE)[]).map(k => [k, IN_CABLE[k]])} onChange={v => dispatch({ t: 'cfg', field: 'inCable', value: v })} />
+        <small>Марка кабеля от этажного щита до щитка квартиры, сечение подбирается расчётом.</small>
       </div>
       <div className="f">
         <span className="lbl">Потеря напряжения до щитка, %</span>
         <Stepper value={p.cfg.feeder} d={0.1} min={0} max={3} step={0.1} label="Потеря напряжения от ВРУ до щитка квартиры, %" onChange={v => dispatch({ t: 'cfg', field: 'feeder', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'feeder', d })} />
-        <small>Нормы СН 4.04.01-2019 (п. 9.14) и ГОСТ 30331.15-2001 (п. 525, не более 4 %) отсчитываются от ВРУ здания. Потеря на стояке до квартиры вычитается из допуска групп. Если неизвестна, оставьте 0.</small>
+        <small>Нормы СН 4.04.01-2019 (п. 9.14: 3 % для освещения, 5 % для остальных) отсчитываются от ВРУ здания. Потеря на стояке до квартиры вычитается из допуска групп. Если неизвестна, оставьте 0.</small>
       </div>
       <div className="f">
         <span className="lbl" id="l-mins">Наименьшее сечение жилы</span>
@@ -82,18 +91,9 @@ export function NetSheet({
           <small>Доля приборов, работающих вместе.</small>
         </div>
         <div className="f wide">
-          <span className="lbl">Поправка на нагрев и группировку</span>
-          <Stepper value={p.cfg.k} d={0.05} min={0.5} max={1} step={0.05} label="Поправка на нагрев и группировку" onChange={v => dispatch({ t: 'cfg', field: 'k', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'k', d })} />
-          <small>Уменьшает табличный допустимый ток кабеля.</small>
-          <div className="tcalc">
-            <label>
-              <span className="lbl">Температура воздуха, °C</span>
-              <input type="number" inputMode="decimal" min={25} max={TEMP_MAX} step={5} aria-label="Температура воздуха, °C" value={temp} onChange={e => setTemp(e.target.value)} />
-            </label>
-            <span>Коэффициент по ПУЭ, табл. 1.3.3: <b>{fmt(tf, 2)}</b></span>
-            <button className="btn ghost" type="button" onClick={() => dispatch({ t: 'cfg', field: 'k', value: String(tf) })}>Подставить</button>
-            <Tip>Для проводов с жилой до 65 °C, как в таблице допустимых токов. Группировку кабелей учтите отдельно: в трубе её уже учитывает число проводов, в пучке и лотке это дополнительный коэффициент.</Tip>
-          </div>
+          <span className="lbl">Поправка на группировку кабелей</span>
+          <Stepper value={p.cfg.k} d={0.05} min={0.5} max={1} step={0.05} label="Поправка на группировку кабелей" onChange={v => dispatch({ t: 'cfg', field: 'k', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'k', d })} />
+          <small>Уменьшает табличный допустимый ток кабеля, если кабели идут пучком.</small>
         </div>
       </div>
       <div className="data-row">

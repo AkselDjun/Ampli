@@ -14,6 +14,8 @@ export interface RoomPreset {
   apps: [string, number, number, 'l' | 's' | 'p'][];
 }
 
+export const ZONES = ['Кухня', 'Гостиная', 'Спальня', 'Детская', 'Ванная', 'Санузел', 'Коридор', 'Балкон'];
+
 export const ROOM_PRESETS: RoomPreset[] = [
   { key: 'kitchen', title: 'Кухня', kitchen: true, apps: [['Светильники', 90, 1, 'l'], ['Чайник', 2200, 1, 's'], ['Микроволновая печь', 1200, 1, 's'], ['Холодильник', 150, 1, 's'], ['Вытяжка', 200, 1, 's'], ['Варочная панель', 4500, 1, 'p'], ['Духовой шкаф', 2500, 1, 'p']] },
   { key: 'living', title: 'Гостиная', apps: [['Люстра', 180, 1, 'l'], ['Телевизор', 150, 1, 's'], ['Компьютер', 400, 1, 's'], ['Пылесос', 1600, 1, 's']] },
@@ -63,6 +65,8 @@ function merge(items: { room: Room; apps: RoomApp[] }[], cap: number): Bucket[] 
   }));
 }
 
+const zoned = (l: Line, rooms: string[]): Line => (rooms.length ? { ...l, zone: rooms[0].slice(0, 60) } : l);
+
 const title = (base: string, rooms: string[]): string => {
   const t = base + ': ' + rooms.join(', ');
   return t.length > 48 ? t.slice(0, 47) + '…' : t;
@@ -73,20 +77,20 @@ export function assemble(rooms: Room[]): Line[] {
   const pick = (r: Room, tag: string): RoomApp[] => r.apps.filter(a => a.tag === tag && power(a) > 0);
   const lights = rooms.map(r => ({ room: r, apps: pick(r, 'l') })).filter(x => x.apps.length);
   merge(lights, LIGHT_CAP_W).forEach(b => {
-    lines.push(mkLine(title('Освещение', b.rooms), 'light', 15, null, null, b.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])));
+    lines.push(zoned(mkLine(title('Освещение', b.rooms), 'light', 15, null, null, b.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])), b.rooms));
   });
   const sockets = rooms.map(r => ({ room: r, apps: pick(r, 's') })).filter(x => x.apps.length);
   sockets.filter(x => x.room.kitchen).forEach(x => {
-    lines.push(mkLine(title('Розетки', [x.room.name || 'Кухня']), 'socket', 15, null, null, x.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])));
+    lines.push(zoned(mkLine(title('Розетки', [x.room.name || 'Кухня']), 'socket', 15, null, null, x.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])), [x.room.name || 'Кухня']));
   });
   merge(sockets.filter(x => !x.room.kitchen), SOCKET_CAP_W).forEach(b => {
-    lines.push(mkLine(title('Розетки', b.rooms), 'socket', 15, null, null, b.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])));
+    lines.push(zoned(mkLine(title('Розетки', b.rooms), 'socket', 15, null, null, b.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])), b.rooms));
   });
   rooms.forEach(r => {
     pick(r, 'p').forEach(a => {
       const n = Math.max(1, Math.round(pn(a.n, 1)));
       for (let i = 0; i < n; i++) {
-        lines.push(mkLine(n > 1 ? a.name + ' ' + (i + 1) : a.name, 'power', 10, null, null, [[a.name, pn(a.w, 0), 1]]));
+        lines.push(zoned(mkLine(n > 1 ? a.name + ' ' + (i + 1) : a.name, 'power', 10, null, null, [[a.name, pn(a.w, 0), 1]]), [r.name || 'Комната']));
       }
     });
   });

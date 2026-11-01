@@ -300,17 +300,17 @@ describe('GroupList', () => {
     const b = screen.getByRole('button', { name: 'Параметры сети' });
     expect(b).toHaveTextContent('1 фаза, 230 В');
     expect(b).toHaveTextContent('Скрытая');
-    expect(b).toHaveTextContent('по СН: 3 / 5 %');
+    expect(b).toHaveTextContent('дифавтоматы');
     await user.click(b);
     expect(h.onOpenNet).toHaveBeenCalledTimes(1);
   });
-  it('describes an open three-phase network with a voltage-drop limit', () => {
-    const { el } = props(proj([mkLine('A', 'power', 5, 1, 1, [['x', 100, 1]], '3')], { supply: 3, method: 'open', drop: 4 }));
+  it('describes an open three-phase network with residual-current devices per room', () => {
+    const { el } = props(proj([mkLine('A', 'power', 5, 1, 1, [['x', 100, 1]], '3')], { supply: 3, method: 'open', prot: 'rcd' }));
     render(el);
     const b = screen.getByRole('button', { name: 'Параметры сети' });
     expect(b).toHaveTextContent('3 фазы, 400 В');
     expect(b).toHaveTextContent('Открытая');
-    expect(b).toHaveTextContent('до 4 %');
+    expect(b).toHaveTextContent('УЗО на помещение');
     expect(document.querySelector('.row-sub')).toHaveTextContent('3Ф');
   });
   it('shows the empty text and hides the count', () => {

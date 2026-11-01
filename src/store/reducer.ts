@@ -35,7 +35,7 @@ export type Action =
   | { t: 'photoDel'; id: string }
   | { t: 'photoNote'; id: string; value: string }
   | { t: 'addApps'; apps: { name: string; w: number; n: number }[] }
-  | { t: 'lineField'; field: 'name' | 'where' | 'len' | 'kc' | 'cos'; value: string | number }
+  | { t: 'lineField'; field: 'name' | 'where' | 'zone' | 'len' | 'kc' | 'cos' | 'sockets' | 'perSocket'; value: string | number }
   | { t: 'lineType'; type: LineType }
   | { t: 'linePhase'; phase: Phase }
   | { t: 'lineWet'; wet: boolean }
@@ -44,8 +44,8 @@ export type Action =
   | { t: 'check'; id: string; on: boolean }
   | { t: 'workQty'; key: WorkKey; value: string }
   | { t: 'proto'; field: 'date' | 'device' | 'by'; value: string }
-  | { t: 'appField'; id: string; field: 'name' | 'w' | 'n'; value: string | number }
-  | { t: 'addApp'; name?: string; w?: number }
+  | { t: 'appField'; id: string; field: 'name' | 'w' | 'n' | 'br' | 'm'; value: string | number }
+  | { t: 'addApp'; name?: string; w?: number; m?: number }
   | { t: 'delApp'; id: string }
   | { t: 'cfg'; field: keyof Cfg; value: string | number }
   | { t: 'cfgStep'; field: 'alloc' | 'ko' | 'k' | 'zs' | 'feeder'; d: number }
@@ -206,9 +206,9 @@ export function reducer(s: State, a: Action): State {
     case 'addApp':
       return patchLine(s, l => {
         if (a.name === undefined) return { ...l, apps: [...l.apps, { id: nid(), name: '', w: '', n: 1 }] };
-        const ex = l.apps.find(x => x.name === a.name && pn(x.w, 0) === a.w);
+        const ex = a.m === undefined ? l.apps.find(x => x.name === a.name && pn(x.w, 0) === a.w && x.m === undefined) : undefined;
         if (ex) return { ...l, apps: l.apps.map(x => (x === ex ? { ...x, n: pn(x.n, 0) + 1 } : x)) };
-        const app: App = { id: nid(), name: a.name, w: a.w ?? '', n: 1 };
+        const app: App = { id: nid(), name: a.name, w: a.w ?? '', n: 1, ...(a.m !== undefined ? { m: a.m } : {}) };
         return { ...l, apps: [...l.apps, app] };
       });
     case 'delApp':

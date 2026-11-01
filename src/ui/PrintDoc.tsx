@@ -1,14 +1,14 @@
 import type { Calc, Project } from '../core/types';
 import { dfmt, fmt, fs } from '../core/format';
-import { STATUS } from '../core/norms';
+import { ROWLEN, STATUS } from '../core/norms';
 import { buildSpec, estimate } from '../core/spec';
 import { grandTotal, laborEstimate } from '../core/labor';
 import { useLib } from '../store/LibContext';
-import { cableName, protName } from '../core/protection';
+import { cableName, inCableName, protName } from '../core/protection';
 import { dropText } from '../core/report';
 import { Schematic } from './Schematic';
 import { Assumptions } from './common';
-import { cfgN } from '../core/calc';
+import { cfgN, layout } from '../core/calc';
 import { VERDICT, hasMeasurements, protocolRows } from '../core/protocol';
 import type { PrintMode } from './WorkSheet';
 import { CHECK_ITEMS } from '../core/checklist';
@@ -128,24 +128,56 @@ function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
   );
 }
 
+const STK_KIND: Record<string, string> = { light: 'Свет', socket: 'Розетки', power: 'Силовая', in: 'Ввод', uzo: 'УЗО' };
+
+function StkIcon({ k }: { k: string }) {
+  const d: Record<string, JSX.Element> = {
+    light: <><path d="M9 18h6M10 21h4" /><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z" /></>,
+    socket: <><circle cx="12" cy="12" r="8" /><circle cx="9" cy="12" r="1.2" /><circle cx="15" cy="12" r="1.2" /></>,
+    power: <path d="M13 2 5 13h6l-1 9 8-11h-6z" />,
+    in: <><path d="M4 12h12" /><path d="m12 7 5 5-5 5" /><path d="M20 4v16" /></>,
+    uzo: <><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" /><path d="M12 8v5M12 16v.01" /></>
+  };
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{d[k]}</svg>;
+}
+
 function StickersDoc({ p, a }: { p: Project; a: Calc }) {
+  const rl = ROWLEN[a.size];
+  const rows: { d: Calc['devs'][number]; k: string; no: string; nm: string }[][] = [[]];
+  const slots = layout(a.devs, rl);
+  a.devs.forEach((d, i) => {
+    while (rows.length <= slots[i].row) rows.push([]);
+    const g = d.kind === 'in' || d.kind === 'uzo' ? '' : d.sub.split(' ')[0];
+    const line = g ? a.rows[Number(g.slice(1)) - 1] : undefined;
+    const k = d.kind === 'in' ? 'in' : (d.kind === 'uzo' ? 'uzo' : (line?.l.type ?? 'socket'));
+    const nm = d.kind === 'in' ? 'Вся квартира' : (d.kind === 'uzo' ? (d.zone ?? '') : (line?.l.name || ''));
+    rows[rows.length - 1].push({ d, k, no: d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : g), nm });
+  });
   return (
     <>
       <h1>Наклейки для щитка</h1>
-      <p className="pd-sub">{p.name || 'Без названия'}. Ширина наклейки равна ширине аппарата (1 модуль = 17,5 мм).</p>
-      <div className="stk">
-        {a.devs.map((d, i) => {
-          const g = d.kind === 'in' ? '' : d.sub.split(' ')[0];
-          const nm = d.kind === 'in' ? 'Ввод' : (a.rows[Number(g.slice(1)) - 1]?.l.name || '');
-          return (
-            <div className="stk-i" key={i} style={{ width: d.mod * 17.5 + 'mm' }}>
-              <b>{d.kind === 'in' ? 'Ввод' : g}</b>
-              <span>{nm}</span>
-              <small>{d.label}{d.ma ? ' ' + d.ma + 'мА' : ''}</small>
-            </div>
-          );
-        })}
+      <p className="pd-sub">{p.name || 'Без названия'}. Наклейки разложены по рядам щитка на {a.size} модулей: каждую полосу можно вырезать целиком. Ширина ячейки равна ширине аппарата (1 модуль = 17,5 мм).</p>
+      <div className="stk-legend">
+        {['in', 'uzo', 'light', 'socket', 'power'].filter(k => rows.some(r => r.some(x => x.k === k))).map(k => (
+          <span key={k} className={'stk-k k-' + k}><StkIcon k={k} />{STK_KIND[k]}</span>
+        ))}
       </div>
+      {rows.map((r, n) => {
+        const used = r.reduce((s, x) => s + x.d.mod, 0);
+        return (
+          <div className="stk-row" key={n} style={{ width: rl * 17.5 + 'mm' }}>
+            <span className="stk-rn">Ряд {n + 1}</span>
+            {r.map((x, i) => (
+              <div className={'stk-i k-' + x.k} key={i} style={{ width: x.d.mod * 17.5 + 'mm' }}>
+                <span className="stk-top"><StkIcon k={x.k} /><b>{x.no}</b></span>
+                <span className="stk-nm">{x.nm}</span>
+                <small>{x.d.label}{x.d.ma && x.d.kind !== 'mcb' ? ' ' + x.d.ma + 'мА' : ''}</small>
+              </div>
+            ))}
+            {used < rl && <div className="stk-i stk-free" style={{ width: (rl - used) * 17.5 + 'mm' }}><small>резерв</small></div>}
+          </div>
+        );
+      })}
     </>
   );
 }
@@ -161,8 +193,8 @@ function TagsDoc({ p, a }: { p: Project; a: Calc }) {
           <div className="tag" key={x.l.id + k}>
             <b>Г{i + 1} {x.l.name || 'Без названия'}</b>
             <span>{cableName(x.r)}</span>
-            <span>{protName(x.r)}</span>
-            <small>{k === 0 ? 'Конец у щитка' : 'Конец у потребителя'}{x.r.len ? ' · длина ' + fmt(x.r.len, 0) + ' м' : ''}</small>
+            {x.l.where && <span>{x.l.where}</span>}
+            <small>{k === 0 ? 'Конец у щитка' : 'Конец у потребителя'}{x.r.cable ? ' · кабель ' + fmt(x.r.cable, 0) + ' м' : ''}</small>
           </div>
         )))}
       </div>
@@ -247,7 +279,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
       </table>
       <h2>Ввод и щиток</h2>
       <p>
-        Вводной автомат: {a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—'}{a.inS ? ', кабель ввода ' + fs(a.inS) + ' мм²' : ''}. Щиток на {a.size} модулей, занято {a.modSum}.
+        Вводной автомат: {a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—'}{a.inS ? ', кабель ввода ' + inCableName(c, a.inS) : ''}. Защита групп: {c.rcdMode ? 'УЗО на помещение и автоматы, у каждого УЗО своя шина N' : 'дифавтомат на каждую группу'}. Щиток на {a.size} модулей, занято {a.modSum}.
       </p>
       {a.phases && (
         <p>Токи по фазам: L1 {fmt(a.phases.L1, 1)} А, L2 {fmt(a.phases.L2, 1)} А, L3 {fmt(a.phases.L3, 1)} А; перекос {fmt(a.imb, 0)} %.</p>

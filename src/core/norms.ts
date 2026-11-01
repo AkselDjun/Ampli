@@ -23,6 +23,9 @@ export const LEAK_PER_M_MA = 0.01;
 export const LEAK_PER_A_MA = 0.4;
 export const LEAK_LOAD_ABOVE_A = 32;
 export const SIZES = [12, 18, 24, 36, 48, 72];
+export const RCD_STD = [16, 25, 40, 63, 80, 100];
+export const BOX_NAME: Record<'brick' | 'gkl' | 'surface', string> = { brick: 'для бетона и кирпича', gkl: 'для гипсокартона', surface: 'накладная IP54' };
+export const IN_CABLE: Record<'vvg' | 'frls' | 'nym', string> = { vvg: 'ВВГнг(А)-LS', frls: 'ВВГнг(А)-FRLS', nym: 'NYM' };
 export const ROWLEN: Record<number, number> = { 12: 12, 18: 18, 24: 12, 36: 18, 48: 12, 72: 18 };
 
 export interface TypeDef {
@@ -51,7 +54,7 @@ export const PRESETS: [string, number, string][] = [
   ['Варочная панель', 4500, 'p'], ['Электроплита', 7000, 'p'], ['Водонагреватель', 2000, 'p'],
   ['Кондиционер', 1200, 'p'], ['Телевизор', 150, 's'], ['Компьютер', 400, 's'], ['Пылесос', 1600, 's'],
   ['Фен', 1800, 's'], ['Утюг', 2200, 's'], ['Обогреватель', 1500, 'sp'], ['Тёплый пол', 800, 'p'],
-  ['Светильник', 60, 'l'], ['Люстра', 180, 'l'], ['LED-лента', 40, 'l']
+  ['Светильник', 60, 'l'], ['Люстра', 180, 'l'], ['LED-лента', 14, 'l']
 ];
 
 export const STATUS = { ok: 'Норма', warn: 'Проверьте', bad: 'Не подходит' } as const;

@@ -60,7 +60,7 @@ function GroupRow({
           {x.r.status !== 'ok' && !x.r.empty && (
             <span className={'flag ' + x.r.status} data-tip={STATUS[x.r.status]} aria-label={STATUS[x.r.status]}>!</span>
           )}
-          {x.r.In && <span className={'brk' + (x.r.rcd ? ' rcd' : '')}>{x.r.curve}{x.r.In}</span>}
+          {x.r.In && <span className={'brk' + (x.r.rcbo ? ' rcd' : '')}>{x.r.curve}{x.r.In}</span>}
         </span>
         <IconChev className="chev" />
       </button>
@@ -106,7 +106,7 @@ export function GroupList({
   const net: [string, string][] = [
     ['Питание', three ? '3 фазы, 400 В' : '1 фаза, 230 В'],
     ['Прокладка', c.method === 'wall' ? 'Скрытая' : 'Открытая'],
-    ['Потеря напряжения', c.drop > 0 ? 'до ' + fmt(c.drop, 0) + ' %' : 'по СН: 3 / 5 %'],
+    ['Защита', c.rcdMode ? 'УЗО на помещение' : 'дифавтоматы'],
     ['Выделено', fmt(c.alloc, 1) + ' кВт']
   ];
   return (

@@ -556,14 +556,14 @@ describe('Owner passport', () => {
     expect(document.querySelector('.owner')).toBeNull();
   });
 
-  it('warns about simultaneous use and explains the test button for residual-current devices', () => {
+  it('sizes the breaker for all appliances at once and explains the test button for residual-current devices', () => {
     const p = sampleProject();
     p.lines = [mkLine('Кухня', 'socket', 10, null, null, [['Духовка', 3500, 1], ['Чайник', 2200, 1], ['Тостер', 900, 1]])];
 
     window.location.hash = '#o=' + packProject(p);
     render(<App />);
     const o = document.querySelector('.owner') as HTMLElement;
-    expect(o.querySelector('.pp-warn')?.textContent).toContain('Духовка и Чайник');
+    expect(o.querySelector('.pp-warn')).toBeNull();
     expect(o.textContent).toContain('кнопка «Т»');
   });
 });

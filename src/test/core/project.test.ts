@@ -267,7 +267,8 @@ describe('why', () => {
   it('has load, current, breaker, cable, drop and KZ rows', () => {
     const rows = w(mkLine('a', 'socket', 10, null, null, [['x', 2000, 1]]));
     expect(rows.map(r => r.title)).toEqual(['Нагрузка', 'Ток', 'Автомат', 'Кабель', 'Потеря напряжения', 'Короткое замыкание']);
-    expect(rows[0].formula).toContain('× Кс 0,7');
+    expect(rows[0].formula).toMatch(/^2\s000\sВт$/);
+    expect(rows[1].formula).toContain('/ 230');
     expect(rows[2].note).toContain('не меньше 16');
     expect(rows[2].note).toContain('Кривая C');
     expect(rows[2].note.endsWith('.')).toBe(true);
@@ -367,7 +368,7 @@ describe('report', () => {
     const t = reportText(p({ lines: l3, cfg: cfg({ supply: 3, method: 'open', drop: 4 }) }), a, prices);
     expect(t).toContain('3 фазы, 400 В');
     expect(t).toContain('открытая');
-    expect(t).toContain('не более 4 %');
+    expect(t).toContain('3 % освещение, 5 % прочие');
     expect(t).toContain('[3Ф]');
     expect(t).toContain('[L2]');
     expect(t).toContain('Фазы: L1');

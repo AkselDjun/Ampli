@@ -88,18 +88,18 @@ describe('checklist', () => {
 });
 
 describe('protection names', () => {
-  const base = { rcd: true, three: false, curve: 'C', In: 16, ma: 30, S: 2.5 } as LineResult;
+  const base = { rcd: true, rcbo: true, three: false, curve: 'C', In: 16, ma: 30, S: 2.5 } as LineResult;
   it('builds poles', () => {
     expect(poles(base)).toBe('1P+N');
-    expect(poles({ ...base, rcd: false })).toBe('1P');
+    expect(poles({ ...base, rcbo: false })).toBe('1P');
     expect(poles({ ...base, three: true })).toBe('4P');
-    expect(poles({ ...base, three: true, rcd: false })).toBe('3P');
+    expect(poles({ ...base, three: true, rcbo: false })).toBe('3P');
   });
   it('builds names', () => {
     expect(protFull(base)).toBe('Дифавтомат 1P+N C16 30 мА');
-    expect(protFull({ ...base, rcd: false })).toBe('Автомат 1P C16');
+    expect(protFull({ ...base, rcbo: false })).toBe('Автомат 1P C16');
     expect(protName(base)).toBe('Дифавтомат C16 · 30 мА');
-    expect(protName({ ...base, rcd: false })).toBe('Автомат C16');
+    expect(protName({ ...base, rcbo: false })).toBe('Автомат C16');
     expect(cableName(base)).toBe('ВВГнг(А)-LS 3×2,5');
     expect(cableName({ ...base, three: true, S: 4 })).toBe('ВВГнг(А)-LS 5×4');
   });
@@ -189,7 +189,7 @@ describe('parseApps', () => {
 });
 
 describe('compare', () => {
-  const base = proj(sample().lines);
+  const base = proj(sample().lines.slice(0, 5));
   it('has addon factories', () => {
     expect(ADDONS.length).toBe(5);
     ADDONS.forEach(a => {
@@ -234,7 +234,7 @@ describe('compare', () => {
   });
   it('compares size, issues and three phase', () => {
     const empty = variantCalc({ ...base, cfg: cfg({ supply: 3 }) }, base.lines.map(l => l.id), []);
-    const full = variantCalc({ ...base, cfg: cfg({ supply: 3 }) }, [], []);
+    const full = variantCalc({ ...base, lines: sample().lines, cfg: cfg({ supply: 3 }) }, [], []);
     const r = compareRows(empty, full);
     expect(r[2].now).toBe('—');
     expect(r[2].alt).toBe('4P C63');

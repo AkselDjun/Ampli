@@ -58,9 +58,10 @@ describe('Editor', () => {
   it('changes type, wet and phase', () => {
     boot();
     fireEvent.click(radio('t', 'light'));
-    expect(ed().textContent).not.toContain('Помещение');
+    expect(ed().textContent).not.toContain('Условия');
     fireEvent.click(radio('t', 'power'));
-    expect(ed().textContent).toContain('Помещение');
+    expect(ed().textContent).toContain('Условия');
+    expect(ed().textContent).toContain('Вне помещения или особо опасные');
     fireEvent.click(radio('w', 'wet'));
     expect(radio('w', 'wet').checked).toBe(true);
     fireEvent.click(radio('w', 'dry'));
@@ -181,12 +182,6 @@ describe('Editor', () => {
     expect(rows().length).toBe(n + 1);
   });
 
-  it('shows demand-factor annotation when kc is below 1', () => {
-    boot();
-    const nums = ed().querySelectorAll<HTMLInputElement>('.grid3 > label.f input');
-    change(nums[0], '0.6');
-    expect(ed().querySelector('.ed-load')?.textContent).toContain('Кс');
-  });
 });
 
 describe('Editor RCD trip time', () => {
