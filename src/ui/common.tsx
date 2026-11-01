@@ -15,7 +15,7 @@ export function Seg<T extends string | number>({
   labelledBy?: string;
 }) {
   return (
-    <div className="seg" role="radiogroup" aria-labelledby={labelledBy}>
+    <div className="seg" role="radiogroup" aria-labelledby={labelledBy} data-n={items.length}>
       {items.map(([v, label]) => (
         <label key={String(v)}>
           <input type="radio" name={name} value={String(v)} checked={String(value) === String(v)} onChange={() => onChange(v)} />

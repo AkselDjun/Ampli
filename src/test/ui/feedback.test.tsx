@@ -154,6 +154,7 @@ describe('editor fields from the electricians', () => {
     boot();
     click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
     const d = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Параметры сети') as HTMLElement;
+    expect(d.querySelector('input[name="box"]')?.closest('.seg')?.getAttribute('data-n')).toBe('4');
     fireEvent.click(d.querySelector('input[name="prot"][value="rcd"]') as HTMLElement);
     fireEvent.keyDown(document, { key: 'Escape' });
     fireEvent.click(rows()[0]);

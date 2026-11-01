@@ -159,7 +159,7 @@ export function Editor({
             </label>
             <label className="f">
               <span className="lbl">На розетку, Вт</span>
-              <input type="number" inputMode="numeric" min={0} step="any" aria-label="Нагрузка на розетку, Вт" placeholder="не учитывать" value={String(l.perSocket ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'perSocket', value: e.target.value })} />
+              <input type="number" inputMode="numeric" min={0} step="any" aria-label="Нагрузка на розетку, Вт" placeholder="0" value={String(l.perSocket ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'perSocket', value: e.target.value })} />
             </label>
           </div>
         )}
