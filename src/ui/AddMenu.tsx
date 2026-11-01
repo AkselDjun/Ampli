@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { LineType } from '../core/types';
 import { TYPES } from '../core/norms';
+import { IconBolt, IconBulb, IconRooms, IconSocket } from './Icons';
 
 export function AddMenu({ onAdd, onRooms, fab, down }: { onAdd: (t: LineType) => void; onRooms: () => void; fab?: boolean; down?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -24,22 +25,28 @@ export function AddMenu({ onAdd, onRooms, fab, down }: { onAdd: (t: LineType) =>
     setOpen(false);
     onAdd(t);
   };
-  const types: [LineType, string][] = [
-    ['light', TYPES.light.label],
-    ['socket', TYPES.socket.label],
-    ['power', TYPES.power.label]
+  const types: [LineType, string, string, JSX.Element][] = [
+    ['light', TYPES.light.label, 'Светильники, LED-лента · B10, 1,5 мм²', <IconBulb key="i" />],
+    ['socket', TYPES.socket.label, 'Розетки помещения · C16, 2,5 мм²', <IconSocket key="i" />],
+    ['power', TYPES.power.label, 'Плита, бойлер, стиральная машина', <IconBolt key="i" />]
   ];
   return (
     <div className={'addmenu' + (fab ? ' fab' : '') + (down ? ' down' : '')} ref={ref}>
       {open && (
         <ul className="am-list" role="menu" aria-label="Тип новой группы">
-          {types.map(([t, label]) => (
+          {types.map(([t, label, hint, icon]) => (
             <li key={t} role="none">
-              <button type="button" role="menuitem" onClick={() => pick(t)}>{label}</button>
+              <button type="button" role="menuitem" className={'am-' + t} aria-label={label} onClick={() => pick(t)}>
+                <span className="am-ic">{icon}</span>
+                <span className="am-tx">{label}<small>{hint}</small></span>
+              </button>
             </li>
           ))}
           <li role="none">
-            <button type="button" role="menuitem" className="am-rooms" onClick={() => { setOpen(false); onRooms(); }}>Из комнат</button>
+            <button type="button" role="menuitem" className="am-rooms" aria-label="Из комнат" onClick={() => { setOpen(false); onRooms(); }}>
+              <span className="am-ic"><IconRooms /></span>
+              <span className="am-tx">Из комнат<small>Отметьте помещения, группы соберутся сами</small></span>
+            </button>
           </li>
         </ul>
       )}

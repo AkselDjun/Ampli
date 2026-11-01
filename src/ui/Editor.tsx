@@ -15,6 +15,8 @@ import { ArmButton, Seg, Stepper } from './common';
 import { useLib } from '../store/LibContext';
 import { parseApps } from '../core/quick';
 
+const CHIP_MAX = 6;
+
 function Tile({ label, val, sub }: { label: string; val: string; sub?: string }) {
   return (
     <div className="tile">
@@ -46,6 +48,7 @@ export function Editor({
   const [search, setSearch] = useState('');
   const [quick, setQuick] = useState<string | null>(null);
   const [quickMsg, setQuickMsg] = useState('');
+  const [allChips, setAllChips] = useState(false);
   if (!l) {
     return (
       <section className="col col-edit" aria-label="Редактор группы">
@@ -70,6 +73,7 @@ export function Editor({
   const cat = catalog(lib.apps);
   const found = searchCatalog(cat, search, lib.usage, tag);
   const often = topUsed(cat, lib.usage, tag);
+  const presets = byUsage(catalog([]).filter(it => it.tags.indexOf(tag) >= 0), lib.usage);
   const addFrom = (name: string, w: number) => {
     keepChips(() => dispatch({ t: 'addApp', name, w, ...(/лент/i.test(name) ? { m: 5 } : {}) }));
     libDispatch({ t: 'use', name });
@@ -97,7 +101,7 @@ export function Editor({
                 <p>Добавьте приборы ниже, расчёт появится здесь.</p>
               ) : (
                 <>
-                  <Tile label="Ток" val={fmt(r.I, 1) + NB + 'А'} />
+                  <Tile label="Ток" val={fmt(r.I, 1) + NB + 'А'} sub={'нагрузка ' + fmt(r.pd, 0) + NB + 'Вт'} />
                   {r.In ? (
                     <>
                       <Tile label="Автомат" val={r.curve + r.In} sub={r.rcbo ? 'дифавтомат ' + r.ma + ' мА' : r.rcd ? 'УЗО «' + r.zone + '» ' + r.ma + ' мА' : 'автомат'} />
@@ -110,9 +114,6 @@ export function Editor({
                 </>
               )}
             </div>
-            <p className="ed-load">
-              {r.empty ? '' : 'Нагрузка ' + fmt(r.pd, 0) + ' Вт' + (r.kc < 1 ? ' (из ' + fmt(r.pInst, 0) + ' Вт, Кс ' + fs(round2(r.kc)) + ')' : '')}
-            </p>
             {fix && (
               <FixBar
                 fix={fix}
@@ -153,11 +154,11 @@ export function Editor({
         {l.type === 'socket' && (
           <div className="grid3 sock">
             <label className="f">
-              <span className="lbl">Розеток в группе, шт</span>
+              <span className="lbl">Розеток, шт</span>
               <input type="number" inputMode="numeric" min={0} step={1} aria-label="Розеток в группе, шт" placeholder="0" value={String(l.sockets ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'sockets', value: e.target.value })} />
             </label>
             <label className="f">
-              <span className="lbl">Нагрузка на розетку, Вт</span>
+              <span className="lbl">На розетку, Вт</span>
               <input type="number" inputMode="numeric" min={0} step="any" aria-label="Нагрузка на розетку, Вт" placeholder="не учитывать" value={String(l.perSocket ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'perSocket', value: e.target.value })} />
             </label>
           </div>
@@ -170,7 +171,7 @@ export function Editor({
                 <span>Прибор</span>
                 <span>Мощность</span>
                 <span>Штук / длина</span>
-                <span>Отвод от коробки</span>
+                <span data-tip="Длина кабеля от распредкоробки до прибора">Отвод, м</span>
                 <span />
               </div>
             )}
@@ -201,7 +202,7 @@ export function Editor({
                   </div>
                 )}
                 <label className="a-br">
-                  <span className="lbl a-lbl">Отвод от коробки</span>
+                  <span className="lbl a-lbl">Отвод</span>
                   <span className="fld" data-sfx="м">
                     <input aria-label="Отвод от коробки, м" type="number" inputMode="decimal" min={0} step="any" placeholder="0" value={String(ap.br ?? '')} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'br', value: e.target.value })} />
                   </span>
@@ -240,8 +241,9 @@ export function Editor({
               ))}
             </div>
           )}
-          <div className="chips" ref={chips}>
-            {byUsage(catalog([]).filter(it => it.tags.indexOf(tag) >= 0), lib.usage).map(it => (
+          <div className={'chips' + (allChips ? ' all' : '')} ref={chips}>
+            <button className="chip custom" type="button" onClick={() => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp' }); })}>+ Свой прибор</button>
+            {presets.slice(0, allChips ? presets.length : CHIP_MAX).map(it => (
               <button key={it.key} className="chip" type="button" data-tip={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>
                 + {it.name}
               </button>
@@ -252,7 +254,9 @@ export function Editor({
                 <button className="chip-x" type="button" aria-label={'Убрать из моих приборов: ' + it.name} onClick={() => libDispatch({ t: 'delApp', id: it.key })}>×</button>
               </span>
             ))}
-            <button className="chip custom" type="button" onClick={() => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp' }); })}>+ Свой прибор</button>
+            {presets.length > CHIP_MAX && (
+              <button className="chip more" type="button" aria-expanded={allChips} onClick={() => setAllChips(!allChips)}>{allChips ? 'Свернуть' : 'Ещё ' + (presets.length - CHIP_MAX)}</button>
+            )}
           </div>
           <div className="ed-links">
             <button className="link" type="button" aria-expanded={quick !== null} onClick={() => { setQuick(quick === null ? '' : null); setQuickMsg(''); }}>Вставить список текстом</button>

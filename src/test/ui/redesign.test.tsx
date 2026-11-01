@@ -190,7 +190,8 @@ describe('AddMenu', () => {
     expect(screen.queryByRole('menu')).toBeNull();
     await user.click(toggle());
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getAllByRole('menuitem').map(x => x.textContent)).toEqual(['Освещение', 'Розетки', 'Мощный прибор', 'Из комнат']);
+    expect(screen.getAllByRole('menuitem').map(x => x.getAttribute('aria-label'))).toEqual(['Освещение', 'Розетки', 'Мощный прибор', 'Из комнат']);
+    expect(screen.getByRole('menuitem', { name: 'Освещение' }).textContent).toContain('B10, 1,5 мм²');
     await user.click(toggle());
     expect(screen.queryByRole('menu')).toBeNull();
     expect(document.querySelector('.addmenu')).toHaveClass('down');

@@ -200,3 +200,36 @@ describe('short captions for single-module breakers', () => {
     expect(shortName('')).toBe('');
   });
 });
+
+describe('usability pass', () => {
+  it('shows a few preset chips with a toggle for the rest', () => {
+    wide(true);
+    render(<App />);
+    const r = rows().find(x => x.textContent?.includes('Розетки: кухня')) as HTMLElement;
+    fireEvent.click(r);
+    const chipsEl = ed().querySelector('.chips:not(.often)') as HTMLElement;
+    const count = () => chipsEl.querySelectorAll('.chip:not(.custom):not(.more)').length;
+    expect(count()).toBe(6);
+    expect(chipsEl.querySelector('.chip.custom')).toBe(chipsEl.firstElementChild);
+    const more = chipsEl.querySelector('.chip.more') as HTMLElement;
+    expect(more.textContent).toMatch(/^Ещё \d+$/);
+    fireEvent.click(more);
+    expect(more).toHaveAttribute('aria-expanded', 'true');
+    expect(count()).toBeGreaterThan(6);
+    expect(more.textContent).toBe('Свернуть');
+  });
+  it('marks the group type with an icon and hidden text in the list', () => {
+    wide(true);
+    render(<App />);
+    const ty = rows()[0].querySelector('.row-ty') as HTMLElement;
+    expect(ty.dataset.t).toBe('light');
+    expect(ty.querySelector('svg')).not.toBeNull();
+    expect(ty.querySelector('.vh')?.textContent).toBe('Свет');
+  });
+  it('shows the group load under the current', () => {
+    wide(true);
+    render(<App />);
+    fireEvent.click(rows()[0]);
+    expect(ed().querySelector('.ed-res .tile small')?.textContent).toMatch(/^нагрузка 490\sВт$/);
+  });
+});

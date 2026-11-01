@@ -4,15 +4,17 @@ import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
 import { fixFor } from '../core/fixes';
 import type { FixAct } from '../core/fixes';
-import { IconChev, IconCopy, IconFolder, IconNet, IconTrash } from './Icons';
+import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconNet, IconSocket, IconTrash } from './Icons';
 import { ArmButton } from './common';
 import { AddMenu } from './AddMenu';
 import { FixBar } from './FixBar';
 import { useSwipe } from './swipe';
 
+const TYPE_IC: Record<LineType, JSX.Element> = { light: <IconBulb />, socket: <IconSocket />, power: <IconBolt /> };
+
 function rowSub(x: Row, three: boolean): string[] {
   const { l, r } = x;
-  const parts = [TYPES[l.type].short];
+  const parts: string[] = [];
   if (three) parts.push(r.three ? '3Ф' : l.phase);
   if (r.empty) parts.push('нет приборов');
   else {
@@ -54,7 +56,7 @@ function GroupRow({
         <span className="no">Г{i + 1}</span>
         <span className="row-main">
           <span className="row-name">{x.l.name || 'Без названия'}</span>
-          <span className="row-sub">{rowSub(x, three).map((t, k) => <span key={k}>{t}</span>)}</span>
+          <span className="row-sub"><span className="row-ty" data-t={x.l.type}>{TYPE_IC[x.l.type]}<span className="vh">{TYPES[x.l.type].short}</span></span>{rowSub(x, three).map((t, k) => <span key={k}>{t}</span>)}</span>
         </span>
         <span className="row-end">
           {x.r.status !== 'ok' && !x.r.empty && (

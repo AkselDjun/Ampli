@@ -100,3 +100,22 @@ export const IconAlert = make(0, (
   </>
 ));
 export const IconClose = make(0, <path d="M6 6l12 12M18 6 6 18" />, 2);
+export const IconBulb = make(0, (
+  <>
+    <path d="M9 18h6M10 21h4" />
+    <path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z" />
+  </>
+));
+export const IconSocket = make(0, (
+  <>
+    <circle cx="12" cy="12" r="8.5" />
+    <circle cx="9" cy="12" r="1.2" />
+    <circle cx="15" cy="12" r="1.2" />
+  </>
+));
+export const IconRooms = make(0, (
+  <>
+    <path d="M3 4h18v16H3z" />
+    <path d="M12 4v7H3M12 15v5M16 11h5" />
+  </>
+));

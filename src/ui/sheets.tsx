@@ -327,7 +327,7 @@ export function ReportSheet({
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <h3 className="sec-t">Группы линий</h3>
       <div className="tablewrap">
-        <table>
+        <table className="gtab">
           <thead>
             <tr>
               <th>Гр.</th><th>Название</th>{three && <th>Фаза</th>}<th className="num">Установл., Вт</th><th className="num">Ток, А</th><th>Защита</th><th>Кабель</th><th className="num">ΔU, %</th><th>Статус</th>
@@ -340,7 +340,7 @@ export function ReportSheet({
                 <>
                   <td className="mono t-no" data-label="Гр.">Г{i + 1}</td>
                   <td className="t-name" data-label="Название">{x.l.name}</td>
-                  {three && <td className="mono" data-label="Фаза">{r.three ? '3Ф' : (x.l.phase === '3' ? '3Ф' : x.l.phase)}</td>}
+                  {three && <td className="mono g-ph" data-label="Фаза">{r.three ? '3Ф' : (x.l.phase === '3' ? '3Ф' : x.l.phase)}</td>}
                 </>
               );
               if (r.empty) {
@@ -356,12 +356,12 @@ export function ReportSheet({
               return (
                 <tr key={x.l.id}>
                   {head}
-                  <td className="num" data-label="Установл., Вт">{fmt(r.pInst, 0)}</td>
-                  <td className="num" data-label="Ток, А">{fmt(r.I, 1)}</td>
-                  <td className="mono" data-label="Защита">{r.In ? protName(r) : '—'}</td>
-                  <td className="mono" data-label="Кабель">{r.In ? cableName(r) : '—'}</td>
-                  <td className="num" data-label="ΔU, %">{r.In ? fmt(r.drop, 1) : '—'}</td>
-                  <td data-label="Статус"><span className={'pill ' + r.status}>{STATUS[r.status]}</span></td>
+                  <td className="num g-pw" data-label="Установл., Вт">{fmt(r.pInst, 0)}</td>
+                  <td className="num g-i" data-label="Ток, А">{fmt(r.I, 1)}</td>
+                  <td className="mono g-pr" data-label="Защита">{r.In ? protName(r) : '—'}</td>
+                  <td className="mono g-cb" data-label="Кабель">{r.In ? cableName(r) : '—'}</td>
+                  <td className="num g-du" data-label="ΔU, %">{r.In ? fmt(r.drop, 1) : '—'}</td>
+                  <td className="g-st" data-label="Статус"><span className={'pill ' + r.status}>{STATUS[r.status]}</span></td>
                 </tr>
               );
             })}
