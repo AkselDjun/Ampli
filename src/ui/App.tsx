@@ -307,10 +307,6 @@ export function App() {
             onOpenNet={() => setSheet('net')}
             onRooms={() => setSheet('rooms')}
             onBlank={() => { dispatch({ t: 'replace', content: blank() }); toastUndo('Проект очищен', undo); }}
-            canUndo={hist.past.length > 0}
-            canRedo={hist.future.length > 0}
-            onUndo={() => dispatch({ t: 'undo' })}
-            onRedo={() => dispatch({ t: 'redo' })}
           />
           <div className="main-col">
             <Editor

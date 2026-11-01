@@ -289,9 +289,9 @@ describe('GroupList', () => {
   const props = (p: Project) => {
     const h = {
       onSelect: vi.fn(), onAdd: vi.fn(), onOpenProj: vi.fn(), onOpenNet: vi.fn(), onRooms: vi.fn(), onBlank: vi.fn(),
-      onUndo: vi.fn(), onRedo: vi.fn(), onCopy: vi.fn(), onDelete: vi.fn(), onFix: vi.fn()
+      onCopy: vi.fn(), onDelete: vi.fn(), onFix: vi.fn()
     };
-    return { h, el: <GroupList p={p} a={calcAll(p.lines, p.cfg)} sel={p.lines[0]?.id ?? null} canUndo canRedo {...h} /> };
+    return { h, el: <GroupList p={p} a={calcAll(p.lines, p.cfg)} sel={p.lines[0]?.id ?? null} {...h} /> };
   };
 
   it('summarises the network and opens the settings in one tap', async () => {
@@ -340,10 +340,6 @@ describe('GroupList', () => {
     expect(h.onSelect).toHaveBeenCalledWith(p.lines[2].id);
     await user.click(screen.getByRole('button', { name: 'Проекты' }));
     expect(h.onOpenProj).toHaveBeenCalled();
-    await user.click(screen.getByRole('button', { name: 'Отменить' }));
-    await user.click(screen.getByRole('button', { name: 'Вернуть' }));
-    expect(h.onUndo).toHaveBeenCalled();
-    expect(h.onRedo).toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
     await user.click(screen.getByRole('menuitem', { name: 'Из комнат' }));
     expect(h.onRooms).toHaveBeenCalled();
@@ -397,16 +393,16 @@ describe('GroupList', () => {
     Element.prototype.scrollIntoView = fn;
     const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]);
     const { h } = props(p);
-    render(<GroupList p={p} a={calcAll(p.lines, p.cfg)} sel={null} canUndo={false} canRedo={false} {...h} />);
+    render(<GroupList p={p} a={calcAll(p.lines, p.cfg)} sel={null} {...h} />);
     expect(fn).not.toHaveBeenCalled();
     delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
   });
-  it('disables undo and redo when unavailable', () => {
+  it('has no undo and redo arrows in the list header', () => {
     const p = proj([]);
     const { h } = props(p);
-    render(<GroupList p={p} a={calcAll(p.lines, p.cfg)} sel={null} canUndo={false} canRedo={false} {...h} />);
-    expect(screen.getByRole('button', { name: 'Отменить' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Вернуть' })).toBeDisabled();
+    render(<GroupList p={p} a={calcAll(p.lines, p.cfg)} sel={null} {...h} />);
+    expect(screen.queryByRole('button', { name: 'Отменить' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Вернуть' })).toBeNull();
   });
 });
 

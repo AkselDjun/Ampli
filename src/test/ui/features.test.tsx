@@ -61,9 +61,9 @@ describe('PanelMode', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Режим на щитке' }));
     expect(isOpen('На щитке')).toBe(true);
     const d = dlg('На щитке');
-    const items = d.querySelectorAll('li.pm');
-    expect(items.length).toBeGreaterThan(3);
-    const first = items[0] as HTMLElement;
+    expect(d.querySelectorAll('button.pmb-dev').length).toBeGreaterThan(3);
+    const first = d.querySelector('.pm') as HTMLElement;
+    expect(first.querySelector('.no')?.textContent).toBe('Г1');
     expect(first.querySelector('.pill')?.textContent).toBe('Не измерено');
     expect(first.querySelector('.pm-note')?.textContent).toBe('');
     change(byLabel(d, 'Г1: Петля, Ом'), '0.2');
@@ -85,7 +85,8 @@ describe('PanelMode', () => {
     const a = calcAll([], defaultCfg());
     render(<PanelMode open onClose={() => undefined} a={a} dispatch={() => undefined} />);
     expect(dlg('На щитке').textContent).toContain('Добавьте группы');
-    expect(dlg('На щитке').querySelectorAll('li').length).toBe(0);
+    expect(dlg('На щитке').querySelectorAll('.pmb-dev').length).toBe(0);
+    expect(dlg('На щитке').querySelector('.pm')).toBeNull();
   });
   it('shows no cable name when the protection is missing', () => {
     const l = mkLine('Пустая', 'socket', 10, null, null, [['Чайник', 2200, 1]]);
@@ -573,7 +574,7 @@ describe('RCD trip time measurement', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Режим на щитке' }));
     const d = dlg('На щитке');
-    const first = d.querySelectorAll('li.pm')[0] as HTMLElement;
+    const first = d.querySelector('.pm') as HTMLElement;
     change(byLabel(d, 'Г1: УЗО, мс'), '28');
     expect(first.querySelector('.pill')?.textContent).toBe('Соответствует');
     expect(first.querySelector('.pm-note')?.textContent).toContain('УЗО до 500 мс');

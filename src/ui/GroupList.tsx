@@ -76,7 +76,7 @@ function GroupRow({
 }
 
 export function GroupList({
-  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onRooms, onBlank, canUndo, canRedo, onUndo, onRedo, onCopy, onDelete, onFix
+  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onRooms, onBlank, onCopy, onDelete, onFix
 }: {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
@@ -90,10 +90,6 @@ export function GroupList({
   onOpenNet: () => void;
   onRooms: () => void;
   onBlank: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
-  onUndo: () => void;
-  onRedo: () => void;
 }) {
   const c = a.c;
   const three = c.supply === 3;
@@ -139,8 +135,6 @@ export function GroupList({
       <div className="list-head">
         <h2>Группы линий</h2>
         <span className="hist">
-          <button className="icon-btn" type="button" disabled={!canUndo} onClick={onUndo} aria-label="Отменить" data-tip="Отменить (Ctrl+Z)">↶</button>
-          <button className="icon-btn" type="button" disabled={!canRedo} onClick={onRedo} aria-label="Вернуть" data-tip="Вернуть (Ctrl+Shift+Z)">↷</button>
           <span className="count">{count ? count + ' шт.' : ''}</span>
         </span>
       </div>

@@ -78,12 +78,12 @@ describe('App', () => {
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'groups');
   });
 
-  it('undo and redo via buttons and Ctrl+Z shortcuts', async () => {
+  it('undo and redo via Ctrl+Z shortcuts', async () => {
     wide(true);
     const user = userEvent.setup();
     render(<App />);
     const n0 = rowsOf().length;
-    expect(screen.getByRole('button', { name: 'Отменить' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Отменить' })).toBeNull();
     await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
     await user.click(screen.getByRole('menuitem', { name: 'Розетки' }));
     expect(rowsOf().length).toBe(n0 + 1);
@@ -92,10 +92,6 @@ describe('App', () => {
     fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true, shiftKey: true });
     expect(rowsOf().length).toBe(n0 + 1);
     fireEvent.keyDown(document.body, { key: 'z', metaKey: true });
-    expect(rowsOf().length).toBe(n0);
-    await user.click(screen.getByRole('button', { name: 'Вернуть' }));
-    expect(rowsOf().length).toBe(n0 + 1);
-    await user.click(screen.getByRole('button', { name: 'Отменить' }));
     expect(rowsOf().length).toBe(n0);
     fireEvent.keyDown(document.body, { key: 'a', ctrlKey: true });
     fireEvent.keyDown(document.body, { key: 'z' });

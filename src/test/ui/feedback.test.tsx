@@ -5,6 +5,7 @@ import { PanelPane, shortName } from '../../ui/Side';
 import { Schematic } from '../../ui/Schematic';
 import { PrintDoc } from '../../ui/PrintDoc';
 import { PassportBody } from '../../ui/Passport';
+import { PanelMode } from '../../ui/PanelMode';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
@@ -231,5 +232,64 @@ describe('usability pass', () => {
     render(<App />);
     fireEvent.click(rows()[0]);
     expect(ed().querySelector('.ed-res .tile small')?.textContent).toMatch(/^нагрузка 490\sВт$/);
+  });
+});
+
+describe('panel mode as a real board', () => {
+  const mk = (cfg: Partial<Cfg> = {}) => {
+    const ls = lines();
+    ls[0].meas = { zs: '0.2' };
+    const p = proj(ls, cfg);
+    const dispatch = vi.fn();
+    render(<PanelMode open onClose={() => undefined} a={calcAll(p.lines, p.cfg)} dispatch={dispatch} />);
+    return { ls, dispatch, d: document.querySelector('.sheet-panel') as HTMLElement };
+  };
+  it('draws breakers on rails with verdict levers and opens the first unmeasured group', () => {
+    const { d } = mk();
+    const devs = Array.from(d.querySelectorAll<HTMLElement>('button.pmb-dev'));
+    expect(devs.length).toBe(3);
+    expect(devs[0].querySelector('.pmb-lever')).toHaveClass('v-ok');
+    expect(devs[1].querySelector('.pmb-lever')).toHaveClass('v-none');
+    expect(devs[1]).toHaveAttribute('aria-pressed', 'true');
+    expect(devs[0].querySelector('.pmb-strip')?.textContent).toContain('Г1');
+    expect(d.querySelector('.pmb-dev.k-in')?.textContent).toContain('Ввод');
+    expect(d.querySelectorAll('.pmb-free').length).toBeGreaterThan(0);
+    expect(d.querySelector('.pmb-top')?.textContent).toContain('1 из 3 групп измерено');
+    expect(d.querySelector('.pm .no')?.textContent).toBe('Г2');
+    expect(d.querySelector('.pm-prot')?.textContent).toContain('Гостиная');
+    expect(byLabel(d, 'Г2: Изоляция, МОм').placeholder).toBe('от 0,5');
+    expect(byLabel(d, 'Г2: УЗО, мс').placeholder).toBe('до 500');
+    expect(byLabel(d, 'Г2: Петля, Ом').placeholder).toMatch(/^до \d+,\d{2}$/);
+    expect(byLabel(d, 'Г2: Утечка, мА').placeholder).toBe('до 10,0');
+  });
+  it('switches groups by tapping a breaker and with the next and back buttons', () => {
+    const { d, ls, dispatch } = mk();
+    fireEvent.click(d.querySelectorAll<HTMLElement>('button.pmb-dev')[0]);
+    expect(d.querySelector('.pm .no')?.textContent).toBe('Г1');
+    const back = screen.getByRole('button', { name: /Назад/ });
+    expect(back).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /Дальше: Г2/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Дальше: Г3/ }));
+    expect(d.querySelector('.pm .no')?.textContent).toBe('Г3');
+    expect(screen.getByRole('button', { name: /Последняя группа/ })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /← Г2/ }));
+    expect(d.querySelector('.pm .no')?.textContent).toBe('Г2');
+    change(byLabel(d, 'Г2: Изоляция, МОм'), '5');
+    expect(dispatch).toHaveBeenCalledWith({ t: 'lineMeasAt', id: ls[1].id, field: 'ins', value: '5' });
+  });
+  it('shows RCDs per room as fixed modules', () => {
+    const { d } = mk({ prot: 'rcd' });
+    const uzo = Array.from(d.querySelectorAll('.pmb-dev.k-uzo'));
+    expect(uzo.length).toBe(2);
+    expect(uzo[0].tagName).toBe('DIV');
+    expect(uzo[0].textContent).toContain('Комнаты');
+    expect(d.querySelectorAll('button.pmb-dev.k-mcb').length).toBe(3);
+  });
+  it('wraps a long board onto several rails with blank plates', () => {
+    const many = Array.from({ length: 14 }, (_, i) => mkLine('Группа ' + i, 'light', 5, null, null, [['x', 100, 1]]));
+    const p = proj(many);
+    render(<PanelMode open onClose={() => undefined} a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} />);
+    expect(document.querySelectorAll('button.pmb-dev').length).toBe(14);
+    expect(document.querySelectorAll('.pmb-free').length).toBeGreaterThan(0);
   });
 });
