@@ -1255,3 +1255,31 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
 .net-more-b{display:grid;gap:var(--pad);padding-top:8px}
 .pj-reset{align-items:center;gap:8px}
 .pj-reset .muted{font-size:var(--t-sm)}
+
+input.price-in{height:34px;min-height:34px;width:104px;padding:0 10px;font-family:var(--font-mono);font-size:var(--t-m);text-align:right;border-radius:var(--r-s)}
+.t2 td:has(.price-in){padding-block:6px}
+#rep-tp-estimate .tot{position:sticky;bottom:calc(-1 * var(--pad));z-index:2;margin:0 calc(-1 * var(--pad)) calc(-1 * var(--pad));padding:12px var(--pad);border-width:1px 0 0;border-radius:0;box-shadow:0 -6px 18px rgba(14,24,34,.1)}
+@media (max-width:760px){input.price-in{width:100%;height:44px;text-align:left}}
+.ms-list{list-style:none;margin:0;padding:0;display:grid;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);overflow:hidden}
+.ms-r{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:2px 12px;padding:10px 12px;border-top:1px solid var(--line)}
+.ms-r:first-child{border-top:0}
+.ms-no{font:700 var(--t-sm) var(--font-mono);color:var(--ink-2)}
+.ms-main{display:grid;min-width:0}
+.ms-main b{font:700 var(--t-m) var(--font-mono)}
+.ms-main small{font-size:var(--t-s);color:var(--ink-2);overflow-wrap:anywhere}
+.ms-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px}
+.t2 td:has(.price-in){vertical-align:middle}
+.t2 tr:has(.price-in) td{vertical-align:middle}
+@media (max-width:760px){
+  .spec-t tr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"name name name" "q n n" "p p s";gap:4px 8px;padding:10px 12px}
+  .spec-t td[data-label]::before{display:none}
+  .spec-t td.t-name{grid-area:name;margin:0}
+  .spec-t td.sp-q{grid-area:q;font-size:var(--t-sm);color:var(--ink)}
+  .spec-t td.sp-n{grid-area:n;font-size:var(--t-sm);color:var(--ink-2)}
+  .spec-t td.sp-p{grid-area:p}
+  .spec-t td.sp-s{grid-area:s;align-self:center;font-family:var(--font-mono);font-weight:700;text-align:right;min-width:72px}
+  .spec-t input.price-in{height:40px}
+}
+.proto-d{margin:0}
+.proto-d summary{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex}
+.proto-d[open] .meta-grid{margin-top:8px}

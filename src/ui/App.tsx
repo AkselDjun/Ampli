@@ -354,7 +354,7 @@ export function App() {
         <HoverTips />
         <PanelMode open={sheet === 'panel'} onClose={closeSheet} a={a} dispatch={dispatch} />
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
-        <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} />
+        <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => setSheet('panel')} />
       </div>
       <PrintDoc p={p} a={a} mode={printMode} />
     </LibContext.Provider>

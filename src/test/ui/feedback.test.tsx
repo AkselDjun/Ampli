@@ -7,6 +7,7 @@ import { PrintDoc } from '../../ui/PrintDoc';
 import { PassportBody } from '../../ui/Passport';
 import { PanelMode } from '../../ui/PanelMode';
 import { Totals, allocState } from '../../ui/Totals';
+import { WorkSheet } from '../../ui/WorkSheet';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
@@ -357,5 +358,31 @@ describe('norm checks in the header', () => {
     expect(document.getElementById('chk-pop')?.textContent).toContain('трёхфазный ввод');
     fireEvent.pointerDown(document.body);
     expect(document.getElementById('chk-pop')).toBeNull();
+  });
+});
+
+describe('compact estimate and measurements', () => {
+  it('lists measured values per group and summarises protocol data', () => {
+    const ls = lines();
+    ls[0].meas = { zs: '0.2', ins: '50', leak: '1' };
+    const p = { ...proj(ls), proto: { date: '', by: 'Иванов', device: '' } };
+    const board = vi.fn();
+    render(<WorkSheet open onClose={() => undefined} p={p} a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} onPrint={vi.fn()} onBoard={board} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Замеры' }));
+    const rowsEl = document.querySelectorAll('.ms-r');
+    expect(rowsEl.length).toBe(3);
+    expect(rowsEl[0].querySelector('small')?.textContent).toMatch(/^петля 0,20 Ом, Iк [\d\s]+ \/ \d+ А · изоляция 50,00 МОм · утечка 1,0 \/ 10,0 мА$/);
+    expect(rowsEl[1].querySelector('small')?.textContent).toBe('Розетки');
+    expect(document.querySelector('.proto-d summary')?.textContent).toBe('Данные протокола: Иванов');
+    fireEvent.click(screen.getByRole('button', { name: 'Ввести на щитке' }));
+    expect(board).toHaveBeenCalled();
+  });
+  it('gives price fields a placeholder and keeps the totals in the estimate tab', () => {
+    render(<App />);
+    fireEvent.click(screen.getAllByRole('button', { name: /Отчёт/ })[0]);
+    fireEvent.click(screen.getByRole('tab', { name: 'Смета' }));
+    const inp = document.querySelector('.spec-t .price-in') as HTMLInputElement;
+    expect(inp.placeholder).toBe('цена');
+    expect(document.querySelector('#rep-tp-estimate .tot')).toBeTruthy();
   });
 });

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Calc, Project } from '../core/types';
-import { fmt } from '../core/format';
+import { dfmt, fmt } from '../core/format';
 import { CHECK_ITEMS, progress } from '../core/checklist';
 import { VERDICT, protocolRows } from '../core/protocol';
 import type { Action } from '../store/reducer';
@@ -10,7 +10,7 @@ import { ShareBlock } from './ShareBlock';
 export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport';
 
 export function WorkSheet({
-  open, onClose, p, a, dispatch, onPrint
+  open, onClose, p, a, dispatch, onPrint, onBoard
 }: {
   open: boolean;
   onClose: () => void;
@@ -18,6 +18,7 @@ export function WorkSheet({
   a: Calc;
   dispatch: (x: Action) => void;
   onPrint: (m: PrintMode) => void;
+  onBoard: () => void;
 }) {
   const [tab, setTab] = useState('check');
   const checks = p.checks ?? {};
@@ -45,33 +46,38 @@ export function WorkSheet({
       </ul>
       </TabPanel>
       <TabPanel scope="wk" id="meas" cur={tab}>
-      <h3 className="sec-t">Протокол замеров</h3>
+      <details className="bd-help proto-d">
+        <summary>Данные протокола{proto.date || proto.by || proto.device ? ': ' + [proto.date ? dfmt(new Date(proto.date).getTime()) : '', proto.by, proto.device].filter(Boolean).join(', ') : ''}</summary>
       <div className="meta-grid">
         <div className="f"><label className="lbl" htmlFor="pDate">Дата замеров</label><input id="pDate" type="date" value={proto.date} onChange={e => dispatch({ t: 'proto', field: 'date', value: e.target.value })} /></div>
         <div className="f"><label className="lbl" htmlFor="pBy">Измерения выполнил</label><input id="pBy" type="text" maxLength={80} autoComplete="off" value={proto.by} onChange={e => dispatch({ t: 'proto', field: 'by', value: e.target.value })} /></div>
         <div className="f wide"><label className="lbl" htmlFor="pDev">Прибор, номер, поверка</label><input id="pDev" type="text" maxLength={120} autoComplete="off" value={proto.device} onChange={e => dispatch({ t: 'proto', field: 'device', value: e.target.value })} /></div>
       </div>
-      <div className="tablewrap">
-        <table className="t2">
-          <thead>
-            <tr><th>Гр.</th><th>Защита</th><th className="num">Петля, Ом</th><th className="num">Iк, А</th><th className="num">Изоляция, МОм</th><th className="num">Утечка, мА</th><th className="num">УЗО, мс</th><th>Итог</th></tr>
-          </thead>
-          <tbody>
-            {rows.map(r => (
-              <tr key={r.no}>
-                <td className="mono t-no" data-label="Гр.">{r.no}</td>
-                <td className="mono" data-label="Защита">{r.prot}</td>
-                <td className="num" data-label="Петля, Ом">{r.zs === null ? '—' : fmt(r.zs, 2)}</td>
-                <td className="num" data-label="Iк, А">{r.ik === null ? '—' : fmt(r.ik, 0) + ' / ' + fmt(r.need, 0)}</td>
-                <td className="num" data-label="Изоляция, МОм">{r.ins === null ? '—' : fmt(r.ins, 2)}</td>
-                <td className="num" data-label="Утечка, мА">{r.leak === null ? '—' : fmt(r.leak, 1) + ' / ' + fmt(r.leakLim, 1)}</td>
-                <td className="num" data-label="УЗО, мс">{r.rcdT === null ? '—' : fmt(r.rcdT, 0) + ' / ' + fmt(r.rcdLim, 0)}</td>
-                <td data-label="Итог"><span className={'pill ' + (r.verdict === 'ok' ? 'ok' : (r.verdict === 'bad' ? 'bad' : 'warn'))}>{VERDICT[r.verdict]}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      </details>
+      <div className="ms-head">
+        <h3 className="sec-t">Результаты по группам</h3>
+        <button className="btn sm primary" type="button" onClick={onBoard}>Ввести на щитке</button>
       </div>
+      <ul className="ms-list">
+        {rows.map(r => {
+          const vals = [
+            r.zs === null ? '' : 'петля ' + fmt(r.zs, 2) + ' Ом, Iк ' + fmt(r.ik as number, 0) + ' / ' + fmt(r.need, 0) + ' А',
+            r.ins === null ? '' : 'изоляция ' + fmt(r.ins, 2) + ' МОм',
+            r.leak === null ? '' : 'утечка ' + fmt(r.leak, 1) + ' / ' + fmt(r.leakLim, 1) + ' мА',
+            r.rcdT === null ? '' : 'УЗО ' + fmt(r.rcdT, 0) + ' / ' + fmt(r.rcdLim, 0) + ' мс'
+          ].filter(Boolean);
+          return (
+            <li className="ms-r" key={r.no}>
+              <span className="ms-no">{r.no}</span>
+              <span className="ms-main">
+                <b>{r.prot}</b>
+                <small>{vals.length ? vals.join(' · ') : r.name}</small>
+              </span>
+              <span className={'pill ' + (r.verdict === 'ok' ? 'ok' : (r.verdict === 'bad' ? 'bad' : 'warn'))}>{VERDICT[r.verdict]}</span>
+            </li>
+          );
+        })}
+      </ul>
       </TabPanel>
       <TabPanel scope="wk" id="docs" cur={tab}>
       <h3 className="sec-t">Паспорт для владельца</h3>

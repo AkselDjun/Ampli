@@ -570,7 +570,7 @@ describe('Owner passport', () => {
 });
 
 describe('RCD trip time measurement', () => {
-  it('is entered in panel mode and shows in the acceptance table', () => {
+  it('is entered in panel mode and shows in the acceptance list', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Режим на щитке' }));
     const d = dlg('На щитке');
@@ -585,6 +585,10 @@ describe('RCD trip time measurement', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /Приёмка/ })[0]);
     const w = dlg('Монтаж и приёмка');
     fireEvent.click(within(w).getByRole('tab', { name: 'Замеры', hidden: true }));
-    expect(w.querySelector('td[data-label="УЗО, мс"]')?.textContent).toBe('700 / 500');
+    const row = w.querySelector('.ms-r') as HTMLElement;
+    expect(row.querySelector('small')?.textContent).toBe('УЗО 700 / 500 мс');
+    expect(row.querySelector('.pill')?.textContent).toBe('Не соответствует');
+    fireEvent.click(within(w).getByRole('button', { name: 'Ввести на щитке', hidden: true }));
+    expect(isOpen('На щитке')).toBe(true);
   });
 });
