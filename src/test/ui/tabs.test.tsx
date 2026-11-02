@@ -97,7 +97,7 @@ describe('sheets use tabs and one panel at a time', () => {
     click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
     const d = dlg('Проекты');
     expect(within(d).getAllByRole('tab').map(t => t.textContent)).toEqual(['Проекты', 'Обмен и данные']);
-    click(d, 'Мои данные');
+    click(d, 'Открыть мои данные');
     const l = dlg('Мои данные');
     expect(within(l).getAllByRole('tab').map(t => t.textContent)).toEqual(['Реквизиты', 'Приборы', 'Шаблоны и цены']);
     fireEvent.click(within(l).getByRole('tab', { name: 'Шаблоны и цены' }));

@@ -122,7 +122,7 @@ describe('App', () => {
     expect(isOpen('Параметры сети')).toBe(false);
     click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
     expect(isOpen('Проекты')).toBe(true);
-    click(dlg('Проекты'), 'Мои данные');
+    click(dlg('Проекты'), 'Открыть мои данные');
     expect(isOpen('Мои данные')).toBe(true);
     click(dlg('Мои данные'), 'Закрыть');
     click(document.querySelector('.col-list') as HTMLElement, '+ Добавить группу');

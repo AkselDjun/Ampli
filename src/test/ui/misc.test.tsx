@@ -139,7 +139,7 @@ describe('RoomsSheet', () => {
 describe('LibSheet', () => {
   const openLib = () => {
     click(list(), 'Проекты');
-    click(dlg('Проекты'), 'Мои данные');
+    click(dlg('Проекты'), 'Открыть мои данные');
     return dlg('Мои данные');
   };
 
@@ -164,7 +164,7 @@ describe('LibSheet', () => {
     click(list(), 'Проекты');
     const pj = dlg('Проекты');
     click(pj, 'Сохранить как шаблон');
-    click(pj, 'Мои данные');
+    click(pj, 'Открыть мои данные');
     const d = dlg('Мои данные');
     const n = d.querySelectorAll('.lib-r').length;
     expect(n).toBeGreaterThan(1);
@@ -177,7 +177,7 @@ describe('LibSheet', () => {
     change(dlg('Отчёт и спецификация').querySelector('.price-in') as HTMLElement, '5');
     fireEvent.keyDown(document, { key: 'Escape' });
     click(list(), 'Проекты');
-    click(pj, 'Мои данные');
+    click(pj, 'Открыть мои данные');
     expect(d.textContent).toContain('1 позиция');
     click(d, 'Очистить все цены');
     click(d, 'Точно очистить?');
@@ -205,7 +205,7 @@ describe('LibSheet', () => {
     vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => undefined);
     render(<App />);
     click(list(), 'Проекты');
-    click(dlg('Проекты'), 'Мои данные');
+    click(dlg('Проекты'), 'Открыть мои данные');
     const d = dlg('Мои данные');
     click(d, 'Загрузить логотип');
     const input = d.querySelector('input[type="file"]') as HTMLInputElement;

@@ -83,7 +83,7 @@ export function WorkSheet({
       <h3 className="sec-t">Паспорт для владельца</h3>
       <p className="muted">Страница для заказчика: что на каком автомате, сколько можно включать и что делать, если выбило. Отправьте ссылкой или распечатайте с QR-кодом для дверцы щитка.</p>
       <div className="copy-row">
-        <button className="btn primary" type="button" onClick={() => onPrint('passport')}>Печать паспорта</button>
+        <button className="btn" type="button" onClick={() => onPrint('passport')}>Печать паспорта</button>
       </div>
       <ShareBlock p={p} owner />
       <h3 className="sec-t">Протокол, наклейки и бирки</h3>

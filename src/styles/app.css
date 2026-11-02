@@ -1287,3 +1287,9 @@ input.price-in{height:34px;min-height:34px;width:104px;padding:0 10px;font-famil
 .skip a:focus{transform:none;outline:2px solid var(--ink);outline-offset:2px}
 @media (max-width:999px){.skip-ed{display:none}}
 #groups:focus,#editor:focus{outline:none}
+.btn:disabled,.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn.primary:disabled{background:var(--surface-2);border-color:var(--line);color:var(--ink-2);opacity:1}
+@media (max-width:760px){
+  .schem-wrap{padding:8px;-webkit-overflow-scrolling:touch}
+  .schem-wrap .schem{width:640px;max-width:none}
+}

@@ -228,10 +228,8 @@ export function ProjectsSheet({
       </div>
       </TabPanel>
       <TabPanel scope="pj" id="share" cur={tab}>
-      <div className="data-row">
-        <button className="btn ghost" type="button" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</button>
-        <button className="btn ghost" type="button" onClick={onLib}>Мои данные</button>
-      </div>
+      <h3 className="sec-t">Перенести на другое устройство</h3>
+      <p className="muted">Ссылка и QR-код открывают этот проект на другом телефоне или компьютере. Файл подходит для архива и отправки почтой.</p>
       <ShareBlock p={p} />
       <div className="data-row">
         <button className="btn ghost" type="button" onClick={exportFile}>Сохранить в файл</button>
@@ -256,6 +254,16 @@ export function ProjectsSheet({
             rd.readAsText(f);
           }}
         />
+      </div>
+      <h3 className="sec-t">Шаблон</h3>
+      <p className="muted">Группы и параметры этого проекта станут заготовкой для новых проектов.</p>
+      <div className="data-row">
+        <button className="btn ghost" type="button" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</button>
+      </div>
+      <h3 className="sec-t">Мои данные</h3>
+      <p className="muted">Реквизиты для отчёта, свои приборы, шаблоны и цены.</p>
+      <div className="data-row">
+        <button className="btn ghost" type="button" onClick={onLib}>Открыть мои данные</button>
       </div>
       <InstallBlock />
       </TabPanel>
