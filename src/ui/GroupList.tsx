@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Calc, CfgN, LineType, Project, Row } from '../core/types';
 import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
@@ -51,6 +51,16 @@ function GroupRow({
         type="button"
         style={dx ? { transform: 'translateX(' + dx + 'px)', transition: 'none' } : undefined}
         onClick={() => onSelect(x.l.id)}
+        aria-keyshortcuts="Control+D Delete"
+        onKeyDown={e => {
+          if (e.key === 'Delete') {
+            e.preventDefault();
+            onDelete(x.l.id);
+          } else if ((e.ctrlKey || e.metaKey) && (e.key === 'd' || e.key === 'в')) {
+            e.preventDefault();
+            onCopy(x.l.id);
+          }
+        }}
         {...handlers}
       >
         <span className="no">Г{i + 1}</span>
@@ -67,8 +77,8 @@ function GroupRow({
         <IconChev className="chev" />
       </button>
       <div className="row-act">
-        <button type="button" className="ra-b" aria-label={'Копировать группу Г' + (i + 1)} data-tip="Копировать" onClick={() => onCopy(x.l.id)}><IconCopy /></button>
-        <button type="button" className="ra-b del" aria-label={'Удалить группу Г' + (i + 1)} data-tip="Удалить" onClick={() => onDelete(x.l.id)}><IconTrash /></button>
+        <button type="button" className="ra-b" tabIndex={-1} aria-label={'Копировать группу Г' + (i + 1)} data-tip="Копировать (Ctrl+D)" onClick={() => onCopy(x.l.id)}><IconCopy /></button>
+        <button type="button" className="ra-b del" tabIndex={-1} aria-label={'Удалить группу Г' + (i + 1)} data-tip="Удалить (Delete)" onClick={() => onDelete(x.l.id)}><IconTrash /></button>
       </div>
       {fix && <FixBar fix={fix} onApply={() => fix.act && onFix(x.l.id, fix.act)} />}
     </div>
@@ -94,7 +104,12 @@ export function GroupList({
   const c = a.c;
   const three = c.supply === 3;
   const count = p.lines.length;
+  const mounted = useRef(false);
   useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
     const el = document.querySelector('.col-list .row.sel');
     if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'nearest' });
   }, [count]);
@@ -108,7 +123,7 @@ export function GroupList({
     ['Выделено', fmt(c.alloc, 1) + ' кВт']
   ];
   return (
-    <section className="col col-list" aria-label="Группы линий">
+    <section className="col col-list" id="groups" tabIndex={-1} aria-label="Группы линий">
       <div className="proj-box">
         <button className="projbar" type="button" onClick={onOpenProj} aria-label="Проекты">
           <IconFolder />

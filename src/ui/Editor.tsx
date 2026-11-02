@@ -51,7 +51,7 @@ export function Editor({
   const [allChips, setAllChips] = useState(false);
   if (!l) {
     return (
-      <section className="col col-edit" aria-label="Редактор группы">
+      <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы">
         <div className="empty">Выберите группу слева или добавьте новую.</div>
       </section>
     );
@@ -87,7 +87,7 @@ export function Editor({
   const hasBr = !!r && r.len > pn(l.len, 0);
   const setLen = (v: number) => dispatch({ t: 'lineField', field: 'len', value: Math.max(0, Math.min(500, round2(v))) });
   return (
-    <section className="col col-edit" aria-label="Редактор группы">
+    <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы">
       <div className="ed">
         <div className="ed-head">
           <span className="no">Г{idx + 1}</span>

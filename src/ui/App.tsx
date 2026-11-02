@@ -247,6 +247,10 @@ export function App() {
   return (
     <LibContext.Provider value={{ lib, dispatch: libDispatch }}>
       <div id="app" data-view={view}>
+        <nav className="skip" aria-label="Быстрый переход">
+          <a href="#groups">К списку групп</a>
+          <a href="#editor" className="skip-ed">К карточке группы</a>
+        </nav>
         <header className="appbar">
           <div className="in">
             <div className="ab-edit">

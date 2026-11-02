@@ -386,3 +386,29 @@ describe('compact estimate and measurements', () => {
     expect(document.querySelector('#rep-tp-estimate .tot')).toBeTruthy();
   });
 });
+
+describe('keyboard', () => {
+  it('copies with Ctrl+D and deletes with Delete on a focused group row, row buttons stay out of Tab', () => {
+    wide(true);
+    render(<App />);
+    const n = rows().length;
+    expect(rows()[0].getAttribute('aria-keyshortcuts')).toBe('Control+D Delete');
+    document.querySelectorAll('.ra-b').forEach(b => expect(b.getAttribute('tabindex')).toBe('-1'));
+    fireEvent.keyDown(rows()[1], { key: 'd', ctrlKey: true });
+    expect(rows().length).toBe(n + 1);
+    fireEvent.keyDown(rows()[1], { key: 'в', metaKey: true });
+    expect(rows().length).toBe(n + 2);
+    fireEvent.keyDown(rows()[1], { key: 'Delete' });
+    expect(rows().length).toBe(n + 1);
+    fireEvent.keyDown(rows()[1], { key: 'x' });
+    expect(rows().length).toBe(n + 1);
+  });
+  it('offers skip links to the list and the editor', () => {
+    wide(true);
+    render(<App />);
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('nav.skip a'));
+    expect(links.map(a => a.getAttribute('href'))).toEqual(['#groups', '#editor']);
+    expect(document.getElementById('groups')?.getAttribute('tabindex')).toBe('-1');
+    expect(document.getElementById('editor')?.getAttribute('tabindex')).toBe('-1');
+  });
+});

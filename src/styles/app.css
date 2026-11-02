@@ -1283,3 +1283,7 @@ input.price-in{height:34px;min-height:34px;width:104px;padding:0 10px;font-famil
 .proto-d{margin:0}
 .proto-d summary{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex}
 .proto-d[open] .meta-grid{margin-top:8px}
+.skip a{position:fixed;left:8px;top:8px;z-index:100;padding:10px 14px;border-radius:var(--r-m);background:var(--accent);color:var(--accent-ink);font-weight:600;text-decoration:none;transform:translateY(-200%);transition:transform .15s}
+.skip a:focus{transform:none;outline:2px solid var(--ink);outline-offset:2px}
+@media (max-width:999px){.skip-ed{display:none}}
+#groups:focus,#editor:focus{outline:none}
