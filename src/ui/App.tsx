@@ -15,7 +15,7 @@ import { gcPhotos } from '../store/photos';
 import { referencedPhotoIds } from '../core/photos';
 import { CompareSheet } from './CompareSheet';
 import { RoomsSheet } from './RoomsSheet';
-import { Brand, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconPanel, IconSearch } from './Icons';
+import { Brand, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconPanel } from './Icons';
 import { Palette } from './Palette';
 import type { Cmd } from './Palette';
 import { GroupList } from './GroupList';
@@ -256,10 +256,6 @@ export function App() {
             <div className="ab-main">
               <h1 className="brand"><Brand /><span>Ampli</span></h1>
               <Totals a={a} onNet={() => setSheet('net')} />
-              <button className="ab-btn" type="button" data-tip="Быстрые действия (Ctrl+K)" aria-label="Быстрые действия" aria-keyshortcuts="Control+K" onClick={() => setPal(true)}>
-                <IconSearch />
-                <span className="ab-txt">Найти</span>
-              </button>
               <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
                 <IconPanel />
                 <span className="ab-txt">На щитке</span>

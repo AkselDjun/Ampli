@@ -44,13 +44,11 @@ describe('Command palette', () => {
     expect(pal().open).toBe(false);
   });
 
-  it('opens from the header and with slash, navigates with arrows and picks a group', () => {
+  it('has no search button in the header, opens with slash, navigates with arrows and picks a group', () => {
     wide(true);
     render(<App />);
-    click(document.querySelector('.ab-main') as HTMLElement, /Найти/);
-    expect(pal().open).toBe(true);
-    fireEvent.keyDown(q(), { key: 'Escape' });
-    expect(pal().open).toBe(false);
+    expect((document.querySelector('.ab-main') as HTMLElement).textContent).not.toContain('Найти');
+    expect(screen.queryByRole('button', { name: 'Быстрые действия' })).toBeNull();
     fireEvent.keyDown(document.body, { key: '/' });
     expect(pal().open).toBe(true);
     change(q(), 'Г3');
