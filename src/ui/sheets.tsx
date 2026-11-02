@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Calc, Content, Project } from '../core/types';
+import type { Calc, Project } from '../core/types';
 import type { TplKey } from '../core/templates';
 import { TPL_LIST, TPL_NAME, blank, contentFor, sample } from '../core/templates';
 import { cfgN } from '../core/calc';
 import { BOX_NAME, IN_CABLE } from '../core/norms';
-import { dfmt, fmt, plural } from '../core/format';
+import { dfmt, fmt, fs, plural } from '../core/format';
 import { STATUS } from '../core/norms';
 import { buildSpec } from '../core/spec';
 import { cableName, protName } from '../core/protection';
@@ -34,10 +34,6 @@ export function NetSheet({
   dispatch: (a: Action) => void;
 }) {
   const c = cfgN(p.cfg);
-  const replace = (content: Content) => {
-    dispatch({ t: 'replace', content });
-    onClose();
-  };
   return (
     <Sheet open={open} onClose={onClose} title="Параметры сети">
       <div className="f">
@@ -45,61 +41,53 @@ export function NetSheet({
         <Seg<number> name="sup" labelledBy="l-sup" value={c.supply} items={[[1, '1 фаза · 230 В'], [3, '3 фазы · 400 В']]} onChange={v => dispatch({ t: 'cfg', field: 'supply', value: v })} />
       </div>
       <div className="f">
-        <span className="lbl" id="l-met">Прокладка кабеля</span>
+        <span className="lbl-row"><span className="lbl">Выделенная мощность, кВт</span><Tip label="О выделенной мощности">Из технических условий на квартиру. С ней сравнивается расчётная мощность в табло вверху.</Tip></span>
+        <Stepper value={p.cfg.alloc} d={1} min={1} step={0.5} label="Выделенная мощность, кВт" onChange={v => dispatch({ t: 'cfg', field: 'alloc', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'alloc', d })} />
+      </div>
+      <div className="f">
+        <span className="lbl-row"><span className="lbl" id="l-met">Прокладка кабеля</span><Tip label="О прокладке">Скрытая: кабель в трубе в стене или кладке (способы 2 и 5A, табл. 52Н ГОСТ 30331.15). Открытая: в коробе или по поверхности (способы 4A и 11).</Tip></span>
         <Seg<string> name="met" labelledBy="l-met" value={c.method} items={[['wall', 'Скрытая'], ['open', 'Открытая']]} onChange={v => dispatch({ t: 'cfg', field: 'method', value: v })} />
-        <small>Скрытая: кабель в трубе в стене или кладке (способы 2 и 5A, табл. 52Н ГОСТ 30331.15). Открытая: в коробе или по поверхности (способы 4A и 11).</small>
       </div>
       <div className="f">
-        <span className="lbl" id="l-prot">Защита групп</span>
+        <span className="lbl-row"><span className="lbl" id="l-prot">Защита групп</span><Tip label="О защите групп">Дифавтомат на группу: при неисправности отключается только эта группа, щиток шире. УЗО на помещение: группы одного помещения подключаются через общее УЗО с автоматами после него, у каждого УЗО своя нулевая шина. Помещение задаётся в карточке группы.</Tip></span>
         <Seg<string> name="prot" labelledBy="l-prot" value={c.rcdMode ? 'rcd' : 'rcbo'} items={[['rcbo', 'Дифавтомат на группу'], ['rcd', 'УЗО на помещение + автоматы']]} onChange={v => dispatch({ t: 'cfg', field: 'prot', value: v })} />
-        <small>{c.rcdMode ? 'Группы одного помещения подключаются через общее УЗО, у каждого УЗО своя нулевая шина. Помещение задаётся в карточке группы.' : 'На каждой группе свой дифавтомат: отключается только неисправная группа, щиток шире.'}</small>
       </div>
-      <div className="f">
-        <span className="lbl" id="l-box">Распределительные коробки</span>
-        <Seg<string> name="box" labelledBy="l-box" value={c.boxAuto ? 'auto' : c.box} items={[['auto', 'Подобрать'], ['brick', 'Бетон, кирпич'], ['gkl', 'Гипсокартон'], ['surface', 'Накладные IP54']]} onChange={v => dispatch({ t: 'cfg', field: 'box', value: v })} />
-        <small>{c.boxAuto ? 'Подобрано по прокладке: коробка ' + BOX_NAME[c.box] + '. ' : ''}Для скрытой проводки в бетон и кирпич берут коробки под штукатурку, в гипсокартон с прижимными лапками, для открытой проводки и мокрых зон накладные IP54.</small>
-      </div>
-      <div className="f">
-        <span className="lbl" id="l-inc">Кабель ввода</span>
-        <Seg<string> name="inc" labelledBy="l-inc" value={c.inCable} items={(Object.keys(IN_CABLE) as (keyof typeof IN_CABLE)[]).map(k => [k, IN_CABLE[k]])} onChange={v => dispatch({ t: 'cfg', field: 'inCable', value: v })} />
-        <small>Марка кабеля от этажного щита до щитка квартиры, сечение подбирается расчётом.</small>
-      </div>
-      <div className="f">
-        <span className="lbl">Потеря напряжения до щитка, %</span>
-        <Stepper value={p.cfg.feeder} d={0.1} min={0} max={3} step={0.1} label="Потеря напряжения от ВРУ до щитка квартиры, %" onChange={v => dispatch({ t: 'cfg', field: 'feeder', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'feeder', d })} />
-        <small>Нормы СН 4.04.01-2019 (п. 9.14: 3 % для освещения, 5 % для остальных) отсчитываются от ВРУ здания. Потеря на стояке до квартиры вычитается из допуска групп. Если неизвестна, оставьте 0.</small>
-      </div>
-      <div className="f">
-        <span className="lbl" id="l-mins">Наименьшее сечение жилы</span>
-        <Seg<string> name="mins" labelledBy="l-mins" value={c.safe ? 'safe' : 'norm'} items={[['safe', 'С запасом'], ['norm', 'По норме']]} onChange={v => dispatch({ t: 'cfg', field: 'minS', value: v })} />
-        <small>ГОСТ 30331.15-2001 (табл. 52J) допускает 1,5 мм². «С запасом»: не менее 2,5 мм² для розеток и мощных приборов.</small>
-      </div>
-      <div className="set-grid">
-        <div className="f wide">
-          <span className="lbl">Петля фаза-нуль питающей сети, Ом</span>
-          <Stepper value={p.cfg.zs} d={0.05} min={0.05} max={2} step={0.05} label="Сопротивление петли фаза-нуль питающей сети, Ом" onChange={v => dispatch({ t: 'cfg', field: 'zs', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'zs', d })} />
-          <small>До щитка квартиры. Значение по умолчанию ориентировочное: уточните у энергоснабжающей организации или замерьте. Нужно для проверки отключения при коротком замыкании.</small>
+      <details className="bd-help net-more">
+        <summary>Для точного расчёта<small>{[IN_CABLE[c.inCable], c.boxAuto ? 'коробки по прокладке' : 'коробки ' + BOX_NAME[c.box], 'петля ' + fmt(c.zs, 2) + ' Ом', 'Ко ' + fs(c.ko), 'поправка ' + fs(c.k), c.safe ? 'сечение с запасом' : 'сечение по норме'].concat(c.feeder > 0 ? ['потеря до щитка ' + fs(c.feeder) + ' %'] : []).join(' · ')}</small></summary>
+        <div className="net-more-b">
+          <div className="f">
+            <span className="lbl-row"><span className="lbl" id="l-inc">Кабель ввода</span><Tip label="О кабеле ввода">Марка кабеля от этажного щита до щитка квартиры. Сечение подбирается расчётом.</Tip></span>
+            <Seg<string> name="inc" labelledBy="l-inc" value={c.inCable} items={(Object.keys(IN_CABLE) as (keyof typeof IN_CABLE)[]).map(k => [k, IN_CABLE[k]])} onChange={v => dispatch({ t: 'cfg', field: 'inCable', value: v })} />
+          </div>
+          <div className="f">
+            <span className="lbl-row"><span className="lbl" id="l-box">Распределительные коробки</span><Tip label="О коробках">Для скрытой проводки в бетон и кирпич берут коробки под штукатурку, в гипсокартон с прижимными лапками, для открытой проводки и мокрых зон накладные IP54.</Tip></span>
+            <Seg<string> name="box" labelledBy="l-box" value={c.boxAuto ? 'auto' : c.box} items={[['auto', 'Подобрать'], ['brick', 'Бетон, кирпич'], ['gkl', 'Гипсокартон'], ['surface', 'Накладные IP54']]} onChange={v => dispatch({ t: 'cfg', field: 'box', value: v })} />
+            {c.boxAuto && <small>Подобрано по прокладке: коробка {BOX_NAME[c.box]}.</small>}
+          </div>
+          <div className="f">
+            <span className="lbl-row"><span className="lbl" id="l-mins">Наименьшее сечение жилы</span><Tip label="О наименьшем сечении">ГОСТ 30331.15-2001 (табл. 52J) допускает 1,5 мм². «С запасом»: не менее 2,5 мм² для розеток и мощных приборов.</Tip></span>
+            <Seg<string> name="mins" labelledBy="l-mins" value={c.safe ? 'safe' : 'norm'} items={[['safe', 'С запасом'], ['norm', 'По норме']]} onChange={v => dispatch({ t: 'cfg', field: 'minS', value: v })} />
+          </div>
+          <div className="set-grid">
+            <div className="f">
+              <span className="lbl-row"><span className="lbl">Петля фаза-нуль сети, Ом</span><Tip label="О петле фаза-нуль">Сопротивление до щитка квартиры. Значение по умолчанию ориентировочное: уточните у энергоснабжающей организации или замерьте. Нужно для проверки отключения при коротком замыкании.</Tip></span>
+              <Stepper value={p.cfg.zs} d={0.05} min={0.05} max={2} step={0.05} label="Сопротивление петли фаза-нуль питающей сети, Ом" onChange={v => dispatch({ t: 'cfg', field: 'zs', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'zs', d })} />
+            </div>
+            <div className="f">
+              <span className="lbl-row"><span className="lbl">Потеря до щитка, %</span><Tip label="О потере напряжения до щитка">Нормы СН 4.04.01-2019 (п. 9.14: 3 % для освещения, 5 % для остальных) отсчитываются от ВРУ здания. Потеря на стояке до квартиры вычитается из допуска групп. Если неизвестна, оставьте 0.</Tip></span>
+              <Stepper value={p.cfg.feeder} d={0.1} min={0} max={3} step={0.1} label="Потеря напряжения от ВРУ до щитка квартиры, %" onChange={v => dispatch({ t: 'cfg', field: 'feeder', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'feeder', d })} />
+            </div>
+            <div className="f">
+              <span className="lbl-row"><span className="lbl">Одновременность, Ко</span><Tip label="О коэффициенте одновременности">Доля приборов квартиры, работающих одновременно. Применяется к расчётной мощности и току ввода.</Tip></span>
+              <Stepper value={p.cfg.ko} d={0.05} min={0.3} max={1} step={0.05} label="Коэффициент одновременности" onChange={v => dispatch({ t: 'cfg', field: 'ko', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'ko', d })} />
+            </div>
+            <div className="f">
+              <span className="lbl-row"><span className="lbl">Поправка на группировку</span><Tip label="О поправке на группировку">Уменьшает табличный допустимый ток кабеля, если кабели идут пучком.</Tip></span>
+              <Stepper value={p.cfg.k} d={0.05} min={0.5} max={1} step={0.05} label="Поправка на группировку кабелей" onChange={v => dispatch({ t: 'cfg', field: 'k', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'k', d })} />
+            </div>
+          </div>
         </div>
-        <div className="f">
-          <span className="lbl">Выделенная мощность</span>
-          <Stepper value={p.cfg.alloc} d={1} min={1} step={0.5} label="Выделенная мощность, кВт" onChange={v => dispatch({ t: 'cfg', field: 'alloc', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'alloc', d })} />
-          <small>кВт, из технических условий.</small>
-        </div>
-        <div className="f">
-          <span className="lbl">Одновременность, Ко</span>
-          <Stepper value={p.cfg.ko} d={0.05} min={0.3} max={1} step={0.05} label="Коэффициент одновременности" onChange={v => dispatch({ t: 'cfg', field: 'ko', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'ko', d })} />
-          <small>Доля приборов, работающих вместе.</small>
-        </div>
-        <div className="f wide">
-          <span className="lbl">Поправка на группировку кабелей</span>
-          <Stepper value={p.cfg.k} d={0.05} min={0.5} max={1} step={0.05} label="Поправка на группировку кабелей" onChange={v => dispatch({ t: 'cfg', field: 'k', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'k', d })} />
-          <small>Уменьшает табличный допустимый ток кабеля, если кабели идут пучком.</small>
-        </div>
-      </div>
-      <div className="data-row">
-        <ArmButton className="btn ghost" label="Загрузить пример" onRun={() => replace(sample())} />
-        <ArmButton className="btn ghost" label="Начать с нуля" onRun={() => replace(blank())} />
-      </div>
+      </details>
     </Sheet>
   );
 }
@@ -180,6 +168,11 @@ export function ProjectsSheet({
         <div className="f wide"><label className="lbl" htmlFor="mAddr">Объект, адрес</label><input id="mAddr" type="text" autoComplete="off" maxLength={120} value={p.address} onChange={e => dispatch({ t: 'meta', field: 'address', value: e.target.value })} /></div>
         <div className="f"><label className="lbl" htmlFor="mClient">Заказчик</label><input id="mClient" type="text" autoComplete="off" maxLength={80} value={p.client} onChange={e => dispatch({ t: 'meta', field: 'client', value: e.target.value })} /></div>
         <div className="f"><label className="lbl" htmlFor="mAuthor">Исполнитель</label><input id="mAuthor" type="text" autoComplete="off" maxLength={80} value={p.author} onChange={e => dispatch({ t: 'meta', field: 'author', value: e.target.value })} /></div>
+      </div>
+      <div className="data-row pj-reset">
+        <span className="muted">Заменить группы текущего проекта:</span>
+        <ArmButton className="btn sm ghost" label="Загрузить пример" onRun={() => { dispatch({ t: 'replace', content: sample() }); onClose(); }} />
+        <ArmButton className="btn sm ghost" label="Начать с нуля" onRun={() => { dispatch({ t: 'replace', content: blank() }); onClose(); }} />
       </div>
       <div className="sec-row">
         <h3 className="sec-t">Все проекты</h3>

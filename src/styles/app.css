@@ -1243,3 +1243,15 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
 }
 @media (max-width:380px){.chk-b{padding:6px 8px 8px}.chk-b .lbl{font-size:var(--t-2xs)}}
 @media (max-width:760px){.kp-chev{width:12px;height:12px;margin-top:-6px;right:7px}}
+
+.lbl-row{display:flex;align-items:center;gap:6px;min-height:20px}
+.lbl-row .lbl{display:inline}
+.f>.lbl-row+*{margin-top:0}
+.net-more{margin:0;border-top:1px solid var(--line);padding-top:8px}
+.net-more summary{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px;width:100%;font-size:var(--t-m);padding:8px 0}
+.net-more summary::after{grid-column:2;grid-row:1}
+.net-more summary small{grid-column:1;display:block;font-weight:400;font-size:var(--t-s);color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.net-more[open] summary small{display:none}
+.net-more-b{display:grid;gap:var(--pad);padding-top:8px}
+.pj-reset{align-items:center;gap:8px}
+.pj-reset .muted{font-size:var(--t-sm)}

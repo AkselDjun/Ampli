@@ -55,15 +55,34 @@ describe('NetSheet', () => {
     expect(stored().list[0].cfg.method).toBe('open');
   });
 
-  it('loads sample and blank with armed buttons and closes the sheet', () => {
+  it('shows the main settings first and folds the rest with a summary', () => {
     wide(true);
     render(<App />);
-    let d = open('Параметры сети');
+    const d = open('Параметры сети');
+    const more = d.querySelector('details.net-more') as HTMLDetailsElement;
+    expect(more.open).toBe(false);
+    expect(more.querySelector('summary small')?.textContent).toBe('ВВГнг(А)-LS · коробки по прокладке · петля 0,30 Ом · Ко 0,75 · поправка 0,9 · сечение с запасом');
+    expect(d.textContent).not.toContain('Загрузить пример');
+    ['sup', 'met', 'prot'].forEach(n => expect(more.contains(d.querySelector('input[name="' + n + '"]'))).toBe(false));
+    ['inc', 'box', 'mins'].forEach(n => expect(more.contains(d.querySelector('input[name="' + n + '"]'))).toBe(true));
+    change(byLabel(d, 'Потеря напряжения от ВРУ до щитка квартиры, %'), '1');
+    fireEvent.click(d.querySelector('input[name="box"][value="gkl"]') as HTMLElement);
+    fireEvent.click(d.querySelector('input[name="mins"][value="norm"]') as HTMLElement);
+    expect(more.querySelector('summary small')?.textContent).toContain('коробки для гипсокартона');
+    expect(more.querySelector('summary small')?.textContent).toContain('сечение по норме');
+    expect(more.querySelector('summary small')?.textContent).toContain('потеря до щитка 1 %');
+    expect(d.querySelectorAll('.lbl-row .tip').length).toBeGreaterThan(6);
+  });
+
+  it('loads sample and blank from the projects window with armed buttons', () => {
+    wide(true);
+    render(<App />);
+    let d = open('Проекты');
     click(d, 'Начать с нуля');
     click(d, 'Нажмите ещё раз');
-    expect(isOpen('Параметры сети')).toBe(false);
+    expect(isOpen('Проекты')).toBe(false);
     expect(document.querySelectorAll('.rows .row').length).toBe(1);
-    d = open('Параметры сети');
+    d = open('Проекты');
     click(d, 'Загрузить пример');
     click(d, 'Нажмите ещё раз');
     expect(document.querySelectorAll('.rows .row').length).toBeGreaterThan(3);
@@ -73,7 +92,7 @@ describe('NetSheet', () => {
     vi.useFakeTimers();
     wide(true);
     render(<App />);
-    const d = open('Параметры сети');
+    const d = open('Проекты');
     click(d, 'Начать с нуля');
     expect(btn(d, 'Нажмите ещё раз')).toBeTruthy();
     act(() => { vi.advanceTimersByTime(3100); });
@@ -241,7 +260,7 @@ describe('ReportSheet', () => {
 
   it('shows empty groups, three-phase columns and unfit rows', () => {
     render(<App />);
-    let d = open('Параметры сети');
+    let d = open('Проекты');
     click(d, 'Начать с нуля');
     click(d, 'Нажмите ещё раз');
     d = open('Параметры сети');
