@@ -256,8 +256,10 @@ export function App() {
             </div>
             <div className="ab-main">
               <h1 className="brand"><Brand /><span>Ampli</span></h1>
-              <Totals a={a} onNet={() => setSheet('net')} />
-              <Checks a={a} />
+              <div className="hud">
+                <Totals a={a} onNet={() => setSheet('net')} />
+                <Checks a={a} />
+              </div>
               <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
                 <IconPanel />
                 <span className="ab-txt">На щитке</span>

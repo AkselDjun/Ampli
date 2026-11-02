@@ -39,10 +39,9 @@ export function Checks({ a }: { a: Calc }) {
   const st = checksState(list);
   return (
     <div className={'chk-w' + (open ? ' open' : '')} ref={ref}>
-      <button className={'ab-btn chk-b st-' + st.k} type="button" aria-expanded={open} aria-controls="chk-pop" aria-label={'Проверки по нормам: ' + st.text} data-tip={open ? undefined : 'Проверки по нормам: ' + st.text.toLowerCase()} onClick={() => setOpen(!open)}>
-        {st.k === 'ok' ? <IconDone /> : <IconAlert />}
-        <span className="ab-txt">Нормы</span>
-        {st.n > 0 && <em className="chk-n">{st.n}</em>}
+      <button className={'chk-b st-' + st.k} type="button" aria-expanded={open} aria-controls="chk-pop" aria-label={'Проверки по нормам: ' + st.text} data-tip={open ? undefined : 'Проверки по нормам: ' + st.text.toLowerCase()} onClick={() => setOpen(!open)}>
+        <span className="lbl">Нормы</span>
+        <b>{st.k === 'ok' ? <IconDone /> : <IconAlert />}{st.n > 0 && <em className="chk-n">{st.n}</em>}</b>
       </button>
       {open && (
         <section className="tot-pop chk-pop" id="chk-pop" aria-label="Проверки по нормам">
