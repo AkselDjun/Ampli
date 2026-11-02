@@ -1,50 +1,15 @@
 import type { Calc } from '../core/types';
-import { fmt, fs, plural } from '../core/format';
+import { fmt, fs } from '../core/format';
 import { ROWLEN } from '../core/norms';
 import { layout } from '../core/calc';
 import { Fragment, useState } from 'react';
 import { Fold, Tip } from './common';
 
-interface Check {
-  k: 'ok' | 'warn' | 'bad';
-  t: string;
-}
-
-function checksOf(a: Calc): Check[] {
-  const c = a.c;
-  const out: Check[] = [];
-  if (a.hint3) out.push({ k: 'warn', t: 'Расчётная нагрузка ' + fmt(a.P / 1000, 1) + ' кВт больше 12 кВт. Для квартиры нужен трёхфазный ввод (СН 4.04.01-2019, п. 9.12): включите «3 фазы» в параметрах.' });
-  else if (c.supply === 3 && a.P > 0 && a.P <= 12000) out.push({ k: 'warn', t: 'Расчётная нагрузка ' + fmt(a.P / 1000, 1) + ' кВт не больше 12 кВт: по СН 4.04.01-2019, п. 9.12 достаточно однофазного ввода.' });
-  else if (a.P > 0) out.push({ k: 'ok', t: 'Тип ввода соответствует нагрузке (до 12 кВт однофазный, больше трёхфазный, СН п. 9.12).' });
-  if (a.inIn && a.inStep >= 2) out.push({ k: 'ok', t: 'Селективность: вводной автомат C' + a.inIn + ' на ' + a.inStep + ' ступ. выше наибольшего группового (СН 4.04.01-2019, п. 10.5).' });
-  else if (a.inIn && a.inStep === 1) out.push({ k: 'warn', t: 'Селективность: вводной автомат C' + a.inIn + ' выше группового только на одну ступень. Это допускается лишь в обоснованных случаях (СН 4.04.01-2019, п. 10.5).' });
-  else if (a.inIn && a.inStep < 1) out.push({ k: 'bad', t: 'Селективность не обеспечена: вводной автомат C' + a.inIn + ' не выше группового (СН 4.04.01-2019, п. 10.5).' });
-  const act = a.rows.filter(x => !x.r.empty && x.r.In);
-  const kzBad = act.filter(x => x.r.len > 0 && x.r.ik < x.r.ikNeed);
-  const kzNo = act.filter(x => x.r.len === 0);
-  if (kzBad.length) out.push({ k: 'bad', t: 'Короткое замыкание: автомат может не отключить ' + kzBad.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + ' за 0,4 с. Сократите линию.' });
-  else if (act.length && !kzNo.length) out.push({ k: 'ok', t: 'Короткое замыкание в конце каждой линии отключается за 0,4 с (ТКП 339-2022, п. 4.3.5.4). Петля питающей сети ' + fmt(c.zs, 2) + ' Ом задана вами, проверьте её.' });
-  else if (kzNo.length) out.push({ k: 'warn', t: 'Короткое замыкание не проверено для ' + kzNo.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + ': не задана длина.' });
-  return out;
-}
-
 export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: () => void; solo?: boolean }) {
-  const checks = checksOf(a);
-  const problems = checks.filter(x => x.k !== 'ok').length;
-  const worst: 'ok' | 'warn' | 'bad' = checks.some(x => x.k === 'bad') ? 'bad' : (problems ? 'warn' : 'ok');
   const mx = a.phases ? Math.max(a.phases.L1, a.phases.L2, a.phases.L3, 0.001) : 1;
   const cols = { L1: 'var(--l1)', L2: 'var(--l2)', L3: 'var(--l3)' };
   return (
     <div className="pane-sum">
-      {checks.length > 0 && (
-        <Fold title="Проверки по нормам" className="c-checks" open={solo || worst !== 'ok'} badge={<span className={'pill ' + worst}>{worst === 'ok' ? 'Всё в норме' : problems + ' ' + plural(problems, ['замечание', 'замечания', 'замечаний'])}</span>}>
-          <ul className="chk">
-            {checks.map((x, i) => (
-              <li key={i} className={x.k}>{x.t}</li>
-            ))}
-          </ul>
-        </Fold>
-      )}
       {a.phases && (
         <Fold title="Нагрузка по фазам" className="c-phase" open={solo || a.imb > 25} badge={<span className={'pill ' + (a.imb > 25 ? 'warn' : 'ok')}>{a.imb > 25 ? 'Перекос ' + fmt(a.imb, 0) + ' %' : 'Ровно'}</span>}>
           <button className="btn sm" type="button" onClick={onBalance}>Выровнять</button>

@@ -7,6 +7,7 @@ import { FixBar } from '../../ui/FixBar';
 import { Fold } from '../../ui/common';
 import { GroupList } from '../../ui/GroupList';
 import { PanelPane, Summary } from '../../ui/Side';
+import { Checks, checksState } from '../../ui/Checks';
 import { SWIPE_MAX, SWIPE_TRIGGER, useSwipe } from '../../ui/swipe';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
@@ -414,31 +415,51 @@ describe('Side folds', () => {
     return onBalance;
   };
 
-  it('opens checks with a singular badge when there is one problem', () => {
-    sumOf(proj([longLine()]));
-    const b = foldBtn('Проверки по нормам');
-    expect(b).toHaveAttribute('aria-expanded', 'true');
-    expect(b.querySelector('.pill')).toHaveTextContent(/^\d+ замечани/);
-    expect(document.querySelector('.chk')).toBeInTheDocument();
-  });
-  it('shows the plural forms of the problem badge', () => {
-    const heavy = Array.from({ length: 6 }, (_, i) => mkLine('П' + i, 'power', 400, 1, 1, [['x', 3500, 1]]));
-    sumOf(proj(heavy));
-    const t = foldBtn('Проверки по нормам').querySelector('.pill')?.textContent as string;
-    expect(t).toMatch(/^\d+ замечани(е|я|й)$/);
-  });
-  it('keeps checks closed with an "all fine" badge when nothing is wrong', () => {
-    sumOf(proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]]), mkLine('B', 'socket', 5, 1, 1, [['x', 100, 1]])]));
-    const b = foldBtn('Проверки по нормам');
-    expect(b.querySelector('.pill')).toHaveTextContent('Всё в норме');
+  const chkOf = (p: Project) => {
+    render(<Checks a={calcAll(p.lines, p.cfg)} />);
+    return screen.getByRole('button', { name: /^Проверки по нормам/ });
+  };
+  it('shows a warning button with a count and opens the list of checks', async () => {
+    const user = userEvent.setup();
+    const b = chkOf(proj([longLine()]));
+    expect(b).toHaveClass('st-bad');
+    expect(b.querySelector('.chk-n')?.textContent).toMatch(/^\d+$/);
     expect(b).toHaveAttribute('aria-expanded', 'false');
     expect(document.querySelector('.chk')).toBeNull();
+    await user.click(b);
+    expect(b).toHaveAttribute('aria-expanded', 'true');
+    const pop = document.getElementById('chk-pop') as HTMLElement;
+    expect(pop.querySelector('.pill')).toHaveTextContent(/^\d+ замечани/);
+    expect(pop.querySelectorAll('.chk li').length).toBeGreaterThan(1);
+    await user.keyboard('{Escape}');
+    expect(document.getElementById('chk-pop')).toBeNull();
+  });
+  it('uses the plural forms in the label', () => {
+    const heavy = Array.from({ length: 6 }, (_, i) => mkLine('П' + i, 'power', 400, 1, 1, [['x', 3500, 1]]));
+    const b = chkOf(proj(heavy));
+    expect(b.getAttribute('aria-label')).toMatch(/^Проверки по нормам: \d+ замечани(е|я|й)$/);
+    expect(checksState([{ k: 'warn', t: 'a' }]).text).toBe('1 замечание');
+    expect(checksState([{ k: 'warn', t: 'a' }, { k: 'warn', t: 'b' }]).text).toBe('2 замечания');
+    expect(checksState(Array.from({ length: 5 }, () => ({ k: 'warn' as const, t: 'x' }))).text).toBe('5 замечаний');
+  });
+  it('shows a quiet green button when everything is fine and nothing without load', () => {
+    const b = chkOf(proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]]), mkLine('B', 'socket', 5, 1, 1, [['x', 100, 1]])]));
+    expect(b).toHaveClass('st-ok');
+    expect(b.getAttribute('aria-label')).toBe('Проверки по нормам: Всё в норме');
+    expect(b.querySelector('.chk-n')).toBeNull();
+    const w = checksState([{ k: 'warn', t: 'a' }]);
+    expect(w.k).toBe('warn');
+  });
+  it('renders nothing for an empty project', () => {
+    render(<Checks a={calcAll([], defaultCfg())} />);
+    expect(screen.queryByRole('button', { name: /^Проверки по нормам/ })).toBeNull();
   });
   it('solo opens the summary folds and the panel is one tabbed block', () => {
     const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]]), mkLine('B', 'socket', 5, 1, 1, [['x', 100, 1]])], { supply: 3 });
     const a = calcAll(p.lines, p.cfg);
     render(<><Summary a={a} solo onBalance={() => undefined} /><PanelPane a={a} /></>);
-    ['Проверки по нормам', 'Нагрузка по фазам', 'Щиток'].forEach(t => {
+    expect(screen.queryByRole('heading', { name: 'Проверки по нормам' })).toBeNull();
+    ['Нагрузка по фазам', 'Щиток'].forEach(t => {
       expect(foldBtn(t)).toHaveAttribute('aria-expanded', 'true');
     });
     expect(screen.queryByRole('heading', { name: 'Запас автоматов' })).toBeNull();
@@ -506,12 +527,12 @@ describe('Side folds', () => {
   });
   it('expands a closed fold on click', async () => {
     const user = userEvent.setup();
-    sumOf(proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]));
-    const b = foldBtn('Проверки по нормам');
+    const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]], 'L1'), mkLine('B', 'light', 5, 1, 1, [['x', 100, 1]], 'L2'), mkLine('C', 'light', 5, 1, 1, [['x', 100, 1]], 'L3')], { supply: 3 });
+    render(<Summary a={calcAll(p.lines, p.cfg)} onBalance={() => undefined} />);
+    const b = foldBtn('Нагрузка по фазам');
     expect(b).toHaveAttribute('aria-expanded', 'false');
     await user.click(b);
     expect(b).toHaveAttribute('aria-expanded', 'true');
-    expect(document.querySelector('.chk')).toBeInTheDocument();
   });
 });
 

@@ -344,3 +344,18 @@ describe('apartment totals in the header', () => {
     expect(document.getElementById('tot-pop')?.textContent).toContain('Нет нагрузки');
   });
 });
+
+describe('norm checks in the header', () => {
+  it('shows the sample warning count and opens the list, with no checks block in the side column', () => {
+    wide(true);
+    render(<App />);
+    const b = screen.getByRole('button', { name: /^Проверки по нормам/ });
+    expect(b).toHaveClass('st-warn');
+    expect(b.querySelector('.chk-n')?.textContent).toBe('1');
+    expect(document.querySelector('.c-checks')).toBeNull();
+    fireEvent.click(b);
+    expect(document.getElementById('chk-pop')?.textContent).toContain('трёхфазный ввод');
+    fireEvent.pointerDown(document.body);
+    expect(document.getElementById('chk-pop')).toBeNull();
+  });
+});

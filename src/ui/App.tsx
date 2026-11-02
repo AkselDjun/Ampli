@@ -15,13 +15,14 @@ import { gcPhotos } from '../store/photos';
 import { referencedPhotoIds } from '../core/photos';
 import { CompareSheet } from './CompareSheet';
 import { RoomsSheet } from './RoomsSheet';
-import { Brand, IconBack, IconBolt, IconCheck, IconDoc, IconList, IconPanel } from './Icons';
+import { Brand, IconBack, IconCheck, IconDoc, IconList, IconPanel } from './Icons';
 import { Palette } from './Palette';
 import type { Cmd } from './Palette';
 import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
 import { Totals } from './Totals';
+import { Checks } from './Checks';
 import { NetSheet, ProjectsSheet, ReportSheet } from './sheets';
 import { PrintDoc } from './PrintDoc';
 import { WorkSheet } from './WorkSheet';
@@ -36,7 +37,7 @@ import { uniqName } from '../core/project';
 import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 
-type View = 'groups' | 'edit' | 'sum' | 'panel';
+type View = 'groups' | 'edit' | 'panel';
 type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | null;
 
 const waitPhotos = async (n: number): Promise<void> => {
@@ -256,6 +257,7 @@ export function App() {
             <div className="ab-main">
               <h1 className="brand"><Brand /><span>Ampli</span></h1>
               <Totals a={a} onNet={() => setSheet('net')} />
+              <Checks a={a} />
               <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
                 <IconPanel />
                 <span className="ab-txt">На щитке</span>
@@ -313,7 +315,7 @@ export function App() {
             />
             <aside className="col col-res" aria-label="Итоги расчёта">
               <PanelPane a={a} onPick={id => { dispatch({ t: 'select', id }); goEdit(); }} onMove={(id, to) => { dispatch({ t: 'moveLine', id, to }); toastUndo('Порядок групп изменён', undo); }} />
-              <Summary key={'s' + (view === 'sum')} a={a} solo={view === 'sum'} onBalance={() => { dispatch({ t: 'balance' }); toastUndo('Фазы выровнены', undo); }} />
+              <Summary key={'s' + (view === 'panel')} a={a} solo={view === 'panel'} onBalance={() => { dispatch({ t: 'balance' }); toastUndo('Фазы выровнены', undo); }} />
             </aside>
           </div>
         </main>
@@ -323,10 +325,6 @@ export function App() {
             <IconList />
             <span>Группы</span>
             {a.issues > 0 && <em className="badge">{a.issues}</em>}
-          </button>
-          <button type="button" onClick={() => tab('sum')} aria-current={view === 'sum' ? 'page' : undefined}>
-            <IconBolt />
-            <span>Проверки</span>
           </button>
           <button type="button" onClick={() => tab('panel')} aria-current={view === 'panel' ? 'page' : undefined}>
             <IconPanel />

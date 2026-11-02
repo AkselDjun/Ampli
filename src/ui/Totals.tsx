@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
 import type { Calc } from '../core/types';
 import { fmt, fs } from '../core/format';
 import { inCableName } from '../core/protection';
 import { IconDown } from './Icons';
+import { usePop } from './pop';
 
 export interface AllocState {
   pct: number;
@@ -20,23 +20,7 @@ export function allocState(a: Calc): AllocState {
 }
 
 export function Totals({ a, onNet }: { a: Calc; onNet: () => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: Event) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const key = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('pointerdown', away);
-    document.addEventListener('keydown', key);
-    return () => {
-      document.removeEventListener('pointerdown', away);
-      document.removeEventListener('keydown', key);
-    };
-  }, [open]);
+  const { open, setOpen, ref } = usePop<HTMLDivElement>();
   const c = a.c;
   const st = allocState(a);
   const three = c.supply === 3;
