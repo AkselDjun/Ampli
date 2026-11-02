@@ -204,35 +204,15 @@ describe('ShareBlock', () => {
     await act(async () => { click(d, /Ссылка на проект/); });
     expect(d.querySelector('.share textarea')).toBeNull();
   });
-  it('toggles the QR code', () => {
+  it('has no QR code button', () => {
     render(<App />);
     const d = openProj();
-    const q = btnQr(d);
-    expect(d.querySelector('.qr')).toBeNull();
-    fireEvent.click(q);
-    expect(q).toHaveAttribute('aria-pressed', 'true');
-    expect(within(d).getByRole('img', { name: 'QR-код проекта' }).querySelector('svg')).toBeTruthy();
-    fireEvent.click(q);
-    expect(d.querySelector('.qr')).toBeNull();
-  });
-  it('explains when the project is too large for a QR code', () => {
-    let s = 7;
-    const rnd = () => {
-      s = (s * 1103515245 + 12345) % 2147483648;
-      return s.toString(36);
-    };
-    seed(p => {
-      p.lines = Array.from({ length: 10 }, () => mkLine(Array.from({ length: 300 }, rnd).join(''), 'socket', 10, null, null, [['Чайник', 2200, 1]]));
-    });
-    render(<App />);
-    const d = openProj();
-    fireEvent.click(btnQr(d));
-    expect(d.textContent).toContain('слишком большой для QR-кода');
+    expect(within(d).queryByRole('button', { name: 'QR-код' })).toBeNull();
     expect(d.querySelector('.qr')).toBeNull();
   });
 });
 
-const btnQr = (d: HTMLElement) => within(d).getByRole('button', { name: 'QR-код' });
+
 
 describe('ReportSheet downloads', () => {
   it('saves Excel and CSV files', () => {
@@ -504,7 +484,7 @@ describe('Owner passport', () => {
     expect(stored().list[0].lines[0].where).toBe('Кухня и коридор');
   });
 
-  it('prints the passport with a QR code and the location', () => {
+  it('prints the passport with the location and no QR code', () => {
     seed(p => { p.lines[0].where = 'Спальня'; });
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     render(<App />);
@@ -513,7 +493,7 @@ describe('Owner passport', () => {
     const doc = document.querySelector('.printdoc') as HTMLElement;
     expect(doc.querySelector('h1')?.textContent).toBe('Паспорт электрощита');
     expect(doc.textContent).toContain('Спальня');
-    expect(doc.querySelector('.pp-qr svg')).toBeTruthy();
+    expect(doc.querySelector('.pp-qr')).toBeNull();
     expect(doc.querySelector('.pp-steps')).toBeTruthy();
     print.mockRestore();
   });
@@ -525,8 +505,7 @@ describe('Owner passport', () => {
     const d = dlg('Монтаж и приёмка');
     await act(async () => { click(d, /Ссылка для владельца/); });
     expect(write.mock.calls[0][0]).toContain('#o=v1.');
-    click(d, 'QR-код');
-    expect(d.querySelector('[aria-label="QR-код паспорта"]')).toBeTruthy();
+    expect(within(d).queryByRole('button', { name: 'QR-код' })).toBeNull();
   });
 
   it('opens a read-only passport from an owner link and can hand the project over', () => {

@@ -1,5 +1,4 @@
 import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
-import qrcode from 'qrcode-generator';
 import type { Project } from './types';
 import { normWork } from './labor';
 import type { WorkPrices } from './labor';
@@ -9,7 +8,6 @@ export const SHARE_PREFIX = '#p=';
 export const OWNER_PREFIX = '#o=';
 export const ESTIMATE_PREFIX = '#e=';
 export const SHARE_VERSION = 'v1.';
-export const QR_MAX_BYTES = 2300;
 const INFLATE_LIMIT = 2_000_000;
 
 const b64 = (u: Uint8Array): string => {
@@ -79,14 +77,6 @@ export function readShareHash(hash: string): string | null {
   if (!hash.startsWith(SHARE_PREFIX)) return null;
   const v = hash.slice(SHARE_PREFIX.length);
   return v.length > 0 ? v : null;
-}
-
-export function qrSvg(text: string): string | null {
-  if (strToU8(text).length > QR_MAX_BYTES) return null;
-  const q = qrcode(0, 'L');
-  q.addData(text);
-  q.make();
-  return q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
 }
 
 export interface EstimateShare {

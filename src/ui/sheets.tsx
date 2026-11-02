@@ -229,7 +229,7 @@ export function ProjectsSheet({
       </TabPanel>
       <TabPanel scope="pj" id="share" cur={tab}>
       <h3 className="sec-t">Перенести на другое устройство</h3>
-      <p className="muted">Ссылка и QR-код открывают этот проект на другом телефоне или компьютере. Файл подходит для архива и отправки почтой.</p>
+      <p className="muted">Ссылка открывает этот проект на другом телефоне или компьютере. Файл подходит для архива и отправки почтой.</p>
       <ShareBlock p={p} />
       <div className="data-row">
         <button className="btn ghost" type="button" onClick={exportFile}>Сохранить в файл</button>

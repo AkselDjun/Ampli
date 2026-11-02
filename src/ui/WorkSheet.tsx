@@ -81,7 +81,7 @@ export function WorkSheet({
       </TabPanel>
       <TabPanel scope="wk" id="docs" cur={tab}>
       <h3 className="sec-t">Паспорт для владельца</h3>
-      <p className="muted">Страница для заказчика: что на каком автомате, сколько можно включать и что делать, если выбило. Отправьте ссылкой или распечатайте с QR-кодом для дверцы щитка.</p>
+      <p className="muted">Страница для заказчика: что на каком автомате, сколько можно включать и что делать, если выбило. Отправьте ссылкой или распечатайте и оставьте у щитка.</p>
       <div className="copy-row">
         <button className="btn" type="button" onClick={() => onPrint('passport')}>Печать паспорта</button>
       </div>

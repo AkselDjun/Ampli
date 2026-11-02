@@ -3,9 +3,8 @@ import type { Calc, Project } from '../core/types';
 import { calcAll } from '../core/calc';
 import { dfmt, fmt } from '../core/format';
 import { SCOPE_NOTE, TEST_NOTE, TRIP_STEPS, passportInput, passportRows, watts } from '../core/passport';
-import { ownerUrl, qrSvg } from '../core/share';
 
-export function PassportBody({ p, a, qr }: { p: Project; a: Calc; qr?: string | null }) {
+export function PassportBody({ p, a }: { p: Project; a: Calc }) {
   const rows = passportRows(a);
   const inp = passportInput(a);
   const anyRcd = rows.some(r => r.rcd);
@@ -43,20 +42,13 @@ export function PassportBody({ p, a, qr }: { p: Project; a: Calc; qr?: string | 
         {TRIP_STEPS.map(s => <li key={s}>{s}</li>)}
       </ol>
       {anyRcd && <p className="pp-note">{TEST_NOTE}</p>}
-      {qr && (
-        <div className="pp-qr">
-          <div role="img" aria-label="QR-код паспорта" dangerouslySetInnerHTML={{ __html: qr }} />
-          <span>Наведите камеру телефона, чтобы открыть этот паспорт на экране.</span>
-        </div>
-      )}
       <p className="pp-note">{SCOPE_NOTE}</p>
     </div>
   );
 }
 
 export function PassportDoc({ p, a }: { p: Project; a: Calc }) {
-  const qr = useMemo(() => qrSvg(ownerUrl(p, window.location.href)), [p]);
-  return <PassportBody p={p} a={a} qr={qr} />;
+  return <PassportBody p={p} a={a} />;
 }
 
 export function OwnerView({ project, onAdd }: { project: Project; onAdd: () => void }) {

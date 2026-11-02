@@ -188,7 +188,7 @@ export function App() {
     { id: 'work', group: 'Монтаж', label: 'Монтаж и приёмка', words: 'чек-лист протокол паспорт', run: () => setSheet('work') },
     { id: 'panel', group: 'Монтаж', label: 'Режим «На щитке»', words: 'замеры', run: () => setSheet('panel') },
     { id: 'proto', group: 'Монтаж', label: 'Печать протокола замеров', words: 'pdf', run: () => doPrint('proto') },
-    { id: 'pass', group: 'Монтаж', label: 'Печать паспорта для владельца', words: 'pdf qr', run: () => doPrint('passport') },
+    { id: 'pass', group: 'Монтаж', label: 'Печать паспорта для владельца', words: 'pdf', run: () => doPrint('passport') },
     { id: 'net', group: 'Проект', label: 'Параметры сети', words: 'фазы ввод мощность прокладка', run: () => setSheet('net') },
     { id: 'proj', group: 'Проект', label: 'Проекты', words: 'открыть новый файл ссылка', run: () => setSheet('proj') },
     { id: 'lib', group: 'Проект', label: 'Мои данные', words: 'реквизиты приборы шаблоны логотип', run: () => setSheet('lib') },

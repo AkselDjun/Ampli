@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { deflateSync, strToU8 } from 'fflate';
-import { QR_MAX_BYTES, SHARE_PREFIX, SHARE_VERSION, packProject, qrSvg, readShareHash, shareUrl, unpackProject } from '../../core/share';
+import { SHARE_PREFIX, SHARE_VERSION, packProject, readShareHash, shareUrl, unpackProject } from '../../core/share';
 import { sampleProject } from '../../core/project';
 import { calcAll } from '../../core/calc';
 
@@ -58,20 +58,10 @@ describe('urls and hash', () => {
   });
 });
 
-describe('qr', () => {
-  it('renders svg for a short text', () => {
-    const s = qrSvg('https://example.com/#p=abc');
-    expect(s).toMatch(/^<svg/);
-  });
-  it('returns null when the text is too long', () => {
-    expect(qrSvg('a'.repeat(QR_MAX_BYTES + 1))).toBeNull();
-  });
-  it('fits a sample project link', () => {
+describe('link size', () => {
+  it('keeps a sample project link compact', () => {
     const u = shareUrl(sampleProject(), 'https://akseldjun.github.io/Ampli/');
-    expect(u.length).toBeLessThan(QR_MAX_BYTES);
-    expect(qrSvg(u)).not.toBeNull();
-  });
-  it('counts bytes, not characters', () => {
-    expect(qrSvg('я'.repeat(1200))).toBeNull();
+    expect(u.length).toBeLessThan(2300);
   });
 });
+

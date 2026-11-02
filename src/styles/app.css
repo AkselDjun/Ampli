@@ -514,8 +514,6 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 
 .share{display:grid;gap:8px}
 .share textarea{width:100%;min-height:72px;border:1px solid var(--line);border-radius:var(--r-m);padding:8px;background:var(--surface);color:var(--ink);font:12px/1.3 ui-monospace,monospace}
-.qr{width:min(260px,100%);padding:8px;border-radius:var(--r-m);background:#fff;justify-self:start}
-.qr svg{display:block;width:100%;height:auto}
 .btn svg{width:18px;height:18px;vertical-align:-4px}
 
 .photos{display:grid;gap:8px}
@@ -627,14 +625,10 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 .pp-warn{color:var(--bad)}
 .pp-steps{margin:0;padding-left:20px;display:grid;gap:4px;font-size:var(--t-sm)}
 .pp-note{font-size:var(--t-s);color:var(--ink-2);margin:12px 0 0}
-.pp-qr{display:flex;align-items:center;gap:12px;margin-top:16px;break-inside:avoid}
-.pp-qr>div{width:120px;height:120px;flex:none}
-.pp-qr svg{width:100%;height:100%}
-.pp-qr span{font-size:var(--t-s);color:var(--ink-2)}
 @media print{
   .printdoc .pp{color:#111}
   .printdoc .pp-card,.printdoc .pp-in{background:#fff;border-color:#999}
-  .printdoc .pp-sub,.printdoc .pp-meta span,.printdoc .pp-in span,.printdoc .pp-where,.printdoc .pp-note,.printdoc .pp-qr span,.printdoc .pp-prot{color:#444}
+  .printdoc .pp-sub,.printdoc .pp-meta span,.printdoc .pp-in span,.printdoc .pp-where,.printdoc .pp-note,.printdoc .pp-prot{color:#444}
   .printdoc .pp-warn{color:#111;font-weight:600}
   .printdoc .pp h1{font-size:20px}
   .printdoc .pp-card p,.printdoc .pp-steps{font-size:11px}
