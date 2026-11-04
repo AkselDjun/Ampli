@@ -4,6 +4,7 @@ import { cableName, inCableName, protFull, uzoName } from './protection';
 import { BOX_NAME } from './norms';
 import { vrRating } from './calc';
 import { weakSpec } from './weak';
+import { floorSpec } from './floor';
 
 export function buildSpec(a: Calc): SpecItem[] {
   const c = a.c;
@@ -46,6 +47,7 @@ export function buildSpec(a: Calc): SpecItem[] {
   items.push({ name: 'Шина N (нулевая)', qty: nN + ' шт', note: a.uzos.length ? 'своя на каждое УЗО: ' + a.uzos.map(u => u.zone).join(', ') : '', n: nN, unit: 'шт' });
   items.push({ name: 'Шина PE (заземления)', qty: '1 шт', note: '', n: 1, unit: 'шт' });
   if (a.boxes > 0) items.push({ name: 'Коробка распределительная ' + BOX_NAME[c.box], qty: a.boxes + ' шт', note: 'по одной на группу с отводами', n: a.boxes, unit: 'шт' });
+  if (a.floor) items.push(...floorSpec(a.floor));
   if (a.weak) items.push(...weakSpec(a.weak));
   return items;
 }

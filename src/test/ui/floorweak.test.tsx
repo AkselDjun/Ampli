@@ -5,7 +5,7 @@ import { PrintDoc } from '../../ui/PrintDoc';
 import { calcAll } from '../../core/calc';
 import { newProject, sampleProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
-import { newLightRoom } from '../../core/light';
+import { newFloorRoom } from '../../core/floor';
 import { KEY } from '../../store/storage';
 import { byLabel, change, click, dlg, toastText, wide } from './util';
 
@@ -14,77 +14,63 @@ vi.setConfig({ testTimeout: 60000 });
 const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const box = () => document.querySelector('.proj-box') as HTMLElement;
 
-describe('lighting sheet', () => {
-  it('counts fixtures for a room and writes them into a group', () => {
+describe('floor heating sheet', () => {
+  it('picks a product, checks it and writes it into a group', () => {
     render(<App />);
-    fireEvent.click(within(box()).getByRole('button', { name: 'Освещение: сколько светильников' }));
-    const d = dlg('Освещение');
+    fireEvent.click(within(box()).getByRole('button', { name: 'Тёплый пол: мат, кабель, плёнка' }));
+    const d = dlg('Тёплый пол');
     expect(d.querySelector('.empty')).not.toBeNull();
-    click(d, '+ Кухня');
-    click(d, '+ Детская');
-    const card = d.querySelectorAll<HTMLElement>('.lt-room')[0];
-    expect(card.querySelector('.lt-wait')).not.toBeNull();
-    change(byLabel(card, 'Название помещения'), 'Кухня');
-    fireEvent.change(within(card).getByLabelText('Длина, м'), { target: { value: '4' } });
-    fireEvent.change(within(card).getByLabelText('Ширина, м'), { target: { value: '3' } });
-    const n = Number(card.querySelector('.lt-n b')?.textContent);
-    expect(n).toBeGreaterThan(0);
-    expect(card.textContent).toContain('150 лк');
+    click(d, '+ Ванная');
+    click(d, '+ Комната');
+    const card = d.querySelectorAll<HTMLElement>('.fl-room')[0];
+    expect(card.querySelector('.fl-wait')?.textContent).toContain('Введите свободную площадь');
+    expect((within(card).getByLabelText('Мощность, Вт/м²') as HTMLInputElement).disabled).toBe(true);
+    fireEvent.change(within(card).getByLabelText('Свободная площадь, м²'), { target: { value: '0.3' } });
+    expect(card.querySelector('.fl-wait')?.textContent).toContain('меньше самого маленького мата');
+    fireEvent.change(within(card).getByLabelText('Свободная площадь, м²'), { target: { value: '3.2' } });
+    expect(card.querySelector('.fl-prod')?.textContent).toBe('Нагревательный мат 150 Вт/м²3 м²');
+    expect(card.textContent).toContain('ГОСТ 30331.11');
+    expect(card.textContent).toContain('СН 4.04.01-2019 п.16.3.3');
     const target = within(card).getByLabelText('Записать в группу') as HTMLSelectElement;
-    expect(target.value).toBe(stored().list[0].lines[1].id);
+    expect(target.value).toBe('new');
     fireEvent.click(within(card).getByRole('button', { name: 'Записать' }));
-    expect(toastText()).toContain('Записано в Г2: ' + n + ' × Точечный светильник LED 7 Вт');
-    const apps = stored().list[0].lines[1].apps;
-    expect(apps[apps.length - 1]).toMatchObject({ name: 'Точечный светильник LED 7 Вт (Кухня)', n, w: 7 });
-    fireEvent.change(within(card).getByLabelText('Светильник'), { target: { value: 'own' } });
-    fireEvent.change(within(card).getByLabelText('Мощность, Вт'), { target: { value: '12' } });
-    fireEvent.change(within(card).getByLabelText('Световой поток, лм'), { target: { value: '1100' } });
-    fireEvent.change(within(card).getByLabelText('Назначение'), { target: { value: 'bath' } });
-    expect(card.textContent).toContain('IP44');
-    fireEvent.change(target, { target: { value: 'new' } });
-    fireEvent.click(within(card).getByRole('button', { name: 'Записать' }));
-    expect(toastText()).toContain('Создана группа освещения');
+    expect(toastText()).toContain('Создана группа тёплого пола: 450 Вт');
     const ls = stored().list[0].lines;
-    expect(ls[ls.length - 1]).toMatchObject({ name: 'Освещение: Кухня', type: 'light', zone: 'Кухня' });
-    const kids = d.querySelectorAll<HTMLElement>('.lt-room')[1];
-    fireEvent.change(within(kids).getByLabelText('Длина, м'), { target: { value: '3' } });
-    fireEvent.change(within(kids).getByLabelText('Ширина, м'), { target: { value: '3' } });
-    expect(d.querySelector('.lt-sum')?.textContent).toMatch(/Всего на освещение по расчёту: \d+ Вт/);
-    fireEvent.change(within(kids).getByLabelText('Назначение'), { target: { value: 'study' } });
-    expect(kids.querySelector('.ow-pr')?.textContent).toBe('практика');
-    click(kids, 'Удалить');
-    click(kids, 'Точно?');
-    expect(stored().list[0].light).toHaveLength(1);
+    const nl = ls[ls.length - 1];
+    expect(nl).toMatchObject({ name: 'Тёплый пол: Ванная', wet: true });
+    expect((within(card).getByLabelText('Записать в группу') as HTMLSelectElement).value).toBe(nl.id);
+    fireEvent.change(within(card).getByLabelText('Система'), { target: { value: 'cable' } });
+    expect(card.textContent).toContain('Шаг укладки');
+    fireEvent.click(within(card).getByRole('button', { name: 'Записать' }));
+    expect(toastText()).toMatch(/^Записано в Г\d+: \d+ Вт/);
+    fireEvent.change(within(card).getByLabelText('Система'), { target: { value: 'film' } });
+    expect(card.querySelector('.ow-f.k-bad')?.textContent).toContain('Плёнку в ванной не применяют');
+    const room = d.querySelectorAll<HTMLElement>('.fl-room')[1];
+    change(byLabel(room, 'Название помещения'), 'Спальня');
+    fireEvent.change(within(room).getByLabelText('Свободная площадь, м²'), { target: { value: '30' } });
+    fireEvent.change(within(room).getByLabelText('Мощность, Вт/м²'), { target: { value: '220' } });
+    expect(room.querySelector('.ow-f.k-bad')?.textContent).toContain('через контактор');
+    fireEvent.change(within(room).getByLabelText('Записать в группу'), { target: { value: nl.id } });
+    click(room, 'Удалить');
+    click(room, 'Точно?');
+    expect(stored().list[0].floor).toHaveLength(1);
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(within(box()).getByRole('button', { name: /^Освещение: 1 помещение, \d+ Вт$/ })).toBeTruthy();
-  });
-
-  it('opens from the group actions menu of a lighting group and from the palette', () => {
-    wide(true);
-    render(<App />);
-    fireEvent.click(document.querySelectorAll<HTMLElement>('.rows .row')[0]);
-    const ed = document.querySelector('.col-edit') as HTMLElement;
-    click(ed, /Ещё действия/);
-    click(ed, 'Рассчитать светильники по площади');
-    expect(dlg('Освещение')).toBeTruthy();
-    fireEvent.keyDown(document, { key: 'Escape' });
-    fireEvent.click(document.querySelectorAll<HTMLElement>('.rows .row')[2]);
-    click(ed, /Ещё действия/);
-    expect(ed.textContent).not.toContain('Рассчитать светильники');
+    expect(within(box()).getByRole('button', { name: /^Тёплый пол: 1 помещение, \d+ Вт$/ })).toBeTruthy();
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
     const input = document.querySelector('dialog.pal input') as HTMLInputElement;
-    fireEvent.change(input, { target: { value: 'роутер' } });
+    fireEvent.change(input, { target: { value: 'терморегулятор' } });
     fireEvent.keyDown(input, { key: 'Enter' });
-    expect(dlg('Слаботочка')).toBeTruthy();
+    expect(dlg('Тёплый пол')).toBeTruthy();
   });
 
-  it('defaults the target to a new group when there are no lighting groups', () => {
-    const p = { ...newProject({ sample: false, cfg: defaultCfg(), lines: [mkLine('Розетки', 'socket', 5, 1, 1, [['Чайник', 2000, 1]])] }, 'Т'), light: [{ ...newLightRoom('hall'), a: 2, b: 2 }] };
+  it('adds the floor work to the estimate only when there is heating', () => {
+    const p = { ...newProject({ sample: false, cfg: defaultCfg(), lines: [mkLine('Розетки', 'socket', 5, 1, 1, [['Чайник', 2000, 1]])] }, 'Т'), floor: [{ ...newFloorRoom('kitchen'), area: 4 }] };
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
     render(<App />);
-    fireEvent.click(within(box()).getByRole('button', { name: /^Освещение/ }));
-    const d = dlg('Освещение');
-    expect((within(d).getByLabelText('Записать в группу') as HTMLSelectElement).value).toBe('new');
+    click(document.querySelector('nav.tabs') as HTMLElement, /Отчёт/);
+    const rep = dlg('Отчёт и спецификация');
+    fireEvent.click(within(rep).getByRole('tab', { name: 'Смета', hidden: true }));
+    expect(byLabel(rep, 'Количество: Монтаж тёплого пола с терморегулятором').placeholder).toBe('4');
   });
 });
 
@@ -142,18 +128,20 @@ describe('weak current sheet', () => {
 });
 
 describe('report sections', () => {
-  it('prints lighting rooms and weak current points', () => {
+  it('prints floor heating and weak current points', () => {
     const p = {
       ...sampleProject(),
-      light: [{ ...newLightRoom('living', 'Зал'), a: 5, b: 4 }, { ...newLightRoom('study', ''), a: 3, b: 3 }, newLightRoom('hall')],
+      floor: [{ ...newFloorRoom('bath'), area: 3 }, { ...newFloorRoom('room', ''), area: 10 }, newFloorRoom('kitchen')],
       weak: { ont: false, pts: [{ id: 'a', room: 'Зал', kind: 'lan' as const, n: 2, len: 10 }, { id: 'b', room: '', kind: 'tv' as const, n: 3, len: '' }] }
     };
-    render(<PrintDoc p={p} a={calcAll(p.lines, p.cfg, p.weak)} />);
+    render(<PrintDoc p={p} a={calcAll(p.lines, p.cfg, p)} />);
     const t = (document.querySelector('.printdoc') as HTMLElement).textContent ?? '';
-    expect(t).toContain('Освещение помещений');
-    expect(t).toContain('Кабинет');
-    expect(t).toContain('300*');
-    expect(t).toContain('значение по практике');
+    expect(t).toContain('Тёплый пол');
+    expect(t).toContain('Комната');
+    expect(t).toContain('Инфракрасная плёнка 150 Вт/м², ширина 0,5 м, 20 м');
+    expect(t).toContain('экраном, присоединённым к PE');
+    expect(t).toContain('Терморегулятор с датчиком температуры пола, 16 А');
+    expect(t).toContain('Теплоотражающая подложка под плёнку');
     expect(t).toContain('Слаботочные сети');
     expect(t).toContain('в щитке роутер, делитель TV на 3 выхода');
     expect(t).toContain('Розетка компьютерная RJ45 cat.5e');
@@ -161,9 +149,9 @@ describe('report sections', () => {
 
   it('skips the sections without data and mentions the terminal and switch', () => {
     const p = { ...sampleProject(), weak: { ont: true, pts: [{ id: 'a', room: 'Зал', kind: 'cam' as const, n: 1, len: 10 }] } };
-    render(<PrintDoc p={p} a={calcAll(p.lines, p.cfg, p.weak)} />);
+    render(<PrintDoc p={p} a={calcAll(p.lines, p.cfg, p)} />);
     const t = (document.querySelector('.printdoc') as HTMLElement).textContent ?? '';
-    expect(t).not.toContain('Освещение помещений');
+    expect(t).not.toContain('Каждое помещение с отдельным терморегулятором');
     expect(t).toContain('оптический терминал провайдера и роутер, коммутатор на 5 портов с PoE');
   });
 });

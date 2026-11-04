@@ -11,7 +11,7 @@ export function WeakSheet({ open, onClose, p, dispatch }: { open: boolean; onClo
   const pts = w?.pts ?? [];
   const c = w && pts.length ? weakCalc(w) : null;
   const spec = c ? weakSpec(c) : [];
-  const zones = Array.from(new Set([...p.lines.map(l => (l.zone ?? '').trim()), ...(p.light ?? []).map(r => r.name.trim())].filter(Boolean)));
+  const zones = Array.from(new Set([...p.lines.map(l => (l.zone ?? '').trim()), ...(p.floor ?? []).map(r => r.name.trim())].filter(Boolean)));
   const lastRoom = pts.length ? pts[pts.length - 1].room : '';
   return (
     <Sheet open={open} onClose={onClose} title="Слаботочка" tip={<>Интернет, телевидение, камеры и домофон: точки по помещениям, кабели, слаботочный щиток, коммутатор и делитель. Кабели, розетки и оборудование попадают в спецификацию и смету. Каждая точка тянется отдельной линией от слаботочного щитка, длина UTP до {UTP_MAX} м по ISO/IEC 11801.</>}>

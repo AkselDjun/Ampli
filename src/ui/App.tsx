@@ -27,8 +27,8 @@ import { NetSheet, ProjectsSheet, ReportSheet } from './sheets';
 import { PrintDoc } from './PrintDoc';
 import { WorkSheet } from './WorkSheet';
 import { OldSheet } from './OldWiring';
-import { LightSheet } from './LightSheet';
 import { WeakSheet } from './WeakSheet';
+import { FloorSheet } from './FloorSheet';
 import { SheetNavContext } from './sheetnav';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { PanelMode } from './PanelMode';
@@ -43,9 +43,9 @@ import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 
 type View = 'groups' | 'edit' | 'panel';
-type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | 'old' | 'light' | 'weak' | null;
+type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | 'old' | 'floor' | 'weak' | null;
 
-const SHEET_TITLE: Record<NonNullable<SheetId>, string> = { net: 'Параметры сети', proj: 'Проекты', rep: 'Отчёт и спецификация', work: 'Монтаж и приёмка', lib: 'Мои данные', cmp: 'Сравнение', rooms: 'Комнаты', panel: 'На щитке', shop: 'Где купить', old: 'Старая проводка', light: 'Освещение', weak: 'Слаботочка' };
+const SHEET_TITLE: Record<NonNullable<SheetId>, string> = { net: 'Параметры сети', proj: 'Проекты', rep: 'Отчёт и спецификация', work: 'Монтаж и приёмка', lib: 'Мои данные', cmp: 'Сравнение', rooms: 'Комнаты', panel: 'На щитке', shop: 'Где купить', old: 'Старая проводка', floor: 'Тёплый пол', weak: 'Слаботочка' };
 
 const waitPhotos = async (n: number): Promise<void> => {
   const deadline = Date.now() + 2500;
@@ -86,7 +86,7 @@ export function App() {
     return h ? unpackProject(h) : null;
   });
   const p = cur(state);
-  const a = useMemo(() => calcAll(p.lines, p.cfg, p.weak), [p.lines, p.cfg, p.weak]);
+  const a = useMemo(() => calcAll(p.lines, p.cfg, p), [p.lines, p.cfg, p.weak, p.floor]);
   const [hot, setHot] = useState<string | null>(null);
   const oldLabel = oldStarted(p.old) ? oldVerdict(p.old, a).label : '';
   const selected = p.lines.find(l => l.id === state.sel) || null;
@@ -192,7 +192,7 @@ export function App() {
     { id: 'add-s', group: 'Добавить', label: 'Добавить розеточную группу', words: 'розетки новая', run: () => addGroup('socket') },
     { id: 'add-p', group: 'Добавить', label: 'Добавить мощный прибор', words: 'плита бойлер новая группа', run: () => addGroup('power') },
     { id: 'rooms', group: 'Добавить', label: 'Собрать группы из комнат', words: 'комнаты', run: () => setSheet('rooms') },
-    { id: 'light', group: 'Добавить', label: 'Расчёт освещения', words: 'светильники люксы освещённость лк лампы', run: () => setSheet('light') },
+    { id: 'floor', group: 'Добавить', label: 'Тёплый пол', words: 'нагревательный мат кабель плёнка терморегулятор обогрев', run: () => setSheet('floor') },
     { id: 'weak', group: 'Добавить', label: 'Слаботочка: интернет, ТВ, камеры', words: 'utp rj45 lan телевидение домофон коаксиальный роутер коммутатор', run: () => setSheet('weak') },
     { id: 'rep', group: 'Документы', label: 'Отчёт и спецификация', words: 'отчет', run: () => openRep('groups') },
     { id: 'est', group: 'Документы', label: 'Смета: работы и материалы', words: 'цены стоимость клиент', run: () => openRep('estimate') },
@@ -329,7 +329,7 @@ export function App() {
             onOpenProj={() => setSheet('proj')}
             onOpenNet={() => setSheet('net')}
             onOpenOld={() => setSheet('old')}
-            onOpenLight={() => setSheet('light')}
+            onOpenFloor={() => setSheet('floor')}
             onOpenWeak={() => setSheet('weak')}
             oldLabel={oldLabel}
             hot={hot}
@@ -348,7 +348,6 @@ export function App() {
               setWhyOpen={setWhyOpen}
               onDeleted={() => { if (!isWide()) goBack(); }}
               photos={p.photos ?? []}
-              onLight={() => setSheet('light')}
             />
             <aside className="col col-res" aria-label="Итоги расчёта">
               <PanelPane a={a} sel={state.sel} hot={hot} onHot={setHot} onPick={id => { dispatch({ t: 'select', id }); goEdit(); }} onMove={(id, to) => { dispatch({ t: 'moveLine', id, to }); toastUndo('Порядок групп изменён', undo); }} />
@@ -379,7 +378,7 @@ export function App() {
 
         <SheetNavContext.Provider value={nav}>
         <NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} onOld={() => pushSheet('old')} oldLabel={oldLabel} />
-        <LightSheet open={sheet === 'light'} onClose={closeSheet} p={p} dispatch={dispatch} />
+        <FloorSheet open={sheet === 'floor'} onClose={closeSheet} p={p} dispatch={dispatch} />
         <WeakSheet open={sheet === 'weak'} onClose={closeSheet} p={p} dispatch={dispatch} />
         <OldSheet open={sheet === 'old'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} />
         <ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet('lib')} />

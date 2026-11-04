@@ -14,9 +14,9 @@ import { normOld } from '../core/oldwire';
 import type { OldKey } from '../core/oldwire';
 import type { OldSign } from '../core/types';
 import type { Store } from './storage';
-import { FIXTURES, OWN_FX, lightAppName, lightCalc, newLightRoom } from '../core/light';
-import type { LightKind, LightRoom } from '../core/light';
 import { WEAK_EMPTY, newWeakPt } from '../core/weak';
+import { MAT_WPM, defaultWpm, floorAppName, floorCalc, newFloorRoom } from '../core/floor';
+import type { FloorRoom, FloorUse } from '../core/floor';
 import type { WeakKind, WeakPt } from '../core/weak';
 
 export interface State extends Store {
@@ -56,10 +56,10 @@ export type Action =
   | { t: 'old'; field: OldKey; value: string }
   | { t: 'oldSign'; id: OldSign; on: boolean }
   | { t: 'oldReset' }
-  | { t: 'lightAdd'; kind: LightKind; name?: string }
-  | { t: 'lightSet'; id: string; field: Exclude<keyof LightRoom, 'id'>; value: string }
-  | { t: 'lightDel'; id: string }
-  | { t: 'lightApply'; id: string; line: string }
+  | { t: 'floorAdd'; use: FloorUse }
+  | { t: 'floorSet'; id: string; field: Exclude<keyof FloorRoom, 'id'>; value: string }
+  | { t: 'floorDel'; id: string }
+  | { t: 'floorApply'; id: string; line: string }
   | { t: 'weakAdd'; kind: WeakKind; room?: string }
   | { t: 'weakSet'; id: string; field: Exclude<keyof WeakPt, 'id'>; value: string }
   | { t: 'weakDel'; id: string }
@@ -234,37 +234,37 @@ export function reducer(s: State, a: Action): State {
         void old;
         return rest;
       });
-    case 'lightAdd':
-      return patch(s, q => ({ ...q, light: [...(q.light ?? []), newLightRoom(a.kind, a.name)] }));
-    case 'lightSet':
+    case 'floorAdd':
+      return patch(s, q => ({ ...q, floor: [...(q.floor ?? []), newFloorRoom(a.use)] }));
+    case 'floorSet':
       return patch(s, q => ({
         ...q,
-        light: (q.light ?? []).map(r => {
+        floor: (q.floor ?? []).map(r => {
           if (r.id !== a.id) return r;
-          if (a.field === 'fx') {
-            const f = FIXTURES.find(x => x.id === a.value);
-            return f ? { ...r, fx: f.id, w: f.w, lm: f.lm } : { ...r, fx: OWN_FX };
+          if (a.field === 'use' || a.field === 'sys') {
+            const n = { ...r, [a.field]: a.value } as FloorRoom;
+            return { ...n, wpm: defaultWpm(n.use, n.sys) };
           }
-          if (a.field === 'w' || a.field === 'lm') return { ...r, fx: OWN_FX, [a.field]: a.value.slice(0, 8) };
-          return { ...r, [a.field]: a.field === 'name' ? a.value.slice(0, 40) : a.value };
+          if (a.field === 'wpm') return r.sys === 'mat' ? { ...r, wpm: MAT_WPM } : { ...r, wpm: a.value.slice(0, 6) };
+          return { ...r, [a.field]: a.field === 'name' ? a.value.slice(0, 40) : a.value.slice(0, 8) };
         })
       }));
-    case 'lightDel':
+    case 'floorDel':
       return patch(s, q => {
-        const light = (q.light ?? []).filter(r => r.id !== a.id);
-        const { light: _old, ...rest } = q;
-        void _old;
-        return light.length ? { ...q, light } : rest;
+        const floor = (q.floor ?? []).filter(r => r.id !== a.id);
+        const { floor: _f, ...rest } = q;
+        void _f;
+        return floor.length ? { ...q, floor } : rest;
       });
-    case 'lightApply': {
-      const room = (p.light ?? []).find(r => r.id === a.id);
+    case 'floorApply': {
+      const room = (p.floor ?? []).find(r => r.id === a.id);
       if (!room) return s;
-      const res = lightCalc(room);
+      const res = floorCalc(room);
       if (!res.ok) return s;
-      const name = lightAppName(room);
-      const w = pn(room.w, 0);
+      const name = floorAppName(room);
+      const where = room.name.trim();
       if (a.line === 'new') {
-        const nl = { ...mkLine('Освещение: ' + (room.name.trim() || 'помещение'), 'light', 10, null, null, [[name, w, res.n]]), zone: room.name.trim() || undefined };
+        const nl = { ...mkLine('Тёплый пол: ' + (where || 'помещение'), 'power', 10, null, null, [[name, res.watts, 1]]), zone: where || undefined, ...(room.use === 'bath' ? { wet: true } : {}) };
         const next = patch(s, q => ({ ...q, lines: [...q.lines, nl] }));
         return pn(p.cfg.supply, 1) === 3 ? patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) })) : next;
       }
@@ -273,7 +273,7 @@ export function reducer(s: State, a: Action): State {
         lines: q.lines.map(l => {
           if (l.id !== a.line) return l;
           const ex = l.apps.find(x => x.name === name);
-          const apps = ex ? l.apps.map(x => (x === ex ? { ...x, w, n: res.n } : x)) : [...l.apps.filter(x => x.name.trim() || pn(x.w, 0) > 0), { id: nid(), name, w, n: res.n }];
+          const apps = ex ? l.apps.map(x => (x === ex ? { ...x, w: res.watts, n: 1 } : x)) : [...l.apps.filter(x => x.name.trim() || pn(x.w, 0) > 0), { id: nid(), name, w: res.watts, n: 1 }];
           return { ...l, apps };
         })
       }));

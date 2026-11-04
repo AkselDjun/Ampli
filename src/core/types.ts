@@ -1,6 +1,6 @@
 import type { WorkQty } from './labor';
-import type { LightRoom } from './light';
 import type { Weak, WeakCalc } from './weak';
+import type { FloorRoom } from './floor';
 
 export type LineType = 'light' | 'socket' | 'power';
 export type Phase = 'L1' | 'L2' | 'L3' | '3';
@@ -129,8 +129,8 @@ export interface Project {
   work?: WorkQty;
   acts?: Acts;
   old?: OldWiring;
-  light?: LightRoom[];
   weak?: Weak;
+  floor?: FloorRoom[];
 }
 
 export interface Content {
@@ -254,6 +254,7 @@ export interface Calc {
   uzos: Uzo[];
   boxes: number;
   weak?: WeakCalc;
+  floor?: FloorRoom[];
 }
 
 export interface SpecItem {

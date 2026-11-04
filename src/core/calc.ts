@@ -3,6 +3,8 @@ import { ALL_STEPS, HEAT_RX, TYPE_A_RX, VR_STD, HEAT_PLUG_KW, SN_CH2_DATE, INS_M
 import { fmt, fs, pn } from './format';
 import type { Weak } from './weak';
 import { weakCalc, weakStarted } from './weak';
+import type { FloorRoom } from './floor';
+import { floorCalc } from './floor';
 
 export function cfgN(c: Cfg): CfgN {
   return {
@@ -271,7 +273,9 @@ function planUzos(lines: Line[], c: CfgN): { rows: Row[]; uzos: Uzo[] } {
   return { rows, uzos };
 }
 
-export function calcAll(lines: Line[], cfg: Cfg, weak?: Weak): Calc {
+export function calcAll(lines: Line[], cfg: Cfg, ex: { weak?: Weak; floor?: FloorRoom[] } = {}): Calc {
+  const weak = ex.weak;
+  const floor = (ex.floor ?? []).filter(r => floorCalc(r).ok);
   const c = cfgN(cfg);
   const { rows, uzos } = planUzos(lines, c);
   const sumInst = rows.reduce((s, x) => s + x.r.pInst, 0);
@@ -377,7 +381,7 @@ export function calcAll(lines: Line[], cfg: Cfg, weak?: Weak): Calc {
   const issues = rows.filter(x => !x.r.empty && x.r.status !== 'ok').length;
   const hint3 = c.supply === 1 && P > SINGLE_INPUT_KW * 1000;
   const boxes = rows.filter(x => !x.r.empty && x.l.apps.some(a => appW(a) > 0 && appBr(a) > 0)).length;
-  return { c, rows, sumInst, P, Itot, phases, imb, inIn, inS, devs, modSum, size, placed, fits, issues, inStep, hint3, uzos, boxes, ...(weakStarted(weak) ? { weak: weakCalc(weak) } : {}) };
+  return { c, rows, sumInst, P, Itot, phases, imb, inIn, inS, devs, modSum, size, placed, fits, issues, inStep, hint3, uzos, boxes, ...(weakStarted(weak) ? { weak: weakCalc(weak) } : {}), ...(floor.length ? { floor } : {}) };
 }
 
 export function balanceLines(lines: Line[], cfg: Cfg): Line[] {

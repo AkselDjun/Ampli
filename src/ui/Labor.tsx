@@ -21,7 +21,7 @@ export function LaborTable({ p, a, dispatch }: { p: Project; a: Calc; dispatch: 
             <tr><th>Работа</th><th className="num">Количество</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></tr>
           </thead>
           <tbody>
-            {le.rows.filter(r => a.weak || r.manual || (r.def.key !== 'weak' && r.def.key !== 'weakCable')).map(r => (
+            {le.rows.filter(r => r.manual || (r.def.key === 'floor' ? !!a.floor : r.def.key === 'weak' || r.def.key === 'weakCable' ? !!a.weak : true)).map(r => (
               <tr key={r.def.key} className={r.qty > 0 ? '' : 'idle'}>
                 <td className="t-name">{r.def.name}<small className="muted lb-hint">{r.def.hint}</small></td>
                 <td className="num" data-label="Количество">

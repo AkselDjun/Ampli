@@ -15,7 +15,7 @@ export function approveText(e: EstimateShare, materials: number, works: number, 
 
 export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: () => void }) {
   const p = data.p;
-  const a = useMemo(() => calcAll(p.lines, p.cfg, p.weak), [p]);
+  const a = useMemo(() => calcAll(p.lines, p.cfg, p), [p]);
   const est = useMemo(() => estimate(buildSpec(a), data.prices), [a, data.prices]);
   const le = useMemo(() => laborEstimate(a, p.work, data.labor), [a, p.work, data.labor]);
   const works = le.rows.filter(r => r.qty > 0 && r.price !== null);

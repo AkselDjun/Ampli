@@ -44,7 +44,7 @@ describe('labour quantities', () => {
     expect(le.total).toBe(52.5);
     expect(le.priced).toBe(true);
     expect(grandTotal(100.1, 52.5)).toBe(152.6);
-    expect(WORKS).toHaveLength(10);
+    expect(WORKS).toHaveLength(11);
   });
   it('normalises stored quantities', () => {
     expect(normWork(null)).toEqual({});

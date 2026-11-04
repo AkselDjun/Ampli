@@ -92,7 +92,7 @@ describe('weak current in the calculation', () => {
   const lines = [mkLine('Свет', 'light', 10, 1, 1, [['Лампа', 100, 1]])];
   it('adds items to the specification and works to the estimate', () => {
     const w = weak([pt({ n: 2, len: 10 }), pt({ kind: 'tv', len: 10 })]);
-    const a = calcAll(lines, defaultCfg(), w);
+    const a = calcAll(lines, defaultCfg(), { weak: w });
     expect(a.weak?.points).toBe(3);
     expect(buildSpec(a).some(i => i.name === 'Розетка компьютерная RJ45 cat.5e')).toBe(true);
     const q = autoQty(a);
@@ -103,7 +103,7 @@ describe('weak current in the calculation', () => {
     const b = calcAll(lines, defaultCfg());
     expect(b.weak).toBeUndefined();
     expect(autoQty(b).weak).toBe(0);
-    expect(autoQty(calcAll(lines, defaultCfg(), { pts: [], ont: true })).weakCable).toBe(0);
-    expect(autoQty(calcAll(lines, { ...defaultCfg(), method: 'open' }, w)).chase).toBe(0);
+    expect(autoQty(calcAll(lines, defaultCfg(), { weak: { pts: [], ont: true } })).weakCable).toBe(0);
+    expect(autoQty(calcAll(lines, { ...defaultCfg(), method: 'open' }, { weak: w })).chase).toBe(0);
   });
 });

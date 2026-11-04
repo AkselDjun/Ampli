@@ -1,7 +1,8 @@
 import type { Calc, LineType } from './types';
 import { pn } from './format';
+import { floorCalc } from './floor';
 
-export type WorkKey = 'panel' | 'module' | 'chase' | 'cable' | 'socket' | 'switch' | 'light' | 'power' | 'weak' | 'weakCable';
+export type WorkKey = 'panel' | 'module' | 'chase' | 'cable' | 'socket' | 'switch' | 'light' | 'power' | 'weak' | 'weakCable' | 'floor';
 
 export interface WorkDef {
   key: WorkKey;
@@ -19,6 +20,7 @@ export const WORKS: WorkDef[] = [
   { key: 'switch', name: 'Установка выключателя', unit: 'точка', hint: 'укажите вручную' },
   { key: 'light', name: 'Подключение светильника', unit: 'точка', hint: 'по приборам групп освещения' },
   { key: 'power', name: 'Подключение мощного прибора', unit: 'шт', hint: 'плита, бойлер, кондиционер' },
+  { key: 'floor', name: 'Монтаж тёплого пола с терморегулятором', unit: 'м²', hint: 'площадь из раздела «Тёплый пол»' },
   { key: 'weak', name: 'Установка слаботочной розетки', unit: 'точка', hint: 'интернет и ТВ из раздела «Слаботочка»' },
   { key: 'weakCable', name: 'Прокладка слаботочного кабеля', unit: 'м', hint: 'UTP, коаксиальный и домофонный кабель с запасом 10 %' }
 ];
@@ -57,6 +59,7 @@ export function autoQty(a: Calc): Record<WorkKey, number> {
     switch: 0,
     light: points('light'),
     power: points('power'),
+    floor: Math.round((a.floor ?? []).reduce((s, r) => s + floorCalc(r).area, 0) * 10) / 10,
     weak: a.weak ? a.weak.count.lan + a.weak.count.tv : 0,
     weakCable: a.weak?.meters ?? 0
   };

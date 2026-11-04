@@ -42,9 +42,8 @@ function Tile({ label, val, sub }: { label: string; val: string; sub?: string })
 }
 
 export function Editor({
-  l, idx, a, dispatch, whyOpen, setWhyOpen, onDeleted, photos, onLight
+  l, idx, a, dispatch, whyOpen, setWhyOpen, onDeleted, photos
 }: {
-  onLight?: () => void;
   photos: Photo[];
   l: Line | null;
   idx: number;
@@ -327,7 +326,6 @@ export function Editor({
             {menu.open && (
               <div className="ed-menu" role="menu" aria-label="Действия с группой" ref={el => { mk.list.current = el; }} onKeyDown={mk.onKeyDown}>
                 <button type="button" role="menuitem" onClick={() => { mk.back(); setQuick(quick === null ? '' : null); setQuickMsg(''); }}>{quick === null ? 'Вставить список текстом' : 'Скрыть вставку списком'}</button>
-                {l.type === 'light' && onLight && <button type="button" role="menuitem" onClick={() => { mk.back(); onLight(); }}>Рассчитать светильники по площади</button>}
                 {(brOn || !showBr) && <button type="button" role="menuitem" onClick={() => { mk.back(); setBrOn(!brOn); }}>{brOn ? 'Скрыть отводы к точкам' : 'Указать отводы к точкам'}</button>}
                 {idx > 0 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[idx - 1].l.id }); toastUndo('Группа перемещена на место Г' + idx, undo); }}>Переставить раньше, на место Г{idx}</button>}
                 {idx < a.rows.length - 1 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[idx + 1].l.id }); toastUndo('Группа перемещена на место Г' + (idx + 2), undo); }}>Переставить позже, на место Г{idx + 2}</button>}

@@ -324,7 +324,7 @@ describe('GroupList', () => {
     fireEvent.click(screen.getByRole('button', { name: /Силовая|Мощный/ }));
     expect(h.onAdd).toHaveBeenCalledWith('power');
     expect(screen.queryByRole('button', { name: /на примере/ })).toBeNull();
-    expect(document.querySelector('.count')?.textContent).toBe('');
+    expect(document.querySelector('.list-head .count')).toBeNull();
     expect(document.querySelector('.pb-sub')?.textContent).toBe('0 групп');
   });
   it('shows project info, row details, flags, and routes the buttons', async () => {
@@ -335,7 +335,7 @@ describe('GroupList', () => {
     render(el);
     expect(document.querySelector('.pb-name')?.textContent).toBe('Без названия');
     expect(document.querySelector('.pb-sub')?.textContent).toBe('ул. Тестовая · 3 группы');
-    expect(document.querySelector('.count')?.textContent).toBe('3 шт.');
+    expect(document.querySelector('.list-head .count')).toBeNull();
     const rows = rowsOf();
     expect(rows[0].querySelector('.flag')).toHaveTextContent('!');
     expect(rows[1].querySelector('.flag')).toBeNull();

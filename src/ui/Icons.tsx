@@ -138,3 +138,9 @@ export const IconLan = make(0, (
     <path d="M9 17v3h6v-3M9 9v3M12 9v3M15 9v3" />
   </>
 ));
+export const IconHeat = make(0, (
+  <>
+    <path d="M4 19h16" />
+    <path d="M8 15c-1.5-1.7 1.5-3.3 0-5s1.5-3.3 0-5M12 15c-1.5-1.7 1.5-3.3 0-5s1.5-3.3 0-5M16 15c-1.5-1.7 1.5-3.3 0-5s1.5-3.3 0-5" />
+  </>
+));

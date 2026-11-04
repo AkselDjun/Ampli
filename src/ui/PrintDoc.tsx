@@ -17,8 +17,8 @@ import { usePhotoUrls } from './PhotoStrip';
 import { PassportDoc } from './Passport';
 import { DrawingA3, drawCode } from './DrawingA3';
 import { OLD_EMPTY, OLD_SIGNS, oldVerdict } from '../core/oldwire';
-import { KZ, LIGHT_KINDS, LUX_REF, lightCalc } from '../core/light';
 import { UTP_MAX, WEAK_KINDS } from '../core/weak';
+import { BATH_REF, FLOOR_SYS, FLOOR_USES, UZO_REF, floorCalc } from '../core/floor';
 import { actDate, actsOf, hiddenMaterials, hiddenWorks, ruDate, warrantyText } from '../core/acts';
 
 function ProtoTable({ a }: { a: Calc }) {
@@ -477,7 +477,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
           <ProtoTable a={a} />
         </>
       )}
-      <LightPart p={p} />
+      <FloorPart a={a} />
       <WeakPart p={p} a={a} />
       <h2>Спецификация</h2>
       <table>
@@ -536,35 +536,6 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
   );
 }
 
-function LightPart({ p }: { p: Project }) {
-  const rooms = (p.light ?? []).map(r => ({ r, x: lightCalc(r) })).filter(o => o.x.ok);
-  if (!rooms.length) return null;
-  return (
-    <>
-      <h2>Освещение помещений</h2>
-      <table>
-        <thead>
-          <tr><th>Помещение</th><th className="r">Площадь, м²</th><th className="r">Норма, лк</th><th>Светильник</th><th className="r">Кол-во</th><th className="r">Освещённость, лк</th><th className="r">Мощность, Вт</th></tr>
-        </thead>
-        <tbody>
-          {rooms.map(({ r, x }) => (
-            <tr key={r.id}>
-              <td>{r.name || LIGHT_KINDS[r.kind].label}</td>
-              <td className="r">{fmt(x.area, 1)}</td>
-              <td className="r">{x.need}{x.practice ? '*' : ''}</td>
-              <td>{x.fxName}</td>
-              <td className="r">{x.n}</td>
-              <td className="r">{fmt(x.lux, 0)}</td>
-              <td className="r">{fmt(x.watts, 0)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p className="pd-note">Нормы освещённости для квартир рекомендуемые: {LUX_REF}{rooms.some(o => o.x.practice) ? '; * значение по практике, в нормативе не указано' : ''}. Расчёт методом коэффициента использования, коэффициент запаса {fmt(KZ, 2)}, коэффициент использования по индексу помещения для светлой отделки (практика).</p>
-    </>
-  );
-}
-
 function WeakPart({ p, a }: { p: Project; a: Calc }) {
   const w = a.weak;
   const pts = p.weak?.pts ?? [];
@@ -589,6 +560,33 @@ function WeakPart({ p, a }: { p: Project; a: Calc }) {
         </tbody>
       </table>
       <p className="pd-note">Каждая точка отдельной линией от слаботочного щитка{w.ont ? ', в щитке оптический терминал провайдера и роутер' : ', в щитке роутер'}{w.sw ? ', коммутатор на ' + w.sw + ' портов' + (w.poe ? ' с PoE' : '') : ''}{w.split ? ', делитель TV на ' + w.split + ' ' + plural(w.split, ['выход', 'выхода', 'выходов']) : ''}. Длина линии UTP не более {UTP_MAX} м (ISO/IEC 11801). Слаботочные кабели прокладываются отдельно от силовых (практика).</p>
+    </>
+  );
+}
+
+function FloorPart({ a }: { a: Calc }) {
+  const rooms = (a.floor ?? []).map(r => ({ r, x: floorCalc(r) }));
+  if (!rooms.length) return null;
+  return (
+    <>
+      <h2>Тёплый пол</h2>
+      <table>
+        <thead>
+          <tr><th>Помещение</th><th>Система</th><th className="r">Площадь, м²</th><th>Изделие</th><th className="r">Мощность, Вт</th></tr>
+        </thead>
+        <tbody>
+          {rooms.map(({ r, x }) => (
+            <tr key={r.id}>
+              <td>{r.name || FLOOR_USES[r.use].name}</td>
+              <td>{FLOOR_SYS[r.sys].label}</td>
+              <td className="r">{fmt(x.area, 1)}</td>
+              <td>{x.product}{x.size ? ', ' + x.size : ''}</td>
+              <td className="r">{fmt(x.watts, 0)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="pd-note">Каждое помещение с отдельным терморегулятором и датчиком температуры пола, питание отдельной группой с УЗО ({UZO_REF}){rooms.some(o => o.r.use === 'bath') ? '; в полу ванной нагревательный элемент с металлическим экраном, присоединённым к PE (' + BATH_REF + ')' : ''}.</p>
     </>
   );
 }
