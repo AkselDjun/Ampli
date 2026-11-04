@@ -1,10 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import type { Calc, CfgN, LineType, Project, Row } from '../core/types';
 import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
 import { fixFor } from '../core/fixes';
 import type { FixAct } from '../core/fixes';
-import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconNet, IconSocket, IconTrash, IconWire } from './Icons';
+import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconNet, IconRooms, IconSocket, IconTrash, IconWire } from './Icons';
+import { useByRoom } from './prefs';
+import { zoneOf } from '../core/calc';
 import { ArmButton } from './common';
 import { AddMenu } from './AddMenu';
 import { FixBar } from './FixBar';
@@ -124,6 +126,17 @@ export function GroupList({
   const sub: string[] = [];
   if (p.address) sub.push(p.address);
   sub.push(count + ' ' + plural(count, ['группа', 'группы', 'групп']));
+  const [byRoom, setByRoom] = useByRoom();
+  const groups: { zone: string | null; items: number[] }[] = [];
+  if (byRoom && count > 1) {
+    a.rows.forEach((x, i) => {
+      const z = zoneOf(x.l);
+      const g = groups.find(y => y.zone === z);
+      if (g) g.items.push(i);
+      else groups.push({ zone: z, items: [i] });
+    });
+    groups.sort((p, q) => Number(p.zone === 'Без помещения') - Number(q.zone === 'Без помещения'));
+  } else groups.push({ zone: null, items: a.rows.map((_, i) => i) });
   const net: [string, string][] = [
     ['Питание', three ? '3 фазы, 400 В' : '1 фаза, 230 В'],
     ['Прокладка', c.method === 'wall' ? 'Скрытая' : 'Открытая'],
@@ -165,14 +178,31 @@ export function GroupList({
       <div className="list-head">
         <h2>Группы линий</h2>
         <span className="hist">
+          {count > 1 && (
+            <button className={'lv-t' + (byRoom ? ' on' : '')} type="button" aria-pressed={byRoom} data-tip="Сгруппировать по помещениям" onClick={() => setByRoom(!byRoom)}>
+              <IconRooms />
+              <span>По помещениям</span>
+            </button>
+          )}
           <span className="count">{count ? count + ' шт.' : ''}</span>
         </span>
       </div>
       <AddMenu down onAdd={onAdd} onRooms={onRooms} />
       <div className="rows">
         {count ? (
-          a.rows.map((x, i) => (
-            <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />
+          groups.map(g => (
+            <Fragment key={g.zone ?? '-'}>
+              {g.zone !== null && (
+                <div className="zone-h" role="heading" aria-level={3}>
+                  <b>{g.zone}</b>
+                  <small>{g.items.length + ' ' + plural(g.items.length, ['группа', 'группы', 'групп']) + ' · ' + fmt(g.items.reduce((t, k) => t + a.rows[k].r.pd, 0) / 1000, 1) + NB + 'кВт'}</small>
+                </div>
+              )}
+              {g.items.map(i => {
+                const x = a.rows[i];
+                return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />;
+              })}
+            </Fragment>
           ))
         ) : (
           <div className="empty">Групп пока нет. Добавьте первую кнопкой «+».</div>
