@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { KeyboardEvent as ReactKeyEvent, ReactNode } from 'react';
-import { IconAlert, IconClose, IconDone, IconDown, IconInfo } from './Icons';
+import { IconAlert, IconBack, IconClose, IconDone, IconDown, IconInfo } from './Icons';
+import { useSheetNav } from './sheetnav';
 import { currentToast, dismissToast, subscribeToast, toastLife } from './toast';
 import { haptic } from './haptic';
 import type { CfgN } from '../core/types';
@@ -144,11 +145,16 @@ export interface TabDef {
 }
 
 export function Tabs({ scope, items, cur, onChange, label }: { scope: string; items: TabDef[]; cur: string; onChange: (id: string) => void; label: string }) {
+  const pick = (id: string, el: HTMLElement) => {
+    onChange(id);
+    const body = el.closest('.sheet-panel')?.querySelector('.sheet-body');
+    if (body) body.scrollTop = 0;
+  };
   const move = (e: ReactKeyEvent<HTMLButtonElement>, i: number) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
     e.preventDefault();
     const next = items[(i + (e.key === 'ArrowRight' ? 1 : items.length - 1)) % items.length];
-    onChange(next.id);
+    pick(next.id, e.currentTarget);
     document.getElementById(scope + '-tab-' + next.id)?.focus();
   };
   return (
@@ -163,7 +169,7 @@ export function Tabs({ scope, items, cur, onChange, label }: { scope: string; it
           aria-selected={cur === t.id}
           aria-controls={scope + '-tp-' + t.id}
           tabIndex={cur === t.id ? 0 : -1}
-          onClick={() => onChange(t.id)}
+          onClick={e => pick(t.id, e.currentTarget)}
           onKeyDown={e => move(e, i)}
         >
           {t.label}
@@ -194,7 +200,9 @@ export function Sheet({
   children: ReactNode;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const opener = useRef<Element | null>(null);
+  const nav = useSheetNav();
   const y0 = useRef<number | null>(null);
   const [dy, setDy] = useState(0);
   const trap = (e: ReactKeyEvent<HTMLDivElement>) => {
@@ -224,6 +232,7 @@ export function Sheet({
   useEffect(() => {
     if (!open) return;
     opener.current = document.activeElement;
+    if (bodyRef.current) bodyRef.current.scrollTop = 0;
     document.documentElement.style.overflow = 'hidden';
     closeRef.current?.focus();
     const key = (e: KeyboardEvent) => {
@@ -242,12 +251,13 @@ export function Sheet({
     <div className="sheet" hidden={!open} onClick={e => e.target === e.currentTarget && onClose()}>
       <div className={'sheet-panel' + (compact ? ' compact' : '') + (bar ? '' : ' fit')} role="dialog" aria-modal="true" aria-labelledby={id} onKeyDown={trap} style={dy ? { transform: 'translateY(' + dy + 'px)', transition: 'none' } : undefined}>
         <div className="sheet-head" {...drag}>
+          {nav.back && <button className="sheet-back" type="button" onClick={nav.back} aria-label={'Назад: ' + nav.to} data-tip={'Назад: ' + nav.to}><IconBack /></button>}
           <h2 id={id}>{title}</h2>
           {tip && <Tip>{tip}</Tip>}
           <button ref={closeRef} className="sheet-close" type="button" onClick={onClose} aria-label="Закрыть">×</button>
         </div>
         {bar}
-        <div className="sheet-body">{children}</div>
+        <div className="sheet-body" ref={bodyRef}>{children}</div>
       </div>
     </div>
   );

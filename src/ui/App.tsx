@@ -27,6 +27,7 @@ import { NetSheet, ProjectsSheet, ReportSheet } from './sheets';
 import { PrintDoc } from './PrintDoc';
 import { WorkSheet } from './WorkSheet';
 import { OldSheet } from './OldWiring';
+import { SheetNavContext } from './sheetnav';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { PanelMode } from './PanelMode';
 import { IncomingSheet } from './IncomingSheet';
@@ -41,6 +42,8 @@ import type { PrintMode } from './WorkSheet';
 
 type View = 'groups' | 'edit' | 'panel';
 type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | 'old' | null;
+
+const SHEET_TITLE: Record<NonNullable<SheetId>, string> = { net: 'Параметры сети', proj: 'Проекты', rep: 'Отчёт и спецификация', work: 'Монтаж и приёмка', lib: 'Мои данные', cmp: 'Сравнение', rooms: 'Комнаты', panel: 'На щитке', shop: 'Где купить', old: 'Старая проводка' };
 
 const waitPhotos = async (n: number): Promise<void> => {
   const deadline = Date.now() + 2500;
@@ -58,7 +61,11 @@ export function App() {
   const state = hist.now;
   const [lib, libDispatch] = useReducer(libReducer, undefined, loadLib);
   const [view, setView] = useState<View>('groups');
-  const [sheet, setSheet] = useState<SheetId>(null);
+  const [stack, setStack] = useState<NonNullable<SheetId>[]>([]);
+  const sheet: SheetId = stack.length ? stack[stack.length - 1] : null;
+  const setSheet = useCallback((id: SheetId) => setStack(id ? [id] : []), []);
+  const pushSheet = (id: NonNullable<SheetId>) => setStack(s => [...s.filter(x => x !== id), id]);
+  const nav = { back: stack.length > 1 ? () => setStack(s => s.slice(0, -1)) : undefined, to: stack.length > 1 ? SHEET_TITLE[stack[stack.length - 2]] : undefined };
   const [whyOpen, setWhyOpen] = useState(false);
   const [printModes, setPrintModes] = useState<PrintMode[]>(['report']);
   const [pal, setPal] = useState(false);
@@ -363,20 +370,22 @@ export function App() {
           </button>
         </nav>
 
-        <NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} onOld={() => setSheet('old')} oldLabel={oldLabel} />
+        <SheetNavContext.Provider value={nav}>
+        <NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} onOld={() => pushSheet('old')} oldLabel={oldLabel} />
         <OldSheet open={sheet === 'old'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} />
-        <ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => setSheet('lib')} />
+        <ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet('lib')} />
         <LibSheet open={sheet === 'lib'} onClose={closeSheet} />
         <CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} />
         <RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} />
-        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onCompare={() => setSheet('cmp')} onShop={() => setSheet('shop')} dispatch={dispatch} want={repWant} />
+        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onCompare={() => pushSheet('cmp')} onShop={() => pushSheet('shop')} dispatch={dispatch} want={repWant} />
         <Palette open={pal} onClose={() => setPal(false)} cmds={cmds} />
         <ShopSheet open={sheet === 'shop'} onClose={closeSheet} a={a} />
         <Toaster />
         <HoverTips />
         <PanelMode open={sheet === 'panel'} onClose={closeSheet} a={a} dispatch={dispatch} />
+        <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => pushSheet('panel')} />
+        </SheetNavContext.Provider>
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
-        <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => setSheet('panel')} />
       </div>
       {printModes.map(m => <PrintDoc key={m} p={p} a={a} mode={m} />)}
     </LibContext.Provider>
