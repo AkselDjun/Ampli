@@ -16,6 +16,7 @@ import { photoCaption } from '../core/photos';
 import { usePhotoUrls } from './PhotoStrip';
 import { PassportDoc } from './Passport';
 import { DrawingA3, drawCode } from './DrawingA3';
+import { OLD_EMPTY, OLD_SIGNS, oldVerdict } from '../core/oldwire';
 import { actDate, actsOf, hiddenMaterials, hiddenWorks, ruDate, warrantyText } from '../core/acts';
 
 function ProtoTable({ a }: { a: Calc }) {
@@ -122,7 +123,7 @@ function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
         ))}
       </ul>
       <p className="pd-note">
-        Допустимые значения: ток однофазного замыкания не меньше тока мгновенного срабатывания защиты (5×In для кривой B, 10×In для C) при времени отключения 0,4 с для 230 В (ТКП 339-2022, п. 4.3.5.4, п. 4.4.28.5); сопротивление изоляции не менее 0,5 МОм (п. 4.4.29.2); ток утечки не более трети уставки УЗО (СН 4.04.01-2019, п. 16.3.7); время отключения УЗО при номинальном дифференциальном токе не более значений табл. 4.4.47 и 4.4.48 ТКП 339-2022 в редакции изм. № 1 (для 30 мА 0,5 с).
+        Допустимые значения: ток однофазного замыкания не меньше тока мгновенного срабатывания защиты (5×In для кривой B, 10×In для C) при времени отключения 0,4 с для 230 В (ТКП 339-2022, п. 4.3.5.4, п. 4.4.28.5); сопротивление изоляции не менее 0,5 МОм (п. 4.4.26.1, табл. 4.4.46); ток утечки не более трети уставки УЗО (СН 4.04.01-2019, п. 16.3.7); время отключения УЗО при номинальном дифференциальном токе не более значений табл. 4.4.47 и 4.4.48 ТКП 339-2022 в редакции изм. № 1 (для 30 мА 0,5 с).
       </p>
       <SignBlock />
       <div className="pd-foot">Ampli · {dfmt(Date.now())}</div>
@@ -211,6 +212,7 @@ export function PrintDoc({ p, a, mode = 'report' }: { p: Project; a: Calc; mode?
   if (mode === 'tags') return <div className="printdoc" aria-hidden="true"><TagsDoc p={p} a={a} /></div>;
   if (mode === 'a3') return <A3Doc p={p} a={a} />;
   if (mode === 'hidden') return <div className="printdoc act" aria-hidden="true"><HiddenDoc p={p} a={a} /></div>;
+  if (mode === 'old') return <div className="printdoc act" aria-hidden="true"><OldDoc p={p} a={a} /></div>;
   if (mode === 'accept') return <div className="printdoc act" aria-hidden="true"><AcceptDoc p={p} a={a} /></div>;
   return <ReportDoc p={p} a={a} />;
 }
@@ -323,6 +325,61 @@ function AcceptDoc({ p, a }: { p: Project; a: Calc }) {
       {x.warranty > 0 && <p>Гарантийный срок на выполненные работы: {warrantyText(x.warranty)} с даты подписания акта. Гарантия не распространяется на повреждения, вызванные вмешательством третьих лиц и нарушением правил эксплуатации.</p>}
       <p>Заказчику переданы: однолинейная схема щитка, протокол замеров, паспорт щитка с назначением автоматов.</p>
       <Signs who={[['Работы сдал, исполнитель', b.signer || p.author], ['Работы принял, заказчик', p.client]]} />
+    </>
+  );
+}
+
+const OLD_ANS: Record<string, Record<string, string>> = {
+  metal: { cu: 'медь', al: 'алюминий' },
+  pe: { yes: 'есть', no: 'нет, двухпроводная сеть', jumper: 'перемычка N и PE в розетках' },
+  net: { tncs: 'есть отдельный PE (TN-C-S)', tnc: 'только PEN (TN-C)' },
+  panel: { fuse: 'пробки', old: 'старые автоматы', mod: 'модульный' }
+};
+
+function OldDoc({ p, a }: { p: Project; a: Calc }) {
+  const o = p.old ?? OLD_EMPTY;
+  const v = oldVerdict(p.old, a);
+  const ans: [string, string][] = [
+    ['Материал жил', OLD_ANS.metal[o.metal]],
+    ['Сечение жил групп', o.sec ? fs(o.sec) + ' мм²' : ''],
+    ['Защитный проводник PE', OLD_ANS.pe[o.pe]],
+    ['Этажный щит', OLD_ANS.net[o.net]],
+    ['Щиток квартиры', OLD_ANS.panel[o.panel]],
+    ['Сопротивление изоляции', o.ins ? o.ins.replace('.', ',') + ' МОм' : ''],
+    ['Возраст проводки', o.age ? o.age + ' лет' : ''],
+    ['При осмотре', OLD_SIGNS.filter(s => o.signs.includes(s[0])).map(s => s[1].toLowerCase()).join('; ')]
+  ];
+  return (
+    <>
+      <BrandHead />
+      <h1>Заключение по состоянию электропроводки</h1>
+      <p className="pd-sub">{p.name || 'Без названия'}</p>
+      <Meta p={p} />
+      <h2>Результаты осмотра</h2>
+      <table>
+        <tbody>
+          {ans.map(([k, val]) => <tr key={k}><td>{k}</td><td>{val || 'не установлено'}</td></tr>)}
+        </tbody>
+      </table>
+      <h2>Вывод: {v.label.toLowerCase()}</h2>
+      <ol className="act-ol">
+        {v.findings.map(f => (
+          <li key={f.id}><b>{f.title}.</b> {f.text} <i>({f.ref || 'по практике монтажа'})</i></li>
+        ))}
+      </ol>
+      {v.groups.length > 0 && (
+        <>
+          <h2>Группы проекта</h2>
+          <table>
+            <thead><tr><th>№</th><th>Группа</th><th>Защита по расчёту</th><th>Старая линия</th></tr></thead>
+            <tbody>
+              {v.groups.map(g => <tr key={g.no}><td>{g.no}</td><td>{g.name}</td><td>{g.In} А, {fs(g.need)} мм² Cu</td><td>{g.fit ? 'можно оставить' : 'проложить новую'}</td></tr>)}
+            </tbody>
+          </table>
+        </>
+      )}
+      <p className="pd-note">Заключение составлено по результатам визуального осмотра и замеров, указанных выше. Скрытые участки проводки не вскрывались. Пункты с пометкой «по практике монтажа» не следуют из прямой нормы.</p>
+      <SignBlock />
     </>
   );
 }

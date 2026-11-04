@@ -10,6 +10,9 @@ import { newProject, normProject, uniqName } from '../core/project';
 import type { WorkKey } from '../core/labor';
 import { pn, round2 } from '../core/format';
 import { normActs } from '../core/acts';
+import { normOld } from '../core/oldwire';
+import type { OldKey } from '../core/oldwire';
+import type { OldSign } from '../core/types';
 import type { Store } from './storage';
 
 export interface State extends Store {
@@ -46,6 +49,9 @@ export type Action =
   | { t: 'workQty'; key: WorkKey; value: string }
   | { t: 'proto'; field: 'date' | 'device' | 'by'; value: string }
   | { t: 'acts'; field: 'start' | 'end' | 'warranty'; value: string }
+  | { t: 'old'; field: OldKey; value: string }
+  | { t: 'oldSign'; id: OldSign; on: boolean }
+  | { t: 'oldReset' }
   | { t: 'appField'; id: string; field: 'name' | 'w' | 'n' | 'br' | 'm'; value: string | number }
   | { t: 'addApp'; name?: string; w?: number; m?: number }
   | { t: 'delApp'; id: string }
@@ -203,6 +209,19 @@ export function reducer(s: State, a: Action): State {
       return patch(s, q => ({ ...q, proto: { date: '', device: '', by: '', ...(q.proto ?? {}), [a.field]: a.value } }));
     case 'acts':
       return patch(s, q => ({ ...q, acts: normActs({ ...(q.acts ?? {}), [a.field]: a.value }) }));
+    case 'old':
+      return patch(s, q => ({ ...q, old: normOld({ ...(q.old ?? {}), [a.field]: a.value }) }));
+    case 'oldSign':
+      return patch(s, q => {
+        const cur = q.old?.signs ?? [];
+        return { ...q, old: normOld({ ...(q.old ?? {}), signs: a.on ? [...cur, a.id] : cur.filter(x => x !== a.id) }) };
+      });
+    case 'oldReset':
+      return patch(s, q => {
+        const { old, ...rest } = q;
+        void old;
+        return rest;
+      });
     case 'lineWet':
       return patchLine(s, l => ({ ...l, wet: a.wet }));
     case 'appField':

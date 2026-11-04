@@ -119,3 +119,9 @@ export const IconRooms = make(0, (
     <path d="M12 4v7H3M12 15v5M16 11h5" />
   </>
 ));
+export const IconWire = make(0, (
+  <>
+    <path d="M3 17h4c3 0 3-10 6-10s3 10 6 10h2" />
+    <path d="M3 14v6M21 14v6" />
+  </>
+));

@@ -12,7 +12,7 @@ import { reportText } from '../core/report';
 import { buildXlsx, exportName, exportTables, toCsv } from '../core/export';
 import { download } from './download';
 import { delPhoto, forgetPhotoUrl } from '../store/photos';
-import { IconDownload } from './Icons';
+import { IconChev, IconDownload, IconWire } from './Icons';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
 import { ArmButton, Assumptions, Seg, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
@@ -28,12 +28,14 @@ import { DrawingA3 } from './DrawingA3';
 import type { PrintMode } from './WorkSheet';
 
 export function NetSheet({
-  open, onClose, p, dispatch
+  open, onClose, p, dispatch, onOld, oldLabel
 }: {
   open: boolean;
   onClose: () => void;
   p: Project;
   dispatch: (a: Action) => void;
+  onOld: () => void;
+  oldLabel: string;
 }) {
   const c = cfgN(p.cfg);
   return (
@@ -90,6 +92,11 @@ export function NetSheet({
           </div>
         </div>
       </details>
+      <button className="netfold net-old" type="button" onClick={onOld}>
+        <IconWire />
+        <span className="nf-main">Старая проводка<small>{oldLabel || 'алюминий, нет PE, старый щиток: что оставить и что заменить'}</small></span>
+        <IconChev className="chev" />
+      </button>
     </Sheet>
   );
 }

@@ -1,5 +1,6 @@
 import type { Content, Line, Project, Room } from './types';
 import { normActs } from './acts';
+import { normOld, oldStarted } from './oldwire';
 import { TYPES } from './norms';
 import { defaultCfg, sample } from './templates';
 import { keepId, nid, pid } from './ids';
@@ -34,7 +35,8 @@ export function normProject(o: unknown, keep = false): Project | null {
     proto: { date: '', device: '', by: '', ...(x.proto ?? {}) },
     photos: keep ? normPhotos(x.photos) : [],
     ...(x.work && Object.keys(normWork(x.work)).length ? { work: normWork(x.work) } : {}),
-    ...(x.acts ? { acts: normActs(x.acts) } : {})
+    ...(x.acts ? { acts: normActs(x.acts) } : {}),
+    ...(x.old && oldStarted(normOld(x.old)) ? { old: normOld(x.old) } : {})
   };
 }
 

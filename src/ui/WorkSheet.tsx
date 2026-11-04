@@ -8,7 +8,7 @@ import { Sheet, TabPanel, Tabs } from './common';
 import { ShareBlock } from './ShareBlock';
 import { actsOf, actsSummary } from '../core/acts';
 
-export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3' | 'hidden' | 'accept';
+export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3' | 'hidden' | 'accept' | 'old';
 
 export function WorkSheet({
   open, onClose, p, a, dispatch, onPrint, onBoard

@@ -60,6 +60,19 @@ export interface Acts {
   warranty: number;
 }
 
+export type OldSign = 'heat' | 'crumble' | 'twist' | 'trip';
+
+export interface OldWiring {
+  metal: 'cu' | 'al' | '';
+  sec: number;
+  pe: 'yes' | 'no' | 'jumper' | '';
+  net: 'tncs' | 'tnc' | '';
+  panel: 'fuse' | 'old' | 'mod' | '';
+  ins: string;
+  age: string;
+  signs: OldSign[];
+}
+
 export interface Line {
   id: string;
   name: string;
@@ -109,6 +122,7 @@ export interface Project {
   photos?: Photo[];
   work?: WorkQty;
   acts?: Acts;
+  old?: OldWiring;
 }
 
 export interface Content {

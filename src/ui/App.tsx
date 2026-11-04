@@ -26,6 +26,8 @@ import { Checks } from './Checks';
 import { NetSheet, ProjectsSheet, ReportSheet } from './sheets';
 import { PrintDoc } from './PrintDoc';
 import { WorkSheet } from './WorkSheet';
+import { OldSheet } from './OldWiring';
+import { oldStarted, oldVerdict } from '../core/oldwire';
 import { PanelMode } from './PanelMode';
 import { IncomingSheet } from './IncomingSheet';
 import { ShopSheet } from './ShopSheet';
@@ -38,7 +40,7 @@ import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 
 type View = 'groups' | 'edit' | 'panel';
-type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | null;
+type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | 'old' | null;
 
 const waitPhotos = async (n: number): Promise<void> => {
   const deadline = Date.now() + 2500;
@@ -76,6 +78,7 @@ export function App() {
   });
   const p = cur(state);
   const a = useMemo(() => calcAll(p.lines, p.cfg), [p.lines, p.cfg]);
+  const oldLabel = oldStarted(p.old) ? oldVerdict(p.old, a).label : '';
   const selected = p.lines.find(l => l.id === state.sel) || null;
   const idx = selected ? p.lines.indexOf(selected) : -1;
 
@@ -193,6 +196,7 @@ export function App() {
     { id: 'accept', group: 'Монтаж', label: 'Печать акта приёмки работ', words: 'pdf сдача гарантия', run: () => doPrint('accept') },
     { id: 'a3', group: 'Документы', label: 'Печать схемы A3 по ГОСТ', words: 'pdf чертёж однолинейная штамп', run: () => doPrint('a3') },
     { id: 'net', group: 'Проект', label: 'Параметры сети', words: 'фазы ввод мощность прокладка', run: () => setSheet('net') },
+    { id: 'old', group: 'Проект', label: 'Старая проводка', words: 'алюминий обследование заземление зануление pe tn-c', run: () => setSheet('old') },
     { id: 'proj', group: 'Проект', label: 'Проекты', words: 'открыть новый файл ссылка', run: () => setSheet('proj') },
     { id: 'lib', group: 'Проект', label: 'Мои данные', words: 'реквизиты приборы шаблоны логотип', run: () => setSheet('lib') },
     ...(a.phases ? [{ id: 'bal', group: 'Проект', label: 'Выровнять нагрузку по фазам', words: 'фазы', run: () => { dispatch({ t: 'balance' }); toastUndo('Фазы выровнены', undo); } }] : []),
@@ -308,6 +312,8 @@ export function App() {
             }}
             onOpenProj={() => setSheet('proj')}
             onOpenNet={() => setSheet('net')}
+            onOpenOld={() => setSheet('old')}
+            oldLabel={oldLabel}
             onRooms={() => setSheet('rooms')}
             onBlank={() => { dispatch({ t: 'replace', content: blank() }); toastUndo('Проект очищен', undo); }}
           />
@@ -349,7 +355,8 @@ export function App() {
           </button>
         </nav>
 
-        <NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} />
+        <NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} onOld={() => setSheet('old')} oldLabel={oldLabel} />
+        <OldSheet open={sheet === 'old'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} />
         <ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => setSheet('lib')} />
         <LibSheet open={sheet === 'lib'} onClose={closeSheet} />
         <CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} />

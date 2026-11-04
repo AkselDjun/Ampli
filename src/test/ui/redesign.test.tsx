@@ -289,7 +289,7 @@ describe('FixBar', () => {
 describe('GroupList', () => {
   const props = (p: Project) => {
     const h = {
-      onSelect: vi.fn(), onAdd: vi.fn(), onOpenProj: vi.fn(), onOpenNet: vi.fn(), onRooms: vi.fn(), onBlank: vi.fn(),
+      onSelect: vi.fn(), onAdd: vi.fn(), onOpenProj: vi.fn(), onOpenNet: vi.fn(), onOpenOld: vi.fn(), oldLabel: '', onRooms: vi.fn(), onBlank: vi.fn(),
       onCopy: vi.fn(), onDelete: vi.fn(), onFix: vi.fn()
     };
     return { h, el: <GroupList p={p} a={calcAll(p.lines, p.cfg)} sel={p.lines[0]?.id ?? null} {...h} /> };

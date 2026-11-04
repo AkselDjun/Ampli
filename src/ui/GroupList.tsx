@@ -4,7 +4,7 @@ import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
 import { fixFor } from '../core/fixes';
 import type { FixAct } from '../core/fixes';
-import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconNet, IconSocket, IconTrash } from './Icons';
+import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconNet, IconSocket, IconTrash, IconWire } from './Icons';
 import { ArmButton } from './common';
 import { AddMenu } from './AddMenu';
 import { FixBar } from './FixBar';
@@ -86,7 +86,7 @@ function GroupRow({
 }
 
 export function GroupList({
-  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onRooms, onBlank, onCopy, onDelete, onFix
+  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, oldLabel, onRooms, onBlank, onCopy, onDelete, onFix
 }: {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
@@ -98,6 +98,8 @@ export function GroupList({
   onAdd: (t: LineType) => void;
   onOpenProj: () => void;
   onOpenNet: () => void;
+  onOpenOld: () => void;
+  oldLabel: string;
   onRooms: () => void;
   onBlank: () => void;
 }) {
@@ -139,6 +141,13 @@ export function GroupList({
             <span className="nf-main">Параметры сети<small>{net.map(t => t[1]).join(', ')}</small></span>
             <IconChev className="chev" />
           </button>
+          {oldLabel && (
+            <button className="netfold" type="button" aria-label={'Старая проводка: ' + oldLabel} onClick={onOpenOld}>
+              <IconWire />
+              <span className="nf-main">Старая проводка<small>{oldLabel}</small></span>
+              <IconChev className="chev" />
+            </button>
+          )}
         </div>
       </div>
       {p.sample && (

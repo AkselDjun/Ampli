@@ -1,6 +1,6 @@
 import type { Acts, Calc } from './types';
 import { cableName } from './protection';
-import { fmt, pn } from './format';
+import { fmt, plural, pn } from './format';
 import { BOX_NAME } from './norms';
 import { autoQty } from './labor';
 
@@ -64,12 +64,7 @@ export function hiddenMaterials(a: Calc): string[] {
   return out;
 }
 
-export function warrantyText(months: number): string {
-  const n = Math.abs(months) % 100;
-  const d = n % 10;
-  const w = n > 10 && n < 20 ? 'месяцев' : (d === 1 ? 'месяц' : (d >= 2 && d <= 4 ? 'месяца' : 'месяцев'));
-  return months + ' ' + w;
-}
+export const warrantyText = (months: number): string => months + ' ' + plural(months, ['месяц', 'месяца', 'месяцев']);
 
 export const actsSummary = (acts: Acts | undefined): string => {
   const x = actsOf(acts);
