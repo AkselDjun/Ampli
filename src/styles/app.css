@@ -1408,8 +1408,19 @@ button.dev.sel.hot{outline-color:var(--accent)}
 .lv-t svg{width:16px;height:16px}
 .lv-t:hover{border-color:var(--ink-2);color:var(--ink)}
 .lv-t.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
-.zone-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 16px 6px;background:var(--field);border-bottom:1px solid var(--line)}
+.zone-h{margin:0;background:var(--field);border-bottom:1px solid var(--line);font-size:inherit}
+.zone-h button{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;width:100%;min-height:44px;padding:8px 16px 8px 10px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.zone-h button:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
 .zone-h b{font-size:var(--t-m)}
-.zone-h small{color:var(--ink-2);font-size:var(--t-s);white-space:nowrap}
+.zone-h small{margin-left:auto;color:var(--ink-2);font-size:var(--t-s);font-weight:400;white-space:nowrap}
+.zone-chev{width:16px;height:16px;flex:none;color:var(--ink-2);transform:rotate(90deg);transition:transform .15s}
+.zone-h.shut .zone-chev{transform:none}
+.zone-h .flag{width:18px;height:18px;font-size:11px}
+.zone-brk{display:flex;flex-wrap:wrap;gap:4px;width:100%;padding-left:24px}
+.zone-brk i{font-style:normal;font-family:var(--font-mono);font-size:var(--t-xs);font-weight:700;padding:1px 6px;border-radius:4px;background:var(--surface);border:1px solid var(--line);color:var(--ink-2)}
+.zone-brk i.rcd{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.zone-b:not([hidden]){display:contents}
+.zone-h.shut:not(:last-child){border-bottom:1px solid var(--line)}
+@media (prefers-reduced-motion:reduce){.zone-chev{transition:none}}
 .rows .zone-h:not(:first-child){border-top:1px solid var(--line)}
 @media (max-width:420px){.lv-t span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.lv-t{width:44px;height:44px;justify-content:center;padding:0}}

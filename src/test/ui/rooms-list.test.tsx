@@ -65,4 +65,36 @@ describe('group list by rooms', () => {
     get.mockRestore();
     set.mockRestore();
   });
+
+  it('folds a room like an accordion and opens it again when its group is selected', () => {
+    wide(true);
+    const ls: Line[] = [
+      { ...mkLine('Свет', 'light', 5, 1, 1, [['Лампа', 100, 1]]), zone: 'Комнаты' },
+      { ...mkLine('Перегруз', 'power', 10, 1, 1, [['Первый', 10000, 1], ['Второй', 10000, 1]]), zone: 'Кухня' },
+      { ...mkLine('Чайник', 'socket', 5, 1, 1, [['Чайник', 2000, 1]]), zone: 'Кухня' }
+    ];
+    const p = newProject({ cfg: defaultCfg(), lines: ls, sample: false }, 'Т');
+    localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
+    localStorage.setItem(LISTBY_KEY, 'room');
+    render(<App />);
+    const head = screen.getByRole('button', { name: /^Кухня/ });
+    expect(head).toHaveAttribute('aria-expanded', 'true');
+    const body = document.getElementById(head.getAttribute('aria-controls') as string) as HTMLElement;
+    expect(body.querySelectorAll('.row').length).toBe(2);
+    expect(head.querySelector('.flag.bad')).not.toBeNull();
+    expect(head.querySelector('.zone-brk')).toBeNull();
+    fireEvent.click(head);
+    expect(head).toHaveAttribute('aria-expanded', 'false');
+    expect(body.hidden).toBe(true);
+    expect(Array.from(head.querySelectorAll('.zone-brk i')).map(i => i.textContent)).toEqual(['C16']);
+    expect(head.querySelector('.zone-brk i.rcd')).not.toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /^Комнаты/ }));
+    expect(screen.getByRole('button', { name: /^Комнаты/ })).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(screen.getByRole('button', { name: /^Проверки по нормам/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Открыть группу Г2' }));
+    expect(head).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: /^Комнаты/ })).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(head);
+    expect(head).toHaveAttribute('aria-expanded', 'false');
+  });
 });

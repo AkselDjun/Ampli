@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import type { Calc, CfgN, LineType, Project, Row } from '../core/types';
 import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
@@ -137,6 +137,12 @@ export function GroupList({
     });
     groups.sort((p, q) => Number(p.zone === 'Без помещения') - Number(q.zone === 'Без помещения'));
   } else groups.push({ zone: null, items: a.rows.map((_, i) => i) });
+  const [shut, setShut] = useState<string[]>([]);
+  const selZone = byRoom ? (() => { const x = a.rows.find(y => y.l.id === sel); return x ? zoneOf(x.l) : null; })() : null;
+  useEffect(() => {
+    if (selZone) setShut(v => (v.includes(selZone) ? v.filter(z => z !== selZone) : v));
+  }, [sel, selZone]);
+  const flip = (z: string) => setShut(v => (v.includes(z) ? v.filter(y => y !== z) : [...v, z]));
   const net: [string, string][] = [
     ['Питание', three ? '3 фазы, 400 В' : '1 фаза, 230 В'],
     ['Прокладка', c.method === 'wall' ? 'Скрытая' : 'Открытая'],
@@ -190,15 +196,34 @@ export function GroupList({
       <AddMenu down onAdd={onAdd} onRooms={onRooms} />
       <div className="rows">
         {count ? (
-          groups.map(g => (
+          groups.map((g, gi) => (
             <Fragment key={g.zone ?? '-'}>
-              {g.zone !== null && (
-                <div className="zone-h" role="heading" aria-level={3}>
-                  <b>{g.zone}</b>
-                  <small>{g.items.length + ' ' + plural(g.items.length, ['группа', 'группы', 'групп']) + ' · ' + fmt(g.items.reduce((t, k) => t + a.rows[k].r.pd, 0) / 1000, 1) + NB + 'кВт'}</small>
-                </div>
-              )}
-              {g.items.map(i => {
+              {g.zone !== null && (() => {
+                const z = g.zone;
+                const closed = shut.includes(z);
+                const worst = g.items.some(k => !a.rows[k].r.empty && a.rows[k].r.status === 'bad') ? 'bad' : (g.items.some(k => !a.rows[k].r.empty && a.rows[k].r.status === 'warn') ? 'warn' : '');
+                const bid = 'zone-' + gi;
+                return (
+                  <>
+                    <h3 className={'zone-h' + (closed ? ' shut' : '')}>
+                      <button type="button" aria-expanded={!closed} aria-controls={bid} onClick={() => flip(z)}>
+                        <IconChev className="zone-chev" />
+                        <b>{z}</b>
+                        {worst && <span className={'flag ' + worst} aria-label={STATUS[worst]}>!</span>}
+                        <small>{g.items.length + ' ' + plural(g.items.length, ['группа', 'группы', 'групп']) + ' · ' + fmt(g.items.reduce((t, k) => t + a.rows[k].r.pd, 0) / 1000, 1) + NB + 'кВт'}</small>
+                        {closed && <span className="zone-brk" aria-hidden="true">{g.items.filter(k => a.rows[k].r.In).map(k => <i key={k} className={a.rows[k].r.rcbo ? 'rcd' : ''}>{a.rows[k].r.curve}{a.rows[k].r.In}</i>)}</span>}
+                      </button>
+                    </h3>
+                    <div className="zone-b" id={bid} hidden={closed}>
+                      {g.items.map(i => {
+                        const x = a.rows[i];
+                        return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />;
+                      })}
+                    </div>
+                  </>
+                );
+              })()}
+              {g.zone === null && g.items.map(i => {
                 const x = a.rows[i];
                 return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />;
               })}
