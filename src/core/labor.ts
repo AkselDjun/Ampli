@@ -1,7 +1,7 @@
 import type { Calc, LineType } from './types';
 import { pn } from './format';
 
-export type WorkKey = 'panel' | 'module' | 'chase' | 'cable' | 'socket' | 'switch' | 'light' | 'power';
+export type WorkKey = 'panel' | 'module' | 'chase' | 'cable' | 'socket' | 'switch' | 'light' | 'power' | 'weak' | 'weakCable';
 
 export interface WorkDef {
   key: WorkKey;
@@ -13,12 +13,14 @@ export interface WorkDef {
 export const WORKS: WorkDef[] = [
   { key: 'panel', name: 'Установка корпуса щитка', unit: 'шт', hint: 'один щиток на проект' },
   { key: 'module', name: 'Сборка щитка', unit: 'мод.', hint: 'по числу модулей аппаратов' },
-  { key: 'chase', name: 'Штроба', unit: 'м', hint: 'при скрытой прокладке равна длине кабеля' },
+  { key: 'chase', name: 'Штроба', unit: 'м', hint: 'при скрытой прокладке равна длине кабелей' },
   { key: 'cable', name: 'Прокладка кабеля', unit: 'м', hint: 'длины групп с запасом 10 %' },
   { key: 'socket', name: 'Установка розетки', unit: 'точка', hint: 'по приборам розеточных групп' },
   { key: 'switch', name: 'Установка выключателя', unit: 'точка', hint: 'укажите вручную' },
   { key: 'light', name: 'Подключение светильника', unit: 'точка', hint: 'по приборам групп освещения' },
-  { key: 'power', name: 'Подключение мощного прибора', unit: 'шт', hint: 'плита, бойлер, кондиционер' }
+  { key: 'power', name: 'Подключение мощного прибора', unit: 'шт', hint: 'плита, бойлер, кондиционер' },
+  { key: 'weak', name: 'Установка слаботочной розетки', unit: 'точка', hint: 'интернет и ТВ из раздела «Слаботочка»' },
+  { key: 'weakCable', name: 'Прокладка слаботочного кабеля', unit: 'м', hint: 'UTP, коаксиальный и домофонный кабель с запасом 10 %' }
 ];
 
 export const WORK_KEYS: WorkKey[] = WORKS.map(w => w.key);
@@ -49,12 +51,14 @@ export function autoQty(a: Calc): Record<WorkKey, number> {
   return {
     panel: groups.length ? 1 : 0,
     module: groups.length ? a.modSum : 0,
-    chase: a.c.method === 'wall' ? cable : 0,
+    chase: a.c.method === 'wall' ? cable + (a.weak?.meters ?? 0) : 0,
     cable,
     socket: a.rows.some(x => x.l.type === 'socket' && x.r.sockets > 0) ? a.rows.reduce((s, x) => s + (x.l.type === 'socket' ? (x.r.sockets || points1(x)) : 0), 0) : points('socket'),
     switch: 0,
     light: points('light'),
-    power: points('power')
+    power: points('power'),
+    weak: a.weak ? a.weak.count.lan + a.weak.count.tv : 0,
+    weakCable: a.weak?.meters ?? 0
   };
 }
 

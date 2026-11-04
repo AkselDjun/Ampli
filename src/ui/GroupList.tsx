@@ -4,7 +4,9 @@ import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
 import { fixFor } from '../core/fixes';
 import type { FixAct } from '../core/fixes';
-import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconNet, IconRooms, IconSocket, IconTrash, IconWire } from './Icons';
+import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconLan, IconNet, IconRooms, IconSocket, IconTrash, IconWire } from './Icons';
+import { lightCalc } from '../core/light';
+import { weakSummary } from '../core/weak';
 import { useByRoom } from './prefs';
 import { zoneOf } from '../core/calc';
 import { ArmButton } from './common';
@@ -92,7 +94,7 @@ function GroupRow({
 }
 
 export function GroupList({
-  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix
+  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, onOpenLight = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix
 }: {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
@@ -105,6 +107,8 @@ export function GroupList({
   onOpenProj: () => void;
   onOpenNet: () => void;
   onOpenOld: () => void;
+  onOpenLight?: () => void;
+  onOpenWeak?: () => void;
   oldLabel: string;
   hot?: string | null;
   onHot?: (id: string | null) => void;
@@ -152,6 +156,9 @@ export function GroupList({
     ...(c.vr ? [['Реле', 'реле напряжения'] as [string, string]] : []),
     ...(c.spd ? [['УЗИП', 'УЗИП'] as [string, string]] : [])
   ];
+  const lr = (p.light ?? []).map(lightCalc).filter(r => r.ok);
+  const lightLabel = lr.length ? lr.length + ' ' + plural(lr.length, ['помещение', 'помещения', 'помещений']) + ', ' + fmt(lr.reduce((s2, r) => s2 + r.watts, 0), 0) + ' Вт' : 'сколько светильников';
+  const weakLabel = weakSummary(p.weak) || 'интернет, ТВ, камеры';
   return (
     <section className="col col-list" id="groups" tabIndex={-1} aria-label="Группы линий">
       <div className="proj-box">
@@ -176,6 +183,18 @@ export function GroupList({
               <IconChev className="chev" />
             </button>
           )}
+          <div className="nf-pair">
+            <button className="netfold" type="button" aria-label={'Освещение: ' + lightLabel} onClick={onOpenLight}>
+              <IconBulb />
+              <span className="nf-main">Освещение<small>{lightLabel}</small></span>
+              <IconChev className="chev" />
+            </button>
+            <button className="netfold" type="button" aria-label={'Слаботочка: ' + weakLabel} onClick={onOpenWeak}>
+              <IconLan />
+              <span className="nf-main">Слаботочка<small>{weakLabel}</small></span>
+              <IconChev className="chev" />
+            </button>
+          </div>
         </div>
       </div>
       {p.sample && (

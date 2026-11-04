@@ -6,6 +6,8 @@ import { defaultCfg, sample } from './templates';
 import { keepId, nid, pid } from './ids';
 import { normPhotos } from './photos';
 import { normWork } from './labor';
+import { normLight } from './light';
+import { normWeak, weakStarted } from './weak';
 
 type Loose = Partial<Project> & { cfg?: unknown; lines?: unknown };
 
@@ -36,7 +38,9 @@ export function normProject(o: unknown, keep = false): Project | null {
     photos: keep ? normPhotos(x.photos) : [],
     ...(x.work && Object.keys(normWork(x.work)).length ? { work: normWork(x.work) } : {}),
     ...(x.acts ? { acts: normActs(x.acts) } : {}),
-    ...(x.old && oldStarted(normOld(x.old)) ? { old: normOld(x.old) } : {})
+    ...(x.old && oldStarted(normOld(x.old)) ? { old: normOld(x.old) } : {}),
+    ...(normLight(x.light).length ? { light: normLight(x.light) } : {}),
+    ...(weakStarted(normWeak(x.weak)) ? { weak: normWeak(x.weak) } : {})
   };
 }
 

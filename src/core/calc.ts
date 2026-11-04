@@ -1,6 +1,8 @@
 import type { App, BoxType, Calc, Cfg, CfgN, Device, InCable, Line, LineResult, Phase, Row, Uzo } from './types';
 import { ALL_STEPS, HEAT_RX, TYPE_A_RX, VR_STD, HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, RCD_STD, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs, pn } from './format';
+import type { Weak } from './weak';
+import { weakCalc, weakStarted } from './weak';
 
 export function cfgN(c: Cfg): CfgN {
   return {
@@ -265,7 +267,7 @@ function planUzos(lines: Line[], c: CfgN): { rows: Row[]; uzos: Uzo[] } {
   return { rows, uzos };
 }
 
-export function calcAll(lines: Line[], cfg: Cfg): Calc {
+export function calcAll(lines: Line[], cfg: Cfg, weak?: Weak): Calc {
   const c = cfgN(cfg);
   const { rows, uzos } = planUzos(lines, c);
   const sumInst = rows.reduce((s, x) => s + x.r.pInst, 0);
@@ -370,7 +372,7 @@ export function calcAll(lines: Line[], cfg: Cfg): Calc {
   const issues = rows.filter(x => !x.r.empty && x.r.status !== 'ok').length;
   const hint3 = c.supply === 1 && P > SINGLE_INPUT_KW * 1000;
   const boxes = rows.filter(x => !x.r.empty && x.l.apps.some(a => appW(a) > 0 && appBr(a) > 0)).length;
-  return { c, rows, sumInst, P, Itot, phases, imb, inIn, inS, devs, modSum, size, placed, fits, issues, inStep, hint3, uzos, boxes };
+  return { c, rows, sumInst, P, Itot, phases, imb, inIn, inS, devs, modSum, size, placed, fits, issues, inStep, hint3, uzos, boxes, ...(weakStarted(weak) ? { weak: weakCalc(weak) } : {}) };
 }
 
 export function balanceLines(lines: Line[], cfg: Cfg): Line[] {

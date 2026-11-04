@@ -14,6 +14,10 @@ import { normOld } from '../core/oldwire';
 import type { OldKey } from '../core/oldwire';
 import type { OldSign } from '../core/types';
 import type { Store } from './storage';
+import { FIXTURES, OWN_FX, lightAppName, lightCalc, newLightRoom } from '../core/light';
+import type { LightKind, LightRoom } from '../core/light';
+import { WEAK_EMPTY, newWeakPt } from '../core/weak';
+import type { WeakKind, WeakPt } from '../core/weak';
 
 export interface State extends Store {
   sel: string | null;
@@ -52,6 +56,14 @@ export type Action =
   | { t: 'old'; field: OldKey; value: string }
   | { t: 'oldSign'; id: OldSign; on: boolean }
   | { t: 'oldReset' }
+  | { t: 'lightAdd'; kind: LightKind; name?: string }
+  | { t: 'lightSet'; id: string; field: Exclude<keyof LightRoom, 'id'>; value: string }
+  | { t: 'lightDel'; id: string }
+  | { t: 'lightApply'; id: string; line: string }
+  | { t: 'weakAdd'; kind: WeakKind; room?: string }
+  | { t: 'weakSet'; id: string; field: Exclude<keyof WeakPt, 'id'>; value: string }
+  | { t: 'weakDel'; id: string }
+  | { t: 'weakOnt'; on: boolean }
   | { t: 'appField'; id: string; field: 'name' | 'w' | 'n' | 'br' | 'm'; value: string | number }
   | { t: 'addApp'; name?: string; w?: number; m?: number }
   | { t: 'delApp'; id: string }
@@ -222,6 +234,67 @@ export function reducer(s: State, a: Action): State {
         void old;
         return rest;
       });
+    case 'lightAdd':
+      return patch(s, q => ({ ...q, light: [...(q.light ?? []), newLightRoom(a.kind, a.name)] }));
+    case 'lightSet':
+      return patch(s, q => ({
+        ...q,
+        light: (q.light ?? []).map(r => {
+          if (r.id !== a.id) return r;
+          if (a.field === 'fx') {
+            const f = FIXTURES.find(x => x.id === a.value);
+            return f ? { ...r, fx: f.id, w: f.w, lm: f.lm } : { ...r, fx: OWN_FX };
+          }
+          if (a.field === 'w' || a.field === 'lm') return { ...r, fx: OWN_FX, [a.field]: a.value.slice(0, 8) };
+          return { ...r, [a.field]: a.field === 'name' ? a.value.slice(0, 40) : a.value };
+        })
+      }));
+    case 'lightDel':
+      return patch(s, q => {
+        const light = (q.light ?? []).filter(r => r.id !== a.id);
+        const { light: _old, ...rest } = q;
+        void _old;
+        return light.length ? { ...q, light } : rest;
+      });
+    case 'lightApply': {
+      const room = (p.light ?? []).find(r => r.id === a.id);
+      if (!room) return s;
+      const res = lightCalc(room);
+      if (!res.ok) return s;
+      const name = lightAppName(room);
+      const w = pn(room.w, 0);
+      if (a.line === 'new') {
+        const nl = { ...mkLine('Освещение: ' + (room.name.trim() || 'помещение'), 'light', 10, null, null, [[name, w, res.n]]), zone: room.name.trim() || undefined };
+        const next = patch(s, q => ({ ...q, lines: [...q.lines, nl] }));
+        return pn(p.cfg.supply, 1) === 3 ? patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) })) : next;
+      }
+      return patch(s, q => ({
+        ...q,
+        lines: q.lines.map(l => {
+          if (l.id !== a.line) return l;
+          const ex = l.apps.find(x => x.name === name);
+          const apps = ex ? l.apps.map(x => (x === ex ? { ...x, w, n: res.n } : x)) : [...l.apps.filter(x => x.name.trim() || pn(x.w, 0) > 0), { id: nid(), name, w, n: res.n }];
+          return { ...l, apps };
+        })
+      }));
+    }
+    case 'weakAdd':
+      return patch(s, q => {
+        const w = q.weak ?? WEAK_EMPTY;
+        return { ...q, weak: { ...w, pts: [...w.pts, newWeakPt(a.kind, a.room ?? '')] } };
+      });
+    case 'weakSet':
+      return patch(s, q => (q.weak ? { ...q, weak: { ...q.weak, pts: q.weak.pts.map(x => (x.id === a.id ? { ...x, [a.field]: a.field === 'room' ? a.value.slice(0, 40) : a.field === 'kind' ? a.value : a.value.slice(0, 8) } : x)) } } : q));
+    case 'weakDel':
+      return patch(s, q => {
+        if (!q.weak) return q;
+        const pts = q.weak.pts.filter(x => x.id !== a.id);
+        const { weak: _w, ...rest } = q;
+        void _w;
+        return pts.length ? { ...q, weak: { ...q.weak, pts } } : rest;
+      });
+    case 'weakOnt':
+      return patch(s, q => ({ ...q, weak: { ...(q.weak ?? WEAK_EMPTY), ont: a.on } }));
     case 'lineWet':
       return patchLine(s, l => ({ ...l, wet: a.wet }));
     case 'appField':

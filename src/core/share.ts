@@ -33,7 +33,9 @@ const slimProject = (p: Project) => ({
   rooms: p.rooms,
   checks: p.checks,
   proto: p.proto,
-  work: p.work
+  work: p.work,
+  light: p.light?.map(r => ({ ...r, id: undefined })),
+  weak: p.weak ? { ...p.weak, pts: p.weak.pts.map(q => ({ ...q, id: undefined })) } : undefined
 });
 
 const packJson = (o: unknown): string => SHARE_VERSION + b64(deflateSync(strToU8(JSON.stringify(o)), { level: 9 }));

@@ -31,7 +31,7 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
     const base = window.location.href;
     if (k === 'owner') return ownerUrl(p, base);
     if (k === 'project') return shareUrl(p, base);
-    const names = new Set(buildSpec(calcAll(p.lines, p.cfg)).map(i => i.name));
+    const names = new Set(buildSpec(calcAll(p.lines, p.cfg, p.weak)).map(i => i.name));
     const prices: Record<string, number> = {};
     Object.entries(lib.prices).forEach(([n, v]) => {
       if (names.has(n)) prices[n] = v;

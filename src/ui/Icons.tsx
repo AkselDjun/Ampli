@@ -132,3 +132,9 @@ export const IconPrint = make(0, (
     <path d="M7 14h10v6H7z" />
   </>
 ));
+export const IconLan = make(0, (
+  <>
+    <rect x="5" y="5" width="14" height="12" rx="1.5" />
+    <path d="M9 17v3h6v-3M9 9v3M12 9v3M15 9v3" />
+  </>
+));
