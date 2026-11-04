@@ -486,9 +486,7 @@ describe('Side folds', () => {
     expect(items[2].querySelector('.gl-bar i')).toHaveClass('warn');
     await user.click(items[1].querySelector('button.bd-b') as HTMLElement);
     expect(pick).toHaveBeenCalledWith(p.lines[0].id);
-    const help = document.querySelector('.bd-help') as HTMLDetailsElement;
-    expect(help.open).toBe(false);
-    expect(help.textContent).toContain('Полоса загрузки');
+    expect(document.querySelector('.bd-help')).toBeNull();
   });
   it('shows a static list without a pick handler and an empty board', () => {
     const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]);

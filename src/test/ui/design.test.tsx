@@ -62,6 +62,5 @@ describe('board colours by group type', () => {
     expect(types).toEqual(['light', 'power']);
     const legend = Array.from(document.querySelectorAll('.legend > span:not(.tip)')).map(s => s.textContent);
     expect(legend).toEqual(['Ввод', 'Свет', 'Силовая', 'Резерв']);
-    expect(document.querySelector('.explain')?.textContent).toContain('Цвет полоски на модуле');
   });
 });

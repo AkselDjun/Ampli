@@ -29,7 +29,7 @@ const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const rows = () => Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
 
 describe('panel board in RCD mode', () => {
-  it('captions every module and explains the devices', () => {
+  it('captions every module and has no device glossary', () => {
     const p = proj(lines(), { prot: 'rcd' });
     render(<PanelPane a={calcAll(p.lines, p.cfg)} />);
     const caps = Array.from(document.querySelectorAll('.rail .dev-cap')).map(e => e.textContent);
@@ -38,8 +38,7 @@ describe('panel board in RCD mode', () => {
     const legend = document.querySelector('.legend') as HTMLElement;
     expect(legend.textContent).toContain('УЗО');
     expect(legend.textContent).not.toContain('Дифавтомат');
-    const ex = document.querySelector('.explain') as HTMLElement;
-    expect(ex.textContent).toContain('своя нулевая шина');
+    expect(document.querySelector('.explain')).toBeNull();
     const list = document.querySelector('.bd-list') as HTMLElement;
     expect(list.textContent).toContain('УЗО: Комнаты');
     expect(list.textContent).toContain('Г1, Г2');
@@ -53,12 +52,11 @@ describe('panel board in RCD mode', () => {
     expect(sc.querySelectorAll('.bd-r.sub').length).toBe(3);
     expect(sc.querySelector('.bd-r.sub .bd-sub')?.textContent).toBe('автомат, 1,5 мм²');
   });
-  it('explains residual-current breakers in the default mode', () => {
+  it('shows group types in the legend in the default mode', () => {
     const p = proj(lines());
     render(<PanelPane a={calcAll(p.lines, p.cfg)} />);
     expect(document.querySelector('.legend')?.textContent).toContain('Свет');
     expect(document.querySelector('.legend')?.textContent).not.toContain('Дифавтомат');
-    expect(document.querySelector('.explain')?.textContent).toContain('Защищает свою группу');
     expect(document.querySelector('.rail .dev-uzo')).toBeNull();
   });
 });
