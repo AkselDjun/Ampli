@@ -15,21 +15,21 @@ const heads = () => Array.from(document.querySelectorAll('.rows .zone-h')).map(h
 const toggle = () => screen.getByRole('button', { name: 'По помещениям' });
 
 describe('group list by rooms', () => {
-  it('groups rows under rooms with totals and remembers the choice', () => {
+  it('groups rows under rooms by default with totals and remembers the choice', () => {
+    localStorage.removeItem(LISTBY_KEY);
     render(<App />);
-    expect(heads()).toEqual([]);
-    expect(toggle()).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.click(toggle());
     expect(toggle()).toHaveAttribute('aria-pressed', 'true');
     expect(heads()).toEqual(['Комнаты', 'Кухня', 'Ванная']);
     const first = document.querySelector('.rows .zone-h small')?.textContent;
     expect(first).toMatch(/^4 группы · \d+,\d\s?кВт$/);
     const nos = Array.from(document.querySelectorAll('.rows .row .no')).map(n => n.textContent);
     expect(nos).toEqual(['Г1', 'Г3', 'Г4', 'Г14', 'Г2', 'Г5', 'Г6', 'Г7', 'Г8', 'Г9', 'Г10', 'Г11', 'Г12', 'Г13']);
-    expect(localStorage.getItem(LISTBY_KEY)).toBe('room');
     fireEvent.click(toggle());
     expect(heads()).toEqual([]);
     expect(localStorage.getItem(LISTBY_KEY)).toBe('no');
+    fireEvent.click(toggle());
+    expect(localStorage.getItem(LISTBY_KEY)).toBe('room');
+    expect(heads()).toEqual(['Комнаты', 'Кухня', 'Ванная']);
   });
 
   it('puts groups without a room last and edits the room outside RCD mode', () => {
@@ -60,8 +60,9 @@ describe('group list by rooms', () => {
     const get = vi.spyOn(localStorage, 'getItem').mockImplementation(k => { if (k === LISTBY_KEY) throw new Error('x'); return null; });
     const set = vi.spyOn(localStorage, 'setItem').mockImplementation(k => { if (k === LISTBY_KEY) throw new Error('x'); });
     render(<App />);
-    fireEvent.click(toggle());
     expect(heads().length).toBeGreaterThan(0);
+    fireEvent.click(toggle());
+    expect(heads()).toEqual([]);
     get.mockRestore();
     set.mockRestore();
   });

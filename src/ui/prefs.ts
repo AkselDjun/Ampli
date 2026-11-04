@@ -4,10 +4,10 @@ export const LISTBY_KEY = 'ampli-listby';
 
 const read = (): boolean => {
   try {
-    return localStorage.getItem(LISTBY_KEY) === 'room';
+    return localStorage.getItem(LISTBY_KEY) !== 'no';
   } catch (e) {
     void e;
-    return false;
+    return true;
   }
 };
 

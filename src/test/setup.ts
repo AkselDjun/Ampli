@@ -9,6 +9,7 @@ let seq = 0;
 
 beforeEach(() => {
   localStorage.clear();
+  localStorage.setItem('ampli-listby', 'no');
   resetPhotoCache();
   (globalThis as { indexedDB: IDBFactory }).indexedDB = new IDBFactory();
   URL.createObjectURL = (() => 'blob:test/' + ++seq) as typeof URL.createObjectURL;
