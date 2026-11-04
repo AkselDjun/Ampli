@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExter
 import type { KeyboardEvent as ReactKeyEvent, ReactNode } from 'react';
 import { IconAlert, IconClose, IconDone, IconDown, IconInfo } from './Icons';
 import { currentToast, dismissToast, subscribeToast, toastLife } from './toast';
+import { haptic } from './haptic';
 import type { CfgN } from '../core/types';
 import { BASIS_LABEL, assumptions } from '../core/assumptions';
 
@@ -65,6 +66,7 @@ export function ArmButton({
     if (armed) {
       window.clearTimeout(t.current);
       setArmed(false);
+      haptic(20);
       onRun();
       return;
     }
@@ -238,7 +240,7 @@ export function Sheet({
   const id = 'ttl-' + title.length + title.charCodeAt(0);
   return (
     <div className="sheet" hidden={!open} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className={'sheet-panel' + (compact ? ' compact' : '')} role="dialog" aria-modal="true" aria-labelledby={id} onKeyDown={trap} style={dy ? { transform: 'translateY(' + dy + 'px)', transition: 'none' } : undefined}>
+      <div className={'sheet-panel' + (compact ? ' compact' : '') + (bar ? '' : ' fit')} role="dialog" aria-modal="true" aria-labelledby={id} onKeyDown={trap} style={dy ? { transform: 'translateY(' + dy + 'px)', transition: 'none' } : undefined}>
         <div className="sheet-head" {...drag}>
           <h2 id={id}>{title}</h2>
           {tip && <Tip>{tip}</Tip>}
@@ -253,7 +255,7 @@ export function Sheet({
 
 export function Assumptions({ cfg }: { cfg: CfgN }) {
   return (
-    <div className="tablewrap">
+    <div className="tablewrap" role="region" aria-label="Допущения и источники" tabIndex={0}>
       <table className="t2 assum">
         <thead>
           <tr><th>Параметр</th><th>Значение</th><th>Основание</th></tr>

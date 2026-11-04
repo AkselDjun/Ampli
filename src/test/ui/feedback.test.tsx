@@ -56,7 +56,8 @@ describe('panel board in RCD mode', () => {
   it('explains residual-current breakers in the default mode', () => {
     const p = proj(lines());
     render(<PanelPane a={calcAll(p.lines, p.cfg)} />);
-    expect(document.querySelector('.legend')?.textContent).toContain('Дифавтомат');
+    expect(document.querySelector('.legend')?.textContent).toContain('Свет');
+    expect(document.querySelector('.legend')?.textContent).not.toContain('Дифавтомат');
     expect(document.querySelector('.explain')?.textContent).toContain('Защищает свою группу');
     expect(document.querySelector('.rail .dev-uzo')).toBeNull();
   });
@@ -264,8 +265,8 @@ describe('panel mode as a real board', () => {
     expect(d.querySelector('.pm .no')?.textContent).toBe('Г2');
     expect(d.querySelector('.pm-prot')?.textContent).toContain('Гостиная');
     expect(byLabel(d, 'Г2: Изоляция, МОм').placeholder).toBe('от 0,5');
-    expect(byLabel(d, 'Г2: УЗО, мс').placeholder).toBe('до 500');
-    expect(byLabel(d, 'Г2: Петля, Ом').placeholder).toMatch(/^до \d+,\d{2}$/);
+    expect(byLabel(d, 'Г2: Отключение УЗО, мс').placeholder).toBe('до 500');
+    expect(byLabel(d, 'Г2: Петля фаза-нуль, Ом').placeholder).toMatch(/^до \d+,\d{2}$/);
     expect(byLabel(d, 'Г2: Утечка, мА').placeholder).toBe('до 10,0');
   });
   it('switches groups by tapping a breaker and with the next and back buttons', () => {
@@ -374,7 +375,7 @@ describe('compact estimate and measurements', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Замеры' }));
     const rowsEl = document.querySelectorAll('.ms-r');
     expect(rowsEl.length).toBe(3);
-    expect(rowsEl[0].querySelector('small')?.textContent).toMatch(/^петля 0,20 Ом, Iк [\d\s]+ \/ \d+ А · изоляция 50,00 МОм · утечка 1,0 \/ 10,0 мА$/);
+    expect(rowsEl[0].querySelector('small')?.textContent).toMatch(/^петля 0,20 Ом, ток КЗ [\d\s]+ А из нужных \d+ А · изоляция 50,00 МОм · утечка 1,0 \/ 10,0 мА$/);
     expect(rowsEl[1].querySelector('small')?.textContent).toBe('Розетки');
     expect(document.querySelector('.proto-d summary')?.textContent).toBe('Данные протокола: Иванов');
     fireEvent.click(screen.getByRole('button', { name: 'Ввести на щитке' }));

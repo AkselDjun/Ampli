@@ -57,7 +57,7 @@ export function NetSheet({
         <Seg<string> name="prot" labelledBy="l-prot" value={c.rcdMode ? 'rcd' : 'rcbo'} items={[['rcbo', 'Дифавтомат на группу'], ['rcd', 'УЗО на помещение + автоматы']]} onChange={v => dispatch({ t: 'cfg', field: 'prot', value: v })} />
       </div>
       <details className="bd-help net-more">
-        <summary>Для точного расчёта<small>{[IN_CABLE[c.inCable], c.boxAuto ? 'коробки по прокладке' : 'коробки ' + BOX_NAME[c.box], 'петля ' + fmt(c.zs, 2) + ' Ом', 'Ко ' + fs(c.ko), 'поправка ' + fs(c.k), c.safe ? 'сечение с запасом' : 'сечение по норме'].concat(c.feeder > 0 ? ['потеря до щитка ' + fs(c.feeder) + ' %'] : []).join(' · ')}</small></summary>
+        <summary>Для точного расчёта<small>{[IN_CABLE[c.inCable], c.boxAuto ? 'коробки по прокладке' : 'коробки ' + BOX_NAME[c.box], 'петля сети ' + fmt(c.zs, 2) + ' Ом', 'одновременность ' + fs(c.ko), 'поправка на группировку ' + fs(c.k), c.safe ? 'сечение с запасом' : 'сечение по норме'].concat(c.feeder > 0 ? ['потеря до щитка ' + fs(c.feeder) + ' %'] : []).join(' · ')}</small></summary>
         <div className="net-more-b">
           <div className="f">
             <span className="lbl-row"><span className="lbl" id="l-inc">Кабель ввода</span><Tip label="О кабеле ввода">Марка кабеля от этажного щита до щитка квартиры. Сечение подбирается расчётом.</Tip></span>
@@ -336,11 +336,11 @@ export function ReportSheet({
       </div>
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <h3 className="sec-t">Группы линий</h3>
-      <div className="tablewrap">
+      <div className="tablewrap" role="region" aria-label="Таблица групп" tabIndex={0}>
         <table className="gtab">
           <thead>
             <tr>
-              <th>Гр.</th><th>Название</th>{three && <th>Фаза</th>}<th className="num">Установл., Вт</th><th className="num">Ток, А</th><th>Защита</th><th>Кабель</th><th className="num">ΔU, %</th><th>Статус</th>
+              <th>Гр.</th><th>Название</th>{three && <th>Фаза</th>}<th className="num">Установл., Вт</th><th className="num">Ток, А</th><th>Защита</th><th>Кабель</th><th className="num" title="Потеря напряжения">Потеря U, %</th><th>Статус</th>
             </tr>
           </thead>
           <tbody>
@@ -370,7 +370,7 @@ export function ReportSheet({
                   <td className="num g-i" data-label="Ток, А">{fmt(r.I, 1)}</td>
                   <td className="mono g-pr" data-label="Защита">{r.In ? protName(r) : '—'}</td>
                   <td className="mono g-cb" data-label="Кабель">{r.In ? cableName(r) : '—'}</td>
-                  <td className="num g-du" data-label="ΔU, %">{r.In ? fmt(r.drop, 1) : '—'}</td>
+                  <td className="num g-du" data-label="Потеря напряжения, %">{r.In ? fmt(r.drop, 1) : '—'}</td>
                   <td className="g-st" data-label="Статус"><span className={'pill ' + r.status}>{STATUS[r.status]}</span></td>
                 </tr>
               );
@@ -406,7 +406,7 @@ export function ReportSheet({
         <button className="btn" type="button" onClick={onShop}>Где купить</button>
       </div>
       <h3 className="sec-t">Спецификация</h3>
-      <div className="tablewrap">
+      <div className="tablewrap" role="region" aria-label="Спецификация" tabIndex={0}>
         <table className="t2 spec-t">
           <thead>
             <tr><th>Позиция</th><th className="num">Количество</th><th>Примечание</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></tr>

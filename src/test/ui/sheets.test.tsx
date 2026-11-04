@@ -61,7 +61,7 @@ describe('NetSheet', () => {
     const d = open('Параметры сети');
     const more = d.querySelector('details.net-more') as HTMLDetailsElement;
     expect(more.open).toBe(false);
-    expect(more.querySelector('summary small')?.textContent).toBe('ВВГнг(А)-LS · коробки по прокладке · петля 0,30 Ом · Ко 0,75 · поправка 0,9 · сечение с запасом');
+    expect(more.querySelector('summary small')?.textContent).toBe('ВВГнг(А)-LS · коробки по прокладке · петля сети 0,30 Ом · одновременность 0,75 · поправка на группировку 0,9 · сечение с запасом');
     expect(d.textContent).not.toContain('Загрузить пример');
     ['sup', 'met', 'prot'].forEach(n => expect(more.contains(d.querySelector('input[name="' + n + '"]'))).toBe(false));
     ['inc', 'box', 'mins'].forEach(n => expect(more.contains(d.querySelector('input[name="' + n + '"]'))).toBe(true));
@@ -81,7 +81,7 @@ describe('NetSheet', () => {
     click(d, 'Начать с нуля');
     click(d, 'Нажмите ещё раз');
     expect(isOpen('Проекты')).toBe(false);
-    expect(document.querySelectorAll('.rows .row').length).toBe(1);
+    expect(document.querySelectorAll('.rows .row').length).toBe(0);
     d = open('Проекты');
     click(d, 'Загрузить пример');
     click(d, 'Нажмите ещё раз');
@@ -263,6 +263,7 @@ describe('ReportSheet', () => {
     let d = open('Проекты');
     click(d, 'Начать с нуля');
     click(d, 'Нажмите ещё раз');
+    fireEvent.click(document.querySelector('.start-ty[data-t="socket"]') as HTMLElement);
     d = open('Параметры сети');
     fireEvent.click(d.querySelector('input[name="sup"][value="3"]') as HTMLElement);
     fireEvent.keyDown(document, { key: 'Escape' });

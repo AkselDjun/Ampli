@@ -107,8 +107,11 @@ describe('App', () => {
     await user.click(b);
     await user.click(screen.getByRole('button', { name: 'Нажмите ещё раз' }));
     expect(screen.queryByText(/Пример двухкомнатной/)).toBeNull();
-    expect(rowsOf().length).toBe(1);
-    expect(document.querySelector('.row-sub')?.textContent).toContain('нет приборов');
+    expect(rowsOf().length).toBe(0);
+    expect(screen.getByRole('heading', { name: 'С чего начать' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /на примере/ }));
+    expect(rowsOf().length).toBe(7);
+    expect(screen.getByText('Загружен пример')).toBeInTheDocument();
   });
 
   it('opens and closes all sheets from the bar and tabs', () => {

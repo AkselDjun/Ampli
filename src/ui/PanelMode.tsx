@@ -11,10 +11,10 @@ import { Sheet } from './common';
 import { shortName } from './Side';
 
 const FIELDS: { f: MeasField; label: string; unit: string; step: number }[] = [
-  { f: 'zs', label: 'Петля', unit: 'Ом', step: 0.01 },
+  { f: 'zs', label: 'Петля фаза-нуль', unit: 'Ом', step: 0.01 },
   { f: 'ins', label: 'Изоляция', unit: 'МОм', step: 0.1 },
   { f: 'leak', label: 'Утечка', unit: 'мА', step: 0.1 },
-  { f: 'rcd', label: 'УЗО', unit: 'мс', step: 1 }
+  { f: 'rcd', label: 'Отключение УЗО', unit: 'мс', step: 1 }
 ];
 
 const pillOf = (v: ProtoRow['verdict']): string => (v === 'ok' ? 'ok' : (v === 'bad' ? 'bad' : 'warn'));
@@ -147,7 +147,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
             ))}
           </div>
           <div className="pm-note">
-            {r.zs !== null && <span>Iк {fmt(r.ik as number, 0)} А, нужно {fmt(r.need, 0)} А</span>}
+            {r.zs !== null && <span>Ток КЗ {fmt(r.ik as number, 0)} А, нужно не меньше {fmt(r.need, 0)} А</span>}
             {r.leak !== null && <span>Утечка до {fmt(r.leakLim, 1)} мА</span>}
             {r.rcdT !== null && <span>УЗО до {fmt(r.rcdLim, 0)} мс</span>}
           </div>

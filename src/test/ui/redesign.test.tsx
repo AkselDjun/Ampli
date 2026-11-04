@@ -315,10 +315,15 @@ describe('GroupList', () => {
     expect(b).toHaveTextContent('УЗО на помещение');
     expect(document.querySelector('.row-sub')).toHaveTextContent('3Ф');
   });
-  it('shows the empty text and hides the count', () => {
-    const { el } = props(proj([]));
+  it('shows the start screen and hides the count', () => {
+    const { h, el } = props(proj([]));
     render(el);
-    expect(screen.getByText('Групп пока нет. Добавьте первую кнопкой «+».')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'С чего начать' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Собрать по комнатам/ }));
+    expect(h.onRooms).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /Силовая|Мощный/ }));
+    expect(h.onAdd).toHaveBeenCalledWith('power');
+    expect(screen.queryByRole('button', { name: /на примере/ })).toBeNull();
     expect(document.querySelector('.count')?.textContent).toBe('');
     expect(document.querySelector('.pb-sub')?.textContent).toBe('0 групп');
   });

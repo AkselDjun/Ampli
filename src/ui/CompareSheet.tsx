@@ -35,7 +35,7 @@ export function CompareSheet({ open, onClose, p, a }: { open: boolean; onClose: 
           </li>
         ))}
       </ul>
-      <div className="tablewrap">
+      <div className="tablewrap" role="region" aria-label="Сравнение вариантов" tabIndex={0}>
         <table className="t2">
           <thead>
             <tr><th>Показатель</th><th className="num">Сейчас</th><th className="num">Вариант</th></tr>

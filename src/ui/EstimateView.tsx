@@ -71,7 +71,7 @@ export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: 
         {works.length > 0 && (
           <>
             <h2>Работы</h2>
-            <div className="tablewrap">
+            <div className="tablewrap" role="region" aria-label="Работы" tabIndex={0}>
               <table className="t2">
                 <thead>
                   <tr><th>Работа</th><th className="num">Количество</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></tr>
@@ -91,7 +91,7 @@ export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: 
           </>
         )}
         <h2>Материалы</h2>
-        <div className="tablewrap">
+        <div className="tablewrap" role="region" aria-label="Материалы" tabIndex={0}>
           <table className="t2">
             <thead>
               <tr><th>Позиция</th><th className="num">Количество</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></tr>

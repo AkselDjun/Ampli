@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import type { PointerEvent } from 'react';
+import { haptic } from './haptic';
 
 export const SWIPE_TRIGGER = 80;
 export const SWIPE_MAX = 120;
@@ -47,8 +48,13 @@ export function useSwipe(onLeft: () => void, onRight: () => void) {
       const v = dx;
       reset();
       if (s.lock !== 'h') return;
-      if (v <= -SWIPE_TRIGGER) onLeft();
-      else if (v >= SWIPE_TRIGGER) onRight();
+      if (v <= -SWIPE_TRIGGER) {
+        haptic(20);
+        onLeft();
+      } else if (v >= SWIPE_TRIGGER) {
+        haptic();
+        onRight();
+      }
     },
     onPointerCancel: reset,
     onClickCapture: (e: { preventDefault: () => void; stopPropagation: () => void }) => {

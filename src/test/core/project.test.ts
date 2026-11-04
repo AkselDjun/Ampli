@@ -109,8 +109,7 @@ describe('templates', () => {
   });
   it('builds blank content', () => {
     const b = contentFor('blank', true);
-    expect(b.lines).toHaveLength(1);
-    expect(b.lines[0].apps).toEqual([]);
+    expect(b.lines).toEqual([]);
     expect(blank().sample).toBe(false);
   });
   it('mkLine uses type defaults, explicit values and phase', () => {

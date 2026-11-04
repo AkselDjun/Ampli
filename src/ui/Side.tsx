@@ -79,6 +79,7 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
                   data-tip={d.title}
                   aria-label={d.title + ', ' + d.label + '. Открыть группу. Alt и стрелки меняют порядок'}
                   data-ph={d.ph}
+                  data-t={a.rows.find(y => y.l.id === lid)?.l.type}
                   aria-current={d.lid === sel ? 'true' : undefined}
                   onMouseEnter={() => onHot(lid)}
                   onMouseLeave={() => onHot(null)}
@@ -107,9 +108,8 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
         </div>
         <div className="legend">
           <span><i className="dev-in" />Ввод</span>
-          {kinds.has('rcd') && <span><i className="dev-rcd" />Дифавтомат</span>}
+          {(['light', 'socket', 'power'] as const).filter(t => a.rows.some(x => x.l.type === t && x.r.In)).map(t => <span key={t}><i className="lg-ty" data-t={t} />{t === 'light' ? 'Свет' : (t === 'socket' ? 'Розетки' : 'Силовая')}</span>)}
           {kinds.has('uzo') && <span><i className="dev-uzo" />УЗО</span>}
-          {kinds.has('mcb') && <span><i className="dev-mcb" style={{ border: '1px solid var(--ink-2)' }} />Автомат</span>}
           <span><i className="dev-free" style={{ border: '1px dashed var(--ink-2)' }} />Резерв</span>
           <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Порядок меняется перетаскиванием или клавишами Alt и стрелка. Цвет рычажка показывает статус группы.</Tip>
         </div>
@@ -152,6 +152,7 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
             {kinds.has('rcd') && <div><dt>Дифавтомат</dt><dd>Защищает свою группу от перегрузки, короткого замыкания и утечки тока. При неисправности отключается только эта группа.</dd></div>}
             {kinds.has('uzo') && <div><dt>УЗО</dt><dd>Отключает помещение при утечке тока (касание провода, пробой изоляции). От перегрузки не защищает, поэтому после него стоят автоматы. У каждого УЗО своя нулевая шина: нули его групп нельзя смешивать с другими.</dd></div>}
             {kinds.has('mcb') && <div><dt>Автомат</dt><dd>Защищает кабель группы от перегрузки и короткого замыкания.</dd></div>}
+            <div><dt>Цвет полоски на модуле</dt><dd>Тип группы: жёлтая свет, фиолетовая розетки, красная силовая. Цвет рычажка показывает статус: зелёный норма, жёлтый проверьте, красный не подходит.</dd></div>
             <div><dt>Полоса загрузки</dt><dd>Доля номинала автомата, которую занимает ток группы. Жёлтая больше 80 %, красная означает перегруз.</dd></div>
           </dl>
         </details>

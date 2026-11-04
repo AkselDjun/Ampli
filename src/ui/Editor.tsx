@@ -173,7 +173,7 @@ export function Editor({
                     <>
                       <Tile label="Автомат" val={r.curve + r.In} sub={r.rcbo ? 'дифавтомат ' + r.ma + ' мА' : r.rcd ? 'УЗО «' + r.zone + '» ' + r.ma + ' мА' : 'автомат'} />
                       <Tile label="Кабель" val={fs(r.S as number) + NB + 'мм²'} sub={(r.three ? 5 : 3) + '-жильный'} />
-                      <Tile label="ΔU" val={fmt(r.drop, 1) + NB + '%'} sub={'допустимо ' + fmt(r.limit, 1) + NB + '%'} />
+                      <Tile label="Потеря" val={fmt(r.drop, 1) + NB + '%'} sub={'напряжения, до ' + fmt(r.limit, 1) + NB + '%'} />
                     </>
                   ) : (
                     <p style={{ gridColumn: 'span 3' }}>Подбор невозможен, см. замечание ниже.</p>

@@ -15,7 +15,7 @@ export function LaborTable({ p, a, dispatch }: { p: Project; a: Calc; dispatch: 
       <div className="sec-row">
         <h3 className="sec-t">Работы<Tip>Количество подставляется из проекта, его можно изменить. Ваши расценки сохраняются на этом устройстве и подставляются во все проекты.</Tip></h3>
       </div>
-      <div className="tablewrap">
+      <div className="tablewrap" role="region" aria-label="Работы" tabIndex={0}>
         <table className="t2 labor">
           <thead>
             <tr><th>Работа</th><th className="num">Количество</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></tr>

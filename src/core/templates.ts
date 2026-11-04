@@ -103,7 +103,7 @@ export function tplLines(k: TplKey, elec: boolean): Line[] {
 }
 
 export function blank(): Content {
-  return { sample: false, cfg: defaultCfg(), lines: [mkLine('Розетки', 'socket', 15, null, null, [])] };
+  return { sample: false, cfg: defaultCfg(), lines: [] };
 }
 
 export function contentFor(k: TplKey, elec: boolean): Content {

@@ -92,7 +92,7 @@ function GroupRow({
 }
 
 export function GroupList({
-  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, oldLabel, hot = null, onHot = () => undefined, onRooms, onBlank, onCopy, onDelete, onFix
+  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix
 }: {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
@@ -110,6 +110,7 @@ export function GroupList({
   onHot?: (id: string | null) => void;
   onRooms: () => void;
   onBlank: () => void;
+  onSample?: () => void;
 }) {
   const c = a.c;
   const three = c.supply === 3;
@@ -230,7 +231,20 @@ export function GroupList({
             </Fragment>
           ))
         ) : (
-          <div className="empty">Групп пока нет. Добавьте первую кнопкой «+».</div>
+          <div className="start">
+            <h3 className="start-t">С чего начать</h3>
+            <button className="start-b main" type="button" onClick={onRooms}>
+              <span className="start-ic"><IconRooms /></span>
+              <span className="start-tx"><b>Собрать по комнатам</b><small>Отметьте помещения, группы и приборы появятся сами</small></span>
+            </button>
+            <div className="start-row" role="group" aria-label="Добавить группу вручную">
+              <span className="start-l">Или добавьте группу:</span>
+              {(['light', 'socket', 'power'] as LineType[]).map(t => (
+                <button key={t} className="start-ty" type="button" data-t={t} onClick={() => onAdd(t)}>{TYPE_IC[t]}{TYPES[t].short}</button>
+              ))}
+            </div>
+            {onSample && <button className="link start-s" type="button" onClick={onSample}>Посмотреть на примере двухкомнатной квартиры</button>}
+          </div>
         )}
       </div>
       <AddMenu fab onAdd={onAdd} onRooms={onRooms} />

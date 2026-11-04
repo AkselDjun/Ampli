@@ -23,9 +23,7 @@ describe('Editor', () => {
     render(<App />);
     click(document.querySelector('.col-list') as HTMLElement, 'Начать с нуля');
     click(document.querySelector('.col-list') as HTMLElement, 'Нажмите ещё раз');
-    fireEvent.click(rows()[0]);
-    click(ed(), 'Удалить группу');
-    click(ed(), 'Нажмите ещё раз, чтобы удалить');
+    expect(rows().length).toBe(0);
     expect(ed().textContent).toContain('Выберите группу');
   });
 

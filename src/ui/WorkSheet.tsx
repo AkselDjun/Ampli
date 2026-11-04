@@ -81,7 +81,7 @@ export function WorkSheet({
       <ul className="ms-list">
         {rows.map(r => {
           const vals = [
-            r.zs === null ? '' : 'петля ' + fmt(r.zs, 2) + ' Ом, Iк ' + fmt(r.ik as number, 0) + ' / ' + fmt(r.need, 0) + ' А',
+            r.zs === null ? '' : 'петля ' + fmt(r.zs, 2) + ' Ом, ток КЗ ' + fmt(r.ik as number, 0) + ' А из нужных ' + fmt(r.need, 0) + ' А',
             r.ins === null ? '' : 'изоляция ' + fmt(r.ins, 2) + ' МОм',
             r.leak === null ? '' : 'утечка ' + fmt(r.leak, 1) + ' / ' + fmt(r.leakLim, 1) + ' мА',
             r.rcdT === null ? '' : 'УЗО ' + fmt(r.rcdT, 0) + ' / ' + fmt(r.rcdLim, 0) + ' мс'

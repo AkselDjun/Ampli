@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { calcAll } from '../core/calc';
 import type { LineType } from '../core/types';
-import { blank } from '../core/templates';
+import { blank, sample } from '../core/templates';
 import { cur, init } from '../store/reducer';
 import { TYPES } from '../core/norms';
 import { HoverTips, Toaster } from './common';
@@ -323,6 +323,7 @@ export function App() {
             onHot={setHot}
             onRooms={() => setSheet('rooms')}
             onBlank={() => { dispatch({ t: 'replace', content: blank() }); toastUndo('Проект очищен', undo); }}
+            onSample={() => { dispatch({ t: 'replace', content: sample() }); toastUndo('Загружен пример', undo); }}
           />
           <div className="main-col">
             <Editor
