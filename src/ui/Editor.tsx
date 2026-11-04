@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Calc, Line, LineType, Phase, Photo } from '../core/types';
 import { NB, fmt, fs, plural, pn, round2 } from '../core/format';
 import { STATUS, TYPES, TYPE_KEYS } from '../core/norms';
@@ -8,6 +8,7 @@ import { whyRows } from '../core/why';
 import type { HAction } from '../store/history';
 import { toastOk, toastUndo } from './toast';
 import { IconDown, IconSearch } from './Icons';
+import { usePop } from './pop';
 import { PhotoStrip } from './PhotoStrip';
 import { FixBar } from './FixBar';
 import { fixFor } from '../core/fixes';
@@ -17,11 +18,22 @@ import { parseApps } from '../core/quick';
 
 const CHIP_MAX = 6;
 
+function Flash({ v }: { v: string }) {
+  const prev = useRef(v);
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (prev.current === v) return;
+    prev.current = v;
+    setN(k => k + 1);
+  }, [v]);
+  return <b key={n} className={n ? 'flash' : undefined}>{v}</b>;
+}
+
 function Tile({ label, val, sub }: { label: string; val: string; sub?: string }) {
   return (
     <div className="tile">
       <span className="lbl">{label}</span>
-      <b>{val}</b>
+      <Flash v={val} />
       {sub && <small>{sub}</small>}
     </div>
   );
@@ -49,6 +61,21 @@ export function Editor({
   const [quick, setQuick] = useState<string | null>(null);
   const [quickMsg, setQuickMsg] = useState('');
   const [allChips, setAllChips] = useState(false);
+  const resRef = useRef<HTMLDivElement>(null);
+  const [mini, setMini] = useState(false);
+  const [brOn, setBrOn] = useState(false);
+  const menu = usePop<HTMLDivElement>();
+  const powRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const lid = l?.id;
+  useEffect(() => {
+    setMini(false);
+    setBrOn(false);
+    const el = resRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([e]) => setMini(!e.isIntersecting && e.boundingClientRect.top < e.rootBounds!.top + 1), { rootMargin: '-56px 0px 0px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [lid]);
   if (!l) {
     return (
       <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы">
@@ -85,6 +112,16 @@ export function Editor({
   const moreSum = [l.where?.trim() ?? '', l.type !== 'light' ? (l.wet ? 'особо опасные условия' : 'обычные условия') : ''].filter(Boolean).join(', ');
   const zones = Array.from(new Set([...a.rows.map(y => (y.l.zone ?? '').trim()).filter(Boolean), ...ZONES]));
   const hasBr = !!r && r.len > pn(l.len, 0);
+  const showBr = brOn || l.apps.some(ap => pn(ap.br, 0) > 0);
+  const canSave = l.apps.some(ap => ap.name.trim() && pn(ap.w, 0) > 0);
+  const addEmpty = () => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp' }); });
+  const onPowKey = (e: React.KeyboardEvent<HTMLInputElement>, i: number) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const next = l.apps[i + 1];
+    if (next) powRefs.current[next.id]?.focus();
+    else addEmpty();
+  };
   const setLen = (v: number) => dispatch({ t: 'lineField', field: 'len', value: Math.max(0, Math.min(500, round2(v))) });
   return (
     <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы">
@@ -96,7 +133,16 @@ export function Editor({
         </div>
         {r && (
           <>
-            <div className={'ed-res' + (r.empty ? '' : ' ' + r.status)}>
+            {mini && !r.empty && r.In && (
+              <button type="button" className={'ed-mini ' + r.status} aria-label="Показать расчёт группы" onClick={() => resRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}>
+                <i className="dot" aria-hidden="true" />
+                <Flash v={fmt(r.I, 1) + NB + 'А'} />
+                <Flash v={r.curve + r.In} />
+                <Flash v={fs(r.S as number) + NB + 'мм²'} />
+                <Flash v={'ΔU ' + fmt(r.drop, 1) + NB + '%'} />
+              </button>
+            )}
+            <div className={'ed-res' + (r.empty ? '' : ' ' + r.status)} ref={resRef} key={l.id}>
               {r.empty ? (
                 <p>Добавьте приборы ниже, расчёт появится здесь.</p>
               ) : (
@@ -165,23 +211,23 @@ export function Editor({
         )}
         <div className="blk">
           <span className="lbl">Приборы</span>
-          <div className="apps">
+          <div className={'apps' + (showBr ? '' : ' no-br')}>
             {l.apps.length > 0 && (
               <div className="app app-h">
                 <span>Прибор</span>
                 <span>Мощность</span>
                 <span>Штук / длина</span>
-                <span data-tip="Длина кабеля от распредкоробки до прибора">Отвод, м</span>
+                {showBr && <span data-tip="Длина кабеля от распредкоробки до прибора">Отвод, м</span>}
                 <span />
               </div>
             )}
             {l.apps.map((ap, i) => (
               <div className="app" key={ap.id}>
-                <input className="a-name" aria-label="Название прибора" placeholder="Название прибора" value={ap.name} ref={el => { if (el && focusNew.current && i === l.apps.length - 1) { focusNew.current = false; el.focus(); } }} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'name', value: e.target.value })} />
+                <input className="a-name" aria-label="Название прибора" placeholder="Название прибора" value={ap.name} ref={el => { if (el && focusNew.current && i === l.apps.length - 1) { focusNew.current = false; el.focus(); } }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); powRefs.current[ap.id]?.focus(); } }} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'name', value: e.target.value })} />
                 <label className="a-w">
                   <span className="lbl a-lbl">Мощность</span>
                   <span className="fld" data-sfx={ap.m !== undefined ? 'Вт/м' : 'Вт'}>
-                    <input aria-label={ap.m !== undefined ? 'Мощность, Вт на метр' : 'Мощность, Вт'} type="number" inputMode="numeric" min={0} step="any" placeholder="0" value={String(ap.w)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'w', value: e.target.value })} />
+                    <input aria-label={ap.m !== undefined ? 'Мощность, Вт на метр' : 'Мощность, Вт'} type="number" inputMode="numeric" enterKeyHint="next" min={0} step="any" placeholder="0" value={String(ap.w)} ref={el => { powRefs.current[ap.id] = el; }} onKeyDown={e => onPowKey(e, i)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'w', value: e.target.value })} />
                   </span>
                 </label>
                 {ap.m !== undefined ? (
@@ -201,12 +247,14 @@ export function Editor({
                     </div>
                   </div>
                 )}
-                <label className="a-br">
-                  <span className="lbl a-lbl">Отвод</span>
-                  <span className="fld" data-sfx="м">
-                    <input aria-label="Отвод от коробки, м" type="number" inputMode="decimal" min={0} step="any" placeholder="0" value={String(ap.br ?? '')} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'br', value: e.target.value })} />
-                  </span>
-                </label>
+                {showBr && (
+                  <label className="a-br">
+                    <span className="lbl a-lbl">Отвод</span>
+                    <span className="fld" data-sfx="м">
+                      <input aria-label="Отвод от коробки, м" type="number" inputMode="decimal" min={0} step="any" placeholder="0" value={String(ap.br ?? '')} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'br', value: e.target.value })} />
+                    </span>
+                  </label>
+                )}
                 <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" data-tip="Удалить прибор" onClick={() => keepChips(() => dispatch({ t: 'delApp', id: ap.id }))}>×</button>
               </div>
             ))}
@@ -242,7 +290,7 @@ export function Editor({
             </div>
           )}
           <div className={'chips' + (allChips ? ' all' : '')} ref={chips}>
-            <button className="chip custom" type="button" onClick={() => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp' }); })}>+ Свой прибор</button>
+            <button className="chip custom" type="button" onClick={addEmpty}>+ Свой прибор</button>
             {presets.slice(0, allChips ? presets.length : CHIP_MAX).map(it => (
               <button key={it.key} className="chip" type="button" data-tip={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>
                 + {it.name}
@@ -258,14 +306,21 @@ export function Editor({
               <button className="chip more" type="button" aria-expanded={allChips} onClick={() => setAllChips(!allChips)}>{allChips ? 'Свернуть' : 'Ещё ' + (presets.length - CHIP_MAX)}</button>
             )}
           </div>
-          <div className="ed-links">
-            <button className="link" type="button" aria-expanded={quick !== null} onClick={() => { setQuick(quick === null ? '' : null); setQuickMsg(''); }}>Вставить список текстом</button>
-            {l.apps.some(ap => ap.name.trim() && pn(ap.w, 0) > 0) && (
-              <button className="link" type="button" onClick={() => {
-                const apps = l.apps.filter(ap => ap.name.trim() && pn(ap.w, 0) > 0).map(ap => ({ name: ap.name, w: pn(ap.w, 0), tag: tag as 'l' | 's' | 'p' }));
-                libDispatch({ t: 'addApps', apps });
-                toastOk('Сохранено в «Мои приборы»: ' + apps.length);
-              }}>Сохранить приборы группы в мои</button>
+          <div className="ed-more" ref={menu.ref}>
+            <button className="link ed-more-b" type="button" aria-haspopup="menu" aria-expanded={menu.open} onClick={() => menu.setOpen(!menu.open)}>Ещё действия<IconDown /></button>
+            {menu.open && (
+              <div className="ed-menu" role="menu">
+                <button type="button" role="menuitem" onClick={() => { menu.setOpen(false); setQuick(quick === null ? '' : null); setQuickMsg(''); }}>{quick === null ? 'Вставить список текстом' : 'Скрыть вставку списком'}</button>
+                {(brOn || !showBr) && <button type="button" role="menuitem" onClick={() => { menu.setOpen(false); setBrOn(!brOn); }}>{brOn ? 'Скрыть отводы к точкам' : 'Указать отводы к точкам'}</button>}
+                {canSave && (
+                  <button type="button" role="menuitem" onClick={() => {
+                    menu.setOpen(false);
+                    const apps = l.apps.filter(ap => ap.name.trim() && pn(ap.w, 0) > 0).map(ap => ({ name: ap.name, w: pn(ap.w, 0), tag: tag as 'l' | 's' | 'p' }));
+                    libDispatch({ t: 'addApps', apps });
+                    toastOk('Сохранено в «Мои приборы»: ' + apps.length);
+                  }}>Сохранить приборы в «Мои»</button>
+                )}
+              </div>
             )}
           </div>
           {quick !== null && (
@@ -311,7 +366,7 @@ export function Editor({
               more="Длиннее"
             />
           </div>
-          <p className="muted len-note">{hasBr && r ? 'До дальней точки ' + fmt(r.len, 0) + ' м, кабеля всего ' + fmt(r.cable, 0) + ' м.' : 'Если коробки нет, это вся длина линии. Отводы к точкам задаются у приборов.'}</p>
+          <p className="muted len-note">{hasBr && r ? 'До дальней точки ' + fmt(r.len, 0) + ' м, кабеля всего ' + fmt(r.cable, 0) + ' м.' : 'Если коробки нет, это вся длина линии.'}</p>
           {three && (
             <div className="f ph-f">
               <span className="lbl">Фаза</span>

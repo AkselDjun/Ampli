@@ -125,3 +125,10 @@ export const IconWire = make(0, (
     <path d="M3 14v6M21 14v6" />
   </>
 ));
+export const IconPrint = make(0, (
+  <>
+    <path d="M7 9V4h10v5" />
+    <rect x="3" y="9" width="18" height="8" rx="2" />
+    <path d="M7 14h10v6H7z" />
+  </>
+));

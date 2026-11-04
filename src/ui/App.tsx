@@ -60,7 +60,7 @@ export function App() {
   const [view, setView] = useState<View>('groups');
   const [sheet, setSheet] = useState<SheetId>(null);
   const [whyOpen, setWhyOpen] = useState(false);
-  const [printMode, setPrintMode] = useState<PrintMode>('report');
+  const [printModes, setPrintModes] = useState<PrintMode[]>(['report']);
   const [pal, setPal] = useState(false);
   const [repWant, setRepWant] = useState<{ tab: string; n: number } | undefined>(undefined);
   const scrollPos = useRef(0);
@@ -78,6 +78,7 @@ export function App() {
   });
   const p = cur(state);
   const a = useMemo(() => calcAll(p.lines, p.cfg), [p.lines, p.cfg]);
+  const [hot, setHot] = useState<string | null>(null);
   const oldLabel = oldStarted(p.old) ? oldVerdict(p.old, a).label : '';
   const selected = p.lines.find(l => l.id === state.sel) || null;
   const idx = selected ? p.lines.indexOf(selected) : -1;
@@ -207,8 +208,9 @@ export function App() {
     setView(v);
     window.scrollTo(0, 0);
   };
-  const doPrint = (mode: PrintMode = 'report') => {
-    setPrintMode(mode);
+  const doPrint = (mode: PrintMode | PrintMode[] = 'report') => {
+    const modes = Array.isArray(mode) ? mode : [mode];
+    setPrintModes(modes);
     const prev = document.title;
     document.title = 'Ampli — ' + (p.name || 'расчёт');
     const printNow = () => {
@@ -221,7 +223,7 @@ export function App() {
     };
     window.setTimeout(() => {
       const n = (p.photos ?? []).length;
-      if (mode === 'proto' && n > 0) waitPhotos(n).then(printNow);
+      if (modes.includes('proto') && n > 0) waitPhotos(n).then(printNow);
       else printNow();
     }, 50);
   };
@@ -269,7 +271,7 @@ export function App() {
               <h1 className="brand"><Brand /><span>Ampli</span></h1>
               <div className="hud">
                 <Totals a={a} onNet={() => setSheet('net')} />
-                <Checks a={a} />
+                <Checks a={a} onGroup={id => { dispatch({ t: 'select', id }); goEdit(); }} onFix={f => (f === 'net' ? setSheet('net') : dispatch({ t: 'cfg', field: 'supply', value: f === 'phase3' ? 3 : 1 }))} />
               </div>
               <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
                 <IconPanel />
@@ -314,6 +316,8 @@ export function App() {
             onOpenNet={() => setSheet('net')}
             onOpenOld={() => setSheet('old')}
             oldLabel={oldLabel}
+            hot={hot}
+            onHot={setHot}
             onRooms={() => setSheet('rooms')}
             onBlank={() => { dispatch({ t: 'replace', content: blank() }); toastUndo('Проект очищен', undo); }}
           />
@@ -329,7 +333,7 @@ export function App() {
               photos={p.photos ?? []}
             />
             <aside className="col col-res" aria-label="Итоги расчёта">
-              <PanelPane a={a} onPick={id => { dispatch({ t: 'select', id }); goEdit(); }} onMove={(id, to) => { dispatch({ t: 'moveLine', id, to }); toastUndo('Порядок групп изменён', undo); }} />
+              <PanelPane a={a} sel={state.sel} hot={hot} onHot={setHot} onPick={id => { dispatch({ t: 'select', id }); goEdit(); }} onMove={(id, to) => { dispatch({ t: 'moveLine', id, to }); toastUndo('Порядок групп изменён', undo); }} />
               <Summary key={'s' + (view === 'panel')} a={a} solo={view === 'panel'} onBalance={() => { dispatch({ t: 'balance' }); toastUndo('Фазы выровнены', undo); }} />
             </aside>
           </div>
@@ -370,7 +374,7 @@ export function App() {
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
         <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => setSheet('panel')} />
       </div>
-      <PrintDoc p={p} a={a} mode={printMode} />
+      {printModes.map(m => <PrintDoc key={m} p={p} a={a} mode={m} />)}
     </LibContext.Provider>
   );
 }

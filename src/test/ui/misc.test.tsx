@@ -160,7 +160,8 @@ describe('LibSheet', () => {
     wide(true);
     render(<App />);
     fireEvent.click(document.querySelectorAll<HTMLElement>('.rows .row')[0]);
-    click(document.querySelector('.col-edit') as HTMLElement, 'Сохранить приборы группы в мои');
+    click(document.querySelector('.col-edit') as HTMLElement, /Ещё действия/);
+    click(document.querySelector('.col-edit') as HTMLElement, 'Сохранить приборы в «Мои»');
     click(list(), 'Проекты');
     const pj = dlg('Проекты');
     click(pj, 'Сохранить как шаблон');

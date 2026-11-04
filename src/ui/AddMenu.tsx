@@ -21,6 +21,19 @@ export function AddMenu({ onAdd, onRooms, fab, down }: { onAdd: (t: LineType) =>
       document.removeEventListener('keydown', key);
     };
   }, [open]);
+  const [hide, setHide] = useState(false);
+  useEffect(() => {
+    if (!fab) return;
+    let last = window.scrollY;
+    const on = () => {
+      const y = window.scrollY;
+      if (Math.abs(y - last) < 8) return;
+      setHide(y > last && y > 80);
+      last = y;
+    };
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, [fab]);
   const pick = (t: LineType) => {
     setOpen(false);
     onAdd(t);
@@ -31,7 +44,7 @@ export function AddMenu({ onAdd, onRooms, fab, down }: { onAdd: (t: LineType) =>
     ['power', TYPES.power.label, 'Плита, бойлер, стиральная машина', <IconBolt key="i" />]
   ];
   return (
-    <div className={'addmenu' + (fab ? ' fab' : '') + (down ? ' down' : '')} ref={ref}>
+    <div className={'addmenu' + (fab ? ' fab' : '') + (down ? ' down' : '') + (hide && !open ? ' hide' : '')} ref={ref}>
       {open && (
         <ul className="am-list" role="menu" aria-label="Тип новой группы">
           {types.map(([t, label, hint, icon]) => (

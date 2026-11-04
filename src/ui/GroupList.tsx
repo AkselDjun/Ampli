@@ -26,8 +26,10 @@ function rowSub(x: Row, three: boolean): string[] {
 }
 
 function GroupRow({
-  x, i, c, three, sel, onSelect, onCopy, onDelete, onFix
+  x, i, c, three, sel, hot, onHot, onSelect, onCopy, onDelete, onFix
 }: {
+  hot: boolean;
+  onHot: (id: string | null) => void;
   x: Row;
   c: CfgN;
   i: number;
@@ -47,8 +49,10 @@ function GroupRow({
         <span className="sw-del">Удалить</span>
       </div>
       <button
-        className={'row' + (sel ? ' sel' : '')}
+        className={'row' + (sel ? ' sel' : '') + (hot ? ' hot' : '')}
         type="button"
+        onMouseEnter={() => onHot(x.l.id)}
+        onMouseLeave={() => onHot(null)}
         style={dx ? { transform: 'translateX(' + dx + 'px)', transition: 'none' } : undefined}
         onClick={() => onSelect(x.l.id)}
         aria-keyshortcuts="Control+D Delete"
@@ -86,7 +90,7 @@ function GroupRow({
 }
 
 export function GroupList({
-  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, oldLabel, onRooms, onBlank, onCopy, onDelete, onFix
+  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, oldLabel, hot = null, onHot = () => undefined, onRooms, onBlank, onCopy, onDelete, onFix
 }: {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
@@ -100,6 +104,8 @@ export function GroupList({
   onOpenNet: () => void;
   onOpenOld: () => void;
   oldLabel: string;
+  hot?: string | null;
+  onHot?: (id: string | null) => void;
   onRooms: () => void;
   onBlank: () => void;
 }) {
@@ -166,7 +172,7 @@ export function GroupList({
       <div className="rows">
         {count ? (
           a.rows.map((x, i) => (
-            <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />
+            <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />
           ))
         ) : (
           <div className="empty">Групп пока нет. Добавьте первую кнопкой «+».</div>

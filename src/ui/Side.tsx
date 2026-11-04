@@ -34,7 +34,7 @@ export function shortName(t: string): string {
   return cut + '.';
 }
 
-export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string) => void; onMove?: (id: string, to: string) => void }) {
+export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = () => undefined }: { a: Calc; onPick?: (id: string) => void; onMove?: (id: string, to: string) => void; sel?: string | null; hot?: string | null; onHot?: (id: string | null) => void }) {
   const [drag, setDrag] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
   const kinds = new Set(a.devs.map(d => d.kind));
@@ -56,7 +56,7 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
         <div className="rail-wrap">
           <div className="rail" data-rc={rl} style={{ ['--rc' as string]: rl }}>
             {a.devs.map((d, i) => <Fragment key={(d.lid ?? d.kind) + i}>{Array.from({ length: gapBefore[i] }, (_, g) => <div key={'g' + g} className="dev dev-free" data-tip="Резерв" />)}{((): JSX.Element => {
-              const cls = 'dev dev-' + d.kind + (d.st ? ' st-' + d.st : '') + (d.lid && drag === d.lid ? ' drag' : '') + (d.lid && over === d.lid && drag !== d.lid ? ' over' : '');
+              const cls = 'dev dev-' + d.kind + (d.st ? ' st-' + d.st : '') + (d.lid && drag === d.lid ? ' drag' : '') + (d.lid && over === d.lid && drag !== d.lid ? ' over' : '') + (d.lid && d.lid === sel ? ' sel' : '') + (d.lid && d.lid === hot ? ' hot' : '');
               const style = { gridColumn: 'span ' + d.mod, ['--i' as string]: i };
               if (!d.lid) {
                 return (
@@ -79,6 +79,9 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
                   data-tip={d.title}
                   aria-label={d.title + ', ' + d.label + '. Открыть группу. Alt и стрелки меняют порядок'}
                   data-ph={d.ph}
+                  aria-current={d.lid === sel ? 'true' : undefined}
+                  onMouseEnter={() => onHot(lid)}
+                  onMouseLeave={() => onHot(null)}
                   draggable={!!onMove}
                   onClick={() => onPick?.(lid)}
                   onDragStart={e => { setDrag(lid); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', lid); }}
@@ -136,8 +139,8 @@ export function PanelPane({ a, onPick, onMove }: { a: Calc; onPick?: (id: string
               </>
             );
             return (
-              <li key={d.kind + i} className={'bd-r' + (d.kind === 'mcb' && c.rcdMode && d.zone ? ' sub' : '')}>
-                {d.lid && onPick ? <button type="button" className="bd-b" onClick={() => onPick(d.lid as string)}>{body}</button> : <div className="bd-b">{body}</div>}
+              <li key={d.kind + i} className={'bd-r' + (d.kind === 'mcb' && c.rcdMode && d.zone ? ' sub' : '') + (d.lid && d.lid === sel ? ' sel' : '') + (d.lid && d.lid === hot ? ' hot' : '')}>
+                {d.lid && onPick ? <button type="button" className="bd-b" aria-current={d.lid === sel ? 'true' : undefined} onMouseEnter={() => onHot(d.lid as string)} onMouseLeave={() => onHot(null)} onClick={() => onPick(d.lid as string)}>{body}</button> : <div className="bd-b">{body}</div>}
               </li>
             );
           })}

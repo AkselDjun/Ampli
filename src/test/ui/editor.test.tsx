@@ -129,7 +129,8 @@ describe('Editor', () => {
 
   it('saves group appliances to the library and removes them via chip', () => {
     boot();
-    click(ed(), 'Сохранить приборы группы в мои');
+    click(ed(), /Ещё действия/);
+    click(ed(), 'Сохранить приборы в «Мои»');
     expect(JSON.parse(localStorage.getItem(LIB_KEY) as string).apps.length).toBeGreaterThan(0);
     const mine = ed().querySelector('.chip-mine') as HTMLElement;
     expect(mine).toBeTruthy();
@@ -142,14 +143,15 @@ describe('Editor', () => {
   it('hides the save link when no valid appliances', () => {
     boot();
     ed().querySelectorAll('.a-del').forEach(b => fireEvent.click(b));
-    expect(ed().textContent).not.toContain('Сохранить приборы группы');
+    click(ed(), /Ещё действия/);
+    expect(ed().textContent).not.toContain('Сохранить приборы');
   });
 
   it('quick paste adds appliances and reports skipped lines', () => {
     boot();
     const n0 = ed().querySelectorAll('.app:not(.app-h)').length;
-    const toggle = btn(ed(), 'Вставить список текстом');
-    fireEvent.click(toggle);
+    click(ed(), /Ещё действия/);
+    click(ed(), 'Вставить список текстом');
     const ta = ed().querySelector('textarea') as HTMLTextAreaElement;
     change(ta, 'чайник 2200, духовка 2,5 кВт, лампы 60 x5');
     fireEvent.click(btn(ed(), 'Добавить'));
@@ -163,7 +165,8 @@ describe('Editor', () => {
     change(ta, 'абракадабра');
     fireEvent.click(btn(ed(), 'Добавить'));
     expect(ed().querySelector('[role="status"]')?.textContent).toContain('Ничего не добавлено');
-    fireEvent.click(toggle);
+    click(ed(), /Ещё действия/);
+    click(ed(), 'Скрыть вставку списком');
     expect(ed().querySelector('textarea')).toBeNull();
   });
 

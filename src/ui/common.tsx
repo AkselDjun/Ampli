@@ -193,6 +193,18 @@ export function Sheet({
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const opener = useRef<Element | null>(null);
+  const y0 = useRef<number | null>(null);
+  const [dy, setDy] = useState(0);
+  const drag = {
+    onTouchStart: (e: React.TouchEvent) => { y0.current = e.touches[0].clientY; },
+    onTouchMove: (e: React.TouchEvent) => { if (y0.current !== null) setDy(Math.max(0, e.touches[0].clientY - y0.current)); },
+    onTouchEnd: () => {
+      const d = dy;
+      y0.current = null;
+      setDy(0);
+      if (d > 90) onClose();
+    }
+  };
   useEffect(() => {
     if (!open) return;
     opener.current = document.activeElement;
@@ -212,8 +224,8 @@ export function Sheet({
   const id = 'ttl-' + title.length + title.charCodeAt(0);
   return (
     <div className="sheet" hidden={!open} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className={'sheet-panel' + (compact ? ' compact' : '')} role="dialog" aria-modal="true" aria-labelledby={id}>
-        <div className="sheet-head">
+      <div className={'sheet-panel' + (compact ? ' compact' : '')} role="dialog" aria-modal="true" aria-labelledby={id} style={dy ? { transform: 'translateY(' + dy + 'px)', transition: 'none' } : undefined}>
+        <div className="sheet-head" {...drag}>
           <h2 id={id}>{title}</h2>
           {tip && <Tip>{tip}</Tip>}
           <button ref={closeRef} className="sheet-close" type="button" onClick={onClose} aria-label="Закрыть">×</button>

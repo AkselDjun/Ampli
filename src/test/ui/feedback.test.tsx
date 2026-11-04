@@ -135,6 +135,9 @@ describe('editor fields from the electricians', () => {
   it('edits branch length to the junction box for an appliance', () => {
     boot();
     fireEvent.click(rows()[0]);
+    expect(ed().querySelectorAll('[aria-label="Отвод от коробки, м"]').length).toBe(0);
+    click(ed(), /Ещё действия/);
+    click(ed(), 'Указать отводы к точкам');
     const br = ed().querySelectorAll<HTMLInputElement>('[aria-label="Отвод от коробки, м"]');
     expect(br.length).toBeGreaterThan(0);
     change(br[0], '4');

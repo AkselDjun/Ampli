@@ -92,12 +92,12 @@ describe('acts in the documents tab', () => {
     render(<App />);
     fireEvent.click(within(screen.getByRole('navigation', { name: 'Разделы' })).getByRole('button', { name: /Приёмка/ }));
     fireEvent.click(screen.getByRole('tab', { name: 'Документы' }));
-    expect(screen.getByText('Сроки и гарантия: гарантия 12 месяцев')).toBeTruthy();
+    expect(screen.getByText('Сроки и гарантия для актов: гарантия 12 месяцев')).toBeTruthy();
     fireEvent.change(screen.getByLabelText('Начало работ'), { target: { value: '2026-10-01' } });
     fireEvent.change(screen.getByLabelText('Окончание работ'), { target: { value: '2026-10-09' } });
     fireEvent.change(screen.getByLabelText('Гарантия, мес.'), { target: { value: '' } });
     expect(stored().list[0].acts).toEqual({ start: '2026-10-01', end: '2026-10-09', warranty: 0 });
-    expect(screen.getByText('Сроки и гарантия: 01.10.2026 – 09.10.2026')).toBeTruthy();
+    expect(screen.getByText('Сроки и гарантия для актов: 01.10.2026 – 09.10.2026')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Акт скрытых работ' }));
     expect(doc()).toContain('Акт освидетельствования');
     fireEvent.click(screen.getByRole('button', { name: 'Акт приёмки' }));

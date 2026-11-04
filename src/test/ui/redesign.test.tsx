@@ -416,7 +416,7 @@ describe('Side folds', () => {
   };
 
   const chkOf = (p: Project) => {
-    render(<Checks a={calcAll(p.lines, p.cfg)} />);
+    render(<Checks a={calcAll(p.lines, p.cfg)} onGroup={() => undefined} onFix={() => undefined} />);
     return screen.getByRole('button', { name: /^Проверки по нормам/ });
   };
   it('shows a warning button with a count and opens the list of checks', async () => {
@@ -451,7 +451,7 @@ describe('Side folds', () => {
     expect(w.k).toBe('warn');
   });
   it('renders nothing for an empty project', () => {
-    render(<Checks a={calcAll([], defaultCfg())} />);
+    render(<Checks a={calcAll([], defaultCfg())} onGroup={() => undefined} onFix={() => undefined} />);
     expect(screen.queryByRole('button', { name: /^Проверки по нормам/ })).toBeNull();
   });
   it('solo opens the summary folds and the panel is one tabbed block', () => {
