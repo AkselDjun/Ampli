@@ -93,4 +93,17 @@ describe('A3 drawing', () => {
     expect(window.print).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
   });
+
+  it('adds the plug-free connection note for water heaters', () => {
+    const p = proj([...lines(), mkLine('Бойлер', 'power', 9, null, null, [['Водонагреватель', 2000, 1]])]);
+    render(<DrawingA3 p={p} a={calcAll(p.lines, p.cfg)} company="" />);
+    expect(texts().join(' ')).toContain('5. Водонагреватели и приборы отопления (Г5) подключить отдельными линиями');
+  });
+
+  it('has no heater note without heaters', () => {
+    const p = proj(lines());
+    render(<DrawingA3 p={p} a={calcAll(p.lines, p.cfg)} company="" />);
+    expect(texts().join(' ')).not.toContain('Водонагреватели');
+  });
 });
+

@@ -1,6 +1,6 @@
 import type { Calc, Project, Row } from '../core/types';
-import { fmt, fs } from '../core/format';
-import { IN_CABLE } from '../core/norms';
+import { fmt, fs, pn } from '../core/format';
+import { HEAT_RX, IN_CABLE } from '../core/norms';
 import { inCableName } from '../core/protection';
 
 const W = 420;
@@ -108,6 +108,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
   const busY = BUS;
   const brY = a.uzos.length ? 74 : 60;
   const brH = 16;
+  const heatNo = a.rows.map((x, i) => (x.l.apps.some(ap => pn(ap.w, 0) > 0 && HEAT_RX.test(ap.name)) ? 'Г' + (i + 1) : '')).filter(Boolean);
   const objName = wrap(p.address || p.name || 'Квартира', 60, 2);
   return (
     <svg className="a3" viewBox={'0 0 ' + W + ' ' + H} width={W + 'mm'} height={H + 'mm'} role="img" aria-label="Принципиальная схема распределительной сети" fill="none" stroke="#000" strokeWidth="0.35" fontFamily="'Golos Text', Arial, sans-serif">
@@ -181,7 +182,8 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
           '1. Схема выполнена по ГОСТ 21.613-2014. Расчёт по ТКП 339-2022 с изм. № 1 и СН 4.04.01-2019.',
           '2. Групповые линии выполнить кабелем ВВГнг(А)-LS с медными жилами, прокладка ' + (c.method === 'wall' ? 'скрытая.' : 'открытая.'),
           '3. Шины N и PE в щитке раздельные' + (a.uzos.length ? ', у каждого УЗО своя шина N.' : '.') + ' Объединять N и PE после разделения не допускается.',
-          '4. Длины кабелей указаны с учётом отводов от распределительных коробок, уточняются по месту.'
+          '4. Длины кабелей указаны с учётом отводов от распределительных коробок, уточняются по месту.',
+          ...(heatNo.length ? ['5. Водонагреватели и приборы отопления (' + heatNo.join(', ') + ') подключить отдельными линиями, неразъёмно, без вилки и розетки (СН 4.04.01-2019, п. 14.4).'] : [])
         ].map((ln, j) => <text key={j} x={TX0} y={tableBottom + 30 + j * 4.2} {...t} fontSize="2.4">{ln}</text>)}
       </g>
       <g strokeWidth="0.5">

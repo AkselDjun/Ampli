@@ -1,5 +1,5 @@
 import type { App, BoxType, Calc, Cfg, CfgN, Device, InCable, Line, LineResult, Phase, Row, Uzo } from './types';
-import { ALL_STEPS, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, RCD_STD, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
+import { ALL_STEPS, HEAT_RX, HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, RCD_STD, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs, pn } from './format';
 
 export function cfgN(c: Cfg): CfgN {
@@ -153,6 +153,15 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
   if (len === 0) {
     r.status = r.status === 'bad' ? 'bad' : 'warn';
     r.notes.push('Укажите длину линии, иначе падение напряжения не проверяется.');
+  }
+  const heat = live.filter(a => HEAT_RX.test(a.name));
+  if (heat.length) {
+    if (live.length > heat.length) {
+      r.status = r.status === 'bad' ? 'bad' : 'warn';
+      r.notes.push('Водонагреватель и приборы отопления подключают отдельной линией от квартирного щитка, без других приборов (СН 4.04.01-2019, п. 14.4).');
+    }
+    const big = heat.some(a => Math.max(0, pn(a.w, 0)) * (a.m !== undefined ? Math.max(0, pn(a.m, 0)) : 1) > HEAT_PLUG_KW * 1000);
+    r.notes.push((big ? 'Прибор мощнее ' + HEAT_PLUG_KW + ' кВт: подключение неразъёмное, без вилки и розетки (СН 4.04.01-2019, п. 14.4). ' : '') + 'С ' + SN_CH2_DATE + ' по изменению № 2 к СН 4.04.01-2019 (п. 14.4) водонагреватели и приборы отопления любой мощности подключают неразъёмно, без вилки и розетки.');
   }
   return r;
 }

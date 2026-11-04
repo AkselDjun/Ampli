@@ -1,5 +1,5 @@
 import type { CfgN } from './types';
-import { INS_MIN_MOHM, KZ_TIME, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, SINGLE_INPUT_KW, TRIP_MULT, TYPES } from './norms';
+import { HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, KZ_TIME, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, SINGLE_INPUT_KW, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs } from './format';
 
 export type Basis = 'norm' | 'practice' | 'user';
@@ -33,6 +33,7 @@ export function assumptions(c: CfgN): Assumption[] {
     { name: 'Ток утечки', value: 'не более 1/3 уставки; сеть ' + fs(LEAK_PER_M_MA) + ' мА/м, приборы свыше ' + LEAK_LOAD_ABOVE_A + ' А по ' + fs(LEAK_PER_A_MA) + ' мА/А', basis: 'norm', source: 'СН 4.04.01-2019, п. 16.3.7' },
     { name: 'Сопротивление изоляции', value: 'не менее ' + fs(INS_MIN_MOHM) + ' МОм', basis: 'norm', source: 'ТКП 339-2022, п. 4.4.26.1, табл. 4.4.46' },
     { name: 'Однофазный ввод', value: 'до ' + SINGLE_INPUT_KW + ' кВт', basis: 'norm', source: 'СН 4.04.01-2019, п. 9.12' },
+    { name: 'Водонагреватель и отопление', value: 'отдельная линия от квартирного щитка, подключение без вилки и розетки', basis: 'norm', source: 'СН 4.04.01-2019, п. 14.4: до ' + SN_CH2_DATE + ' неразъёмно для приборов мощнее ' + HEAT_PLUG_KW + ' кВт, с ' + SN_CH2_DATE + ' для всех по изм. № 2 (постановление Минстройархитектуры от 17.09.2026 № 75; формулировка по окончательной редакции проекта)' },
     { name: 'Вводной автомат', value: 'на две ступени выше наибольшего группового', basis: 'norm', source: 'СН 4.04.01-2019, п. 10.5' },
     { name: 'Коэффициент одновременности Ко', value: fs(c.ko), basis: 'user', source: 'Задан вами; значение по умолчанию принято по практике' },
     { name: 'Ток группы', value: 'P / 230 В, трёхфазной P / (√3 · 400 В); все приборы группы включены', basis: 'practice', source: 'Без коэффициента спроса и cos φ, как принято у практикующих электриков; мощности приборов по справочнику, проверьте по паспорту оборудования' },
