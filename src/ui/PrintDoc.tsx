@@ -15,6 +15,7 @@ import { CHECK_ITEMS } from '../core/checklist';
 import { photoCaption } from '../core/photos';
 import { usePhotoUrls } from './PhotoStrip';
 import { PassportDoc } from './Passport';
+import { DrawingA3 } from './DrawingA3';
 
 function ProtoTable({ a }: { a: Calc }) {
   const rows = protocolRows(a);
@@ -207,7 +208,13 @@ export function PrintDoc({ p, a, mode = 'report' }: { p: Project; a: Calc; mode?
   if (mode === 'stickers') return <div className="printdoc" aria-hidden="true"><StickersDoc p={p} a={a} /></div>;
   if (mode === 'passport') return <div className="printdoc" aria-hidden="true"><BrandHead /><PassportDoc p={p} a={a} /></div>;
   if (mode === 'tags') return <div className="printdoc" aria-hidden="true"><TagsDoc p={p} a={a} /></div>;
+  if (mode === 'a3') return <A3Doc p={p} a={a} />;
   return <ReportDoc p={p} a={a} />;
+}
+
+function A3Doc({ p, a }: { p: Project; a: Calc }) {
+  const { lib } = useLib();
+  return <div className="printdoc a3doc" aria-hidden="true"><DrawingA3 p={p} a={a} company={lib.brand.company} /></div>;
 }
 
 function ReportDoc({ p, a }: { p: Project; a: Calc }) {

@@ -24,6 +24,8 @@ import { ShareBlock } from './ShareBlock';
 import { LaborTable, Totals, totals } from './Labor';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
+import { DrawingA3 } from './DrawingA3';
+import type { PrintMode } from './WorkSheet';
 
 export function NetSheet({
   open, onClose, p, dispatch
@@ -280,7 +282,7 @@ export function ReportSheet({
   a: Calc;
   dispatch: (x: Action) => void;
   want?: { tab: string; n: number };
-  onPrint: () => void;
+  onPrint: (m: PrintMode) => void;
   onCompare: () => void;
   onShop: () => void;
 }) {
@@ -321,7 +323,7 @@ export function ReportSheet({
     <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Допущения' }]} />}>
       <TabPanel scope="rep" id="groups" cur={tab}>
       <div className="copy-row">
-        <button className="btn primary" type="button" onClick={onPrint}>Печать / PDF</button>
+        <button className="btn primary" type="button" onClick={() => onPrint('report')}>Печать / PDF</button>
         <button className="btn" type="button" onClick={copy}>Скопировать отчёт</button>
         <button className="btn" type="button" onClick={onCompare}>Сравнить варианты</button>
       </div>
@@ -379,8 +381,16 @@ export function ReportSheet({
       </div>
       </TabPanel>
       <TabPanel scope="rep" id="scheme" cur={tab}>
-      <h3 className="sec-t">Схема щитка</h3>
+      <div className="sec-row">
+        <h3 className="sec-t">Схема щитка</h3>
+        <button className="btn sm" type="button" onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</button>
+      </div>
       <div className="schem-wrap"><Schematic a={a} /></div>
+      <details className="bd-help a3-prev">
+        <summary>Лист А3 со штампом</summary>
+        <p className="muted">Принципиальная схема распределительной сети по ГОСТ 21.613 с таблицей групп и основной надписью. Реквизиты организации берутся из «Мои данные», разработчик из карточки проекта.</p>
+        <div className="a3-wrap"><DrawingA3 p={p} a={a} company={lib.brand.company} /></div>
+      </details>
       </TabPanel>
       <TabPanel scope="rep" id="estimate" cur={tab}>
       <div className="copy-row">

@@ -7,7 +7,7 @@ import type { Action } from '../store/reducer';
 import { Sheet, TabPanel, Tabs } from './common';
 import { ShareBlock } from './ShareBlock';
 
-export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport';
+export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3';
 
 export function WorkSheet({
   open, onClose, p, a, dispatch, onPrint, onBoard

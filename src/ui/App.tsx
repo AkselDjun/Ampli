@@ -351,7 +351,7 @@ export function App() {
         <LibSheet open={sheet === 'lib'} onClose={closeSheet} />
         <CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} />
         <RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} />
-        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={() => doPrint('report')} onCompare={() => setSheet('cmp')} onShop={() => setSheet('shop')} dispatch={dispatch} want={repWant} />
+        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onCompare={() => setSheet('cmp')} onShop={() => setSheet('shop')} dispatch={dispatch} want={repWant} />
         <Palette open={pal} onClose={() => setPal(false)} cmds={cmds} />
         <ShopSheet open={sheet === 'shop'} onClose={closeSheet} a={a} />
         <Toaster />

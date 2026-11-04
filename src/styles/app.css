@@ -1287,3 +1287,12 @@ input.price-in{height:34px;min-height:34px;width:104px;padding:0 10px;font-famil
   .schem-wrap{padding:8px;-webkit-overflow-scrolling:touch}
   .schem-wrap .schem{width:640px;max-width:none}
 }
+
+.a3-prev{margin:0}
+.a3-wrap{margin-top:8px;overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-m);background:#fff;padding:8px}
+.a3-wrap svg.a3{display:block;width:100%;min-width:760px;height:auto}
+@media print{
+  @page a3{size:A3 landscape;margin:0}
+  .printdoc.a3doc{page:a3;padding:0;margin:0}
+  .printdoc.a3doc svg.a3{display:block;width:420mm;height:297mm}
+}
