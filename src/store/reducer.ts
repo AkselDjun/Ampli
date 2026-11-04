@@ -9,6 +9,7 @@ import { nid } from '../core/ids';
 import { newProject, normProject, uniqName } from '../core/project';
 import type { WorkKey } from '../core/labor';
 import { pn, round2 } from '../core/format';
+import { normActs } from '../core/acts';
 import type { Store } from './storage';
 
 export interface State extends Store {
@@ -44,6 +45,7 @@ export type Action =
   | { t: 'check'; id: string; on: boolean }
   | { t: 'workQty'; key: WorkKey; value: string }
   | { t: 'proto'; field: 'date' | 'device' | 'by'; value: string }
+  | { t: 'acts'; field: 'start' | 'end' | 'warranty'; value: string }
   | { t: 'appField'; id: string; field: 'name' | 'w' | 'n' | 'br' | 'm'; value: string | number }
   | { t: 'addApp'; name?: string; w?: number; m?: number }
   | { t: 'delApp'; id: string }
@@ -199,6 +201,8 @@ export function reducer(s: State, a: Action): State {
       return patch(s, q => ({ ...q, checks: { ...(q.checks ?? {}), [a.id]: a.on } }));
     case 'proto':
       return patch(s, q => ({ ...q, proto: { date: '', device: '', by: '', ...(q.proto ?? {}), [a.field]: a.value } }));
+    case 'acts':
+      return patch(s, q => ({ ...q, acts: normActs({ ...(q.acts ?? {}), [a.field]: a.value }) }));
     case 'lineWet':
       return patchLine(s, l => ({ ...l, wet: a.wet }));
     case 'appField':

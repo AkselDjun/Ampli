@@ -6,8 +6,9 @@ import { VERDICT, protocolRows } from '../core/protocol';
 import type { Action } from '../store/reducer';
 import { Sheet, TabPanel, Tabs } from './common';
 import { ShareBlock } from './ShareBlock';
+import { actsOf, actsSummary } from '../core/acts';
 
-export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3';
+export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3' | 'hidden' | 'accept';
 
 export function WorkSheet({
   open, onClose, p, a, dispatch, onPrint, onBoard
@@ -25,6 +26,8 @@ export function WorkSheet({
   const pr = progress(p.checks);
   const rows = protocolRows(a);
   const proto = p.proto ?? { date: '', device: '', by: '' };
+  const acts = actsOf(p.acts);
+  const actSum = actsSummary(p.acts);
   return (
     <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Замеры вводятся в карточке группы, раздел «Замеры и фото», или в режиме «На щитке». По ним проверяются КЗ, УЗО и изоляция.">
       <TabPanel scope="wk" id="check" cur={tab}>
@@ -91,6 +94,20 @@ export function WorkSheet({
         <button className="btn primary" type="button" onClick={() => onPrint('proto')}>Печать протокола</button>
         <button className="btn" type="button" onClick={() => onPrint('stickers')}>Наклейки щитка</button>
         <button className="btn" type="button" onClick={() => onPrint('tags')}>Бирки кабелей</button>
+      </div>
+      <h3 className="sec-t">Акты</h3>
+      <p className="muted">Акт скрытых работ подписывают до заделки штроб, акт приёмки после сдачи объекта. Работы, кабели и суммы подставляются из проекта и сметы.</p>
+      <details className="bd-help proto-d acts-d">
+        <summary>Сроки и гарантия{actSum ? ': ' + actSum : ''}</summary>
+        <div className="meta-grid">
+          <div className="f"><label className="lbl" htmlFor="aStart">Начало работ</label><input id="aStart" type="date" value={acts.start} onChange={e => dispatch({ t: 'acts', field: 'start', value: e.target.value })} /></div>
+          <div className="f"><label className="lbl" htmlFor="aEnd">Окончание работ</label><input id="aEnd" type="date" value={acts.end} onChange={e => dispatch({ t: 'acts', field: 'end', value: e.target.value })} /></div>
+          <div className="f"><label className="lbl" htmlFor="aWar">Гарантия, мес.</label><input id="aWar" type="number" inputMode="numeric" min={0} max={120} step={1} value={acts.warranty || ''} placeholder="без гарантии" onChange={e => dispatch({ t: 'acts', field: 'warranty', value: e.target.value })} /></div>
+        </div>
+      </details>
+      <div className="copy-row">
+        <button className="btn" type="button" onClick={() => onPrint('hidden')}>Акт скрытых работ</button>
+        <button className="btn" type="button" onClick={() => onPrint('accept')}>Акт приёмки</button>
       </div>
       </TabPanel>
     </Sheet>

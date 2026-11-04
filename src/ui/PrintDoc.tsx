@@ -15,7 +15,8 @@ import { CHECK_ITEMS } from '../core/checklist';
 import { photoCaption } from '../core/photos';
 import { usePhotoUrls } from './PhotoStrip';
 import { PassportDoc } from './Passport';
-import { DrawingA3 } from './DrawingA3';
+import { DrawingA3, drawCode } from './DrawingA3';
+import { actDate, actsOf, hiddenMaterials, hiddenWorks, ruDate, warrantyText } from '../core/acts';
 
 function ProtoTable({ a }: { a: Calc }) {
   const rows = protocolRows(a);
@@ -209,7 +210,121 @@ export function PrintDoc({ p, a, mode = 'report' }: { p: Project; a: Calc; mode?
   if (mode === 'passport') return <div className="printdoc" aria-hidden="true"><BrandHead /><PassportDoc p={p} a={a} /></div>;
   if (mode === 'tags') return <div className="printdoc" aria-hidden="true"><TagsDoc p={p} a={a} /></div>;
   if (mode === 'a3') return <A3Doc p={p} a={a} />;
+  if (mode === 'hidden') return <div className="printdoc act" aria-hidden="true"><HiddenDoc p={p} a={a} /></div>;
+  if (mode === 'accept') return <div className="printdoc act" aria-hidden="true"><AcceptDoc p={p} a={a} /></div>;
   return <ReportDoc p={p} a={a} />;
+}
+
+function ActLine({ label, value, sub }: { label: string; value?: string; sub?: string }) {
+  return (
+    <div className="act-ln">
+      <span className="act-k">{label}</span>
+      <span className="act-v">{value || '\u00a0'}{sub && <small>{sub}</small>}</span>
+    </div>
+  );
+}
+
+function Signs({ who }: { who: [string, string][] }) {
+  return (
+    <div className="act-sig">
+      {who.map(([role, name], i) => (
+        <div key={i}>
+          <span>{role}</span>
+          <span className="act-sl">{name ? '______________ ' + name : '______________ / ______________'}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HiddenDoc({ p, a }: { p: Project; a: Calc }) {
+  const { lib } = useLib();
+  const b = lib.brand;
+  const x = actsOf(p.acts);
+  const works = hiddenWorks(a);
+  const mats = hiddenMaterials(a);
+  const doer = [b.company, b.signer || p.author].filter(Boolean).join(', ');
+  const next = a.c.method === 'wall' ? 'заделке штроб и отделочным работам' : 'монтажу кабель-каналов, установке электроустановочных изделий';
+  return (
+    <>
+      <h1 className="act-h">Акт освидетельствования скрытых работ</h1>
+      <p className="act-c">монтаж групповых электрических сетей квартиры</p>
+      <div className="act-top"><span>{p.address || p.name || '—'}</span><span>{actDate(p.acts)}</span></div>
+      <p>Комиссия в составе:</p>
+      <ActLine label="представителя исполнителя (производителя работ)" value={doer} />
+      <ActLine label="представителя заказчика" value={p.client} />
+      <ActLine label="представителя технического надзора" sub="при наличии" />
+      <p>произвела осмотр работ, выполненных {b.company || p.author || '________________'}, и составила настоящий акт о нижеследующем.</p>
+      <ol className="act-ol">
+        <li>
+          К освидетельствованию предъявлены следующие работы:
+          <ul>{works.length ? works.map((w, i) => <li key={i}>{w}</li>) : <li>групповые линии не заданы</li>}</ul>
+        </li>
+        <li>Работы выполнены по проектной документации: однолинейная схема щитка {drawCode(Date.now())}, расчёт групп Ampli по ТКП 339-2022 и СН 4.04.01-2019.</li>
+        <li>
+          При выполнении работ применены:
+          <ul>{mats.map((m, i) => <li key={i}>{m}</li>)}</ul>
+          документы о качестве: сертификаты или декларации о соответствии изготовителя.
+        </li>
+        <li>При выполнении работ отклонения от проектной документации: не допущены.</li>
+        <li>Даты: начала работ {ruDate(x.start) || '«___» ________ 20__ г.'}, окончания работ {ruDate(x.end) || '«___» ________ 20__ г.'}</li>
+      </ol>
+      <p><b>Решение комиссии.</b> Работы выполнены в соответствии с проектной документацией, требованиями ТКП 339-2022 и СН 4.04.01-2019 и отвечают требованиям их приёмки. Разрешается производство последующих работ по {next}.</p>
+      <Signs who={[['Исполнитель', b.signer || p.author], ['Заказчик', p.client], ['Технический надзор', '']]} />
+      <p className="pd-note">Акт составлен по форме акта освидетельствования скрытых работ СН 1.03.04-2020 «Организация строительного производства». Перед заделкой штроб рекомендуется приложить фото трасс с привязкой к стенам.</p>
+    </>
+  );
+}
+
+function AcceptDoc({ p, a }: { p: Project; a: Calc }) {
+  const { lib } = useLib();
+  const b = lib.brand;
+  const x = actsOf(p.acts);
+  const le = laborEstimate(a, p.work, lib.labor);
+  const works = le.rows.filter(r => r.qty > 0);
+  const est = estimate(buildSpec(a), lib.prices);
+  const priced = le.priced;
+  const mats = Object.keys(lib.prices).length > 0 ? est.total : 0;
+  const total = grandTotal(mats, le.total);
+  return (
+    <>
+      <BrandHead />
+      <h1 className="act-h">Акт сдачи-приёмки выполненных работ</h1>
+      <div className="act-top"><span>{p.address || p.name || '—'}</span><span>{actDate(p.acts)}</span></div>
+      <p>
+        Исполнитель {b.company || p.author || '________________'}{b.signer ? ' в лице ' + b.signer : ''}, с одной стороны, и заказчик {p.client || '________________'}, с другой стороны, составили настоящий акт о том, что исполнитель выполнил, а заказчик принял работы по монтажу электропроводки и квартирного щитка{p.address ? ' по адресу: ' + p.address : ''}.
+      </p>
+      {(x.start || x.end) && <p>Сроки выполнения: {ruDate(x.start) || '…'} – {ruDate(x.end) || '…'}.</p>}
+      <table>
+        <thead>
+          <tr><th>№</th><th>Работа</th><th>Ед. изм.</th><th className="r">Количество</th>{priced && <th className="r">Цена, BYN</th>}{priced && <th className="r">Сумма, BYN</th>}</tr>
+        </thead>
+        <tbody>
+          {works.map((r, i) => (
+            <tr key={r.def.key}>
+              <td>{i + 1}</td>
+              <td>{r.def.name}</td>
+              <td>{r.def.unit}</td>
+              <td className="r">{fmt(r.qty, r.qty % 1 ? 1 : 0)}</td>
+              {priced && <td className="r">{r.price === null ? '—' : fmt(r.price, 2)}</td>}
+              {priced && <td className="r">{r.sum === null ? '—' : fmt(r.sum, 2)}</td>}
+            </tr>
+          ))}
+        </tbody>
+        {priced && (
+          <tfoot>
+            <tr><td colSpan={5}>Работы</td><td className="r">{fmt(le.total, 2)}</td></tr>
+            {mats > 0 && <tr><td colSpan={5}>Материалы по спецификации</td><td className="r">{fmt(mats, 2)}</td></tr>}
+            {mats > 0 && <tr><td colSpan={5}>Итого</td><td className="r">{fmt(total, 2)}</td></tr>}
+          </tfoot>
+        )}
+      </table>
+      <p>Работы выполнены в полном объёме{priced ? ' на сумму ' + fmt(mats > 0 ? total : le.total, 2) + ' BYN' : ''}. Заказчик претензий по объёму, качеству и срокам выполнения работ не имеет.</p>
+      {x.warranty > 0 && <p>Гарантийный срок на выполненные работы: {warrantyText(x.warranty)} с даты подписания акта. Гарантия не распространяется на повреждения, вызванные вмешательством третьих лиц и нарушением правил эксплуатации.</p>}
+      <p>Заказчику переданы: однолинейная схема щитка, протокол замеров, паспорт щитка с назначением автоматов.</p>
+      <Signs who={[['Работы сдал, исполнитель', b.signer || p.author], ['Работы принял, заказчик', p.client]]} />
+    </>
+  );
 }
 
 function A3Doc({ p, a }: { p: Project; a: Calc }) {

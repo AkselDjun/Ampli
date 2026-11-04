@@ -1296,3 +1296,19 @@ input.price-in{height:34px;min-height:34px;width:104px;padding:0 10px;font-famil
   .printdoc.a3doc{page:a3;padding:0;margin:0}
   .printdoc.a3doc svg.a3{display:block;width:420mm;height:297mm}
 }
+@media print{
+  .printdoc.act{font-size:12px;line-height:1.5}
+  .printdoc .act-h{text-align:center;font-size:16px;margin:0 0 2px}
+  .printdoc .act-c{text-align:center;margin:0 0 12px;color:#333}
+  .printdoc .act-top{display:flex;justify-content:space-between;gap:16px;margin:0 0 12px;padding-bottom:4px;border-bottom:1px solid #999}
+  .printdoc .act-ln{display:grid;grid-template-columns:62mm 1fr;gap:8px;margin:2px 0 4px}
+  .printdoc .act-k{color:#444}
+  .printdoc .act-v{border-bottom:1px solid #000;min-height:16px;display:flex;justify-content:space-between;gap:8px}
+  .printdoc .act-v small{color:#777;font-size:9px;align-self:flex-end}
+  .printdoc .act-ol{padding-left:18px;margin:8px 0}
+  .printdoc .act-ol>li{margin:4px 0}
+  .printdoc .act-ol ul{margin:2px 0;padding-left:16px}
+  .printdoc .act-sig{display:grid;gap:14px;margin-top:24px}
+  .printdoc .act-sig div{display:grid;grid-template-columns:62mm 1fr;gap:8px;align-items:end}
+  .printdoc table+p{margin-top:8px}
+}

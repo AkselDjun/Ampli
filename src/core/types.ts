@@ -54,6 +54,12 @@ export interface Proto {
   by: string;
 }
 
+export interface Acts {
+  start: string;
+  end: string;
+  warranty: number;
+}
+
 export interface Line {
   id: string;
   name: string;
@@ -102,6 +108,7 @@ export interface Project {
   rooms?: Room[];
   photos?: Photo[];
   work?: WorkQty;
+  acts?: Acts;
 }
 
 export interface Content {
