@@ -148,7 +148,9 @@ export function GroupList({
     ['Питание', three ? '3 фазы, 400 В' : '1 фаза, 230 В'],
     ['Прокладка', c.method === 'wall' ? 'Скрытая' : 'Открытая'],
     ['Защита', c.rcdMode ? 'УЗО на помещение' : 'дифавтоматы'],
-    ['Выделено', fmt(c.alloc, 1) + ' кВт']
+    ['Выделено', fmt(c.alloc, 1) + ' кВт'],
+    ...(c.vr ? [['Реле', 'реле напряжения'] as [string, string]] : []),
+    ...(c.spd ? [['УЗИП', 'УЗИП'] as [string, string]] : [])
   ];
   return (
     <section className="col col-list" id="groups" tabIndex={-1} aria-label="Группы линий">

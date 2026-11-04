@@ -1479,3 +1479,28 @@ button.dev.sel.hot{outline-color:var(--accent)}
 .sheet-back svg{width:22px;height:22px}
 .sheet-back:hover{background:var(--field)}
 .sheet-back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.net-opts{margin:0;padding:0;border:0;display:grid;gap:8px}
+.net-opts legend{padding:0;margin-bottom:6px}
+.net-opts label{display:flex;gap:12px;align-items:flex-start;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);cursor:pointer}
+.net-opts label:has(input:checked){border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent-soft) 45%,var(--surface))}
+.net-opts input{width:20px;height:20px;flex:none;margin-top:2px;accent-color:var(--accent)}
+.net-opts span{display:grid;gap:2px}
+.net-opts small{color:var(--ink-2);font-size:var(--t-sm)}
+.rail .dev-vr,.rail .dev-spd{background:var(--dev-body);color:var(--dev-ink);border:1px solid var(--dev-edge)}
+.rail .dev-vr::before{background:#8FA3B3}
+.rail .dev-spd::before{background:#8FA3B3}
+.rail .dev-vr::after{height:5px;border-radius:0 0 4px 4px;background:repeating-linear-gradient(90deg,var(--ink-2) 0 4px,transparent 4px 8px)}
+.rail .dev-spd::after{height:5px;border-radius:0 0 4px 4px;background:repeating-linear-gradient(90deg,#E0A020 0 4px,var(--ink) 4px 8px)}
+.legend .dev-vr,.legend .dev-spd{height:6px;border-radius:3px}
+.legend .dev-vr{background:repeating-linear-gradient(90deg,var(--ink-2) 0 3px,transparent 3px 6px)}
+.legend .dev-spd{background:repeating-linear-gradient(90deg,#E0A020 0 3px,var(--ink) 3px 6px)}
+.bd-no.k-vr,.bd-no.k-spd{background:var(--surface-2);color:var(--ink-2)}
+.pmb-dev.k-vr,.pmb-dev.k-spd{background:linear-gradient(180deg,#ffffff,#f1f3f5 60%,#e6e9ec)}
+.pmb-dev.k-spd .pmb-lever{background:linear-gradient(180deg,#f2c14e,#d99a17)}
+.pmb-dev.k-vr .pmb-lever{background:linear-gradient(180deg,#9aa7b2,#6b7a87)}
+@media print{
+  .printdoc .k-vr .stk-top,.printdoc .stk-k.k-vr{background:#555;color:#fff}
+  .printdoc .k-spd .stk-top,.printdoc .stk-k.k-spd{background:#E0A020;color:#111}
+  .printdoc .k-socket .stk-top,.printdoc .stk-k.k-socket{background:#6B46C1;color:#fff}
+}
+.notes li.tip-n{color:var(--ink);background:var(--field);border-left:3px solid var(--accent)}

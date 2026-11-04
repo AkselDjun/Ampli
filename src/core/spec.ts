@@ -2,12 +2,19 @@ import type { Calc, SpecItem } from './types';
 import { fmt } from './format';
 import { cableName, inCableName, protFull, uzoName } from './protection';
 import { BOX_NAME } from './norms';
+import { vrRating } from './calc';
 
 export function buildSpec(a: Calc): SpecItem[] {
   const c = a.c;
   const items: SpecItem[] = [];
   items.push({ name: 'Щиток на ' + a.size + ' модулей', qty: '1 шт', note: 'с запасом 20 % свободных модулей', n: 1, unit: 'шт' });
   if (a.inIn) items.push({ name: 'Вводной автомат ' + (c.supply === 3 ? '4P' : '2P') + ' C' + a.inIn, qty: '1 шт', note: 'ток линии ввода ' + fmt(a.Itot, 0) + ' А', n: 1, unit: 'шт' });
+  if (a.inIn && c.vr) {
+    const vr = vrRating(a.inIn);
+    const n = c.supply === 3 ? 3 : 1;
+    items.push({ name: 'Реле контроля напряжения ' + (vr ? vr + ' А' : '63 А с контактором'), qty: n + ' шт', note: (n > 1 ? 'по одному на фазу; ' : '') + (vr ? 'номинал не меньше вводного автомата' : 'ток ввода больше 63 А, реле управляет контактором'), n, unit: 'шт' });
+  }
+  if (a.inIn && c.spd) items.push({ name: 'УЗИП тип 2 ' + (c.supply === 3 ? '3P+N' : '1P+N'), qty: '1 шт', note: 'после вводного автомата; защиту УЗИП выполнить по паспорту изготовителя', n: 1, unit: 'шт' });
   const dev = new Map<string, { name: string; n: number; g: string[] }>();
   a.uzos.forEach(u => {
     const k = uzoName(u);

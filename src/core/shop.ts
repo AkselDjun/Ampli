@@ -12,6 +12,7 @@ export interface Attrs {
   sect: number;
   modules: number;
   bus: string;
+  typeA?: boolean;
 }
 
 export interface Offer {
@@ -84,6 +85,7 @@ export function parseAttrs(raw: string): Attrs {
     if (pm) a.poles = pm[1];
     const mm = s.match(/(\d{1,3})\s?(?:ма|ma)(?![а-яa-z])/);
     if (mm) a.ma = Number(mm[1]);
+    if (/типа?\s+[aа](?![cсa-zа-я0-9])/.test(s)) a.typeA = true;
     return a;
   }
   return a;
@@ -98,6 +100,7 @@ export function matches(want: Attrs, got: Attrs): boolean {
   if (want.curve && got.curve && want.curve !== got.curve) return false;
   if (want.poles && got.poles && want.poles !== got.poles) return false;
   if (want.kind === 'rcbo' && want.ma && got.ma && want.ma !== got.ma) return false;
+  if (want.kind === 'rcbo' && want.typeA && !got.typeA) return false;
   return true;
 }
 

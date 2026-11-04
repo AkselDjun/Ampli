@@ -1,5 +1,5 @@
 import type { App, BoxType, Calc, Cfg, CfgN, Device, InCable, Line, LineResult, Phase, Row, Uzo } from './types';
-import { ALL_STEPS, HEAT_RX, HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, RCD_STD, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
+import { ALL_STEPS, HEAT_RX, TYPE_A_RX, VR_STD, HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, RCD_STD, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs, pn } from './format';
 
 export function cfgN(c: Cfg): CfgN {
@@ -16,7 +16,9 @@ export function cfgN(c: Cfg): CfgN {
     rcdMode: c.prot === 'rcd',
     box: boxOf(c),
     boxAuto: !isBox(c.box),
-    inCable: c.inCable === 'frls' || c.inCable === 'nym' ? (c.inCable as InCable) : 'vvg'
+    inCable: c.inCable === 'frls' || c.inCable === 'nym' ? (c.inCable as InCable) : 'vvg',
+    spd: c.spd === 'on',
+    vr: c.vr === 'on'
   };
 }
 
@@ -36,6 +38,8 @@ export function shortCircuit(S: number, len: number, zs: number): number {
   return 230 / (zs + loopOhm(S, len));
 }
 
+export const vrRating = (inIn: number): number | null => VR_STD.find(x => x >= inIn) ?? null;
+
 export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
   const t = TYPES[l.type];
   const nSock = l.type === 'socket' ? Math.max(0, Math.round(pn(l.sockets, 0))) : 0;
@@ -53,8 +57,10 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
   const lim = Math.max(0.5, lim0 - c.feeder);
   const rcbo = t.rcd && !c.rcdMode;
   const ma = !t.rcd ? 0 : (zoneMa ?? (l.wet ? 10 : (I > 32 ? 100 : 30)));
+  const aApps = live.filter(a => TYPE_A_RX.test(a.name));
+  const rcdA = t.rcd && aApps.length > 0;
   const r: LineResult = {
-    limit: lim, pInst, pd, I, three, len, cos, kc, notes: [], status: 'ok', rcd: t.rcd, rcbo, zone: c.rcdMode ? zoneOf(l) : '', uzo: null, cable, sockets: nSock,
+    limit: lim, pInst, pd, I, three, len, cos, kc, notes: [], tips: [], status: 'ok', rcd: t.rcd, rcbo, rcdA, zone: c.rcdMode ? zoneOf(l) : '', uzo: null, cable, sockets: nSock,
     ma, curve: t.curve, In: null, S: null, drop: 0, empty: false,
     mod: three ? (rcbo ? 4 : 3) : (rcbo ? 2 : 1), ik: 0, ikNeed: 0, ikSrc: 'calc',
     zsMeas: null, insMeas: null, leakMeas: null, leakLim: 0, leakEst: 0, rcdMeas: null, rcdLim: 0
@@ -154,6 +160,10 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
     r.status = r.status === 'bad' ? 'bad' : 'warn';
     r.notes.push('Укажите длину линии, иначе падение напряжения не проверяется.');
   }
+  if (rcdA) {
+    const names = aApps.map(a => a.name.trim().toLowerCase()).filter((v, i, arr) => arr.indexOf(v) === i);
+    r.tips.push('УЗО типа A: ' + names.join(', ') + (names.length > 1 ? ' дают' : ' даёт') + ' пульсирующий ток утечки, на который УЗО типа AC может не сработать.');
+  }
   const heat = live.filter(a => HEAT_RX.test(a.name));
   if (heat.length) {
     if (live.length > heat.length) {
@@ -161,7 +171,7 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
       r.notes.push('Водонагреватель и приборы отопления подключают отдельной линией от квартирного щитка, без других приборов (СН 4.04.01-2019, п. 14.4).');
     }
     const big = heat.some(a => Math.max(0, pn(a.w, 0)) * (a.m !== undefined ? Math.max(0, pn(a.m, 0)) : 1) > HEAT_PLUG_KW * 1000);
-    r.notes.push((big ? 'Прибор мощнее ' + HEAT_PLUG_KW + ' кВт: подключение неразъёмное, без вилки и розетки (СН 4.04.01-2019, п. 14.4). ' : '') + 'С ' + SN_CH2_DATE + ' по изменению № 2 к СН 4.04.01-2019 (п. 14.4) водонагреватели и приборы отопления любой мощности подключают неразъёмно, без вилки и розетки.');
+    (big ? r.notes : r.tips).push((big ? 'Прибор мощнее ' + HEAT_PLUG_KW + ' кВт: подключение неразъёмное, без вилки и розетки (СН 4.04.01-2019, п. 14.4). ' : '') + 'С ' + SN_CH2_DATE + ' по изменению № 2 к СН 4.04.01-2019 (п. 14.4) водонагреватели и приборы отопления любой мощности подключают неразъёмно, без вилки и розетки.');
   }
   return r;
 }
@@ -234,6 +244,7 @@ function planUzos(lines: Line[], c: CfgN): { rows: Row[]; uzos: Uzo[] } {
     const maxIn = rs.reduce((m, r) => Math.max(m, r.In as number), 0);
     const phases = new Set(idx.map(i => lines[i].phase));
     const four = c.supply === 3 && (rs.some(r => r.three) || phases.size > 1);
+    const typeA = rs.some(r => r.rcdA);
     const need = Math.max(maxIn, sumIn);
     const In = RCD_STD.find(x => x >= need) ?? RCD_STD[RCD_STD.length - 1];
     const ma = maOf.get(z) as number;
@@ -249,7 +260,7 @@ function planUzos(lines: Line[], c: CfgN): { rows: Row[]; uzos: Uzo[] } {
         r.notes.push('Суммарная утечка групп на УЗО «' + z + '» около ' + fmt(leak, 1) + ' мА больше трети уставки ' + ma + ' мА (СН 4.04.01-2019, п. 16.3.7). Разделите помещение на два УЗО.');
       });
     }
-    return { zone: z, In, ma, four, groups: idx, leak, sumIn };
+    return { zone: z, In, ma, four, typeA, groups: idx, leak, sumIn };
   });
   return { rows, uzos };
 }
@@ -301,6 +312,12 @@ export function calcAll(lines: Line[], cfg: Cfg): Calc {
   });
   const devs: Device[] = [];
   if (inIn) devs.push({ kind: 'in', mod: c.supply === 3 ? 4 : 2, label: 'C' + inIn, sub: 'Ввод', title: 'Вводной автомат C' + inIn });
+  if (inIn && c.vr) {
+    const vr = vrRating(inIn);
+    const n = c.supply === 3 ? 3 : 1;
+    devs.push({ kind: 'vr', mod: 2 * n, label: vr ? vr + 'А' : 'РН', sub: n > 1 ? '3 × реле' : 'реле U', title: 'Реле контроля напряжения' + (n > 1 ? ', по одному на фазу' : '') + (vr ? ' ' + vr + ' А' : ', через контактор') });
+  }
+  if (inIn && c.spd) devs.push({ kind: 'spd', mod: c.supply === 3 ? 4 : 2, label: 'УЗИП', sub: 'тип 2', title: 'УЗИП тип 2 ' + (c.supply === 3 ? '3P+N' : '1P+N') });
   const groupDev = (x: Row, idx: number): Device => ({
     kind: x.r.rcbo ? 'rcd' : 'mcb',
     mod: x.r.mod,

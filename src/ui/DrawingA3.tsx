@@ -2,6 +2,7 @@ import type { Calc, Project, Row } from '../core/types';
 import { fmt, fs, pn } from '../core/format';
 import { HEAT_RX, IN_CABLE } from '../core/norms';
 import { inCableName } from '../core/protection';
+import { vrRating } from '../core/calc';
 
 const W = 420;
 const H = 297;
@@ -95,7 +96,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
   const cellVals = (o: { x: Row; i: number }, k: number): string[] => {
     const r = o.x.r;
     const vals: string[] = [label(r) + (k + 1), r.curve + r.In];
-    if (labels.some(l => l[0] === 'Дифф. ток, мА')) vals.push(r.rcbo ? String(r.ma) : (zoneOf[k] !== null ? 'QD' + ((zoneOf[k] as number) + 1) + ' / ' + a.uzos[zoneOf[k] as number].ma : '—'));
+    if (labels.some(l => l[0] === 'Дифф. ток, мА')) vals.push(r.rcbo ? r.ma + (r.rcdA ? ', тип A' : '') : (zoneOf[k] !== null ? 'QD' + ((zoneOf[k] as number) + 1) + ' / ' + a.uzos[zoneOf[k] as number].ma + (a.uzos[zoneOf[k] as number].typeA ? ' A' : '') : '—'));
     if (three) vals.push(r.three ? 'L1–L3' : o.x.l.phase);
     vals.push('ВВГнг(А)-LS', (r.three ? 5 : 3) + '×' + fs(r.S as number), r.cable > 0 ? fmt(r.cable, 0) : '—', fmt(r.pInst / 1000, 2), fmt(r.I, 1), fmt(r.drop, 1), 'Г' + (o.i + 1));
     return vals;
@@ -109,6 +110,10 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
   const brY = a.uzos.length ? 74 : 60;
   const brH = 16;
   const heatNo = a.rows.map((x, i) => (x.l.apps.some(ap => pn(ap.w, 0) > 0 && HEAT_RX.test(ap.name)) ? 'Г' + (i + 1) : '')).filter(Boolean);
+  const vr = a.devs.some(d => d.kind === 'vr');
+  const spd = a.devs.some(d => d.kind === 'spd');
+  const vrA = a.inIn ? vrRating(a.inIn) : null;
+  const SPDX = TX0 + 18;
   const objName = wrap(p.address || p.name || 'Квартира', 60, 2);
   return (
     <svg className="a3" viewBox={'0 0 ' + W + ' ' + H} width={W + 'mm'} height={H + 'mm'} role="img" aria-label="Принципиальная схема распределительной сети" fill="none" stroke="#000" strokeWidth="0.35" fontFamily="'Golos Text', Arial, sans-serif">
@@ -122,6 +127,23 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
       <text x={TX0 + 10} y="42.5" {...t} fontSize="2.4">{inLabel}</text>
       <text x={TX0 + 10} y="46" {...t} fontSize="2.2">{inCab}</text>
       <path d={'M' + (TX0 + 6) + ' 47V' + busY + 'H' + (TX1 + cw * n - cw / 2 + 2)} strokeWidth="0.9" />
+      {vr && (
+        <g>
+          <rect x={TX0 + 3.5} y={48.2} width="5" height="4.2" fill="#fff" />
+          <text x={TX0 + 6} y={51.2} {...t} fontSize="1.8" textAnchor="middle">U</text>
+          <text x={TX0 + 10} y={51.5} {...t} fontSize="2.2"><tspan fontWeight="700">KV1</tspan> реле напряжения{vrA ? ' ' + vrA + ' А' : ''}</text>
+        </g>
+      )}
+      {spd && (
+        <g>
+          <path d={'M' + SPDX + ' ' + busY + 'v6'} />
+          <rect x={SPDX - 2} y={busY + 6} width="4" height="8" fill="#fff" />
+          <path d={'M' + (SPDX - 1.2) + ' ' + (busY + 12.5) + 'l2.4 -5M' + (SPDX + 1.2) + ' ' + (busY + 7.5) + 'l-1 0.3M' + (SPDX + 1.2) + ' ' + (busY + 7.5) + 'l-0.2 1'} />
+          <path d={'M' + SPDX + ' ' + (busY + 14) + 'v3M' + (SPDX - 2.5) + ' ' + (busY + 17) + 'h5M' + (SPDX - 1.6) + ' ' + (busY + 18) + 'h3.2M' + (SPDX - 0.8) + ' ' + (busY + 19) + 'h1.6'} />
+          <text x={SPDX + 3.5} y={busY + 9} {...t} fontSize="2.4" fontWeight="700">FV1</text>
+          <text x={SPDX + 3.5} y={busY + 12.5} {...t} fontSize="2.2">УЗИП тип 2</text>
+        </g>
+      )}
       {a.uzos.map((u, k) => {
         const idx = zoneOf.map((z, j) => (z === k ? j : -1)).filter(j => j >= 0);
         if (!idx.length) return null;
@@ -131,7 +153,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
           <g key={'u' + k}>
             <Breaker x={x0} y={busY} h={14} diff />
             <text x={x0 + 3.5} y={busY + 6} {...t} fontSize="2.4" fontWeight="700">QD{k + 1}</text>
-            <text x={x0 + 3.5} y={busY + 9.5} {...t} fontSize="2.2">{u.In} А, {u.ma} мА</text>
+            <text x={x0 + 3.5} y={busY + 9.5} {...t} fontSize="2.2">{u.In} А, {u.ma} мА{u.typeA ? ', тип A' : ''}</text>
             <path d={'M' + x0 + ' ' + (busY + 14) + 'V' + (brY - 2) + 'M' + (x0 - 1) + ' ' + (brY - 2) + 'H' + (x1 + 1)} strokeWidth="0.7" />
           </g>
         );
@@ -176,7 +198,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
       <g>
         <text x={TX0} y={tableBottom + 8} {...t} fontSize="2.8" fontWeight="700">Итого по щитку</text>
         <text x={TX0} y={tableBottom + 13} {...t} fontSize="2.5">Руст = {fmt(a.sumInst / 1000, 2)} кВт; Ко = {fs(c.ko)}; Рр = {fmt(a.P / 1000, 2)} кВт; Iр = {fmt(a.Itot, 1)} А{three ? ' (наиболее загруженная фаза)' : ''}.</text>
-        <text x={TX0} y={tableBottom + 17.5} {...t} fontSize="2.5">Выделенная мощность {fmt(c.alloc, 1)} кВт. Корпус щитка на {a.size} модулей.</text>
+        <text x={TX0} y={tableBottom + 17.5} {...t} fontSize="2.5">Выделенная мощность {fmt(c.alloc, 1)} кВт. Корпус щитка на {a.size} модулей.{vr ? ' Реле напряжения KV1' + (three ? ' по одному на фазу' : '') + (vrA ? ', ' + vrA + ' А.' : ', через контактор.') : ''}{spd ? ' УЗИП FV1 тип 2 ' + (three ? '3P+N.' : '1P+N.') : ''}</text>
         <text x={TX0} y={tableBottom + 25} {...t} fontSize="2.8" fontWeight="700">Примечания</text>
         {[
           '1. Схема выполнена по ГОСТ 21.613-2014. Расчёт по ТКП 339-2022 с изм. № 1 и СН 4.04.01-2019.',

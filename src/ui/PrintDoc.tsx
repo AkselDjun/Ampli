@@ -131,7 +131,7 @@ function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
   );
 }
 
-const STK_KIND: Record<string, string> = { light: 'Свет', socket: 'Розетки', power: 'Силовая', in: 'Ввод', uzo: 'УЗО' };
+const STK_KIND: Record<string, string> = { light: 'Свет', socket: 'Розетки', power: 'Силовая', in: 'Ввод', uzo: 'УЗО', vr: 'Реле U', spd: 'УЗИП' };
 
 function StkIcon({ k }: { k: string }) {
   const d: Record<string, JSX.Element> = {
@@ -139,7 +139,9 @@ function StkIcon({ k }: { k: string }) {
     socket: <><circle cx="12" cy="12" r="8" /><circle cx="9" cy="12" r="1.2" /><circle cx="15" cy="12" r="1.2" /></>,
     power: <path d="M13 2 5 13h6l-1 9 8-11h-6z" />,
     in: <><path d="M4 12h12" /><path d="m12 7 5 5-5 5" /><path d="M20 4v16" /></>,
-    uzo: <><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" /><path d="M12 8v5M12 16v.01" /></>
+    uzo: <><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" /><path d="M12 8v5M12 16v.01" /></>,
+    spd: <><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" /><path d="m13 7-3 5h4l-3 5" /></>,
+    vr: <><circle cx="12" cy="12" r="8" /><path d="m8.5 9 3.5 7 3.5-7" /></>
   };
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{d[k]}</svg>;
 }
@@ -150,18 +152,19 @@ function StickersDoc({ p, a }: { p: Project; a: Calc }) {
   const slots = layout(a.devs, rl);
   a.devs.forEach((d, i) => {
     while (rows.length <= slots[i].row) rows.push([]);
-    const g = d.kind === 'in' || d.kind === 'uzo' ? '' : d.sub.split(' ')[0];
+    const fixed = d.kind === 'in' || d.kind === 'uzo' || d.kind === 'spd' || d.kind === 'vr';
+    const g = fixed ? '' : d.sub.split(' ')[0];
     const line = g ? a.rows[Number(g.slice(1)) - 1] : undefined;
-    const k = d.kind === 'in' ? 'in' : (d.kind === 'uzo' ? 'uzo' : (line?.l.type ?? 'socket'));
-    const nm = d.kind === 'in' ? 'Вся квартира' : (d.kind === 'uzo' ? (d.zone ?? '') : (line?.l.name || ''));
-    rows[rows.length - 1].push({ d, k, no: d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : g), nm });
+    const k = fixed ? d.kind : (line?.l.type ?? 'socket');
+    const nm = d.kind === 'in' ? 'Вся квартира' : (d.kind === 'uzo' ? (d.zone ?? '') : (d.kind === 'spd' ? 'Защита от перенапряжений' : (d.kind === 'vr' ? 'Контроль напряжения' : (line?.l.name || ''))));
+    rows[rows.length - 1].push({ d, k, no: d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (d.kind === 'spd' ? 'УЗИП' : (d.kind === 'vr' ? 'Реле U' : g))), nm });
   });
   return (
     <>
       <h1>Наклейки для щитка</h1>
       <p className="pd-sub">{p.name || 'Без названия'}. Наклейки разложены по рядам щитка на {a.size} модулей: каждую полосу можно вырезать целиком. Ширина ячейки равна ширине аппарата (1 модуль = 17,5 мм).</p>
       <div className="stk-legend">
-        {['in', 'uzo', 'light', 'socket', 'power'].filter(k => rows.some(r => r.some(x => x.k === k))).map(k => (
+        {['in', 'vr', 'spd', 'uzo', 'light', 'socket', 'power'].filter(k => rows.some(r => r.some(x => x.k === k))).map(k => (
           <span key={k} className={'stk-k k-' + k}><StkIcon k={k} />{STK_KIND[k]}</span>
         ))}
       </div>
@@ -458,7 +461,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
       </table>
       <h2>Ввод и щиток</h2>
       <p>
-        Вводной автомат: {a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—'}{a.inS ? ', кабель ввода ' + inCableName(c, a.inS) : ''}. Защита групп: {c.rcdMode ? 'УЗО на помещение и автоматы, у каждого УЗО своя шина N' : 'дифавтомат на каждую группу'}. Щиток на {a.size} модулей, занято {a.modSum}.
+        Вводной автомат: {a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—'}{a.inS ? ', кабель ввода ' + inCableName(c, a.inS) : ''}. Защита групп: {c.rcdMode ? 'УЗО на помещение и автоматы, у каждого УЗО своя шина N' : 'дифавтомат на каждую группу'}{a.rows.some(x => x.r.rcd && x.r.rcdA && !x.r.empty) ? ', тип A для групп с электроникой' : ''}.{a.devs.some(d => d.kind === 'vr') ? ' Реле контроля напряжения после вводного автомата.' : ''}{a.devs.some(d => d.kind === 'spd') ? ' УЗИП тип 2 после вводного автомата.' : ''} Щиток на {a.size} модулей, занято {a.modSum}.
       </p>
       {a.phases && (
         <p>Токи по фазам: L1 {fmt(a.phases.L1, 1)} А, L2 {fmt(a.phases.L2, 1)} А, L3 {fmt(a.phases.L3, 1)} А; перекос {fmt(a.imb, 0)} %.</p>

@@ -16,13 +16,15 @@ describe('water heaters and heating (СН 4.04.01-2019, п. 14.4)', () => {
   it('notes the plug-free connection from 07.12.2026 without a warning for a separate line', () => {
     const r = row([['Водонагреватель', 2000, 1]]);
     expect(r.status).toBe('ok');
-    expect(r.notes).toEqual(['С 07.12.2026 по изменению № 2 к СН 4.04.01-2019 (п. 14.4) водонагреватели и приборы отопления любой мощности подключают неразъёмно, без вилки и розетки.']);
+    expect(r.notes).toEqual([]);
+    expect(r.tips).toEqual(['С 07.12.2026 по изменению № 2 к СН 4.04.01-2019 (п. 14.4) водонагреватели и приборы отопления любой мощности подключают неразъёмно, без вилки и розетки.']);
   });
 
   it('requires a plug-free connection now for devices above 5 kW', () => {
     const r = row([['Электрокотёл', 6000, 1]]);
     expect(r.notes.join(' ')).toMatch(/^Прибор мощнее 5 кВт: подключение неразъёмное, без вилки и розетки \(СН 4\.04\.01-2019, п\. 14\.4\)\. С 07\.12\.2026/);
-    expect(row([['Тёплый пол', 3000, 2]]).notes.join(' ')).not.toContain('мощнее 5 кВт');
+    expect(row([['Тёплый пол', 3000, 2]]).tips.join(' ')).not.toContain('мощнее 5 кВт');
+    expect(row([['Тёплый пол', 3000, 2]]).notes).toEqual([]);
   });
 
   it('warns when a heater shares the line with other appliances', () => {

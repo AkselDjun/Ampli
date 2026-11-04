@@ -103,6 +103,8 @@ export interface Cfg {
   prot?: string;
   box?: string;
   inCable?: string;
+  spd?: string;
+  vr?: string;
 }
 
 export interface Project {
@@ -145,6 +147,8 @@ export interface CfgN {
   box: BoxType;
   boxAuto: boolean;
   inCable: InCable;
+  spd: boolean;
+  vr: boolean;
 }
 
 export interface LineResult {
@@ -157,9 +161,11 @@ export interface LineResult {
   cos: number;
   kc: number;
   notes: string[];
+  tips: string[];
   status: Status;
   rcd: boolean;
   rcbo: boolean;
+  rcdA: boolean;
   zone: string;
   uzo: number | null;
   cable: number;
@@ -184,7 +190,7 @@ export interface LineResult {
 }
 
 export interface Device {
-  kind: 'in' | 'rcd' | 'uzo' | 'mcb';
+  kind: 'in' | 'rcd' | 'uzo' | 'mcb' | 'spd' | 'vr';
   mod: number;
   label: string;
   sub: string;
@@ -212,6 +218,7 @@ export interface Uzo {
   In: number;
   ma: number;
   four: boolean;
+  typeA: boolean;
   groups: number[];
   leak: number;
   sumIn: number;

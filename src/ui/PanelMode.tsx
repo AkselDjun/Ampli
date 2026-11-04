@@ -17,6 +17,8 @@ const FIELDS: { f: MeasField; label: string; unit: string; step: number }[] = [
   { f: 'rcd', label: 'Отключение УЗО', unit: 'мс', step: 1 }
 ];
 
+const STRIP: Record<string, [string, string]> = { in: ['Ввод', 'вся квартира'], uzo: ['УЗО', ''], spd: ['УЗИП', 'перенапряж.'], vr: ['Реле U', 'напряжение'], rcd: ['', ''], mcb: ['', ''] };
+
 const pillOf = (v: ProtoRow['verdict']): string => (v === 'ok' ? 'ok' : (v === 'bad' ? 'bad' : 'warn'));
 
 export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClose: () => void; a: Calc; dispatch: (x: Action) => void }) {
@@ -72,7 +74,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
                     <Fragment key={d.kind + i}>
                       {gaps}
                       <div className={'pmb-dev k-' + d.kind} style={style} data-tip={d.title}>
-                        <span className="pmb-strip"><b>{d.kind === 'in' ? 'Ввод' : 'УЗО'}</b><span>{d.kind === 'in' ? 'вся квартира' : d.zone}</span></span>
+                        <span className="pmb-strip"><b>{STRIP[d.kind][0]}</b><span>{d.kind === 'uzo' ? d.zone : STRIP[d.kind][1]}</span></span>
                         <span className="pmb-scr" />
                         <span className="pmb-rate">{d.label}</span>
                         <span className="pmb-lever v-in" />

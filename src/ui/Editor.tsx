@@ -171,7 +171,7 @@ export function Editor({
                   <Tile label="Ток" val={fmt(r.I, 1) + NB + 'А'} sub={'нагрузка ' + fmt(r.pd, 0) + NB + 'Вт'} />
                   {r.In ? (
                     <>
-                      <Tile label="Автомат" val={r.curve + r.In} sub={r.rcbo ? 'дифавтомат ' + r.ma + ' мА' : r.rcd ? 'УЗО «' + r.zone + '» ' + r.ma + ' мА' : 'автомат'} />
+                      <Tile label="Автомат" val={r.curve + r.In} sub={(r.rcbo ? 'дифавтомат ' + r.ma + ' мА' : r.rcd ? 'УЗО «' + r.zone + '» ' + r.ma + ' мА' : 'автомат') + (r.rcd && r.rcdA ? ', тип A' : '')} />
                       <Tile label="Кабель" val={fs(r.S as number) + NB + 'мм²'} sub={(r.three ? 5 : 3) + '-жильный'} />
                       <Tile label="Потеря" val={fmt(r.drop, 1) + NB + '%'} sub={'напряжения, до ' + fmt(r.limit, 1) + NB + '%'} />
                     </>
@@ -194,6 +194,7 @@ export function Editor({
             )}
             <ul className="notes">
               {!r.empty && r.notes.map(n => <li key={n}>{n}</li>)}
+              {!r.empty && r.tips.map(n => <li key={n} className="tip-n">{n}</li>)}
             </ul>
             <div className="why">
               {!r.empty && (

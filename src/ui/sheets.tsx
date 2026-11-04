@@ -56,6 +56,17 @@ export function NetSheet({
         <span className="lbl-row"><span className="lbl" id="l-prot">Защита групп</span><Tip label="О защите групп">Дифавтомат на группу: при неисправности отключается только эта группа, щиток шире. УЗО на помещение: группы одного помещения подключаются через общее УЗО с автоматами после него, у каждого УЗО своя нулевая шина. Помещение задаётся в карточке группы.</Tip></span>
         <Seg<string> name="prot" labelledBy="l-prot" value={c.rcdMode ? 'rcd' : 'rcbo'} items={[['rcbo', 'Дифавтомат на группу'], ['rcd', 'УЗО на помещение + автоматы']]} onChange={v => dispatch({ t: 'cfg', field: 'prot', value: v })} />
       </div>
+      <fieldset className="net-opts">
+        <legend className="lbl">Защита всего щитка</legend>
+        <label>
+          <input type="checkbox" checked={c.vr} onChange={e => dispatch({ t: 'cfg', field: 'vr', value: e.target.checked ? 'on' : '' })} />
+          <span><b>Реле контроля напряжения</b><small>Отключит квартиру при скачке напряжения или обрыве нуля в подъезде</small></span>
+        </label>
+        <label>
+          <input type="checkbox" checked={c.spd} onChange={e => dispatch({ t: 'cfg', field: 'spd', value: e.target.checked ? 'on' : '' })} />
+          <span><b>УЗИП тип 2</b><small>Защита техники от импульсных перенапряжений при грозе и переключениях в сети</small></span>
+        </label>
+      </fieldset>
       <details className="bd-help net-more">
         <summary>Для точного расчёта<small>{[IN_CABLE[c.inCable], c.boxAuto ? 'коробки по прокладке' : 'коробки ' + BOX_NAME[c.box], 'петля сети ' + fmt(c.zs, 2) + ' Ом', 'одновременность ' + fs(c.ko), 'поправка на группировку ' + fs(c.k), c.safe ? 'сечение с запасом' : 'сечение по норме'].concat(c.feeder > 0 ? ['потеря до щитка ' + fs(c.feeder) + ' %'] : []).join(' · ')}</small></summary>
         <div className="net-more-b">

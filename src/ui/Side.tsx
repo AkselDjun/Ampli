@@ -26,6 +26,8 @@ export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: ()
   );
 }
 
+const EXTRA: Record<string, [string, string]> = { spd: ['УЗИП', 'Защита от перенапряжений'], vr: ['Реле U', 'Реле контроля напряжения'] };
+
 export function shortName(t: string): string {
   const w = (t.trim().split(/[\s,:;]+/)[0] ?? '').replace(/[^\p{L}\d-]/gu, '');
   if (w.length <= 6) return w;
@@ -63,7 +65,7 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
                   <div key={'in' + i} className={cls} style={style} data-tip={d.title}>
                     <b>{d.label}</b>
                     <i>{d.sub}</i>
-                    <em className="dev-cap">{d.kind === 'in' ? 'Ввод' : d.zone}</em>
+                    <em className="dev-cap">{d.kind === 'in' ? 'Ввод' : (d.kind === 'spd' || d.kind === 'vr' ? EXTRA[d.kind][0] : d.zone)}</em>
                   </div>
                 );
               }
@@ -110,6 +112,8 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
           <span><i className="dev-in" />Ввод</span>
           {(['light', 'socket', 'power'] as const).filter(t => a.rows.some(x => x.l.type === t && x.r.In)).map(t => <span key={t}><i className="lg-ty" data-t={t} />{t === 'light' ? 'Свет' : (t === 'socket' ? 'Розетки' : 'Силовая')}</span>)}
           {kinds.has('uzo') && <span><i className="dev-uzo" />УЗО</span>}
+          {kinds.has('vr') && <span><i className="dev-vr" />Реле напряжения</span>}
+          {kinds.has('spd') && <span><i className="dev-spd" />УЗИП</span>}
           <span><i className="dev-free" style={{ border: '1px dashed var(--ink-2)' }} />Резерв</span>
           <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Порядок меняется перетаскиванием или клавишами Alt и стрелка. Цвет рычажка показывает статус группы.</Tip>
         </div>
@@ -120,11 +124,12 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
             const load = d.kind === 'in' ? (a.inIn ? a.Itot / a.inIn * 100 : 0) : (row && row.r.In ? row.r.I / row.r.In * 100 : null);
             const cl = load === null ? '' : (load > 100 ? 'bad' : (load > 80 ? 'warn' : ''));
             const u = d.kind === 'uzo' ? a.uzos.find(z => z.zone === d.zone) : undefined;
-            const name = d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? 'УЗО: ' + d.zone : nameOf[g]);
-            const kind = d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'rcd' ? 'дифавтомат ' + d.ma + ' мА' : (d.kind === 'uzo' ? d.sub.replace('мА', ' мА') + ', своя шина N' : 'автомат'));
+            const extra = d.kind === 'spd' || d.kind === 'vr';
+            const name = d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? 'УЗО: ' + d.zone : (extra ? EXTRA[d.kind][1] : nameOf[g]));
+            const kind = d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'rcd' ? 'дифавтомат ' + d.ma + ' мА' + (row?.r.rcdA ? ', тип A' : '') : (d.kind === 'uzo' ? d.sub.replace('мА', ' мА') + (u?.typeA ? ', тип A' : '') + ', своя шина N' : (d.kind === 'spd' ? 'тип 2, ' + (c.supply === 3 ? '3P+N' : '1P+N') : (d.kind === 'vr' ? (c.supply === 3 ? 'по одному на фазу' : 'отключит квартиру при скачке напряжения') : 'автомат'))));
             const body = (
               <>
-                <span className={'bd-no k-' + d.kind}>{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : g)}</span>
+                <span className={'bd-no k-' + d.kind}>{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (extra ? (d.kind === 'spd' ? 'FV' : 'KV') : g))}</span>
                 <span className="bd-main">
                   <span className="bd-name">{name}</span>
                   <span className="bd-sub">{kind}{row && row.r.S ? ', ' + fs(row.r.S) + ' мм²' : ''}{u ? ' · ' + u.groups.map(k => 'Г' + (k + 1)).join(', ') : ''}</span>
