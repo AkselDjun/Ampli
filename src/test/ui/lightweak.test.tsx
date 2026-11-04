@@ -167,3 +167,35 @@ describe('report sections', () => {
     expect(t).toContain('оптический терминал провайдера и роутер, коммутатор на 5 портов с PoE');
   });
 });
+
+describe('arc fault devices in the interface', () => {
+  it('turns on from the network sheet and shows on the board, list and report', () => {
+    wide(true);
+    render(<App />);
+    fireEvent.click(within(box()).getByRole('button', { name: 'Параметры сети' }));
+    const d = dlg('Параметры сети');
+    fireEvent.click(d.querySelector('input[name="afdd"][value="sock"]') as HTMLInputElement);
+    expect(stored().list[0].cfg.afdd).toBe('sock');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(within(box()).getByRole('button', { name: 'Параметры сети' }).textContent).toContain('УЗДП на розетки');
+    const arcs = document.querySelectorAll('.rail .dev.arc');
+    expect(arcs.length).toBeGreaterThan(0);
+    expect(arcs[0].querySelector('.dev-arc')?.textContent).toBe('ДП');
+    expect(Array.from(document.querySelectorAll('.legend > span')).map(s => s.textContent)).toContain('УЗДП');
+    expect(document.querySelector('.bd-list')?.textContent).toContain('УЗДП с автоматом');
+    fireEvent.click(within(box()).getByRole('button', { name: 'Параметры сети' }));
+    fireEvent.click(dlg('Параметры сети').querySelector('input[name="afdd"][value="all"]') as HTMLInputElement);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(within(box()).getByRole('button', { name: 'Параметры сети' }).textContent).toContain('УЗДП на группы');
+  });
+
+  it('prints the arc fault protection in the report', () => {
+    const p = { ...sampleProject(), cfg: { ...sampleProject().cfg, afdd: 'all' } };
+    render(<PrintDoc p={p} a={calcAll(p.lines, p.cfg)} />);
+    const t = (document.querySelector('.printdoc') as HTMLElement).textContent ?? '';
+    expect(t).toContain('УЗДП на однофазные группы');
+    const q = { ...sampleProject(), cfg: { ...sampleProject().cfg, afdd: 'sock' } };
+    render(<PrintDoc p={q} a={calcAll(q.lines, q.cfg)} />);
+    expect(document.querySelectorAll('.printdoc')[1].textContent).toContain('УЗДП на розеточные группы');
+  });
+});

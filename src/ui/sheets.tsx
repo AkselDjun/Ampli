@@ -56,6 +56,10 @@ export function NetSheet({
         <span className="lbl-row"><span className="lbl" id="l-prot">Защита групп</span><Tip label="О защите групп">Дифавтомат на группу: при неисправности отключается только эта группа, щиток шире. УЗО на помещение: группы одного помещения подключаются через общее УЗО с автоматами после него, у каждого УЗО своя нулевая шина. Помещение задаётся в карточке группы.</Tip></span>
         <Seg<string> name="prot" labelledBy="l-prot" value={c.rcdMode ? 'rcd' : 'rcbo'} items={[['rcbo', 'Дифавтомат на группу'], ['rcd', 'УЗО на помещение + автоматы']]} onChange={v => dispatch({ t: 'cfg', field: 'prot', value: v })} />
       </div>
+      <div className="f">
+        <span className="lbl-row"><span className="lbl" id="l-afdd">УЗДП, защита от дугового пробоя</span><Tip label="Об УЗДП">Отключает линию при искрении в ослабленном контакте или повреждённом кабеле, которое автомат и УЗО не видят. Нормы Беларуси для квартир УЗДП не требуют, ставится по желанию заказчика: чаще на розетки спален и детских, при старой проводке. В расчёте это УЗДП, совмещённое с автоматом или дифавтоматом группы, 1P+N, 2 модуля, только для однофазных групп.</Tip></span>
+        <Seg<string> name="afdd" labelledBy="l-afdd" value={c.afdd} items={[['off', 'Нет'], ['sock', 'На розетки'], ['all', 'На все группы']]} onChange={v => dispatch({ t: 'cfg', field: 'afdd', value: v })} />
+      </div>
       <fieldset className="net-opts">
         <legend className="lbl">Защита всего щитка</legend>
         <label>

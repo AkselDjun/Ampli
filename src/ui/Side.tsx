@@ -58,7 +58,7 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
         <div className="rail-wrap">
           <div className="rail" data-rc={rl} style={{ ['--rc' as string]: rl }}>
             {a.devs.map((d, i) => <Fragment key={(d.lid ?? d.kind) + i}>{Array.from({ length: gapBefore[i] }, (_, g) => <div key={'g' + g} className="dev dev-free" data-tip="Резерв" />)}{((): JSX.Element => {
-              const cls = 'dev dev-' + d.kind + (d.st ? ' st-' + d.st : '') + (d.lid && drag === d.lid ? ' drag' : '') + (d.lid && over === d.lid && drag !== d.lid ? ' over' : '') + (d.lid && d.lid === sel ? ' sel' : '') + (d.lid && d.lid === hot ? ' hot' : '');
+              const cls = 'dev dev-' + d.kind + (d.arc ? ' arc' : '') + (d.st ? ' st-' + d.st : '') + (d.lid && drag === d.lid ? ' drag' : '') + (d.lid && over === d.lid && drag !== d.lid ? ' over' : '') + (d.lid && d.lid === sel ? ' sel' : '') + (d.lid && d.lid === hot ? ' hot' : '');
               const style = { gridColumn: 'span ' + d.mod, ['--i' as string]: i };
               if (!d.lid) {
                 return (
@@ -97,6 +97,7 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
                     if (t) { e.preventDefault(); onMove(lid, t); }
                   }}
                 >
+                  {d.arc && <span className="dev-arc" aria-hidden="true">ДП</span>}
                   <b>{d.label}</b>
                   <i>{d.sub}</i>
                   <em className={'dev-cap' + (d.mod === 1 ? ' sm' : '')}>{d.mod === 1 ? shortName(nameOf[d.sub.split(' ')[0]]) : nameOf[d.sub.split(' ')[0]]}</em>
@@ -114,6 +115,7 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
           {kinds.has('uzo') && <span><i className="dev-uzo" />УЗО</span>}
           {kinds.has('vr') && <span><i className="dev-vr" />Реле напряжения</span>}
           {kinds.has('spd') && <span><i className="dev-spd" />УЗИП</span>}
+          {a.devs.some(d => d.arc) && <span><i className="lg-arc" />УЗДП</span>}
           <span><i className="dev-free" style={{ border: '1px dashed var(--ink-2)' }} />Резерв</span>
           <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Порядок меняется перетаскиванием или клавишами Alt и стрелка. Цвет рычажка показывает статус группы.</Tip>
         </div>
@@ -126,7 +128,7 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
             const u = d.kind === 'uzo' ? a.uzos.find(z => z.zone === d.zone) : undefined;
             const extra = d.kind === 'spd' || d.kind === 'vr';
             const name = d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? 'УЗО: ' + d.zone : (extra ? EXTRA[d.kind][1] : nameOf[g]));
-            const kind = d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'rcd' ? 'дифавтомат ' + d.ma + ' мА' + (row?.r.rcdA ? ', тип A' : '') : (d.kind === 'uzo' ? d.sub.replace('мА', ' мА') + (u?.typeA ? ', тип A' : '') + ', своя шина N' : (d.kind === 'spd' ? 'тип 2, ' + (c.supply === 3 ? '3P+N' : '1P+N') : (d.kind === 'vr' ? (c.supply === 3 ? 'по одному на фазу' : 'отключит квартиру при скачке напряжения') : 'автомат'))));
+            const kind = d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'rcd' ? (d.arc ? 'УЗДП с дифавтоматом ' : 'дифавтомат ') + d.ma + ' мА' + (row?.r.rcdA ? ', тип A' : '') : (d.kind === 'uzo' ? d.sub.replace('мА', ' мА') + (u?.typeA ? ', тип A' : '') + ', своя шина N' : (d.kind === 'spd' ? 'тип 2, ' + (c.supply === 3 ? '3P+N' : '1P+N') : (d.kind === 'vr' ? (c.supply === 3 ? 'по одному на фазу' : 'отключит квартиру при скачке напряжения') : (d.arc ? 'УЗДП с автоматом' : 'автомат')))));
             const body = (
               <>
                 <span className={'bd-no k-' + d.kind}>{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (extra ? (d.kind === 'spd' ? 'FV' : 'KV') : g))}</span>

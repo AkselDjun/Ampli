@@ -154,7 +154,8 @@ export function GroupList({
     ['Защита', c.rcdMode ? 'УЗО на помещение' : 'дифавтоматы'],
     ['Выделено', fmt(c.alloc, 1) + ' кВт'],
     ...(c.vr ? [['Реле', 'реле напряжения'] as [string, string]] : []),
-    ...(c.spd ? [['УЗИП', 'УЗИП'] as [string, string]] : [])
+    ...(c.spd ? [['УЗИП', 'УЗИП'] as [string, string]] : []),
+    ...(c.afdd !== 'off' ? [['УЗДП', c.afdd === 'sock' ? 'УЗДП на розетки' : 'УЗДП на группы'] as [string, string]] : [])
   ];
   const lr = (p.light ?? []).map(lightCalc).filter(r => r.ok);
   const lightLabel = lr.length ? lr.length + ' ' + plural(lr.length, ['помещение', 'помещения', 'помещений']) + ', ' + fmt(lr.reduce((s2, r) => s2 + r.watts, 0), 0) + ' Вт' : 'сколько светильников';

@@ -2,13 +2,15 @@ import type { CfgN, LineResult, Uzo } from './types';
 import { IN_CABLE } from './norms';
 import { fs } from './format';
 
-export const poles = (r: LineResult): string => (r.three ? (r.rcbo ? '4P' : '3P') : (r.rcbo ? '1P+N' : '1P'));
+export const poles = (r: LineResult): string => (r.three ? (r.rcbo ? '4P' : '3P') : (r.rcbo || r.arc ? '1P+N' : '1P'));
+
+const head = (r: LineResult): string => (r.arc ? (r.rcbo ? 'УЗДП с дифавтоматом ' : 'УЗДП с автоматом ') : (r.rcbo ? 'Дифавтомат ' : 'Автомат '));
 
 export const protFull = (r: LineResult): string =>
-  (r.rcbo ? 'Дифавтомат ' : 'Автомат ') + poles(r) + ' ' + r.curve + r.In + (r.rcbo ? ' ' + r.ma + ' мА' + (r.rcdA ? ' тип A' : '') : '');
+  head(r) + poles(r) + ' ' + r.curve + r.In + (r.rcbo ? ' ' + r.ma + ' мА' + (r.rcdA ? ' тип A' : '') : '');
 
 export const protName = (r: LineResult): string =>
-  (r.rcbo ? 'Дифавтомат ' : 'Автомат ') + r.curve + r.In + (r.rcbo ? ' · ' + r.ma + ' мА' + (r.rcdA ? ' · тип A' : '') : '');
+  head(r) + r.curve + r.In + (r.rcbo ? ' · ' + r.ma + ' мА' + (r.rcdA ? ' · тип A' : '') : '');
 
 export const cableName = (r: LineResult): string => 'ВВГнг(А)-LS ' + (r.three ? 5 : 3) + '×' + fs(r.S as number);
 

@@ -8,6 +8,7 @@ export type Status = 'ok' | 'warn' | 'bad';
 export type Num = number | string;
 export type BoxType = 'brick' | 'gkl' | 'surface';
 export type InCable = 'vvg' | 'frls' | 'nym';
+export type AfddMode = 'off' | 'sock' | 'all';
 
 export interface App {
   id: string;
@@ -107,6 +108,7 @@ export interface Cfg {
   inCable?: string;
   spd?: string;
   vr?: string;
+  afdd?: string;
 }
 
 export interface Project {
@@ -153,6 +155,7 @@ export interface CfgN {
   inCable: InCable;
   spd: boolean;
   vr: boolean;
+  afdd: AfddMode;
 }
 
 export interface LineResult {
@@ -170,6 +173,7 @@ export interface LineResult {
   rcd: boolean;
   rcbo: boolean;
   rcdA: boolean;
+  arc: boolean;
   zone: string;
   uzo: number | null;
   cable: number;
@@ -204,6 +208,7 @@ export interface Device {
   zone?: string;
   ph?: Phase;
   st?: Status;
+  arc?: boolean;
 }
 
 export interface Row {

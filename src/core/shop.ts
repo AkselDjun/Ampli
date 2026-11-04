@@ -13,6 +13,7 @@ export interface Attrs {
   modules: number;
   bus: string;
   typeA?: boolean;
+  arc?: boolean;
 }
 
 export interface Offer {
@@ -111,6 +112,7 @@ export function parseAttrs(raw: string): Attrs {
     const mm = s.match(/(\d{1,3})\s?(?:ма|ma)(?![а-яa-z])/);
     if (mm) a.ma = Number(mm[1]);
     if (/типа?\s+[aа](?![cсa-zа-я0-9])/.test(s)) a.typeA = true;
+    if (/уздп|дугов|\bafdd\b/.test(s)) a.arc = true;
     return a;
   }
   return a;
@@ -125,6 +127,7 @@ export function matches(want: Attrs, got: Attrs): boolean {
   if (want.kind === 'relay') return !want.amp || got.amp >= want.amp;
   if (want.kind === 'rcd') return got.amp === want.amp && (!want.poles || !got.poles || want.poles === got.poles) && (!want.ma || !got.ma || want.ma === got.ma) && (!want.typeA || !!got.typeA);
   if (!got.amp || want.amp !== got.amp) return false;
+  if (!!want.arc !== !!got.arc) return false;
   if (want.curve && got.curve && want.curve !== got.curve) return false;
   if (want.poles && got.poles && want.poles !== got.poles) return false;
   if (want.kind === 'rcbo' && want.ma && got.ma && want.ma !== got.ma) return false;
@@ -144,6 +147,7 @@ export function shopQuery(item: SpecItem): string {
   if (w.kind === 'cable') return 'ВВГнг-LS ' + w.cores + 'х' + String(w.sect).replace('.', ',');
   if (w.kind === 'board') return 'Щиток встраиваемый ' + w.modules + ' модулей';
   if (w.kind === 'bus') return w.bus === 'pe' ? 'Шина PE заземления на DIN-рейку' : 'Шина N нулевая на DIN-рейку';
+  if (w.arc) return (w.kind === 'rcbo' ? 'УЗДП с дифавтоматом ' : 'УЗДП с автоматом ') + w.curve + w.amp + (w.ma ? ' ' + w.ma + ' мА' : '');
   if (w.kind === 'breaker') return 'Автоматический выключатель ' + w.poles + 'P ' + w.curve + w.amp;
   if (w.kind === 'rcbo') return 'Дифавтомат ' + w.poles + 'P ' + w.curve + w.amp + (w.ma ? ' ' + w.ma + ' мА' : '') + (w.typeA ? ' тип A' : '');
   if (w.kind === 'rcd') return 'УЗО ' + (w.poles ? w.poles + 'P ' : '') + w.amp + 'А ' + w.ma + ' мА' + (w.typeA ? ' тип A' : '');

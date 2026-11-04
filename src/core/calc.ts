@@ -20,7 +20,8 @@ export function cfgN(c: Cfg): CfgN {
     boxAuto: !isBox(c.box),
     inCable: c.inCable === 'frls' || c.inCable === 'nym' ? (c.inCable as InCable) : 'vvg',
     spd: c.spd === 'on',
-    vr: c.vr === 'on'
+    vr: c.vr === 'on',
+    afdd: c.afdd === 'sock' || c.afdd === 'all' ? c.afdd : 'off'
   };
 }
 
@@ -61,10 +62,12 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
   const ma = !t.rcd ? 0 : (zoneMa ?? (l.wet ? 10 : (I > 32 ? 100 : 30)));
   const aApps = live.filter(a => TYPE_A_RX.test(a.name));
   const rcdA = t.rcd && aApps.length > 0;
+  const arc = !three && (c.afdd === 'all' || (c.afdd === 'sock' && l.type === 'socket'));
+  const arcSkip = three && c.afdd === 'all';
   const r: LineResult = {
-    limit: lim, pInst, pd, I, three, len, cos, kc, notes: [], tips: [], status: 'ok', rcd: t.rcd, rcbo, rcdA, zone: c.rcdMode ? zoneOf(l) : '', uzo: null, cable, sockets: nSock,
+    limit: lim, pInst, pd, I, three, len, cos, kc, notes: [], tips: [], status: 'ok', rcd: t.rcd, rcbo, rcdA, arc, zone: c.rcdMode ? zoneOf(l) : '', uzo: null, cable, sockets: nSock,
     ma, curve: t.curve, In: null, S: null, drop: 0, empty: false,
-    mod: three ? (rcbo ? 4 : 3) : (rcbo ? 2 : 1), ik: 0, ikNeed: 0, ikSrc: 'calc',
+    mod: three ? (rcbo ? 4 : 3) : (rcbo || arc ? 2 : 1), ik: 0, ikNeed: 0, ikSrc: 'calc',
     zsMeas: null, insMeas: null, leakMeas: null, leakLim: 0, leakEst: 0, rcdMeas: null, rcdLim: 0
   };
   if (pInst <= 0) {
@@ -166,6 +169,7 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
     const names = aApps.map(a => a.name.trim().toLowerCase()).filter((v, i, arr) => arr.indexOf(v) === i);
     r.tips.push('УЗО типа A: ' + names.join(', ') + (names.length > 1 ? ' дают' : ' даёт') + ' пульсирующий ток утечки, на который УЗО типа AC может не сработать.');
   }
+  if (arcSkip) r.tips.push('УЗДП не ставится: трёхфазная линия, защита от дугового пробоя в расчёте только для однофазных групп.');
   const heat = live.filter(a => HEAT_RX.test(a.name));
   if (heat.length) {
     if (live.length > heat.length) {
@@ -325,6 +329,7 @@ export function calcAll(lines: Line[], cfg: Cfg, weak?: Weak): Calc {
     mod: x.r.mod,
     label: x.r.curve + x.r.In,
     sub: 'Г' + (idx + 1) + (x.r.rcbo ? ' ' + x.r.ma + 'мА' : ''),
+    ...(x.r.arc ? { arc: true } : {}),
     ma: x.r.ma,
     title: 'Г' + (idx + 1) + ' ' + x.l.name,
     lid: x.l.id,
