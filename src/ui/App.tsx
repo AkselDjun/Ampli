@@ -264,7 +264,10 @@ export function App() {
           <div className="in">
             <div className="ab-edit">
               <button className="ab-back" type="button" onClick={goBack} aria-label="Назад к группам"><IconBack /></button>
-              <h1 className="ab-title">{selected ? 'Г' + (idx + 1) + ' ' + (selected.name || 'Без названия') : ''}</h1>
+              <div className="ab-tw">
+                <h1 className="ab-title">{selected ? 'Г' + (idx + 1) + ' ' + (selected.name || 'Без названия') : ''}</h1>
+                <div id="ab-sub" className="ab-sub" />
+              </div>
               <button className="btn primary sm" type="button" onClick={goBack}>Готово</button>
             </div>
             <div className="ab-main">

@@ -195,6 +195,20 @@ export function Sheet({
   const opener = useRef<Element | null>(null);
   const y0 = useRef<number | null>(null);
   const [dy, setDy] = useState(0);
+  const trap = (e: ReactKeyEvent<HTMLDivElement>) => {
+    if (e.key !== 'Tab') return;
+    const all = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')).filter(el => !el.closest('[hidden]') && el.getClientRects().length > 0 && !(el instanceof HTMLInputElement && el.type === 'radio' && !el.checked));
+    const first = all[0];
+    const end = all[all.length - 1];
+    if (!first) return;
+    if (e.shiftKey && (document.activeElement === first || !e.currentTarget.contains(document.activeElement))) {
+      e.preventDefault();
+      end.focus();
+    } else if (!e.shiftKey && document.activeElement === end) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
   const drag = {
     onTouchStart: (e: React.TouchEvent) => { y0.current = e.touches[0].clientY; },
     onTouchMove: (e: React.TouchEvent) => { if (y0.current !== null) setDy(Math.max(0, e.touches[0].clientY - y0.current)); },
@@ -224,7 +238,7 @@ export function Sheet({
   const id = 'ttl-' + title.length + title.charCodeAt(0);
   return (
     <div className="sheet" hidden={!open} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className={'sheet-panel' + (compact ? ' compact' : '')} role="dialog" aria-modal="true" aria-labelledby={id} style={dy ? { transform: 'translateY(' + dy + 'px)', transition: 'none' } : undefined}>
+      <div className={'sheet-panel' + (compact ? ' compact' : '')} role="dialog" aria-modal="true" aria-labelledby={id} onKeyDown={trap} style={dy ? { transform: 'translateY(' + dy + 'px)', transition: 'none' } : undefined}>
         <div className="sheet-head" {...drag}>
           <h2 id={id}>{title}</h2>
           {tip && <Tip>{tip}</Tip>}

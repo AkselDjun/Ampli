@@ -84,9 +84,9 @@ describe('editor', () => {
     wide(true);
     render(<App />);
     fireEvent.click(rows()[3]);
-    expect(ed().querySelector('.ed-mini')).toBeNull();
+    expect(document.querySelector('.ed-mini')).toBeNull();
     act(() => cb([{ isIntersecting: false, boundingClientRect: { top: -200 }, rootBounds: { top: 56 } }]));
-    const mini = ed().querySelector('.ed-mini') as HTMLElement;
+    const mini = document.querySelector('.ed-mini') as HTMLElement;
     expect(mini.textContent).toMatch(/А.*C32.*мм².*ΔU/);
     fireEvent.click(mini);
     expect(into).toHaveBeenCalled();
@@ -94,7 +94,7 @@ describe('editor', () => {
     change(byLabel(ed(), 'Мощность, Вт'), '9000');
     expect(ed().querySelectorAll('.ed-res .flash').length).toBeGreaterThan(0);
     act(() => cb([{ isIntersecting: true, boundingClientRect: { top: 100 }, rootBounds: { top: 56 } }]));
-    expect(ed().querySelector('.ed-mini')).toBeNull();
+    expect(document.querySelector('.ed-mini')).toBeNull();
     fireEvent.click(rows()[0]);
     expect(disconnect).toHaveBeenCalled();
     delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
