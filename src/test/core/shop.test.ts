@@ -27,7 +27,7 @@ describe('parseAttrs', () => {
   });
   it('returns other for unknown names', () => {
     expect(parseAttrs('Розетка двойная').kind).toBe('other');
-    expect(parseAttrs('УЗО 2P 40A 30mA').kind).toBe('other');
+    expect(parseAttrs('Подрозетник 68 мм').kind).toBe('other');
   });
   it('normalises text', () => {
     expect(norm('  ЁлкА  3×2,5 ')).toBe('елка 3x2,5');

@@ -14,21 +14,8 @@ describe('normLib', () => {
     expect(normLib({})).toEqual(emptyLib());
     expect(emptyBrand()).toEqual({ company: '', contacts: '', signer: '', logo: '' });
   });
-  it('filters and normalizes apps', () => {
-    const l = normLib({
-      apps: [
-        null,
-        { name: 5, tag: 's', w: 1 },
-        { name: 'a', tag: 'x', w: 1 },
-        { name: 'a', tag: 's', w: 0 },
-        { name: 'a', tag: 's', w: 'abc' },
-        { id: 'k', name: 'n'.repeat(100), tag: 'p', w: '1,5' },
-        { name: 'noid', tag: 'l', w: 40 }
-      ]
-    });
-    expect(l.apps).toHaveLength(2);
-    expect(l.apps[0]).toEqual({ id: 'k', name: 'n'.repeat(60), w: 1.5, tag: 'p' });
-    expect(l.apps[1].id).toMatch(/^i\d+$/);
+  it('ignores saved appliances from older versions', () => {
+    expect(normLib({ apps: [{ id: 'k', name: 'n', tag: 'p', w: 1 }] })).toEqual(emptyLib());
   });
   it('filters and normalizes templates', () => {
     const cfg = defaultCfg();
@@ -70,7 +57,7 @@ describe('loadLib and saveLib', () => {
   it('survives corrupt json and storage errors', () => {
     localStorage.setItem(LIB_KEY, '{x');
     expect(loadLib()).toEqual(emptyLib());
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
       throw new Error('quota');
     });
     expect(() => saveLib(emptyLib())).not.toThrow();
@@ -79,30 +66,6 @@ describe('loadLib and saveLib', () => {
 
 describe('libReducer', () => {
   const base = emptyLib();
-  it('adds apps, trims, skips invalid and duplicates', () => {
-    const l = libReducer(base, {
-      t: 'addApps',
-      apps: [
-        { name: ' Чайник ', w: 2000, tag: 's' },
-        { name: 'Чайник', w: 2000, tag: 's' },
-        { name: '', w: 100, tag: 's' },
-        { name: '  ', w: 100, tag: 's' },
-        { name: 'x', w: 0, tag: 's' },
-        { name: 'x', w: -5, tag: 's' },
-        { name: 'Чайник', w: 2000, tag: 'p' },
-        { name: 'L'.repeat(80), w: 5, tag: 'l' }
-      ]
-    });
-    expect(l.apps).toHaveLength(3);
-    expect(l.apps[0].name).toBe('Чайник');
-    expect(l.apps[2].name).toHaveLength(60);
-    expect(new Set(l.apps.map(a => a.id)).size).toBe(3);
-    expect(base.apps).toHaveLength(0);
-  });
-  it('deletes apps', () => {
-    const l = libReducer(base, { t: 'addApps', apps: [{ name: 'a', w: 1, tag: 's' }, { name: 'b', w: 1, tag: 's' }] });
-    expect(libReducer(l, { t: 'delApp', id: l.apps[0].id }).apps.map(a => a.name)).toEqual(['b']);
-  });
   it('adds a deep-copied template with default name', () => {
     const lines = [mkLine('a', 'socket', 5, null, null, [['x', 1, 1]])];
     const cfg = defaultCfg();

@@ -205,9 +205,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .cmp.better{color:var(--ok)}
 .quick{display:grid;gap:8px;margin-top:8px}
 .quick textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:var(--r-m);padding:12px 12px;background:var(--field);color:var(--ink);resize:vertical}
-.chip-mine{display:inline-flex;align-items:center;flex:none}
-.chip-mine .chip{border-top-right-radius:0;border-bottom-right-radius:0}
-.chip-x{min-width:32px;min-height:36px;border:1px solid var(--line);border-left:0;border-radius:0 999px 999px 0;background:var(--surface);color:var(--ink-2);cursor:pointer;font-size:var(--t-l)}
 .logo-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .logo-img{max-width:160px;max-height:64px;object-fit:contain;border:1px solid var(--line);border-radius:var(--r-s);padding:4px;background:#fff}
 .lib-list{display:grid;gap:6px}
@@ -1460,7 +1457,6 @@ button.dev.sel.hot{outline-color:var(--accent)}
 @media (pointer:coarse){input,select,textarea{font-size:16px}}
 @media (pointer:fine) and (min-width:1000px){
   .chip{min-height:34px;padding:0 12px;font-size:var(--t-sm)}
-  .chip-x{min-height:34px}
   .start-ty{min-height:36px}
   .ed .chips{gap:6px}
 }

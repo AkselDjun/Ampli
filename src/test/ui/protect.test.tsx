@@ -18,7 +18,7 @@ const lines = (): Line[] => [
   { ...mkLine('Свет', 'light', 10, null, null, [['Люстра', 200, 1]]), zone: 'Комнаты' },
   { ...mkLine('Стиралка', 'power', 8, null, null, [['Стиральная машина', 2200, 1]]), zone: 'Ванная' }
 ];
-const proj = (cfg: Partial<Cfg> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), ...cfg }, lines: lines(), sample: false }, 'Тест') });
+const proj = (cfg: Partial<Cfg> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), prot: 'rcbo', ...cfg }, lines: lines(), sample: false }, 'Тест') });
 const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 
 describe('panel protection switches', () => {

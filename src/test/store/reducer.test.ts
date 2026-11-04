@@ -36,7 +36,7 @@ describe('init and selection', () => {
 describe('lines', () => {
   it('adds a line of a given type and selects it', () => {
     const s = run(mk(), { t: 'addLine', type: 'power' });
-    expect(lines(s)).toHaveLength(8);
+    expect(lines(s)).toHaveLength(15);
     expect(selLine(s).name).toBe('Мощный прибор');
     expect(selLine(s).apps).toEqual([]);
     expect(cur(s).sample).toBe(false);
@@ -56,7 +56,7 @@ describe('lines', () => {
     expect(s.sel).toBe(lines(s)[lines(s).length - 1].id);
   });
   it('deleting the last line leaves null selection', () => {
-    let s = run(mk(), ...Array.from({ length: 7 }, () => ({ t: 'delLine' }) as Action));
+    let s = run(mk(), ...Array.from({ length: 14 }, () => ({ t: 'delLine' }) as Action));
     expect(lines(s)).toHaveLength(0);
     expect(s.sel).toBeNull();
     expect(reducer(s, { t: 'delLine' })).toBe(s);
@@ -85,9 +85,9 @@ describe('lines', () => {
     expect(selLine(s)).toMatchObject({ name: 'N', len: '33', kc: 0.5, cos: '0.9' });
   });
   it('changes line type resetting defaults and phase', () => {
-    let s = run(mk(3), { t: 'linePhase', phase: '3' }, { t: 'lineType', type: 'socket' });
+    let s = run(mk(3), { t: 'lineField', field: 'name', value: 'Освещение' }, { t: 'linePhase', phase: '3' }, { t: 'lineType', type: 'socket' });
     expect(selLine(s)).toMatchObject({ type: 'socket', kc: 0.7, cos: 0.95, phase: 'L1' });
-    expect(selLine(s).name).toBe('Освещение'.replace('Освещение', 'Розетки'));
+    expect(selLine(s).name).toBe('Розетки');
     s = run(s, { t: 'lineField', field: 'name', value: 'Custom' }, { t: 'lineType', type: 'power' }, { t: 'linePhase', phase: '3' }, { t: 'lineType', type: 'power' });
     expect(selLine(s)).toMatchObject({ name: 'Custom', phase: '3', type: 'power' });
   });
@@ -145,13 +145,13 @@ describe('config', () => {
   });
   it('steps values within limits', () => {
     let s = run(mk(), { t: 'cfgStep', field: 'alloc', d: 5 });
-    expect(cur(s).cfg.alloc).toBe(20);
+    expect(cur(s).cfg.alloc).toBe(17);
     s = run(s, { t: 'cfgStep', field: 'alloc', d: 1000 });
     expect(cur(s).cfg.alloc).toBe(500);
     s = run(s, { t: 'cfgStep', field: 'alloc', d: -1000 });
     expect(cur(s).cfg.alloc).toBe(1);
     s = run(s, { t: 'cfgStep', field: 'ko', d: 0.05 });
-    expect(cur(s).cfg.ko).toBe(0.8);
+    expect(cur(s).cfg.ko).toBe(0.4);
     s = run(s, { t: 'cfgStep', field: 'ko', d: 5 });
     expect(cur(s).cfg.ko).toBe(1);
     s = run(s, { t: 'cfg', field: 'zs', value: 'abc' }, { t: 'cfgStep', field: 'zs', d: -1 });

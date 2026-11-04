@@ -50,14 +50,15 @@ describe('Where to buy', () => {
   });
 
   it('loads a price list, finds the cheapest match and applies the prices to the estimate', async () => {
-    const p = sampleProject();
+    const s = sampleProject();
+    const p = { ...s, cfg: { ...s.cfg, prot: 'rcbo' } };
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
     render(<App />);
     const d = openShop();
     const first = Array.from(d.querySelectorAll('.shop-i b')).map(b => b.textContent as string);
-    const breaker = first.find(n => /^Дифавтомат 1P\+N C10/.test(n) || /^Автомат 1P C10/.test(n)) as string;
+    const breaker = first.find(n => /^Дифавтомат 1P\+N C16 30 мА$/.test(n)) as string;
     expect(breaker).toBeTruthy();
-    const rows = ['Наименование;Цена', 'Автомат ВА47 1P C10;5,5', 'Автомат ВА47 1P C10 дорогой;9', 'Дифавтомат 1P+N C10 30 мА;21', 'Дифавтомат 1P+N C10 30 мА EKF;19,5', 'Шина N на DIN-рейку;3'].join('\n');
+    const rows = ['Наименование;Цена', 'Автомат ВА47 1P C10;5,5', 'Автомат ВА47 1P C10 дорогой;9', 'Дифавтомат 1P+N C16 30 мА;21', 'Дифавтомат 1P+N C16 30 мА EKF;19,5', 'Шина N на DIN-рейку;3'].join('\n');
     await upload(d, csv(rows));
     await waitFor(() => expect(d.querySelector('.pl-list')).toBeTruthy());
     expect(d.querySelector('.pl-list')?.textContent).toContain('opt');
@@ -105,7 +106,7 @@ describe('Where to buy', () => {
     Object.defineProperty(bad, 'arrayBuffer', { value: () => Promise.reject(new Error('x')) });
     await upload(d, bad);
     await waitFor(() => expect(toastText()).toMatch(/Не удалось прочитать/));
-    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
+    const spy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('quota'); });
     await upload(d, csv('Наименование;Цена\nШина N;3'));
     await waitFor(() => expect(toastText()).toMatch(/не поместился/));
     spy.mockRestore();

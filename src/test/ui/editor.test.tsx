@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import { App } from '../../ui/App';
-import { LIB_KEY } from '../../store/lib';
 import { btn, byLabel, change, click, wide } from './util';
 
 vi.setConfig({ testTimeout: 60000 });
@@ -125,24 +124,11 @@ describe('Editor', () => {
     expect(ed().textContent).toContain('Добавьте приборы');
   });
 
-  it('saves group appliances to the library and removes them via chip', () => {
+  it('has no action to save appliances', () => {
     boot();
-    click(ed(), /Ещё действия/);
-    click(ed(), 'Сохранить приборы в «Мои»');
-    expect(JSON.parse(localStorage.getItem(LIB_KEY) as string).apps.length).toBeGreaterThan(0);
-    const mine = ed().querySelector('.chip-mine') as HTMLElement;
-    expect(mine).toBeTruthy();
-    fireEvent.click(mine.querySelector('.chip') as HTMLElement);
-    const before = ed().querySelectorAll('.chip-mine').length;
-    fireEvent.click(mine.querySelector('.chip-x') as HTMLElement);
-    expect(ed().querySelectorAll('.chip-mine').length).toBe(before - 1);
-  });
-
-  it('hides the save link when no valid appliances', () => {
-    boot();
-    ed().querySelectorAll('.a-del').forEach(b => fireEvent.click(b));
     click(ed(), /Ещё действия/);
     expect(ed().textContent).not.toContain('Сохранить приборы');
+    expect(ed().querySelector('.chip-mine')).toBeNull();
   });
 
   it('quick paste adds appliances and reports skipped lines', () => {

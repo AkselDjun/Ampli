@@ -7,7 +7,7 @@ import { ZONES } from '../core/rooms';
 import { byUsage, catalog, searchCatalog, topUsed } from '../core/catalog';
 import { whyRows } from '../core/why';
 import type { HAction } from '../store/history';
-import { toastOk, toastUndo } from './toast';
+import { toastUndo } from './toast';
 import { IconDown, IconSearch } from './Icons';
 import { usePop } from './pop';
 import { useMenuKeys } from './menu';
@@ -115,10 +115,10 @@ export function Editor({
     });
   };
   const fix = r ? fixFor(l, r, a.c) : null;
-  const cat = catalog(lib.apps);
+  const cat = catalog();
   const found = searchCatalog(cat, search, lib.usage, tag);
   const often = topUsed(cat, lib.usage, tag);
-  const presets = byUsage(catalog([]).filter(it => it.tags.indexOf(tag) >= 0), lib.usage);
+  const presets = byUsage(catalog().filter(it => it.tags.indexOf(tag) >= 0), lib.usage);
   const addFrom = (name: string, w: number) => {
     keepChips(() => dispatch({ t: 'addApp', name, w, ...(/лент/i.test(name) ? { m: 5 } : {}) }));
     libDispatch({ t: 'use', name });
@@ -131,7 +131,6 @@ export function Editor({
   const zones = Array.from(new Set([...a.rows.map(y => (y.l.zone ?? '').trim()).filter(Boolean), ...ZONES]));
   const hasBr = !!r && r.len > pn(l.len, 0);
   const showBr = brOn || l.apps.some(ap => pn(ap.br, 0) > 0);
-  const canSave = l.apps.some(ap => ap.name.trim() && pn(ap.w, 0) > 0);
   const addEmpty = () => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp' }); });
   const onPowKey = (e: React.KeyboardEvent<HTMLInputElement>, i: number) => {
     if (e.key !== 'Enter') return;
@@ -288,7 +287,7 @@ export function Editor({
           {found.length > 0 && (
             <ul className="found" aria-label="Найденные приборы">
               {found.map(it => (
-                <li key={it.key + (it.mine ?? '')}>
+                <li key={it.key}>
                   <button type="button" onClick={() => addFrom(it.name, it.w)}>
                     <span>+ {it.name}</span>
                     <span className="muted">{it.w} Вт</span>
@@ -318,12 +317,6 @@ export function Editor({
                 + {it.name}
               </button>
             ))}
-            {byUsage(lib.apps.filter(m => m.tag === tag).map(m => ({ key: m.id, name: m.name, w: m.w, tags: m.tag, mine: m.id })), lib.usage).map(it => (
-              <span className="chip-mine" key={it.key}>
-                <button className="chip" type="button" data-tip={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>+ {it.name}</button>
-                <button className="chip-x" type="button" aria-label={'Убрать из моих приборов: ' + it.name} onClick={() => libDispatch({ t: 'delApp', id: it.key })}>×</button>
-              </span>
-            ))}
             {presets.length > CHIP_MAX && (
               <button className="chip more" type="button" aria-expanded={allChips} onClick={() => setAllChips(!allChips)}>{allChips ? 'Свернуть' : 'Ещё ' + (presets.length - CHIP_MAX)}</button>
             )}
@@ -336,14 +329,6 @@ export function Editor({
                 {(brOn || !showBr) && <button type="button" role="menuitem" onClick={() => { mk.back(); setBrOn(!brOn); }}>{brOn ? 'Скрыть отводы к точкам' : 'Указать отводы к точкам'}</button>}
                 {idx > 0 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[idx - 1].l.id }); toastUndo('Группа перемещена на место Г' + idx, undo); }}>Переставить раньше, на место Г{idx}</button>}
                 {idx < a.rows.length - 1 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[idx + 1].l.id }); toastUndo('Группа перемещена на место Г' + (idx + 2), undo); }}>Переставить позже, на место Г{idx + 2}</button>}
-                {canSave && (
-                  <button type="button" role="menuitem" onClick={() => {
-                    mk.back();
-                    const apps = l.apps.filter(ap => ap.name.trim() && pn(ap.w, 0) > 0).map(ap => ({ name: ap.name, w: pn(ap.w, 0), tag: tag as 'l' | 's' | 'p' }));
-                    libDispatch({ t: 'addApps', apps });
-                    toastOk('Сохранено в «Мои приборы»: ' + apps.length);
-                  }}>Сохранить приборы в «Мои»</button>
-                )}
               </div>
             )}
           </div>

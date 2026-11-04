@@ -56,7 +56,7 @@ describe('Command palette', () => {
     fireEvent.keyDown(q(), { key: 'ArrowUp' });
     expect(within(pal()).getAllByRole('option')[0]).toHaveAttribute('aria-selected', 'true');
     fireEvent.keyDown(q(), { key: 'Enter' });
-    expect((ed().querySelector('.ed-name') as HTMLInputElement).value).toBe('Розетки: кухня');
+    expect((ed().querySelector('.ed-name') as HTMLInputElement).value).toBe('Розетки: гостиная');
   });
 
   it('ignores slash while typing and shows the empty state', () => {

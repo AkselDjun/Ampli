@@ -281,7 +281,7 @@ export function ProjectsSheet({
         <button className="btn ghost" type="button" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</button>
       </div>
       <h3 className="sec-t">Мои данные</h3>
-      <p className="muted">Реквизиты для отчёта, свои приборы, шаблоны и цены.</p>
+      <p className="muted">Реквизиты для отчёта, шаблоны и цены.</p>
       <div className="data-row">
         <button className="btn ghost" type="button" onClick={onLib}>Открыть мои данные</button>
       </div>

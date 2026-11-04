@@ -55,8 +55,9 @@ describe('old wiring survey', () => {
   it('opens from the command palette', () => {
     render(<App />);
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'алюминий' } });
-    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Enter' });
+    const box = document.querySelector('dialog.pal input') as HTMLInputElement;
+    fireEvent.change(box, { target: { value: 'алюминий' } });
+    fireEvent.keyDown(box, { key: 'Enter' });
     expect(dlg('Старая проводка')).toBeTruthy();
   });
 

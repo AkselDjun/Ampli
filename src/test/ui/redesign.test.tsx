@@ -20,7 +20,7 @@ vi.setConfig({ testTimeout: 60000 });
 
 const rowsOf = () => Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
 const proj = (lines: Line[], cfg: Partial<Cfg> = {}, o: Partial<Project> = {}): Project => ({
-  ...newProject({ cfg: { ...defaultCfg(), ...cfg }, lines, sample: false }, 'Тест'),
+  ...newProject({ cfg: { ...defaultCfg(), prot: 'rcbo', ...cfg }, lines, sample: false }, 'Тест'),
   ...o
 });
 const seed = (p: Project) => localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));

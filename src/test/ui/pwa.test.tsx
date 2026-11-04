@@ -120,8 +120,8 @@ describe('initPwa', () => {
     expect(update).toHaveBeenCalledWith(true);
   });
   it('survives a browser that blocks storage', () => {
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked'); });
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
+    vi.spyOn(localStorage, 'getItem').mockImplementation(() => { throw new Error('blocked'); });
+    vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
     expect(() => start()).not.toThrow();
     window.dispatchEvent(promptEvent());
     expect(currentToast()).toBeNull();

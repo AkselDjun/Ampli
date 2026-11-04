@@ -40,7 +40,8 @@ export default defineConfig({
     })
   ],
   test: {
-    environment: 'jsdom',
+    environment: 'happy-dom',
+    pool: 'threads',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
     coverage: {

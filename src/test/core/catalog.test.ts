@@ -7,17 +7,16 @@ import { normProject, newProject, sampleProject } from '../../core/project';
 import { blank, defaultCfg } from '../../core/templates';
 import type { Line, Photo } from '../../core/types';
 
-const item = (name: string, w: number, tags: string): CatItem => ({ key: name + w, name, w, tags, mine: null });
+const item = (name: string, w: number, tags: string): CatItem => ({ key: name + w, name, w, tags });
 
 describe('catalog', () => {
   it('normalizes names with yo and whitespace', () => {
     expect(normName('  ЁЛКА Тёплый ')).toBe('елка теплый');
   });
-  it('builds base and own items', () => {
-    const c = catalog([{ id: 'm1', name: 'Мой Ёж', w: 77, tag: 's' }]);
-    expect(c).toHaveLength(PRESETS.length + 1);
-    expect(c[0]).toEqual({ key: 'чайник|2200', name: 'Чайник', w: 2200, tags: 's', mine: null });
-    expect(c[c.length - 1]).toEqual({ key: 'мой еж|77', name: 'Мой Ёж', w: 77, tags: 's', mine: 'm1' });
+  it('builds items from presets', () => {
+    const c = catalog();
+    expect(c).toHaveLength(PRESETS.length);
+    expect(c[0]).toEqual({ key: 'чайник|2200', name: 'Чайник', w: 2200, tags: 's' });
   });
   it('sorts by usage count, then recency, then original order', () => {
     const items = [item('A', 1, 's'), item('B', 1, 's'), item('C', 1, 's'), item('D', 1, 's')];
@@ -33,7 +32,7 @@ describe('catalog', () => {
     expect(topUsed(items, {}, 's')).toEqual([]);
   });
   it('search returns nothing for blank queries', () => {
-    expect(searchCatalog(catalog([]), '   ', {}, 's')).toEqual([]);
+    expect(searchCatalog(catalog(), '   ', {}, 's')).toEqual([]);
   });
   it('search ranks starts-with, then current tag, then usage, and limits', () => {
     const items = [

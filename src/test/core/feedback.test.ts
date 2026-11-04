@@ -9,7 +9,7 @@ import { autoQty } from '../../core/labor';
 import { ROOM_PRESETS, assemble, makeRoom } from '../../core/rooms';
 import type { Cfg, Line } from '../../core/types';
 
-const cfg = (o: Partial<Cfg> = {}): Cfg => ({ ...defaultCfg(), ...o });
+const cfg = (o: Partial<Cfg> = {}): Cfg => ({ ...defaultCfg(), prot: 'rcbo', ...o });
 const z = (l: Line, zone: string): Line => ({ ...l, zone });
 
 describe('config normalisation', () => {
@@ -25,6 +25,7 @@ describe('config normalisation', () => {
   it('reads the protection mode and the input cable brand', () => {
     expect(cfgN(cfg()).rcdMode).toBe(false);
     expect(cfgN(cfg({ prot: 'rcd' })).rcdMode).toBe(true);
+    expect(cfgN(defaultCfg()).rcdMode).toBe(true);
     expect(cfgN(cfg({ inCable: 'nym' })).inCable).toBe('nym');
     expect(cfgN(cfg({ inCable: 'frls' })).inCable).toBe('frls');
     expect(cfgN(cfg({ inCable: 'x' })).inCable).toBe('vvg');
@@ -99,8 +100,9 @@ describe('junction boxes and branches', () => {
     expect(cab?.n).toBe(Math.ceil(25 * 1.1));
   });
   it('skips boxes when there are no branches', () => {
-    const a = calcAll(sample().lines, cfg());
+    const a = calcAll(sample().lines.map(l => ({ ...l, apps: l.apps.map(x => ({ ...x, br: undefined })) })), cfg());
     expect(a.boxes).toBe(0);
+    expect(calcAll(sample().lines, cfg()).boxes).toBe(2);
     expect(buildSpec(a).some(i => i.name.startsWith('Коробка'))).toBe(false);
   });
 });

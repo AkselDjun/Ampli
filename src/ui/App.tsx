@@ -206,7 +206,7 @@ export function App() {
     { id: 'net', group: 'Проект', label: 'Параметры сети', words: 'фазы ввод мощность прокладка', run: () => setSheet('net') },
     { id: 'old', group: 'Проект', label: 'Старая проводка', words: 'алюминий обследование заземление зануление pe tn-c', run: () => setSheet('old') },
     { id: 'proj', group: 'Проект', label: 'Проекты', words: 'открыть новый файл ссылка', run: () => setSheet('proj') },
-    { id: 'lib', group: 'Проект', label: 'Мои данные', words: 'реквизиты приборы шаблоны логотип', run: () => setSheet('lib') },
+    { id: 'lib', group: 'Проект', label: 'Мои данные', words: 'реквизиты шаблоны цены логотип', run: () => setSheet('lib') },
     ...(a.phases ? [{ id: 'bal', group: 'Проект', label: 'Выровнять нагрузку по фазам', words: 'фазы', run: () => { dispatch({ t: 'balance' }); toastUndo('Фазы выровнены', undo); } }] : []),
     ...(hist.past.length ? [{ id: 'undo', group: 'Проект', label: 'Отменить', hint: 'Ctrl+Z', run: undo }] : []),
     ...(hist.future.length ? [{ id: 'redo', group: 'Проект', label: 'Вернуть', hint: 'Ctrl+Shift+Z', run: () => dispatch({ t: 'redo' }) }] : [])

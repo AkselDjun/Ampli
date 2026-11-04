@@ -103,7 +103,7 @@ export function tplLines(k: TplKey, elec: boolean): Line[] {
     L.push(mkLine('Стиральная машина', 'power', 9, 1, 0.95, [['Стиральная машина', 2200, 1]]));
     L.push(mkLine('Бойлер', 'power', 7, 1, 1, [['Водонагреватель', 2000, 1]]));
   } else if (k === 'k2') {
-    return sample().lines.filter(l => elec || l.name !== 'Плита и духовка');
+    return sample().lines.filter(l => elec || (l.name !== 'Варочная панель' && l.name !== 'Духовой шкаф'));
   } else if (k === 'k3') {
     L.push(mkLine('Освещение: комнаты', 'light', 30, 1, 0.95, [['Гостиная', 180, 1], ['Спальня', 120, 1], ['Детская', 120, 1]]));
     L.push(mkLine('Освещение: кухня и коридор', 'light', 20, 1, 0.95, [['Кухня', 90, 1], ['Коридор и санузел', 100, 1]]));

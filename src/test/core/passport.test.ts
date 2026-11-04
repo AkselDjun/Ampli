@@ -91,7 +91,7 @@ describe('owner link', () => {
     expect(readOwnerHash('#p=abc')).toBeNull();
   });
   it('keeps the group location through the link', () => {
-    const q = { ...p, lines: p.lines.map((l, i) => (i === 0 ? { ...l, where: 'Кухня' } : l)) };
+    const q = { ...p, lines: p.lines.map((l, i) => ({ ...l, where: i === 0 ? 'Кухня' : undefined })) };
     const back = unpackProject(packProject(q));
     expect(back!.lines[0].where).toBe('Кухня');
     expect(back!.lines[1].where).toBeUndefined();

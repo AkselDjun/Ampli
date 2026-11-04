@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { fmt, plural } from '../core/format';
+import { plural } from '../core/format';
 import { useLib } from '../store/LibContext';
 import { ArmButton, Sheet, TabPanel, Tabs, Tip } from './common';
 import { scaleLogo } from './logo';
@@ -11,9 +11,8 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
   const [tab, setTab] = useState('brand');
   const b = lib.brand;
   const nPrices = Object.keys(lib.prices).length;
-  const tagName = { l: 'свет', s: 'розетки', p: 'мощный' } as const;
   return (
-    <Sheet open={open} onClose={onClose} title="Мои данные" bar={<Tabs scope="lib" label="Разделы данных" cur={tab} onChange={setTab} items={[{ id: 'brand', label: 'Реквизиты' }, { id: 'apps', label: 'Приборы' }, { id: 'tpl', label: 'Шаблоны и цены' }]} />}>
+    <Sheet open={open} onClose={onClose} title="Мои данные" bar={<Tabs scope="lib" label="Разделы данных" cur={tab} onChange={setTab} items={[{ id: 'brand', label: 'Реквизиты' }, { id: 'tpl', label: 'Шаблоны и цены' }]} />}>
       <TabPanel scope="lib" id="brand" cur={tab}>
       <h3 className="sec-t">Реквизиты для отчёта</h3>
       <div className="meta-grid">
@@ -43,23 +42,6 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
             input.value = '';
           }}
         />
-      </div>
-
-      </TabPanel>
-      <TabPanel scope="lib" id="apps" cur={tab}>
-      <div className="sec-row">
-        <h3 className="sec-t">Мои приборы</h3>
-        <span className="muted">{lib.apps.length} {plural(lib.apps.length, ['прибор', 'прибора', 'приборов'])}</span>
-      </div>
-      {lib.apps.length === 0 && <p className="muted">Пока пусто. Здесь появятся приборы, которые вы сохраните из карточки группы кнопкой «Сохранить приборы группы в мои».</p>}
-      <div className="lib-list">
-        {lib.apps.map(a => (
-          <div className="lib-r" key={a.id}>
-            <span className="lib-n">{a.name}</span>
-            <span className="muted">{fmt(a.w, 0)} Вт · {tagName[a.tag]}</span>
-            <button className="icon-btn" type="button" aria-label={'Удалить прибор ' + a.name} onClick={() => dispatch({ t: 'delApp', id: a.id })}>×</button>
-          </div>
-        ))}
       </div>
 
       </TabPanel>

@@ -156,20 +156,15 @@ describe('LibSheet', () => {
     expect(d.textContent).toContain('Пока пусто');
   });
 
-  it('manages apps, templates and prices', () => {
+  it('manages templates and prices', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(document.querySelectorAll<HTMLElement>('.rows .row')[0]);
-    click(document.querySelector('.col-edit') as HTMLElement, /Ещё действия/);
-    click(document.querySelector('.col-edit') as HTMLElement, 'Сохранить приборы в «Мои»');
     click(list(), 'Проекты');
     const pj = dlg('Проекты');
     click(pj, 'Сохранить как шаблон');
     click(pj, 'Открыть мои данные');
     const d = dlg('Мои данные');
-    const n = d.querySelectorAll('.lib-r').length;
-    expect(n).toBeGreaterThan(1);
-    fireEvent.click(d.querySelector('.lib-r .icon-btn') as HTMLElement);
+    expect(d.querySelectorAll('.lib-r').length).toBe(1);
     click(d, 'Удалить');
     click(d, 'Точно?');
     expect(lib().templates.length).toBe(0);

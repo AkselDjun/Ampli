@@ -8,13 +8,6 @@ import type { WorkKey, WorkPrices } from '../core/labor';
 
 export const LIB_KEY = 'ampli-lib-v1';
 
-export interface CustomApp {
-  id: string;
-  name: string;
-  w: number;
-  tag: 'l' | 's' | 'p';
-}
-
 export interface UserTpl {
   id: string;
   name: string;
@@ -30,7 +23,6 @@ export interface Brand {
 }
 
 export interface Lib {
-  apps: CustomApp[];
   templates: UserTpl[];
   prices: Record<string, number>;
   brand: Brand;
@@ -39,19 +31,12 @@ export interface Lib {
 }
 
 export const emptyBrand = (): Brand => ({ company: '', contacts: '', signer: '', logo: '' });
-export const emptyLib = (): Lib => ({ apps: [], templates: [], prices: {}, brand: emptyBrand(), usage: {}, labor: {} });
-
-const isTag = (t: unknown): t is CustomApp['tag'] => t === 'l' || t === 's' || t === 'p';
+export const emptyLib = (): Lib => ({ templates: [], prices: {}, brand: emptyBrand(), usage: {}, labor: {} });
 
 export function normLib(o: unknown): Lib {
   const lib = emptyLib();
   if (!o || typeof o !== 'object') return lib;
   const x = o as Partial<Record<keyof Lib, unknown>>;
-  if (Array.isArray(x.apps)) {
-    lib.apps = x.apps
-      .filter((a): a is CustomApp => !!a && typeof (a as CustomApp).name === 'string' && isTag((a as CustomApp).tag) && pn((a as CustomApp).w, 0) > 0)
-      .map(a => ({ id: String(a.id || nid()), name: a.name.slice(0, 60), w: pn(a.w, 0), tag: a.tag }));
-  }
   if (Array.isArray(x.templates)) {
     lib.templates = x.templates
       .filter((t): t is UserTpl => !!t && typeof (t as UserTpl).name === 'string' && Array.isArray((t as UserTpl).lines) && !!(t as UserTpl).cfg)
@@ -107,8 +92,6 @@ export function saveLib(l: Lib): void {
 }
 
 export type LibAction =
-  | { t: 'addApps'; apps: { name: string; w: number; tag: CustomApp['tag'] }[] }
-  | { t: 'delApp'; id: string }
   | { t: 'addTpl'; name: string; cfg: Cfg; lines: Line[] }
   | { t: 'delTpl'; id: string }
   | { t: 'price'; name: string; value: string }
@@ -121,18 +104,6 @@ export type LibAction =
 
 export function libReducer(l: Lib, a: LibAction): Lib {
   switch (a.t) {
-    case 'addApps': {
-      const apps = [...l.apps];
-      a.apps.forEach(n => {
-        const name = n.name.trim();
-        if (!name || !(n.w > 0)) return;
-        if (apps.some(x => x.name === name && x.w === n.w && x.tag === n.tag)) return;
-        apps.push({ id: nid() + Date.now().toString(36), name: name.slice(0, 60), w: n.w, tag: n.tag });
-      });
-      return { ...l, apps };
-    }
-    case 'delApp':
-      return { ...l, apps: l.apps.filter(x => x.id !== a.id) };
     case 'addTpl': {
       const name = a.name.trim() || 'Мой шаблон';
       const copy: UserTpl = { id: nid() + Date.now().toString(36), name: name.slice(0, 60), cfg: { ...a.cfg }, lines: JSON.parse(JSON.stringify(a.lines)) };

@@ -3,7 +3,7 @@ import { balanceLines, calcAll, calcLine, cfgN, loopOhm, pack, shortCircuit } fr
 import { defaultCfg, mkLine, sample } from '../../core/templates';
 import type { Cfg, Device, Line } from '../../core/types';
 
-const cfg = (o: Partial<Cfg> = {}): Cfg => ({ ...defaultCfg(), ...o });
+const cfg = (o: Partial<Cfg> = {}): Cfg => ({ ...defaultCfg(), prot: 'rcbo', ...o });
 const run = (l: Line, o: Partial<Cfg> = {}) => calcLine(l, cfgN(cfg(o)));
 const pw = (w: number, len = 10, type: 'light' | 'socket' | 'power' = 'power', extra: Partial<Line> = {}): Line => ({
   ...mkLine('x', type, len, null, null, [['a', w, 1]]),
@@ -12,7 +12,7 @@ const pw = (w: number, len = 10, type: 'light' | 'socket' | 'power' = 'power', e
 
 describe('cfgN', () => {
   it('normalizes defaults', () => {
-    expect(cfgN(cfg())).toEqual({ supply: 1, method: 'wall', drop: 0, ko: 0.75, k: 0.9, alloc: 15, safe: true, zs: 0.3, feeder: 0, rcdMode: false, box: 'brick', boxAuto: true, inCable: 'vvg', spd: false, vr: false });
+    expect(cfgN(defaultCfg())).toEqual({ supply: 1, method: 'wall', drop: 0, ko: 0.75, k: 0.9, alloc: 15, safe: true, zs: 0.3, feeder: 0, rcdMode: true, box: 'brick', boxAuto: true, inCable: 'vvg', spd: false, vr: false });
   });
   it('accepts three phase, open method and norm minS', () => {
     const c = cfgN(cfg({ supply: '3', method: 'open', minS: 'norm' }));
@@ -250,12 +250,17 @@ describe('calcAll', () => {
   it('computes the sample apartment', () => {
     const s = sample();
     const a = calcAll(s.lines, s.cfg);
-    expect(a.inIn).toBe(63);
+    expect(a.inIn).toBe(50);
     expect(a.devs[0].kind).toBe('in');
     expect(a.devs[0].mod).toBe(2);
-    expect(a.devs[1].sub).toBe('Г1 30мА');
+    expect(a.devs[1].kind).toBe('uzo');
+    expect(a.uzos.map(u => u.zone)).toEqual(['Комнаты', 'Кухня', 'Ванная']);
+    expect(a.uzos.every(u => u.typeA)).toBe(true);
+    expect(a.uzos[2].ma).toBe(10);
     expect(a.inStep).toBeGreaterThan(0);
-    expect(a.hint3).toBe(true);
+    expect(a.hint3).toBe(false);
+    expect(a.P / 1000).toBeLessThan(a.c.alloc);
+    expect(a.rows.every(x => x.r.status === 'ok')).toBe(true);
     expect(a.fits).toBe(true);
   });
   it('computes three phase totals, imbalance and fallback phase', () => {

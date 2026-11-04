@@ -7,7 +7,6 @@ export interface CatItem {
   name: string;
   w: number;
   tags: string;
-  mine: string | null;
 }
 
 export interface Usage {
@@ -19,10 +18,8 @@ export const USAGE_LIMIT = 200;
 
 export const normName = (s: string): string => s.toLowerCase().replace(/ё/g, 'е').trim();
 
-export function catalog(mine: { id: string; name: string; w: number; tag: Tag }[]): CatItem[] {
-  const base: CatItem[] = PRESETS.map(p => ({ key: normName(p[0]) + '|' + p[1], name: p[0], w: p[1], tags: p[2], mine: null }));
-  const own: CatItem[] = mine.map(m => ({ key: normName(m.name) + '|' + m.w, name: m.name, w: m.w, tags: m.tag, mine: m.id }));
-  return [...base, ...own];
+export function catalog(): CatItem[] {
+  return PRESETS.map(p => ({ key: normName(p[0]) + '|' + p[1], name: p[0], w: p[1], tags: p[2] }));
 }
 
 const score = (u: Usage | undefined): number => (u ? u.n * 1e13 + u.at : 0);

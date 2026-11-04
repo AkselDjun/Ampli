@@ -118,12 +118,12 @@ describe('history', () => {
     h = run(h, { t: 'select', id: cur(h.now).lines[3].id }, { t: 'delLine' });
     expect(h.now.sel).not.toBe(firstLine);
     h = hreducer(h, { t: 'undo' });
-    expect(cur(h.now).lines).toHaveLength(7);
+    expect(cur(h.now).lines).toHaveLength(14);
     h = hreducer(h, { t: 'redo' });
-    expect(cur(h.now).lines).toHaveLength(6);
+    expect(cur(h.now).lines).toHaveLength(13);
     expect(cur(h.now).lines.some(l => l.id === h.now.sel)).toBe(true);
     let e = start();
-    e = run(e, ...Array.from({ length: 7 }, () => ({ t: 'delLine' }) as HAction));
+    e = run(e, ...Array.from({ length: 14 }, () => ({ t: 'delLine' }) as HAction));
     expect(e.now.sel).toBeNull();
     const undone = hreducer(e, { t: 'undo' });
     expect(undone.now.sel).toBe(cur(undone.now).lines[0].id);

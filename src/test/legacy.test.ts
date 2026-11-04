@@ -7,13 +7,13 @@ describe('sample apartment', () => {
   const s = sample();
   const a = calcAll(s.lines, s.cfg);
   it('picks breakers and cables', () => {
-    expect(a.rows.map(x => [x.r.In, x.r.S])).toEqual([[10, 1.5], [16, 2.5], [16, 2.5], [32, 4], [10, 2.5], [10, 2.5], [10, 2.5]]);
-    expect([a.inIn, a.inS, a.size]).toEqual([63, 10, 24]);
+    expect(a.rows.map(x => [x.r.In, x.r.S])).toEqual([[10, 1.5], [10, 1.5], [16, 2.5], [16, 2.5], [16, 2.5], [16, 2.5], [32, 4], [16, 2.5], [10, 2.5], [10, 2.5], [16, 2.5], [10, 2.5], [10, 2.5], [10, 2.5]]);
+    expect([a.inIn, a.inS, a.size]).toEqual([50, 10, 36]);
     expect(a.rows.every(x => x.r.In !== null && x.r.S !== null)).toBe(true);
   });
   it('limits voltage drop by type', () => {
     expect(a.rows[0].r.limit).toBe(3);
-    expect(a.rows[1].r.limit).toBe(5);
+    expect(a.rows[2].r.limit).toBe(5);
   });
   it('builds a spec with an input breaker', () => {
     const items = buildSpec(a);
@@ -45,13 +45,13 @@ describe('reducer', () => {
     const s1 = reducer(s0, { t: 'lineField', field: 'len', value: 40 });
     expect(cur(s1).sample).toBe(false);
     expect(cur(s1).lines[0].len).toBe(40);
-    expect(cur(s0).lines[0].len).toBe(22);
+    expect(cur(s0).lines[0].len).toBe(9);
   });
   it('adds and deletes lines', () => {
     const s1 = reducer(base(), { t: 'addLine', type: 'power' });
-    expect(cur(s1).lines.length).toBe(8);
+    expect(cur(s1).lines.length).toBe(15);
     const s2 = reducer(s1, { t: 'delLine' });
-    expect(cur(s2).lines.length).toBe(7);
+    expect(cur(s2).lines.length).toBe(14);
   });
   it('keeps one project after deleting the last', () => {
     const s0 = base();
@@ -113,9 +113,9 @@ describe('history', () => {
     h = hreducer(h, { t: 'addLine', type: 'light' });
     expect(h.past.length).toBe(2);
     h = hreducer(h, { t: 'undo' });
-    expect(cur(h.now).lines.length).toBe(7);
+    expect(cur(h.now).lines.length).toBe(14);
     h = hreducer(h, { t: 'undo' });
-    expect(cur(h.now).lines[0].len).toBe(22);
+    expect(cur(h.now).lines[0].len).toBe(9);
     h = hreducer(h, { t: 'redo' });
     expect(cur(h.now).lines[0].len).toBe(31);
   });

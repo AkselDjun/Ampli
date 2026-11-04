@@ -91,7 +91,7 @@ describe('sheets use tabs and one panel at a time', () => {
     fireEvent.click(within(d).getByRole('tab', { name: 'Схема' }));
     expect(d.querySelector('#rep-tp-scheme svg')).toBeTruthy();
   });
-  it('projects and data: two sections each and Мои данные has three', () => {
+  it('projects and data: two sections each and Мои данные has two', () => {
     seed();
     render(<App />);
     click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
@@ -99,7 +99,7 @@ describe('sheets use tabs and one panel at a time', () => {
     expect(within(d).getAllByRole('tab').map(t => t.textContent)).toEqual(['Проекты', 'Обмен и данные']);
     click(d, 'Открыть мои данные');
     const l = dlg('Мои данные');
-    expect(within(l).getAllByRole('tab').map(t => t.textContent)).toEqual(['Реквизиты', 'Приборы', 'Шаблоны и цены']);
+    expect(within(l).getAllByRole('tab').map(t => t.textContent)).toEqual(['Реквизиты', 'Шаблоны и цены']);
     fireEvent.click(within(l).getByRole('tab', { name: 'Шаблоны и цены' }));
     expect(visible(l)).toEqual(['lib-tp-tpl']);
   });

@@ -23,7 +23,7 @@ const lines = (): Line[] => [
   zl(mkLine('Розетки', 'socket', 10, null, null, [['ТВ', 1500, 1]]), 'Комнаты', { where: 'Гостиная' }),
   zl(mkLine('Стиралка', 'power', 8, null, null, [['Стиральная машина', 2200, 1]]), 'Ванная', { wet: true })
 ];
-const proj = (ls: Line[], cfg: Partial<Cfg> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), ...cfg }, lines: ls, sample: false }, 'Тест'), lines: ls });
+const proj = (ls: Line[], cfg: Partial<Cfg> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), prot: 'rcbo', ...cfg }, lines: ls, sample: false }, 'Тест'), lines: ls });
 const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const rows = () => Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
@@ -121,26 +121,26 @@ describe('editor fields from the electricians', () => {
   };
   it('counts sockets and their load in a socket group', () => {
     boot();
-    const r = rows().find(x => x.textContent?.includes('Розетки: комнаты')) as HTMLElement;
+    const r = rows().find(x => x.textContent?.includes('Розетки: гостиная')) as HTMLElement;
     fireEvent.click(r);
     const n = byLabel(ed(), 'Розеток в группе, шт');
     expect(n.value).toBe('8');
     change(n, '10');
     change(byLabel(ed(), 'Нагрузка на розетку, Вт'), '100');
-    const l = stored().list[0].lines.find((x: Line) => x.name === 'Розетки: комнаты');
+    const l = stored().list[0].lines.find((x: Line) => x.name === 'Розетки: гостиная');
     expect(l.sockets).toBe('10');
     expect(l.perSocket).toBe('100');
   });
   it('edits branch length to the junction box for an appliance', () => {
     boot();
-    fireEvent.click(rows()[0]);
+    fireEvent.click(rows()[2]);
     expect(ed().querySelectorAll('[aria-label="Отвод от коробки, м"]').length).toBe(0);
     click(ed(), /Ещё действия/);
     click(ed(), 'Указать отводы к точкам');
     const br = ed().querySelectorAll<HTMLInputElement>('[aria-label="Отвод от коробки, м"]');
     expect(br.length).toBeGreaterThan(0);
     change(br[0], '4');
-    expect(stored().list[0].lines[0].apps[0].br).toBe('4');
+    expect(stored().list[0].lines[2].apps[0].br).toBe('4');
     expect(ed().textContent).toContain('Длина до распредкоробки');
   });
   it('asks for strip length and watts per metre for an LED strip', () => {
@@ -236,7 +236,7 @@ describe('usability pass', () => {
     wide(true);
     render(<App />);
     fireEvent.click(rows()[0]);
-    expect(ed().querySelector('.ed-res .tile small')?.textContent).toMatch(/^нагрузка 490\sВт$/);
+    expect(ed().querySelector('.ed-res .tile small')?.textContent).toMatch(/^нагрузка 203\sВт$/);
   });
 });
 
@@ -304,14 +304,14 @@ describe('apartment totals in the header', () => {
     wide(true);
     render(<App />);
     const b = screen.getByRole('button', { name: /^Итого по квартире/ });
-    expect(b).toHaveClass('st-warn');
-    expect(b.textContent).toContain('/15');
+    expect(b).toHaveClass('st-ok');
+    expect(b.textContent).toContain('/12');
     expect(b).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(b);
     const pop = document.getElementById('tot-pop') as HTMLElement;
-    expect(pop.textContent).toContain('На пределе');
+    expect(pop.textContent).toContain('Укладывается');
     expect(pop.textContent).toContain('Установлено');
-    expect(pop.textContent).toContain('2P C63');
+    expect(pop.textContent).toContain('2P C50');
     expect(pop.textContent).toContain('ВВГнг(А)-LS 3×');
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(document.getElementById('tot-pop')).toBeNull();
@@ -349,15 +349,15 @@ describe('apartment totals in the header', () => {
 });
 
 describe('norm checks in the header', () => {
-  it('shows the sample warning count and opens the list, with no checks block in the side column', () => {
+  it('shows the sample as compliant and opens the list, with no checks block in the side column', () => {
     wide(true);
     render(<App />);
     const b = screen.getByRole('button', { name: /^Проверки по нормам/ });
-    expect(b).toHaveClass('st-warn');
-    expect(b.querySelector('.chk-n')?.textContent).toBe('1');
+    expect(b).toHaveClass('st-ok');
+    expect(b.querySelector('.chk-n')).toBeNull();
     expect(document.querySelector('.c-checks')).toBeNull();
     fireEvent.click(b);
-    expect(document.getElementById('chk-pop')?.textContent).toContain('трёхфазный ввод');
+    expect(document.getElementById('chk-pop')?.textContent).toContain('Тип ввода соответствует нагрузке');
     fireEvent.pointerDown(document.body);
     expect(document.getElementById('chk-pop')).toBeNull();
   });

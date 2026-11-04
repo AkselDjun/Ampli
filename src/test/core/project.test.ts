@@ -26,7 +26,9 @@ describe('normProject', () => {
   it('fills defaults for legacy data', () => {
     const p = normProject({ cfg: { supply: 3 }, lines: [] }) as Project;
     expect(p.name).toBe('Без названия');
-    expect(p.cfg).toEqual({ ...defaultCfg(), supply: 3 });
+    expect(p.cfg).toEqual({ ...defaultCfg(), prot: 'rcbo', supply: 3 });
+    expect(normProject({ cfg: { supply: 1, prot: 'rcd' }, lines: [] })?.cfg.prot).toBe('rcd');
+    expect(newProject({ cfg: defaultCfg(), lines: [], sample: false }, 'x').cfg.prot).toBe('rcd');
     expect(p.rooms).toEqual([]);
     expect(p.checks).toEqual({});
     expect(p.proto).toEqual({ date: '', device: '', by: '' });
@@ -75,7 +77,7 @@ describe('project helpers', () => {
     const p = newProject(sample(), 'Тест');
     expect(p.name).toBe('Тест');
     expect(p.sample).toBe(true);
-    expect(p.lines.length).toBe(7);
+    expect(p.lines.length).toBe(14);
     expect(newProject({ ...p }, 'copy').id).not.toBe(p.id);
     expect(sampleProject().name).toContain('Пример');
   });
@@ -95,7 +97,12 @@ describe('project helpers', () => {
 
 describe('templates', () => {
   it('builds every template with and without electric stove', () => {
-    (['studio', 'k1', 'k2', 'k3'] as TplKey[]).forEach(k => {
+    const k2e = tplLines('k2', true).map(l => l.name);
+    const k2g = tplLines('k2', false).map(l => l.name);
+    expect(k2e.length).toBe(k2g.length + 2);
+    expect(k2e).toContain('Варочная панель');
+    expect(k2g).not.toContain('Духовой шкаф');
+    (['studio', 'k1', 'k3'] as TplKey[]).forEach(k => {
       const e = tplLines(k, true);
       const g = tplLines(k, false);
       expect(e.length).toBe(g.length + 1);
@@ -207,7 +214,7 @@ describe('spec and estimate', () => {
     mkLine('e', 'light', 7, null, null, [['x', 100, 1]]),
     mkLine('empty', 'light', 7, null, null, [])
   ];
-  const a = calcAll(lines, defaultCfg());
+  const a = calcAll(lines, { ...defaultCfg(), prot: 'rcbo' });
   const spec = buildSpec(a);
   it('builds spec items', () => {
     expect(spec[0]).toMatchObject({ name: 'Щиток на ' + a.size + ' модулей', n: 1 });

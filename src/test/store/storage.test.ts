@@ -74,7 +74,7 @@ describe('loadStore', () => {
     expect(loadStore().list[0].sample).toBe(true);
   });
   it('falls back to sample when storage throws', () => {
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+    vi.spyOn(localStorage, 'getItem').mockImplementation(() => {
       throw new Error('denied');
     });
     expect(loadStore().list[0].sample).toBe(true);
@@ -88,7 +88,7 @@ describe('saveStore', () => {
     expect(JSON.parse(localStorage.getItem(KEY) as string).cur).toBe(p.id);
   });
   it('swallows storage errors', () => {
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
       throw new Error('quota');
     });
     const p = sampleProject();

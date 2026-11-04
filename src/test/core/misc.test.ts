@@ -212,7 +212,7 @@ describe('compare', () => {
     expect(rows.length).toBe(7);
     expect(rows.every(r => r.worse === null)).toBe(true);
     expect(rows[0].now).toMatch(/кВт$/);
-    expect(rows[2].now).toBe('2P C63');
+    expect(rows[2].now).toBe('2P C32');
     expect(rows[3].now).toBe('однофазный');
     expect(rows[6].now).toMatch(/ %$/);
   });
@@ -237,7 +237,7 @@ describe('compare', () => {
     const full = variantCalc({ ...base, lines: sample().lines, cfg: cfg({ supply: 3 }) }, [], []);
     const r = compareRows(empty, full);
     expect(r[2].now).toBe('—');
-    expect(r[2].alt).toBe('4P C63');
+    expect(r[2].alt).toBe('4P C100');
     expect(r[2].worse).toBe(true);
     expect(r[3].now).toBe('трёхфазный');
     expect(r[4].worse).toBe(true);

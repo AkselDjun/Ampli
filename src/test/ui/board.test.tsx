@@ -33,7 +33,7 @@ describe('Board', () => {
     render(<PanelPane a={a} onPick={onPick} />);
     fireEvent.click(mods()[1]);
     expect(onPick).toHaveBeenCalledWith(ls[1].id);
-    expect(mods()[0].draggable).toBe(false);
+    expect(mods()[0].getAttribute('draggable')).toBe('false');
   });
   it('moves a group by drag and drop', () => {
     const ls = lines();

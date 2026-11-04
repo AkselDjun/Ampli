@@ -29,6 +29,7 @@ afterEach(() => {
 
 describe('actionable checks', () => {
   it('switches to three phases from the check', () => {
+    boot(Array.from({ length: 3 }, (_, i) => mkLine('П' + i, 'power', 5, 1, 1, [['Плита', 6000, 1]])));
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /^Проверки по нормам/ }));
     click(document.getElementById('chk-pop') as HTMLElement, 'Включить 3 фазы');
@@ -83,7 +84,7 @@ describe('editor', () => {
     Element.prototype.scrollIntoView = into;
     wide(true);
     render(<App />);
-    fireEvent.click(rows()[3]);
+    fireEvent.click(rows()[6]);
     expect(document.querySelector('.ed-mini')).toBeNull();
     act(() => cb([{ isIntersecting: false, boundingClientRect: { top: -200 }, rootBounds: { top: 56 } }]));
     const mini = document.querySelector('.ed-mini') as HTMLElement;
@@ -121,7 +122,7 @@ describe('editor', () => {
   it('shows branch lengths on demand and keeps them when filled', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(rows()[0]);
+    fireEvent.click(rows()[2]);
     const brs = () => ed().querySelectorAll<HTMLInputElement>('[aria-label="Отвод от коробки, м"]');
     expect(brs().length).toBe(0);
     expect(ed().querySelector('.apps.no-br')).not.toBeNull();
@@ -136,9 +137,9 @@ describe('editor', () => {
     click(ed(), /Ещё действия/);
     click(ed(), 'Указать отводы к точкам');
     change(brs()[0], '3');
-    fireEvent.click(rows()[1]);
+    fireEvent.click(rows()[3]);
     expect(brs().length).toBe(0);
-    fireEvent.click(rows()[0]);
+    fireEvent.click(rows()[2]);
     expect(brs().length).toBeGreaterThan(0);
     click(ed(), /Ещё действия/);
     expect(within(ed().querySelector('[role="menu"]') as HTMLElement).queryByText(/отводы к точкам/)).toBeNull();
@@ -163,10 +164,12 @@ describe('board and list highlight', () => {
     fireEvent.mouseEnter(devs[0]);
     expect(rows()[0]).toHaveClass('hot');
     fireEvent.mouseLeave(devs[0]);
-    fireEvent.mouseEnter(document.querySelectorAll<HTMLElement>('button.bd-b')[1]);
-    expect(rows()[1]).toHaveClass('hot');
-    fireEvent.mouseLeave(document.querySelectorAll<HTMLElement>('button.bd-b')[1]);
-    expect(rows()[1]).not.toHaveClass('hot');
+    const bd = document.querySelectorAll<HTMLElement>('button.bd-b')[1];
+    const twin = () => rows().find(x => x.querySelector('.no')?.textContent === bd.querySelector('.bd-no')?.textContent) as HTMLElement;
+    fireEvent.mouseEnter(bd);
+    expect(twin()).toHaveClass('hot');
+    fireEvent.mouseLeave(bd);
+    expect(twin()).not.toHaveClass('hot');
   });
 });
 
@@ -207,7 +210,7 @@ describe('document package', () => {
     const list = openDocs();
     expect(within(list).getByText('Заключение по старой проводке')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Печать комплекта · 2' })).toBeTruthy();
-    const set = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('full'); });
+    const set = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('full'); });
     fireEvent.click(within(list).getAllByRole('checkbox')[1]);
     expect(screen.getByRole('button', { name: 'Печать комплекта · 3' })).toBeTruthy();
     set.mockRestore();

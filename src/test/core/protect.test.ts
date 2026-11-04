@@ -14,7 +14,7 @@ const ls = (): Line[] => [
   { ...mkLine('Стиралка', 'power', 8, null, null, [['Стиральная машина', 2200, 1]]), zone: 'Ванная' },
   { ...mkLine('Кухня', 'socket', 8, null, null, [['Чайник', 2000, 1], ['Посудомоечная машина', 1800, 1]]), zone: 'Кухня' }
 ];
-const calc = (cfg: Partial<Cfg> = {}) => calcAll(ls(), { ...defaultCfg(), ...cfg });
+const calc = (cfg: Partial<Cfg> = {}) => calcAll(ls(), { ...defaultCfg(), prot: 'rcbo', ...cfg });
 
 describe('RCD type A', () => {
   it('marks groups with electronics and names the device', () => {

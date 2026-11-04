@@ -110,7 +110,7 @@ describe('App', () => {
     expect(rowsOf().length).toBe(0);
     expect(screen.getByRole('heading', { name: 'С чего начать' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /на примере/ }));
-    expect(rowsOf().length).toBe(7);
+    expect(rowsOf().length).toBe(14);
     expect(screen.getByText('Загружен пример')).toBeInTheDocument();
   });
 

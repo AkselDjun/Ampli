@@ -1,6 +1,6 @@
 import type { SpecItem } from './types';
 
-export type Kind = 'breaker' | 'rcbo' | 'cable' | 'board' | 'bus' | 'other';
+export type Kind = 'breaker' | 'rcbo' | 'rcd' | 'spd' | 'relay' | 'box' | 'cable' | 'board' | 'bus' | 'other';
 
 export interface Attrs {
   kind: Kind;
@@ -71,6 +71,31 @@ export function parseAttrs(raw: string): Attrs {
       return a;
     }
   }
+  if (/(\bузо\b|^узо|выключател[ья] дифференциальн|\bвд\s?1|\bвдт\b|\brccb\b)/.test(s) && !/(дифавтомат|авдт|rcbo)/.test(s)) {
+    a.kind = 'rcd';
+    const am = s.match(/(\d{2,3})\s?а(?![а-я])/) ?? fold(s).match(/(\d{2,3})\s?a(?![a-z])/);
+    if (am) a.amp = Number(am[1]);
+    const pm = fold(s).match(/(?:^|[^a-z0-9])([24])\s?p(?![a-z])/);
+    if (pm) a.poles = pm[1];
+    const mm = s.match(/(\d{1,3})\s?(?:ма|ma)(?![а-яa-z])/);
+    if (mm) a.ma = Number(mm[1]);
+    if (/типа?\s+[aа](?![cсa-zа-я0-9])/.test(s)) a.typeA = true;
+    return a;
+  }
+  if (/коробк[аи] (распред|распаеч|ответвит)|распаечн/.test(s)) {
+    a.kind = 'box';
+    return a;
+  }
+  if (/узип|ограничител[ья] перенапряж|\bspd\b/.test(s)) {
+    a.kind = 'spd';
+    return a;
+  }
+  if (/реле.*напряжен|\bрн-?\d|\bузм\b/.test(s)) {
+    a.kind = 'relay';
+    const am = s.match(/(\d{2,3})\s?а(?![а-я])/) ?? fold(s).match(/(\d{2,3})\s?a(?![a-z])/);
+    if (am) a.amp = Number(am[1]);
+    return a;
+  }
   const isRcbo = /(дифавтомат|дифференциальн.*автомат|авдт|rcbo)/.test(s);
   const isBreaker = /автомат/.test(s) || /\bmcb\b/.test(s) || /\bва\b/.test(s);
   if (isRcbo || isBreaker) {
@@ -96,6 +121,9 @@ export function matches(want: Attrs, got: Attrs): boolean {
   if (want.kind === 'cable') return want.cores === got.cores && want.sect === got.sect;
   if (want.kind === 'board') return got.modules >= want.modules && got.modules > 0;
   if (want.kind === 'bus') return want.bus === got.bus;
+  if (want.kind === 'spd' || want.kind === 'box') return true;
+  if (want.kind === 'relay') return !want.amp || got.amp >= want.amp;
+  if (want.kind === 'rcd') return got.amp === want.amp && (!want.poles || !got.poles || want.poles === got.poles) && (!want.ma || !got.ma || want.ma === got.ma) && (!want.typeA || !!got.typeA);
   if (!got.amp || want.amp !== got.amp) return false;
   if (want.curve && got.curve && want.curve !== got.curve) return false;
   if (want.poles && got.poles && want.poles !== got.poles) return false;
@@ -117,7 +145,10 @@ export function shopQuery(item: SpecItem): string {
   if (w.kind === 'board') return 'Щиток встраиваемый ' + w.modules + ' модулей';
   if (w.kind === 'bus') return w.bus === 'pe' ? 'Шина PE заземления на DIN-рейку' : 'Шина N нулевая на DIN-рейку';
   if (w.kind === 'breaker') return 'Автоматический выключатель ' + w.poles + 'P ' + w.curve + w.amp;
-  if (w.kind === 'rcbo') return 'Дифавтомат ' + w.poles + 'P ' + w.curve + w.amp + (w.ma ? ' ' + w.ma + ' мА' : '');
+  if (w.kind === 'rcbo') return 'Дифавтомат ' + w.poles + 'P ' + w.curve + w.amp + (w.ma ? ' ' + w.ma + ' мА' : '') + (w.typeA ? ' тип A' : '');
+  if (w.kind === 'rcd') return 'УЗО ' + (w.poles ? w.poles + 'P ' : '') + w.amp + 'А ' + w.ma + ' мА' + (w.typeA ? ' тип A' : '');
+  if (w.kind === 'spd') return 'УЗИП тип 2';
+  if (w.kind === 'relay') return 'Реле контроля напряжения' + (w.amp ? ' ' + w.amp + 'А' : '');
   return name;
 }
 

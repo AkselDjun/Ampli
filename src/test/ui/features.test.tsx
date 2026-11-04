@@ -105,7 +105,7 @@ describe('IncomingSheet', () => {
     expect(dlg('Присланный проект').textContent).not.toContain('Добавить проект');
     rerender(<IncomingSheet project={p} onAccept={() => undefined} onDecline={() => undefined} />);
     expect(dlg('Присланный проект').textContent).toContain('ул. Мира, 1');
-    expect(dlg('Присланный проект').textContent).toContain('7 групп');
+    expect(dlg('Присланный проект').textContent).toContain('14 групп');
     rerender(<IncomingSheet project={{ ...p, address: '', lines: [p.lines[0]] }} onAccept={() => undefined} onDecline={() => undefined} />);
     expect(dlg('Присланный проект').textContent).toContain('1 группа');
     expect(dlg('Присланный проект').querySelector('p')?.textContent).toBe(p.name);
@@ -293,16 +293,12 @@ describe('Editor search', () => {
     change(search(), 'л');
     expect(ed().querySelector('.often')).toBeNull();
   });
-  it('lists own appliances in search and chips', () => {
-    localStorage.setItem(LIB_KEY, JSON.stringify({ apps: [{ id: 'm1', name: 'Бра', w: 25, tag: 'l' }] }));
+  it('ignores appliances saved by older versions', () => {
+    localStorage.setItem(LIB_KEY, JSON.stringify({ apps: [{ id: 'm1', name: 'Мой обогреватель', w: 25, tag: 'l' }] }));
     boot();
-    change(search(), 'бра');
-    expect(ed().querySelector('.found')?.textContent).toContain('Бра');
-    expect(ed().querySelector('.found')?.textContent).toContain('25 Вт');
-    fireEvent.click(ed().querySelector('.found button') as HTMLElement);
-    expect(appNames()).toContain('Бра');
-    fireEvent.click(within(ed()).getByRole('button', { name: 'Убрать из моих приборов: Бра' }));
-    expect(lib().apps).toHaveLength(0);
+    change(search(), 'мой обогреватель');
+    expect(ed().querySelector('.found')).toBeNull();
+    expect(ed().querySelector('.chip-mine')).toBeNull();
   });
 });
 
@@ -437,7 +433,7 @@ describe('print with photos', () => {
   it('renders the photo section with captions in proto mode', async () => {
     await setup(true);
     expect(document.querySelector('.printdoc h2')?.textContent).toContain('Фотофиксация');
-    expect(document.querySelector('.pd-photo figcaption')?.textContent).toBe('Г1 Освещение · До');
+    expect(document.querySelector('.pd-photo figcaption')?.textContent).toBe('Г1 Свет: комнаты · До');
   });
   it('waits for images to load before printing', async () => {
     await setup(true);

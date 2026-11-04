@@ -61,7 +61,7 @@ describe('NetSheet', () => {
     const d = open('Параметры сети');
     const more = d.querySelector('details.net-more') as HTMLDetailsElement;
     expect(more.open).toBe(false);
-    expect(more.querySelector('summary small')?.textContent).toBe('ВВГнг(А)-LS · коробки по прокладке · петля сети 0,30 Ом · одновременность 0,75 · поправка на группировку 0,9 · сечение с запасом');
+    expect(more.querySelector('summary small')?.textContent).toBe('ВВГнг(А)-LS · коробки по прокладке · петля сети 0,30 Ом · одновременность 0,35 · поправка на группировку 0,9 · сечение с запасом');
     expect(d.textContent).not.toContain('Загрузить пример');
     ['sup', 'met', 'prot'].forEach(n => expect(more.contains(d.querySelector('input[name="' + n + '"]'))).toBe(false));
     ['inc', 'box', 'mins'].forEach(n => expect(more.contains(d.querySelector('input[name="' + n + '"]'))).toBe(true));

@@ -35,7 +35,7 @@ describe('price list store', () => {
     expect(r[0].offers).toEqual([{ name: 'a', price: 2, src: 'ok' }]);
   });
   it('reports a failed save', () => {
-    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
+    const spy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('quota'); });
     expect(saveLists([])).toBe(false);
     spy.mockRestore();
   });

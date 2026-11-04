@@ -23,9 +23,9 @@ describe('group list by rooms', () => {
     expect(toggle()).toHaveAttribute('aria-pressed', 'true');
     expect(heads()).toEqual(['Комнаты', 'Кухня', 'Ванная']);
     const first = document.querySelector('.rows .zone-h small')?.textContent;
-    expect(first).toMatch(/^3 группы · \d+,\d\s?кВт$/);
+    expect(first).toMatch(/^4 группы · \d+,\d\s?кВт$/);
     const nos = Array.from(document.querySelectorAll('.rows .row .no')).map(n => n.textContent);
-    expect(nos).toEqual(['Г1', 'Г2', 'Г7', 'Г3', 'Г4', 'Г5', 'Г6']);
+    expect(nos).toEqual(['Г1', 'Г3', 'Г4', 'Г14', 'Г2', 'Г5', 'Г6', 'Г7', 'Г8', 'Г9', 'Г10', 'Г11', 'Г12', 'Г13']);
     expect(localStorage.getItem(LISTBY_KEY)).toBe('room');
     fireEvent.click(toggle());
     expect(heads()).toEqual([]);
@@ -35,7 +35,7 @@ describe('group list by rooms', () => {
   it('puts groups without a room last and edits the room outside RCD mode', () => {
     wide(true);
     const ls: Line[] = [mkLine('Свет', 'light', 5, 1, 1, [['Лампа', 100, 1]]), { ...mkLine('Чайник', 'socket', 5, 1, 1, [['Чайник', 2000, 1]]), zone: 'Кухня' }];
-    const p = newProject({ cfg: defaultCfg(), lines: ls, sample: false }, 'Т');
+    const p = newProject({ cfg: { ...defaultCfg(), prot: 'rcbo' }, lines: ls, sample: false }, 'Т');
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
     localStorage.setItem(LISTBY_KEY, 'room');
     render(<App />);
@@ -57,8 +57,8 @@ describe('group list by rooms', () => {
   });
 
   it('works when storage throws', () => {
-    const get = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(k => { if (k === LISTBY_KEY) throw new Error('x'); return null; });
-    const set = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(k => { if (k === LISTBY_KEY) throw new Error('x'); });
+    const get = vi.spyOn(localStorage, 'getItem').mockImplementation(k => { if (k === LISTBY_KEY) throw new Error('x'); return null; });
+    const set = vi.spyOn(localStorage, 'setItem').mockImplementation(k => { if (k === LISTBY_KEY) throw new Error('x'); });
     render(<App />);
     fireEvent.click(toggle());
     expect(heads().length).toBeGreaterThan(0);
@@ -73,7 +73,7 @@ describe('group list by rooms', () => {
       { ...mkLine('Перегруз', 'power', 10, 1, 1, [['Первый', 10000, 1], ['Второй', 10000, 1]]), zone: 'Кухня' },
       { ...mkLine('Чайник', 'socket', 5, 1, 1, [['Чайник', 2000, 1]]), zone: 'Кухня' }
     ];
-    const p = newProject({ cfg: defaultCfg(), lines: ls, sample: false }, 'Т');
+    const p = newProject({ cfg: { ...defaultCfg(), prot: 'rcbo' }, lines: ls, sample: false }, 'Т');
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
     localStorage.setItem(LISTBY_KEY, 'room');
     render(<App />);
