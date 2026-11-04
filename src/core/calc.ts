@@ -139,7 +139,7 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
     r.insMeas = im;
     if (im < INS_MIN_MOHM) {
       r.status = 'bad';
-      r.notes.push('Сопротивление изоляции ' + fmt(im, 2) + ' МОм меньше ' + fs(INS_MIN_MOHM) + ' МОм (ТКП 339-2022, п. 4.4.29.2).');
+      r.notes.push('Сопротивление изоляции ' + fmt(im, 2) + ' МОм меньше ' + fs(INS_MIN_MOHM) + ' МОм (ТКП 339-2022, п. 4.4.26.1, табл. 4.4.46).');
     }
   }
   if (r.drop > lim) {
