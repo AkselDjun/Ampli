@@ -26,7 +26,7 @@ export function normProject(o: unknown, keep = false): Project | null {
     created: Number(x.created) || Date.now(),
     updated: Number(x.updated) || Date.now(),
     sample: !!x.sample,
-    cfg: { ...defaultCfg(), ...(x.cfg as object) },
+    cfg: { ...defaultCfg(), ...('prot' in (x.cfg as object) ? {} : { prot: 'rcbo' }), ...(x.cfg as object) },
     lines,
     rooms: Array.isArray(x.rooms)
       ? (x.rooms as Room[]).filter(r => r && Array.isArray(r.apps)).map(r => ({ ...r, id: nid(), apps: r.apps.map(a => ({ ...a, id: nid() })) }))
