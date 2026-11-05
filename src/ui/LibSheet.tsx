@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react';
 import { plural } from '../core/format';
 import { useLib } from '../store/LibContext';
-import { ArmButton, Sheet, TabPanel, Tabs, Tip } from './common';
+import { ArmButton, Seg, Sheet, TabPanel, Tabs, Tip } from './common';
 import { scaleLogo } from './logo';
 import { toastBad } from './toast';
+import { THEME_LABEL, useTheme } from './theme';
+import type { Theme } from './theme';
 
 export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lib, dispatch } = useLib();
@@ -11,8 +13,9 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
   const [tab, setTab] = useState('brand');
   const b = lib.brand;
   const nPrices = Object.keys(lib.prices).length;
+  const [theme, setTheme] = useTheme();
   return (
-    <Sheet open={open} onClose={onClose} title="Мои данные" bar={<Tabs scope="lib" label="Разделы данных" cur={tab} onChange={setTab} items={[{ id: 'brand', label: 'Реквизиты' }, { id: 'tpl', label: 'Шаблоны и цены' }]} />}>
+    <Sheet open={open} onClose={onClose} title="Мои данные" bar={<Tabs scope="lib" label="Разделы данных" cur={tab} onChange={setTab} items={[{ id: 'brand', label: 'Реквизиты' }, { id: 'tpl', label: 'Шаблоны и цены' }, { id: 'view', label: 'Оформление' }]} />}>
       <TabPanel scope="lib" id="brand" cur={tab}>
       <h3 className="sec-t">Реквизиты для отчёта</h3>
       <div className="meta-grid">
@@ -68,6 +71,11 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
       <div className="data-row">
         <ArmButton className="btn ghost" label="Очистить все цены" armedLabel="Точно очистить?" disabled={nPrices === 0} onRun={() => dispatch({ t: 'clearPrices' })} />
       </div>
+      </TabPanel>
+      <TabPanel scope="lib" id="view" cur={tab}>
+      <h3 className="sec-t" id="themeT">Тема оформления</h3>
+      <Seg<Theme> name="theme" labelledBy="themeT" value={theme} onChange={setTheme} items={(Object.keys(THEME_LABEL) as Theme[]).map(k => [k, THEME_LABEL[k]])} />
+      <p className="muted">«Как в системе» следует настройке телефона или компьютера. Выбор хранится на этом устройстве.</p>
       </TabPanel>
     </Sheet>
   );
