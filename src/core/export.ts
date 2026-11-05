@@ -83,15 +83,19 @@ const csvCell = (v: Cell): string => {
   return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 };
 
-export function toCsv(t: Table): string {
-  const lines = [t.head.map(csvCell).join(';')];
-  t.rows.forEach(r => lines.push(r.map(csvCell).join(';')));
-  if (t.total) {
-    const row: Cell[] = t.head.map(() => null);
-    row[t.total.col - 1] = t.total.label;
-    row[t.total.col] = t.total.value;
-    lines.push(row.map(csvCell).join(';'));
-  }
+export function toCsv(...ts: Table[]): string {
+  const lines: string[] = [];
+  ts.forEach((t, k) => {
+    if (k) lines.push('', csvCell(t.name));
+    lines.push(t.head.map(csvCell).join(';'));
+    t.rows.forEach(r => lines.push(r.map(csvCell).join(';')));
+    if (t.total) {
+      const row: Cell[] = t.head.map(() => null);
+      row[t.total.col - 1] = t.total.label;
+      row[t.total.col] = t.total.value;
+      lines.push(row.map(csvCell).join(';'));
+    }
+  });
   return '﻿' + lines.join('\r\n') + '\r\n';
 }
 

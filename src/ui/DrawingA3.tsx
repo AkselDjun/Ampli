@@ -24,6 +24,8 @@ export const drawCode = (t: number): string => {
   return 'ЭМ-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
 };
 
+const PER = 20;
+
 const shortName = (n: string): string => {
   const w = n.trim().split(/\s+/).filter(Boolean);
   const s = w.length > 1 && !w.slice(1).every(x => x.includes('.')) ? w[0] + ' ' + w.slice(1, 3).map(x => x[0].toUpperCase() + '.').join('') : w.join(' ');
@@ -75,11 +77,9 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
     a.uzos.forEach((u, k) => u.groups.forEach(i => { order.push({ x: a.rows[i], i }); zoneOf.push(k); }));
     rows.forEach(o => { if (o.x.r.uzo === null) { order.push(o); zoneOf.push(null); } });
   } else rows.forEach(o => { order.push(o); zoneOf.push(null); });
-  const n = Math.max(1, order.length);
-  const cw = Math.min(40, (TR - TX1) / n);
-  const cx = (k: number) => TX1 + cw * k + cw / 2;
-  const fsz = cw < 11 ? 1.6 : cw < 14 ? 1.9 : cw < 17 ? 2.2 : 2.6;
-  const maxCh = Math.max(6, Math.floor(cw / (fsz * 0.52)));
+  const pages: [number, number][] = [];
+  for (let s0 = 0; s0 < order.length; s0 += PER) pages.push([s0, Math.min(order.length, s0 + PER)]);
+  if (!pages.length) pages.push([0, 0]);
   const labels: [string, number][] = [
     ['Обозначение аппарата', 8],
     ['Тип, номинальный ток, А', 8],
@@ -121,26 +121,42 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
   const vrA = a.inIn ? vrRating(a.inIn) : null;
   const SPDX = TX0 + 18;
   const objName = wrap(p.address || p.name || 'Квартира', 60, 2);
+  const sheet = (from: number, to: number, pg: number) => {
+  const n = Math.max(1, to - from);
+  const cw = Math.min(40, (TR - TX1) / n);
+  const cx = (k: number) => TX1 + cw * (k - from) + cw / 2;
+  const fsz = cw < 11 ? 1.6 : cw < 14 ? 1.9 : cw < 17 ? 2.2 : 2.6;
+  const maxCh = Math.max(6, Math.floor(cw / (fsz * 0.52)));
+  const first = pg === 0;
   return (
-    <svg className="a3" viewBox={'0 0 ' + W + ' ' + H} width={W + 'mm'} height={H + 'mm'} role="img" aria-label="Принципиальная схема распределительной сети" fill="none" stroke="#000" strokeWidth="0.35" fontFamily="'Golos Text', Arial, sans-serif">
+    <svg key={pg} className="a3" viewBox={'0 0 ' + W + ' ' + H} width={W + 'mm'} height={H + 'mm'} role="img" aria-label="Принципиальная схема распределительной сети" fill="none" stroke="#000" strokeWidth="0.35" fontFamily="'Golos Text', Arial, sans-serif">
       <rect x={FX} y={FY} width={FR - FX} height={FB - FY} strokeWidth="0.7" />
       <text x={TX0} y="14" {...t} fontSize="3.2" fontWeight="700">Щиток квартирный ЩК</text>
       <text x={TX0} y="19" {...t} fontSize="2.4">{three ? '~3 × 400/230 В, 50 Гц' : '~230 В, 50 Гц'}</text>
-      <text x={TX0} y="27" {...t} fontSize="2.4">От этажного щита ЩЭ</text>
-      <path d={'M' + (TX0 + 6) + ' 29V33'} strokeWidth="0.5" />
-      <Breaker x={TX0 + 6} y={33} h={14} diff={false} />
-      <text x={TX0 + 10} y="39" {...t} fontSize="2.4" fontWeight="700">QF0</text>
-      <text x={TX0 + 10} y="42.5" {...t} fontSize="2.4">{inLabel}</text>
-      <text x={TX0 + 10} y="46" {...t} fontSize="2.2">{inCab}</text>
-      <path d={'M' + (TX0 + 6) + ' 47V' + busY + 'H' + (TX1 + cw * n - cw / 2 + 2)} strokeWidth="0.9" />
-      {vr && (
+      {first ? (
+        <>
+          <text x={TX0} y="27" {...t} fontSize="2.4">От этажного щита ЩЭ</text>
+          <path d={'M' + (TX0 + 6) + ' 29V33'} strokeWidth="0.5" />
+          <Breaker x={TX0 + 6} y={33} h={14} diff={false} />
+          <text x={TX0 + 10} y="39" {...t} fontSize="2.4" fontWeight="700">QF0</text>
+          <text x={TX0 + 10} y="42.5" {...t} fontSize="2.4">{inLabel}</text>
+          <text x={TX0 + 10} y="46" {...t} fontSize="2.2">{inCab}</text>
+          <path d={'M' + (TX0 + 6) + ' 47V' + busY + 'H' + (TX1 + cw * n - cw / 2 + 2)} strokeWidth="0.9" />
+        </>
+      ) : (
+        <>
+          <text x={TX0} y="27" {...t} fontSize="2.4">Продолжение, начало на листе 1</text>
+          <path d={'M' + (TX0 + 6) + ' ' + busY + 'H' + (TX1 + cw * n - cw / 2 + 2)} strokeWidth="0.9" />
+        </>
+      )}
+      {first && vr && (
         <g>
           <rect x={TX0 + 3.5} y={48.2} width="5" height="4.2" fill="#fff" />
           <text x={TX0 + 6} y={51.2} {...t} fontSize="1.8" textAnchor="middle">U</text>
           <text x={TX0 + 10} y={51.5} {...t} fontSize="2.2"><tspan fontWeight="700">KV1</tspan> реле напряжения{vrA ? ' ' + vrA + ' А' : ''}</text>
         </g>
       )}
-      {spd && (
+      {first && spd && (
         <g>
           <path d={'M' + SPDX + ' ' + busY + 'v6'} />
           <rect x={SPDX - 2} y={busY + 6} width="4" height="8" fill="#fff" />
@@ -151,7 +167,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
         </g>
       )}
       {a.uzos.map((u, k) => {
-        const idx = zoneOf.map((z, j) => (z === k ? j : -1)).filter(j => j >= 0);
+        const idx = zoneOf.map((z, j) => (z === k && j >= from && j < to ? j : -1)).filter(j => j >= 0);
         if (!idx.length) return null;
         const x0 = cx(idx[0]);
         const x1 = cx(idx[idx.length - 1]);
@@ -164,7 +180,8 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
           </g>
         );
       })}
-      {order.map((o, k) => {
+      {order.slice(from, to).map((o, j0) => {
+        const k = from + j0;
         const r = o.x.r;
         const x = cx(k);
         const z = zoneOf[k];
@@ -185,9 +202,10 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
           {wrap(name, 26, 2).map((ln, j, arr) => <text key={j} x={TX0 + 1.5} y={ys[k] + h / 2 + 0.9 + (j - (arr.length - 1) / 2) * 3} {...t} fontSize="2.3">{ln}</text>)}
         </g>
       ))}
-      {order.map((o, k) => {
+      {order.slice(from, to).map((o, j0) => {
+        const k = from + j0;
         const vals = cellVals(o, k);
-        const x = TX1 + cw * k;
+        const x = TX1 + cw * j0;
         const name = wrap(o.x.l.name || 'Без названия', maxCh, 3);
         return (
           <g key={'c' + o.x.l.id}>
@@ -201,7 +219,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
           </g>
         );
       })}
-      <g>
+      {first && <g>
         <text x={TX0} y={tableBottom + 8} {...t} fontSize="2.8" fontWeight="700">Итого по щитку</text>
         <text x={TX0} y={tableBottom + 13} {...t} fontSize="2.5">Руст = {fmt(a.sumInst / 1000, 2)} кВт; Ко = {fs(c.ko)}; Рр = {fmt(a.P / 1000, 2)} кВт; Iр = {fmt(a.Itot, 1)} А{three ? ' (наиболее загруженная фаза)' : ''}.</text>
         <text x={TX0} y={tableBottom + 17.5} {...t} fontSize="2.5">Выделенная мощность {fmt(c.alloc, 1)} кВт. Корпус щитка на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}.{vr ? ' Реле напряжения KV1' + (three ? ' по одному на фазу' : '') + (vrA ? ', ' + vrA + ' А.' : ', через контактор.') : ''}{spd ? ' УЗИП FV1 тип 2 ' + (three ? '3P+N.' : '1P+N.') : ''}</text>
@@ -213,7 +231,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
           '4. Длины кабелей указаны с учётом отводов от распределительных коробок, уточняются по месту.',
           ...(heatNo.length ? ['5. Водонагреватели и приборы отопления (' + heatNo.join(', ') + ') подключить отдельными линиями, неразъёмно, без вилки и розетки (СН 4.04.01-2019, п. 14.4).'] : [])
         ].map((ln, j) => <text key={j} x={TX0} y={tableBottom + 30 + j * 4.2} {...t} fontSize="2.4">{ln}</text>)}
-      </g>
+      </g>}
       <g strokeWidth="0.5">
         <rect x={SX} y={SY} width="185" height="55" strokeWidth="0.7" />
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(k => <path key={'h' + k} d={'M' + SX + ' ' + (SY + k * 5) + 'H' + (SX + 65)} strokeWidth={k === 3 ? 0.7 : 0.25} />)}
@@ -237,10 +255,12 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
         <text x={SX + 100} y={SY + 44.5} {...t} fontSize="2.8" textAnchor="middle">Принципиальная схема</text>
         <text x={SX + 100} y={SY + 49} {...t} fontSize="2.8" textAnchor="middle">распределительной сети</text>
         {['Стадия', 'Лист', 'Листов'].map((h, k) => <text key={h} x={SX + [142.5, 157.5, 175][k]} y={SY + 33.8} {...t} fontSize="2.2" textAnchor="middle">{h}</text>)}
-        {['Р', '1', '1'].map((h, k) => <text key={'v' + k} x={SX + [142.5, 157.5, 175][k]} y={SY + 38.8} {...t} fontSize="2.6" textAnchor="middle">{h}</text>)}
+        {['Р', String(pg + 1), String(pages.length)].map((h, k) => <text key={'v' + k} x={SX + [142.5, 157.5, 175][k]} y={SY + 38.8} {...t} fontSize="2.6" textAnchor="middle">{h}</text>)}
         {wrap(company || '', 26, 2).map((ln, j, arr) => <text key={j} x={SX + 160} y={SY + 48 + (j - (arr.length - 1) / 2) * 3.4} {...t} fontSize="2.8" textAnchor="middle">{ln}</text>)}
       </g>
       <text x={FR} y={H - 1.5} {...t} fontSize="2.5" textAnchor="end">Формат A3</text>
     </svg>
   );
+  };
+  return <>{pages.map(([f, t2], pg) => sheet(f, t2, pg))}</>;
 }

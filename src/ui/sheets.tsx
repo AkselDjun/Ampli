@@ -238,7 +238,7 @@ export function ProjectsSheet({
             <div className="tpl-grid">
               {lib.templates.map(t => (
                 <button key={t.id} className="tpl-b" type="button" onClick={() => {
-                  dispatch({ t: 'addProject', content: { sample: false, cfg: t.cfg, lines: t.lines }, name: t.name });
+                  dispatch({ t: 'addProject', content: { sample: false, cfg: t.cfg, lines: t.lines, floor: t.floor, weak: t.weak }, name: t.name });
                   setTplOpen(false);
                   note('Создан проект: ' + t.name);
                 }}>
@@ -282,7 +282,7 @@ export function ProjectsSheet({
       <h3 className="sec-t">Шаблон</h3>
       <p className="muted">Группы и параметры этого проекта станут заготовкой для новых проектов.</p>
       <div className="data-row">
-        <button className="btn ghost" type="button" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</button>
+        <button className="btn ghost" type="button" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines, floor: p.floor, weak: p.weak }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</button>
       </div>
       <h3 className="sec-t">Мои данные</h3>
       <p className="muted">Реквизиты для отчёта, шаблоны и цены.</p>
@@ -331,7 +331,7 @@ export function ReportSheet({
   const saveFile = (kind: 'xlsx' | 'csv') => {
     const tables = exportTables(a, lib.prices, lib.labor, p.work);
     if (kind === 'xlsx') download(exportName(p.name, 'xlsx'), buildXlsx(tables), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    else download(exportName(p.name, 'csv'), toCsv(tables[0]), 'text/csv;charset=utf-8');
+    else download(exportName(p.name, 'csv'), toCsv(...tables), 'text/csv;charset=utf-8');
     toastOk(kind === 'xlsx' ? 'Файл Excel сохранён' : 'Файл CSV сохранён');
   };
   const three = a.c.supply === 3;

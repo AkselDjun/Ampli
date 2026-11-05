@@ -15,7 +15,8 @@ import { gcPhotos } from '../store/photos';
 import { referencedPhotoIds } from '../core/photos';
 import { CompareSheet } from './CompareSheet';
 import { RoomsSheet } from './RoomsSheet';
-import { Brand, IconBack, IconCheck, IconDoc, IconList, IconPanel } from './Icons';
+import { useBackClose } from './back';
+import { Brand, IconBack, IconCheck, IconDoc, IconList, IconPanel, IconRedo, IconUndo } from './Icons';
 import { Palette } from './Palette';
 import type { Cmd } from './Palette';
 import { GroupList } from './GroupList';
@@ -194,6 +195,12 @@ export function App() {
   const closeSheet = useCallback(() => setSheet(null), []);
   const undo = useCallback(() => dispatch({ t: 'undo' }), []);
 
+  const undoBar = (
+    <div className="ab-ur" role="group" aria-label="История изменений">
+      <button className="ab-ib" type="button" aria-label="Отменить" data-tip="Отменить · Ctrl+Z" disabled={!hist.past.length} onClick={undo}><IconUndo /></button>
+      <button className="ab-ib" type="button" aria-label="Вернуть" data-tip="Вернуть · Ctrl+Shift+Z" disabled={!hist.future.length} onClick={() => dispatch({ t: 'redo' })}><IconRedo /></button>
+    </div>
+  );
   const goEdit = () => {
     if (isWide()) return;
     scrollPos.current = window.scrollY;
@@ -204,6 +211,7 @@ export function App() {
     setView('groups');
     window.setTimeout(() => window.scrollTo(0, scrollPos.current), 0);
   };
+  useBackClose(view !== 'groups', goBack);
   const addGroup = (t: LineType) => {
     dispatch({ t: 'addLine', type: t });
     toast('Добавлена группа: ' + TYPES[t].label, isWide() ? {} : { label: 'Открыть', run: goEdit });
@@ -305,6 +313,7 @@ export function App() {
                 <h1 className="ab-title">{selected ? 'Г' + (idx + 1) + ' ' + (selected.name || 'Без названия') : ''}</h1>
                 <div id="ab-sub" className="ab-sub" />
               </div>
+              {undoBar}
               <button className="btn primary sm" type="button" onClick={goBack}>Готово</button>
             </div>
             <div className="ab-main">
@@ -313,6 +322,7 @@ export function App() {
                 <Totals a={a} onNet={() => setSheet('net')} />
                 <Checks a={a} onGroup={id => { dispatch({ t: 'select', id }); goEdit(); }} onFix={f => (f === 'net' ? setSheet('net') : dispatch({ t: 'cfg', field: 'supply', value: f === 'phase3' ? 3 : 1 }))} />
               </div>
+              {undoBar}
               <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
                 <IconPanel />
                 <span className="ab-txt">На щитке</span>
@@ -356,6 +366,7 @@ export function App() {
             onOpenNet={() => setSheet('net')}
             onOpenOld={() => setSheet('old')}
             onOpenFloor={() => setSheet('floor')}
+            headExtra={<span className="ur-list">{undoBar}</span>}
             onOpenWeak={() => setSheet('weak')}
             oldLabel={oldLabel}
             hot={hot}

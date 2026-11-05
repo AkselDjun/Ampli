@@ -67,7 +67,7 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
   const lim0 = (l.type === 'light' ? 3 : 5) + Math.min(0.5, Math.max(0, len - 100) * 0.005);
   const lim = Math.max(0.5, lim0 - c.feeder);
   const rcbo = t.rcd && !c.rcdMode;
-  const ma = !t.rcd ? 0 : (zoneMa ?? (l.wet ? 10 : (I > 32 ? 100 : 30)));
+  const ma = !t.rcd ? 0 : (zoneMa ?? (l.wet ? 10 : (I > 32 && l.type !== 'socket' ? 100 : 30)));
   const aApps = live.filter(a => TYPE_A_RX.test(a.name));
   const rcdA = t.rcd && aApps.length > 0;
   const arc = !three && (c.afdd === 'all' || (c.afdd === 'sock' && l.type === 'socket'));
@@ -221,9 +221,11 @@ export function pack(devs: Device[], rl: number): number {
   return last.row * rl + last.col + devs[devs.length - 1].mod;
 }
 
+export const WET_SFX = ' (10 мА)';
+
 const zoneMa = (rs: LineResult[], ls: Line[]): number => {
   if (ls.some((l, i) => l.wet && rs[i].rcd)) return 10;
-  if (rs.length && rs.every(r => r.I > 32)) return 100;
+  if (rs.length && rs.every(r => r.I > 32) && ls.every(l => l.type !== 'socket')) return 100;
   return 30;
 };
 
@@ -232,10 +234,13 @@ function planUzos(lines: Line[], c: CfgN): { rows: Row[]; uzos: Uzo[] } {
   if (!c.rcdMode) return { rows: lines.map((l, i) => ({ l, r: first[i] })), uzos: [] };
   const order: string[] = [];
   const by = new Map<string, number[]>();
+  const live = (i: number): boolean => !first[i].empty && !!first[i].In && first[i].rcd;
+  const mixed = new Set(lines.filter((l, i) => live(i) && l.wet).map(zoneOf).filter(z => lines.some((l, i) => live(i) && !l.wet && zoneOf(l) === z)));
+  const keyOf = (l: Line): string => zoneOf(l) + (l.wet && mixed.has(zoneOf(l)) ? WET_SFX : '');
   lines.forEach((l, i) => {
     const r = first[i];
     if (r.empty || !r.In || !r.rcd) return;
-    const z = zoneOf(l);
+    const z = keyOf(l);
     if (!by.has(z)) {
       by.set(z, []);
       order.push(z);
@@ -248,8 +253,11 @@ function planUzos(lines: Line[], c: CfgN): { rows: Row[]; uzos: Uzo[] } {
     maOf.set(z, zoneMa(idx.map(i => first[i]), idx.map(i => lines[i])));
   });
   const rows: Row[] = lines.map((l, i) => {
-    const z = zoneOf(l);
-    return { l, r: maOf.has(z) && first[i].rcd ? calcLine(l, c, maOf.get(z)) : first[i] };
+    const z = keyOf(l);
+    if (!maOf.has(z) || !first[i].rcd) return { l, r: first[i] };
+    const r = calcLine(l, c, maOf.get(z));
+    r.zone = z;
+    return { l, r };
   });
   const uzos: Uzo[] = order.map((z, k) => {
     const idx = by.get(z) as number[];

@@ -82,9 +82,16 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const n0 = rowsOf().length;
-    expect(screen.queryByRole('button', { name: 'Отменить' })).toBeNull();
+    const hb = (name: string) => within(document.querySelector('.ab-main') as HTMLElement).getByRole('button', { name }) as HTMLButtonElement;
+    expect(hb('Отменить').disabled).toBe(true);
+    expect(hb('Вернуть').disabled).toBe(true);
     await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
     await user.click(screen.getByRole('menuitem', { name: 'Розетки' }));
+    expect(rowsOf().length).toBe(n0 + 1);
+    fireEvent.click(hb('Отменить'));
+    expect(rowsOf().length).toBe(n0);
+    expect(hb('Вернуть').disabled).toBe(false);
+    fireEvent.click(hb('Вернуть'));
     expect(rowsOf().length).toBe(n0 + 1);
     fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true });
     expect(rowsOf().length).toBe(n0);

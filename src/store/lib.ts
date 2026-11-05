@@ -1,3 +1,7 @@
+import { normFloor } from '../core/floor';
+import type { FloorRoom } from '../core/floor';
+import { normWeak, weakStarted } from '../core/weak';
+import type { Weak } from '../core/weak';
 import { normProject, uniqName } from '../core/project';
 import type { Cfg, Line } from '../core/types';
 import { pn } from '../core/format';
@@ -14,6 +18,8 @@ export interface UserTpl {
   name: string;
   cfg: Cfg;
   lines: Line[];
+  floor?: FloorRoom[];
+  weak?: Weak;
 }
 
 export interface Brand {
@@ -42,7 +48,7 @@ export function normLib(o: unknown): Lib {
     lib.templates = x.templates
       .filter((t): t is UserTpl => !!t && typeof (t as UserTpl).name === 'string' && Array.isArray((t as UserTpl).lines) && !!(t as UserTpl).cfg)
       .filter(t => !!normProject({ cfg: t.cfg, lines: t.lines }))
-      .map(t => ({ id: String(t.id || nid()), name: t.name.slice(0, 60), cfg: t.cfg, lines: t.lines }));
+      .map(t => ({ id: String(t.id || nid()), name: t.name.slice(0, 60), cfg: t.cfg, lines: t.lines, ...(normFloor(t.floor).length ? { floor: normFloor(t.floor) } : {}), ...(weakStarted(normWeak(t.weak)) ? { weak: normWeak(t.weak) } : {}) }));
   }
   if (x.prices && typeof x.prices === 'object') {
     for (const [k, v] of Object.entries(x.prices as Record<string, unknown>)) {
@@ -96,7 +102,7 @@ export function saveLib(l: Lib): boolean {
 }
 
 export type LibAction =
-  | { t: 'addTpl'; name: string; cfg: Cfg; lines: Line[] }
+  | { t: 'addTpl'; name: string; cfg: Cfg; lines: Line[]; floor?: FloorRoom[]; weak?: Weak }
   | { t: 'delTpl'; id: string }
   | { t: 'price'; name: string; value: string }
   | { t: 'clearPrices' }
@@ -110,7 +116,7 @@ export function libReducer(l: Lib, a: LibAction): Lib {
   switch (a.t) {
     case 'addTpl': {
       const name = uniqName(l.templates.map(t => t.name), a.name.trim() || 'Мой шаблон');
-      const copy: UserTpl = { id: nid() + Date.now().toString(36), name: name.slice(0, 60), cfg: { ...a.cfg }, lines: JSON.parse(JSON.stringify(a.lines)) };
+      const copy: UserTpl = { id: nid() + Date.now().toString(36), name: name.slice(0, 60), cfg: { ...a.cfg }, lines: JSON.parse(JSON.stringify(a.lines)), ...(a.floor?.length ? { floor: normFloor(a.floor) } : {}), ...(weakStarted(a.weak) ? { weak: normWeak(a.weak) } : {}) };
       return { ...l, templates: [...l.templates, copy] };
     }
     case 'delTpl':

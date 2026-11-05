@@ -137,6 +137,8 @@ export interface Content {
   sample: boolean;
   cfg: Cfg;
   lines: Line[];
+  floor?: FloorRoom[];
+  weak?: Weak;
 }
 
 export interface CfgN {

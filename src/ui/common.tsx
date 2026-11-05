@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useBackClose } from './back';
 import type { KeyboardEvent as ReactKeyEvent, ReactNode } from 'react';
 import { IconAlert, IconBack, IconClose, IconDone, IconDown, IconInfo } from './Icons';
 import { useSheetNav } from './sheetnav';
@@ -212,6 +213,7 @@ export function Sheet({
   children: ReactNode;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  useBackClose(open, onClose);
   const bodyRef = useRef<HTMLDivElement>(null);
   const opener = useRef<Element | null>(null);
   const nav = useSheetNav();
