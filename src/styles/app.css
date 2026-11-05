@@ -1560,3 +1560,10 @@ html:has(.sheet:not([hidden])) .toast{top:calc(12px + env(safe-area-inset-top,0p
 .proto-d,.acts-d{min-width:0;max-width:100%}
 .a3-wrap svg.a3+svg.a3{margin-top:12px;border-top:1px dashed var(--line)}
 @media print{.printdoc.a3doc svg.a3+svg.a3{break-before:page;page-break-before:always}}
+@media (max-width:480px){
+  .row{gap:10px;padding:10px 10px 10px 14px}
+  .row-name{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
+  .row-end{gap:4px}
+  .row .chev{width:16px;height:16px}
+}
+@media (max-width:380px){.row-name{font-size:var(--t-base)}}
