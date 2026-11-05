@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom", "babel-plugin-react-compiler"]
+      build:
+        patterns: ["vite", "vite-plugin-pwa", "@vitejs/*", "@rolldown/*", "workbox-*", "@babel/*", "typescript"]
+      test:
+        patterns: ["vitest", "@vitest/*", "@testing-library/*", "@playwright/test", "happy-dom", "fake-indexeddb"]
+      lint:
+        patterns: ["eslint", "@eslint/*", "eslint-plugin-*", "typescript-eslint", "globals"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

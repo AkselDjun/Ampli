@@ -7,11 +7,14 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
     "test:watch": "vitest",
-    "lint": "eslint .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "size": "node scripts/size.mjs",
+    "check": "npm run lint && npm run typecheck && npm test"
   },
   "dependencies": {
     "fflate": "^0.8.3",
@@ -44,5 +47,8 @@
     "vitest": "^5.1.0",
     "workbox-build": "^7.4.1",
     "workbox-window": "^7.4.1"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
