@@ -6,8 +6,8 @@ import { STATUS, TYPES, TYPE_KEYS } from '../core/norms';
 import { ZONES } from '../core/rooms';
 import { byUsage, catalog, searchCatalog, topUsed } from '../core/catalog';
 import { whyRows } from '../core/why';
-import type { HAction } from '../store/history';
-import { toastUndo } from './toast';
+import type { Action } from '../store/reducer';
+import { toastOk } from './toast';
 import { IconDown, IconSearch } from './Icons';
 import { usePop } from './pop';
 import { useMenuKeys } from './menu';
@@ -50,13 +50,12 @@ export function Editor({
   l: Line | null;
   idx: number;
   a: Calc;
-  dispatch: (x: HAction) => void;
+  dispatch: (x: Action) => void;
   whyOpen: boolean;
   setWhyOpen: (v: boolean) => void;
   onDeleted: () => void;
 }) {
   const { lib, dispatch: libDispatch } = useLib();
-  const undo = () => dispatch({ t: 'undo' });
   const chips = useRef<HTMLDivElement>(null);
   const focusNew = useRef(false);
   const [measOpen, setMeasOpen] = useState(false);
@@ -194,7 +193,7 @@ export function Editor({
                   if (!fix.act) return;
                   if (fix.act.k === 'len') dispatch({ t: 'lineField', field: 'len', value: fix.act.len });
                   else dispatch({ t: 'splitLine', mode: fix.act.k });
-                  toastUndo('Исправлено', undo);
+                  toastOk('Исправлено');
                 }}
               />
             )}
@@ -283,7 +282,7 @@ export function Editor({
                     </span>
                   </label>
                 )}
-                <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" data-tip="Удалить прибор" onClick={() => keepChips(() => { dispatch({ t: 'delApp', id: ap.id }); if (ap.name.trim() || pn(ap.w, 0) > 0) toastUndo('Прибор удалён: ' + (ap.name.trim() || 'без названия'), undo); })}>×</button>
+                <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" data-tip="Удалить прибор" onClick={() => keepChips(() => { dispatch({ t: 'delApp', id: ap.id }); if (ap.name.trim() || pn(ap.w, 0) > 0) toastOk('Прибор удалён: ' + (ap.name.trim() || 'без названия')); })}>×</button>
               </div>
             ))}
           </div>
@@ -334,8 +333,8 @@ export function Editor({
               <div className="ed-menu" role="menu" aria-label="Действия с группой" ref={el => { mk.list.current = el; }} onKeyDown={mk.onKeyDown}>
                 <button type="button" role="menuitem" onClick={() => { mk.back(); setQuick(quick === null ? '' : null); setQuickMsg(''); }}>{quick === null ? 'Вставить список текстом' : 'Скрыть вставку списком'}</button>
                 {(brOn || !showBr) && <button type="button" role="menuitem" onClick={() => { mk.back(); setBrOn(!brOn); }}>{brOn ? 'Скрыть отводы к точкам' : 'Указать отводы к точкам'}</button>}
-                {prevPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[prevPeer].l.id }); toastUndo('Группа перемещена на место Г' + (prevPeer + 1), undo); }}>Переставить раньше, на место Г{prevPeer + 1}</button>}
-                {nextPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[nextPeer].l.id }); toastUndo('Группа перемещена на место Г' + (nextPeer + 1), undo); }}>Переставить позже, на место Г{nextPeer + 1}</button>}
+                {prevPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[prevPeer].l.id }); toastOk('Группа перемещена на место Г' + (prevPeer + 1)); }}>Переставить раньше, на место Г{prevPeer + 1}</button>}
+                {nextPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[nextPeer].l.id }); toastOk('Группа перемещена на место Г' + (nextPeer + 1)); }}>Переставить позже, на место Г{nextPeer + 1}</button>}
               </div>
             )}
           </div>
@@ -462,8 +461,8 @@ export function Editor({
           </div>
         </div>
         <div className="ed-end">
-          <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupLine' }); toastUndo('Создана копия группы', undo); }}>Копировать группу</button>
-          <ArmButton className="btn danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); toastUndo('Группа удалена', undo); }} />
+          <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupLine' }); toastOk('Создана копия группы'); }}>Копировать группу</button>
+          <ArmButton className="btn danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); toastOk('Группа удалена'); }} />
         </div>
       </div>
     </section>

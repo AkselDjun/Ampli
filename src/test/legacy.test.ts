@@ -98,42 +98,6 @@ describe('norm checks', () => {
   });
 });
 
-import { hreducer, initH } from '../store/history';
-
-describe('history', () => {
-  const start = () => {
-    const pr = sampleProject();
-    return initH(init({ list: [pr], cur: pr.id }));
-  };
-  it('undoes and redoes edits and merges fast typing', () => {
-    let h = start();
-    h = hreducer(h, { t: 'lineField', field: 'len', value: 30 });
-    h = hreducer(h, { t: 'lineField', field: 'len', value: 31 });
-    expect(h.past.length).toBe(1);
-    h = hreducer(h, { t: 'addLine', type: 'light' });
-    expect(h.past.length).toBe(2);
-    h = hreducer(h, { t: 'undo' });
-    expect(cur(h.now).lines.length).toBe(14);
-    h = hreducer(h, { t: 'undo' });
-    expect(cur(h.now).lines[0].len).toBe(9);
-    h = hreducer(h, { t: 'redo' });
-    expect(cur(h.now).lines[0].len).toBe(31);
-  });
-  it('restores a deleted project', () => {
-    let h = start();
-    const id = h.now.cur;
-    h = hreducer(h, { t: 'delProject', id });
-    expect(h.now.cur).not.toBe(id);
-    h = hreducer(h, { t: 'undo' });
-    expect(h.now.cur).toBe(id);
-  });
-  it('does not record selection changes', () => {
-    let h = start();
-    h = hreducer(h, { t: 'select', id: cur(h.now).lines[1].id });
-    expect(h.past.length).toBe(0);
-  });
-});
-
 describe('voltage drop limits', () => {
   const l = mkLine('Свет', 'light', 20, null, null, [['Лампа', 100, 1]]);
   it('subtracts the riser drop from the limit', () => {

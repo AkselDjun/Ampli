@@ -75,7 +75,7 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
     });
     const changed = prev.filter(([k, v]) => v !== '' && v !== String(rows.find(r => r.item.name === k)?.chosen?.price)).length;
     if (!prev.length) note('В прайсах нет цен для позиций сметы', true);
-    else toastUndo('Цены подставлены в смету: ' + prev.length + ' поз.' + (changed ? ', из них заменено ваших цен: ' + changed : ''), () => prev.forEach(([name, value]) => dispatch({ t: 'price', name, value })), false);
+    else toastUndo('Цены подставлены в смету: ' + prev.length + ' поз.' + (changed ? ', из них заменено ваших цен: ' + changed : ''), () => prev.forEach(([name, value]) => dispatch({ t: 'price', name, value })));
   };
 
   return (

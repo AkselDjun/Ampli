@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { Fragment, memo, useEffect, useRef, useState } from 'react';
 import type { Calc, CfgN, LineType, Project, Row } from '../core/types';
 import { NB, fmt, fs, plural } from '../core/format';
@@ -107,7 +106,7 @@ const GroupRow = memo(function GroupRow({
 }, sameRow);
 
 export const GroupList = memo(function GroupList({
-  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, onOpenFloor = () => undefined, headExtra, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix
+  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, onOpenFloor = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix
 }: {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
@@ -121,7 +120,6 @@ export const GroupList = memo(function GroupList({
   onOpenNet: () => void;
   onOpenOld: () => void;
   onOpenFloor?: () => void;
-  headExtra?: ReactNode;
   onOpenWeak?: () => void;
   oldLabel: string;
   hot?: string | null;
@@ -220,7 +218,6 @@ export const GroupList = memo(function GroupList({
       <div className="list-head">
         <h2>Группы линий</h2>
         <span className="hist">
-          {headExtra}
           {count > 1 && (
             <button className={'lv-t' + (byRoom ? ' on' : '')} type="button" aria-pressed={byRoom} data-tip="Сгруппировать по помещениям" onClick={() => setByRoom(!byRoom)}>
               <IconRooms />

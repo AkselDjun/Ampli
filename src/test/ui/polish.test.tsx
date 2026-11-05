@@ -70,13 +70,13 @@ describe('back button', () => {
 });
 
 describe('undo and redo buttons', () => {
-  it('are shown in the phone card bar too', () => {
+  it('are gone from the phone card bar', () => {
     wide(false);
     render(<App />);
     fireEvent.click(document.querySelector('.rows .row') as HTMLElement);
     const bar = document.querySelector('.ab-edit') as HTMLElement;
-    expect(bar.querySelector('[aria-label="Отменить"]')).not.toBeNull();
-    expect(bar.querySelector('[aria-label="Вернуть"]')).not.toBeNull();
+    expect(bar.querySelector('[aria-label="Отменить"]')).toBeNull();
+    expect(bar.querySelector('[aria-label="Вернуть"]')).toBeNull();
   });
 });
 

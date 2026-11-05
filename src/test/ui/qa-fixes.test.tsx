@@ -17,36 +17,23 @@ const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const rows = () => Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
 
-describe('undo from a toast', () => {
-  it('closes the offer after another change and undoes only its own action', () => {
+describe('toasts without undo', () => {
+  it('report a removed group and appliance with no undo offer', () => {
     wide(true);
     render(<App />);
     fireEvent.click(rows()[4]);
+    const n = stored().list[0].lines.length;
     click(ed(), 'Удалить группу');
     click(ed(), 'Нажмите ещё раз, чтобы удалить');
     expect(toastText()).toBe('Группа удалена');
-    const n = stored().list[0].lines.length;
-    act(() => currentToast()?.run?.());
-    expect(stored().list[0].lines.length).toBe(n + 1);
-    fireEvent.click(rows()[4]);
-    click(ed(), 'Удалить группу');
-    click(ed(), 'Нажмите ещё раз, чтобы удалить');
-    const run = currentToast()?.run;
-    change(byLabel(ed(), 'Название группы'), 'Новое имя');
-    expect(currentToast()).toBeNull();
-    act(() => run?.());
-    expect(stored().list[0].lines.length).toBe(n);
-  });
-
-  it('offers undo for a removed appliance', () => {
-    wide(true);
-    render(<App />);
+    expect(currentToast()?.run).toBeUndefined();
+    expect(stored().list[0].lines.length).toBe(n - 1);
     fireEvent.click(rows()[0]);
     const before = stored().list[0].lines[0].apps.length;
     fireEvent.click(within(ed()).getAllByRole('button', { name: 'Удалить прибор' })[0]);
     expect(toastText()).toMatch(/^Прибор удалён: /);
-    act(() => currentToast()?.run?.());
-    expect(stored().list[0].lines[0].apps.length).toBe(before);
+    expect(currentToast()?.run).toBeUndefined();
+    expect(stored().list[0].lines[0].apps.length).toBe(before - 1);
   });
 });
 
@@ -179,7 +166,7 @@ describe('documents', () => {
 });
 
 describe('weak current points', () => {
-  it('fixes a zero count on blur and offers undo for a removed point', () => {
+  it('fixes a zero count on blur and removes a point', () => {
     render(<App />);
     fireEvent.click(within(document.querySelector('.proj-box') as HTMLElement).getByRole('button', { name: /^Слаботочка/ }));
     const d = dlg('Слаботочка');
@@ -191,7 +178,7 @@ describe('weak current points', () => {
     expect(stored().list[0].weak.pts[0].n).toBe('1');
     click(row, 'Удалить точку');
     expect(toastText()).toContain('Точка удалена');
-    act(() => currentToast()?.run?.());
-    expect(stored().list[0].weak.pts).toHaveLength(1);
+    expect(currentToast()?.run).toBeUndefined();
+    expect(stored().list[0].weak?.pts ?? []).toHaveLength(0);
   });
 });

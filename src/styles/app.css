@@ -1557,18 +1557,5 @@ html:has(.sheet:not([hidden])) .toast{top:calc(12px + env(safe-area-inset-top,0p
 .tabpanel{min-width:0}
 .tabpanel>*{min-width:0;max-width:100%}
 .proto-d,.acts-d{min-width:0;max-width:100%}
-.ab-ur{display:flex;gap:2px;flex:none}
-.ab-ib{display:grid;place-items:center;width:40px;height:40px;border:0;border-radius:var(--r-m);background:none;color:var(--ink);cursor:pointer;touch-action:manipulation}
-.ab-ib svg{width:20px;height:20px}
-.ab-ib:hover:not(:disabled){background:var(--field)}
-.ab-ib:disabled{color:var(--ink-2);opacity:.4;cursor:default}
-.ab-ib:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media (max-width:420px){.ab-main .ab-ur .ab-ib{width:36px}}
 .a3-wrap svg.a3+svg.a3{margin-top:12px;border-top:1px dashed var(--line)}
 @media print{.printdoc.a3doc svg.a3+svg.a3{break-before:page;page-break-before:always}}
-.ur-list{display:none}
-@media (max-width:640px){
-  .ab-main .ab-ur{display:none}
-  .ur-list{display:flex}
-  .ur-list .ab-ib{width:36px;height:36px}
-}

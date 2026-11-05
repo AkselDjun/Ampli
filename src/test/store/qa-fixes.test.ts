@@ -1,6 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { hreducer, initH } from '../../store/history';
-import type { HAction, HState } from '../../store/history';
 import { cur, init, numIn, reducer } from '../../store/reducer';
 import type { Action, State } from '../../store/reducer';
 import { SAMPLE_NAME, newProject, sampleProject } from '../../core/project';
@@ -9,15 +7,10 @@ import { emptyLib, libReducer, normLib } from '../../store/lib';
 import { saveStore } from '../../store/storage';
 import { saveLib } from '../../store/lib';
 
-const start = (): HState => {
-  const p = sampleProject();
-  return initH(init({ cur: p.id, list: [p] }));
-};
 const one = (): State => {
   const p = sampleProject();
   return init({ cur: p.id, list: [p] });
 };
-const runH = (h: HState, ...as: HAction[]): HState => as.reduce(hreducer, h);
 const run = (s: State, ...as: Action[]): State => as.reduce(reducer, s);
 
 beforeEach(() => {
@@ -26,30 +19,6 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.useRealTimers();
-});
-
-describe('history version and merging', () => {
-  it('does not merge edits of different groups', () => {
-    let h = start();
-    const ids = cur(h.now).lines.map(l => l.id);
-    h = runH(h, { t: 'lineField', field: 'name', value: 'AAA' });
-    expect(h.ver).toBe(1);
-    h = runH(h, { t: 'select', id: ids[2] }, { t: 'lineField', field: 'name', value: 'BBB' });
-    expect(h.ver).toBe(2);
-    h = runH(h, { t: 'undo' });
-    expect(cur(h.now).lines[0].name).toBe('AAA');
-    expect(cur(h.now).lines[2].name).not.toBe('BBB');
-    expect(h.ver).toBe(3);
-    h = runH(h, { t: 'redo' });
-    expect(h.ver).toBe(4);
-  });
-
-  it('merges quick typing in the same group without a new version', () => {
-    let h = start();
-    h = runH(h, { t: 'lineField', field: 'name', value: 'A' }, { t: 'lineField', field: 'name', value: 'AB' });
-    expect(h.ver).toBe(1);
-    expect(h.past).toHaveLength(1);
-  });
 });
 
 describe('numeric input cleaning', () => {

@@ -144,5 +144,3 @@ export const IconHeat = make(0, (
     <path d="M8 15c-1.5-1.7 1.5-3.3 0-5s1.5-3.3 0-5M12 15c-1.5-1.7 1.5-3.3 0-5s1.5-3.3 0-5M16 15c-1.5-1.7 1.5-3.3 0-5s1.5-3.3 0-5" />
   </>
 ));
-export const IconUndo = make(0, <path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />);
-export const IconRedo = make(0, <path d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3" />);

@@ -3,14 +3,14 @@ import type { Project } from '../core/types';
 import { FLOOR_SYS, FLOOR_USES, SYS_KEYS, USE_KEYS, floorAppName, floorCalc } from '../core/floor';
 import type { FloorRoom, FloorUse } from '../core/floor';
 import { fmt } from '../core/format';
-import type { HAction } from '../store/history';
+import type { Action } from '../store/reducer';
 import { ArmButton, Sheet } from './common';
 import { IconAlert, IconDone } from './Icons';
-import { toastUndo } from './toast';
+import { toastOk } from './toast';
 
 const ADD: [FloorUse, string][] = [['bath', 'Ванная'], ['kitchen', 'Кухня'], ['room', 'Комната'], ['loggia', 'Лоджия']];
 
-function RoomCard({ r, p, dispatch }: { r: FloorRoom; p: Project; dispatch: (a: HAction) => void }) {
+function RoomCard({ r, p, dispatch }: { r: FloorRoom; p: Project; dispatch: (a: Action) => void }) {
   const res = floorCalc(r);
   const name = floorAppName(r);
   const lines = p.lines.map((l, i) => ({ l, i })).filter(x => x.l.type === 'power' || x.l.apps.some(a => a.name === name));
@@ -21,7 +21,7 @@ function RoomCard({ r, p, dispatch }: { r: FloorRoom; p: Project; dispatch: (a: 
   const apply = () => {
     const x = lines.find(o => o.l.id === to);
     dispatch({ t: 'floorApply', id: r.id, line: to });
-    toastUndo((x ? 'Записано в Г' + (x.i + 1) : 'Создана группа тёплого пола') + ': ' + fmt(res.watts, 0) + ' Вт', () => dispatch({ t: 'undo' }));
+    toastOk((x ? 'Записано в Г' + (x.i + 1) : 'Создана группа тёплого пола') + ': ' + fmt(res.watts, 0) + ' Вт');
   };
   return (
     <section className="card fl-room" aria-label={'Тёплый пол: ' + r.name}>
@@ -90,7 +90,7 @@ function RoomCard({ r, p, dispatch }: { r: FloorRoom; p: Project; dispatch: (a: 
   );
 }
 
-export function FloorSheet({ open, onClose, p, dispatch }: { open: boolean; onClose: () => void; p: Project; dispatch: (a: HAction) => void }) {
+export function FloorSheet({ open, onClose, p, dispatch }: { open: boolean; onClose: () => void; p: Project; dispatch: (a: Action) => void }) {
   const rooms = p.floor ?? [];
   return (
     <Sheet

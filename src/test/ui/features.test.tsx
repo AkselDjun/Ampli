@@ -381,7 +381,7 @@ describe('photos', () => {
     expect(stored().list[0].photos).toEqual([]);
     expect(await photoKeys()).toEqual([p[0].id]);
     fireEvent.keyDown(document, { key: 'z', ctrlKey: true });
-    expect(stored().list[0].photos).toHaveLength(1);
+    expect(stored().list[0].photos).toEqual([]);
   });
   it('ignores an empty file selection and reports storage failures', async () => {
     vi.mocked(scalePhoto).mockRejectedValueOnce(new Error('bad'));

@@ -573,29 +573,22 @@ describe('App flows', () => {
     act(() => { vi.advanceTimersByTime(4600); });
     expect(document.querySelector('.toast')).toBeNull();
   });
-  it('swipe left deletes a group and the toast restores it', async () => {
-    const user = userEvent.setup();
+  it('swipe left deletes a group without an undo offer', () => {
     render(<App />);
     const n0 = rowsOf().length;
-    const name = rowsOf()[1].querySelector('.row-name')?.textContent;
     swipe(rowsOf()[1], 300, 150);
     expect(rowsOf().length).toBe(n0 - 1);
     expect(screen.getByRole('status')).toHaveTextContent('Группа удалена');
-    await user.click(within(screen.getByRole('status')).getByRole('button', { name: 'Отменить' }));
-    expect(rowsOf().length).toBe(n0);
-    expect(rowsOf()[1].querySelector('.row-name')?.textContent).toBe(name);
-    expect(document.querySelector('.toast')).toBeNull();
+    expect(within(screen.getByRole('status')).queryByRole('button', { name: 'Отменить' })).toBeNull();
   });
-  it('swipe right copies a group and the toast undoes it', async () => {
-    const user = userEvent.setup();
+  it('swipe right copies a group', () => {
     render(<App />);
     const n0 = rowsOf().length;
     swipe(rowsOf()[0], 50, 200);
     expect(rowsOf().length).toBe(n0 + 1);
     expect(rowsOf()[1].querySelector('.row-name')?.textContent).toContain('(копия)');
     expect(screen.getByRole('status')).toHaveTextContent('Создана копия группы');
-    await user.click(within(screen.getByRole('status')).getByRole('button', { name: 'Отменить' }));
-    expect(rowsOf().length).toBe(n0);
+    expect(within(screen.getByRole('status')).queryByRole('button', { name: 'Отменить' })).toBeNull();
   });
   it('a short drag does not change anything and does not select the row', () => {
     wide(false);
@@ -623,7 +616,7 @@ describe('App flows', () => {
     expect(r.closest('.row-wrap')).not.toHaveClass('sw-l');
     expect(r.closest('.row-wrap')).not.toHaveClass('sw-r');
   });
-  it('the row fix button shortens the line and the toast undoes it', async () => {
+  it('the row fix button shortens the line', async () => {
     const user = userEvent.setup();
     const p = proj([longLine()]);
     seed(p);
@@ -636,9 +629,7 @@ describe('App flows', () => {
     const stored = JSON.parse(localStorage.getItem(KEY) as string).list[0].lines[0];
     expect(Number(stored.len)).toBe(L);
     expect(document.querySelector('.row-wrap .fixbar')).toBeNull();
-    await user.click(within(screen.getByRole('status')).getByRole('button', { name: 'Отменить' }));
-    expect(Number(JSON.parse(localStorage.getItem(KEY) as string).list[0].lines[0].len)).toBe(400);
-    expect(document.querySelector('.row-wrap .fixbar')).not.toBeNull();
+    expect(within(screen.getByRole('status')).queryByRole('button', { name: 'Отменить' })).toBeNull();
   });
   it('the row fix button splits an overloaded line', async () => {
     const user = userEvent.setup();
@@ -691,7 +682,7 @@ describe('App flows', () => {
 });
 
 describe('row action buttons', () => {
-  it('copy and delete buttons act on the chosen group and show an undo toast', async () => {
+  it('copy and delete buttons act on the chosen group', async () => {
     const user = userEvent.setup();
     wide(true);
     seed(proj([mkLine('Первая', 'socket', 10, 1, 1, [['Чайник', 1000, 1]]), mkLine('Вторая', 'light', 10, 1, 1, [['Лампа', 60, 1]])]));
@@ -704,8 +695,7 @@ describe('row action buttons', () => {
     expect(rowsOf()).toHaveLength(2);
     expect(rowsOf()[0].textContent).not.toContain('Первая');
     expect(screen.getByText('Группа удалена')).toBeTruthy();
-    await user.click(within(document.querySelector('.toast') as HTMLElement).getByRole('button', { name: 'Отменить' }));
-    expect(rowsOf()).toHaveLength(3);
+    expect(within(document.querySelector('.toast') as HTMLElement).queryByRole('button', { name: 'Отменить' })).toBeNull();
   });
   it('gives every row its own labelled buttons', () => {
     wide(true);
