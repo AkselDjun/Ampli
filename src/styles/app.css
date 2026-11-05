@@ -1571,3 +1571,4 @@ html:has(.sheet:not([hidden])) .toast{top:calc(12px + env(safe-area-inset-top,0p
   .tabbar{gap:0;padding:6px 8px 0}
   .tabbar-b{flex:1 1 auto;padding:0 8px;font-size:var(--t-sm)}
 }
+#rep-tp-estimate>.tot{max-width:none}
