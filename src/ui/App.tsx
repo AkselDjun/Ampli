@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { calcAll } from '../core/calc';
 import type { LineType } from '../core/types';
 import { blank, sample } from '../core/templates';
@@ -25,16 +26,12 @@ import { PanelPane, Summary } from './Side';
 import { Totals } from './Totals';
 import { Checks } from './Checks';
 import { NetSheet, ProjectsSheet, ReportSheet } from './sheets';
-import { PrintDoc } from './PrintDoc';
-import { WorkSheet } from './WorkSheet';
-import { OldSheet } from './OldWiring';
-import { WeakSheet } from './WeakSheet';
-import { FloorSheet } from './FloorSheet';
 import { SheetNavContext } from './sheetnav';
+import { FloorSheet, OldSheet, PrintDoc, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
+import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { PanelMode } from './PanelMode';
 import { IncomingSheet } from './IncomingSheet';
-import { ShopSheet } from './ShopSheet';
 import { readEstimateHash, readOwnerHash, readShareHash, unpackEstimate, unpackProject } from '../core/share';
 import type { EstimateShare } from '../core/share';
 import { EstimateView } from './EstimateView';
@@ -42,6 +39,8 @@ import { OwnerView } from './Passport';
 import { uniqName } from '../core/project';
 import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
+import type { FixAct } from '../core/fixes';
+import type { CheckFix } from './Checks';
 
 type View = 'groups' | 'edit' | 'panel';
 type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | 'old' | 'floor' | 'weak' | null;
@@ -75,6 +74,7 @@ export function App() {
   const nav = { back: stack.length > 1 ? () => setStack(s => s.slice(0, -1)) : undefined, to: stack.length > 1 ? SHEET_TITLE[stack[stack.length - 2]] : undefined };
   const [whyOpen, setWhyOpen] = useState(false);
   const [printModes, setPrintModes] = useState<PrintMode[]>(['report']);
+  const [printing, setPrinting] = useState(false);
   const [pal, setPal] = useState(false);
   const [repWant, setRepWant] = useState<{ tab: string; n: number } | undefined>(undefined);
   const scrollPos = useRef(0);
@@ -92,8 +92,11 @@ export function App() {
   });
   const p = cur(state);
   const a = useMemo(() => calcAll(p.lines, p.cfg, p), [p.lines, p.cfg, p.weak, p.floor]);
+  const dp = useDeferredValue(p);
+  const da = useDeferredValue(a);
   const [hot, setHot] = useState<string | null>(null);
   const oldLabel = oldStarted(p.old) ? oldVerdict(p.old, a).label : '';
+  const dOldLabel = oldStarted(dp.old) ? oldVerdict(dp.old, da).label : '';
   const selected = p.lines.find(l => l.id === state.sel) || null;
   const idx = selected ? p.lines.indexOf(selected) : -1;
 
@@ -107,6 +110,19 @@ export function App() {
   useEffect(() => {
     if (!viewOnly) onSaved(saveLib(lib));
   }, [lib]);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => { preloadParts().catch(() => undefined); }, 1500);
+    const before = () => flushSync(() => setPrinting(true));
+    const after = () => setPrinting(false);
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', after);
+    };
+  }, []);
 
   useEffect(() => {
     gcPhotos(referencedPhotoIds(loadStore().list)).catch(() => undefined);
@@ -195,12 +211,15 @@ export function App() {
   const closeSheet = useCallback(() => setSheet(null), []);
   const undo = useCallback(() => dispatch({ t: 'undo' }), []);
 
-  const undoBar = (
+  const canUndo = hist.past.length > 0;
+  const canRedo = hist.future.length > 0;
+  const undoBar = useMemo(() => (
     <div className="ab-ur" role="group" aria-label="История изменений">
-      <button className="ab-ib" type="button" aria-label="Отменить" data-tip="Отменить · Ctrl+Z" disabled={!hist.past.length} onClick={undo}><IconUndo /></button>
-      <button className="ab-ib" type="button" aria-label="Вернуть" data-tip="Вернуть · Ctrl+Shift+Z" disabled={!hist.future.length} onClick={() => dispatch({ t: 'redo' })}><IconRedo /></button>
+      <button className="ab-ib" type="button" aria-label="Отменить" data-tip="Отменить · Ctrl+Z" disabled={!canUndo} onClick={undo}><IconUndo /></button>
+      <button className="ab-ib" type="button" aria-label="Вернуть" data-tip="Вернуть · Ctrl+Shift+Z" disabled={!canRedo} onClick={() => dispatch({ t: 'redo' })}><IconRedo /></button>
     </div>
-  );
+  ), [canUndo, canRedo, undo]);
+  const headExtra = useMemo(() => <span className="ur-list">{undoBar}</span>, [undoBar]);
   const goEdit = () => {
     if (isWide()) return;
     scrollPos.current = window.scrollY;
@@ -212,10 +231,38 @@ export function App() {
     window.setTimeout(() => window.scrollTo(0, scrollPos.current), 0);
   };
   useBackClose(view !== 'groups', goBack);
-  const addGroup = (t: LineType) => {
+  const addGroup = useStable((t: LineType) => {
     dispatch({ t: 'addLine', type: t });
     toast('Добавлена группа: ' + TYPES[t].label, isWide() ? {} : { label: 'Открыть', run: goEdit });
-  };
+  });
+  const pick = useStable((id: string) => { dispatch({ t: 'select', id }); goEdit(); });
+  const copyLine = useStable((id: string) => {
+    dispatch({ t: 'select', id });
+    dispatch({ t: 'dupLine' });
+    toastUndo('Создана копия группы', undo);
+  });
+  const deleteLine = useStable((id: string) => {
+    dispatch({ t: 'select', id });
+    dispatch({ t: 'delLine' });
+    toastUndo('Группа удалена', undo);
+  });
+  const fixLine = useStable((id: string, act: FixAct) => {
+    dispatch({ t: 'select', id });
+    if (act.k === 'len') dispatch({ t: 'lineField', field: 'len', value: act.len });
+    else dispatch({ t: 'splitLine', mode: act.k });
+    toastUndo('Исправлено', undo);
+  });
+  const moveLine = useStable((id: string, to: string) => { dispatch({ t: 'moveLine', id, to }); toastUndo('Порядок групп изменён', undo); });
+  const balance = useStable(() => { dispatch({ t: 'balance' }); toastUndo('Фазы выровнены', undo); });
+  const openProj = useStable(() => setSheet('proj'));
+  const openNet = useStable(() => setSheet('net'));
+  const openOld = useStable(() => setSheet('old'));
+  const openFloor = useStable(() => setSheet('floor'));
+  const openWeak = useStable(() => setSheet('weak'));
+  const openRooms = useStable(() => setSheet('rooms'));
+  const onBlank = useStable(() => { dispatch({ t: 'replace', content: blank() }); toastUndo('Проект очищен', undo); });
+  const onSample = useStable(() => { dispatch({ t: 'replace', content: sample() }); toastUndo('Загружен пример', undo); });
+  const onCheckFix = useStable((f: CheckFix) => (f === 'net' ? setSheet('net') : dispatch({ t: 'cfg', field: 'supply', value: f === 'phase3' ? 3 : 1 })));
   const openRep = (t: string) => {
     setRepWant({ tab: t, n: Date.now() });
     setSheet('rep');
@@ -256,6 +303,7 @@ export function App() {
   const doPrint = (mode: PrintMode | PrintMode[] = 'report') => {
     const modes = Array.isArray(mode) ? mode : [mode];
     setPrintModes(modes);
+    setPrinting(true);
     const prev = document.title;
     document.title = 'Ampli — ' + (p.name || 'расчёт');
     const printNow = () => {
@@ -319,8 +367,8 @@ export function App() {
             <div className="ab-main">
               <h1 className="brand"><Brand /><span>Ampli</span></h1>
               <div className="hud">
-                <Totals a={a} onNet={() => setSheet('net')} />
-                <Checks a={a} onGroup={id => { dispatch({ t: 'select', id }); goEdit(); }} onFix={f => (f === 'net' ? setSheet('net') : dispatch({ t: 'cfg', field: 'supply', value: f === 'phase3' ? 3 : 1 }))} />
+                <Totals a={da} onNet={openNet} />
+                <Checks a={da} onGroup={pick} onFix={onCheckFix} />
               </div>
               {undoBar}
               <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
@@ -341,39 +389,26 @@ export function App() {
 
         <main className="workspace">
           <GroupList
-            p={p}
-            a={a}
+            p={dp}
+            a={da}
             sel={state.sel}
-            onSelect={id => { dispatch({ t: 'select', id }); goEdit(); }}
+            onSelect={pick}
             onAdd={addGroup}
-            onCopy={id => {
-              dispatch({ t: 'select', id });
-              dispatch({ t: 'dupLine' });
-              toastUndo('Создана копия группы', undo);
-            }}
-            onDelete={id => {
-              dispatch({ t: 'select', id });
-              dispatch({ t: 'delLine' });
-              toastUndo('Группа удалена', undo);
-            }}
-            onFix={(id, act) => {
-              dispatch({ t: 'select', id });
-              if (act.k === 'len') dispatch({ t: 'lineField', field: 'len', value: act.len });
-              else dispatch({ t: 'splitLine', mode: act.k });
-              toastUndo('Исправлено', undo);
-            }}
-            onOpenProj={() => setSheet('proj')}
-            onOpenNet={() => setSheet('net')}
-            onOpenOld={() => setSheet('old')}
-            onOpenFloor={() => setSheet('floor')}
-            headExtra={<span className="ur-list">{undoBar}</span>}
-            onOpenWeak={() => setSheet('weak')}
-            oldLabel={oldLabel}
+            onCopy={copyLine}
+            onDelete={deleteLine}
+            onFix={fixLine}
+            onOpenProj={openProj}
+            onOpenNet={openNet}
+            onOpenOld={openOld}
+            onOpenFloor={openFloor}
+            headExtra={headExtra}
+            onOpenWeak={openWeak}
+            oldLabel={dOldLabel}
             hot={hot}
             onHot={setHot}
-            onRooms={() => setSheet('rooms')}
-            onBlank={() => { dispatch({ t: 'replace', content: blank() }); toastUndo('Проект очищен', undo); }}
-            onSample={() => { dispatch({ t: 'replace', content: sample() }); toastUndo('Загружен пример', undo); }}
+            onRooms={openRooms}
+            onBlank={onBlank}
+            onSample={onSample}
           />
           <div className="main-col">
             <Editor
@@ -387,8 +422,8 @@ export function App() {
               photos={p.photos ?? []}
             />
             <aside className="col col-res" aria-label="Итоги расчёта">
-              <PanelPane a={a} sel={state.sel} hot={hot} onHot={setHot} onPick={id => { dispatch({ t: 'select', id }); goEdit(); }} onMove={(id, to) => { dispatch({ t: 'moveLine', id, to }); toastUndo('Порядок групп изменён', undo); }} />
-              <Summary key={'s' + (view === 'panel')} a={a} solo={view === 'panel'} onBalance={() => { dispatch({ t: 'balance' }); toastUndo('Фазы выровнены', undo); }} />
+              <PanelPane a={da} sel={state.sel} hot={hot} onHot={setHot} onPick={pick} onMove={moveLine} />
+              <Summary key={'s' + (view === 'panel')} a={da} solo={view === 'panel'} onBalance={balance} />
             </aside>
           </div>
         </main>
@@ -397,7 +432,7 @@ export function App() {
           <button type="button" onClick={() => tab('groups')} aria-current={view === 'groups' || view === 'edit' ? 'page' : undefined}>
             <IconList />
             <span>Группы</span>
-            {a.issues > 0 && <em className="badge">{a.issues}</em>}
+            {da.issues > 0 && <em className="badge">{da.issues}</em>}
           </button>
           <button type="button" onClick={() => tab('panel')} aria-current={view === 'panel' ? 'page' : undefined}>
             <IconPanel />
@@ -414,25 +449,25 @@ export function App() {
         </nav>
 
         <SheetNavContext.Provider value={nav}>
-        <NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} onOld={() => pushSheet('old')} oldLabel={oldLabel} />
-        <FloorSheet open={sheet === 'floor'} onClose={closeSheet} p={p} dispatch={dispatch} />
-        <WeakSheet open={sheet === 'weak'} onClose={closeSheet} p={p} dispatch={dispatch} />
-        <OldSheet open={sheet === 'old'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} />
-        <ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet('lib')} />
-        <LibSheet open={sheet === 'lib'} onClose={closeSheet} />
-        <CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} />
-        <RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} />
-        <ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onCompare={() => pushSheet('cmp')} onShop={() => pushSheet('shop')} dispatch={dispatch} want={repWant} />
-        <Palette open={pal} onClose={() => setPal(false)} cmds={cmds} />
-        <ShopSheet open={sheet === 'shop'} onClose={closeSheet} a={a} />
+        <Hold open={sheet === 'net'}><NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} onOld={() => pushSheet('old')} oldLabel={oldLabel} /></Hold>
+        <Hold open={sheet === 'floor'}><FloorSheet open={sheet === 'floor'} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
+        <Hold open={sheet === 'weak'}><WeakSheet open={sheet === 'weak'} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
+        <Hold open={sheet === 'old'}><OldSheet open={sheet === 'old'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} /></Hold>
+        <Hold open={sheet === 'proj'}><ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet('lib')} /></Hold>
+        <Hold open={sheet === 'lib'}><LibSheet open={sheet === 'lib'} onClose={closeSheet} /></Hold>
+        <Hold open={sheet === 'cmp'}><CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} /></Hold>
+        <Hold open={sheet === 'rooms'}><RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
+        <Hold open={sheet === 'rep'}><ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onCompare={() => pushSheet('cmp')} onShop={() => pushSheet('shop')} dispatch={dispatch} want={repWant} /></Hold>
+        <Hold open={pal} eager><Palette open={pal} onClose={() => setPal(false)} cmds={cmds} /></Hold>
+        <Hold open={sheet === 'shop'}><ShopSheet open={sheet === 'shop'} onClose={closeSheet} a={a} /></Hold>
         <Toaster />
         <HoverTips />
-        <PanelMode open={sheet === 'panel'} onClose={closeSheet} a={a} dispatch={dispatch} />
-        <WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => pushSheet('panel')} />
+        <Hold open={sheet === 'panel'}><PanelMode open={sheet === 'panel'} onClose={closeSheet} a={a} dispatch={dispatch} /></Hold>
+        <Hold open={sheet === 'work'}><WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => pushSheet('panel')} /></Hold>
         </SheetNavContext.Provider>
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
       </div>
-      {printModes.map(m => <PrintDoc key={m} p={p} a={a} mode={m} />)}
+      <Hold open={printing}>{printModes.map(m => <PrintDoc key={m} p={p} a={a} mode={m} />)}</Hold>
     </LibContext.Provider>
   );
 }

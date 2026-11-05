@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import type { Calc, Project } from '../core/types';
 import type { TplKey } from '../core/templates';
 import { TPL_LIST, TPL_NAME, blank, contentFor, sample } from '../core/templates';
@@ -24,7 +24,7 @@ import { ShareBlock } from './ShareBlock';
 import { LaborTable, Totals, totals } from './Labor';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
-import { DrawingA3 } from './DrawingA3';
+import { DrawingA3 } from './parts';
 import type { PrintMode } from './WorkSheet';
 
 export function NetSheet({
@@ -411,7 +411,7 @@ export function ReportSheet({
       <details className="bd-help a3-prev">
         <summary>Лист А3 со штампом</summary>
         <p className="muted">Принципиальная схема распределительной сети по ГОСТ 21.613 с таблицей групп и основной надписью. Реквизиты организации берутся из «Мои данные», разработчик из карточки проекта.</p>
-        <div className="a3-wrap"><DrawingA3 p={p} a={a} company={lib.brand.company} /></div>
+        <div className="a3-wrap"><Suspense fallback={null}><DrawingA3 p={p} a={a} company={lib.brand.company} /></Suspense></div>
       </details>
       </TabPanel>
       <TabPanel scope="rep" id="estimate" cur={tab}>

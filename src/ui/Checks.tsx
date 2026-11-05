@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Calc } from '../core/types';
 import { fmt, plural } from '../core/format';
 import { IconAlert, IconDone } from './Icons';
@@ -46,7 +47,7 @@ export function checksState(list: Check[]): { k: 'ok' | 'warn' | 'bad'; n: numbe
   return { k, n, text: n ? n + ' ' + plural(n, ['замечание', 'замечания', 'замечаний']) : 'Всё в норме' };
 }
 
-export function Checks({ a, onGroup, onFix }: { a: Calc; onGroup: (id: string) => void; onFix: (f: CheckFix) => void }) {
+export const Checks = memo(function Checks({ a, onGroup, onFix }: { a: Calc; onGroup: (id: string) => void; onFix: (f: CheckFix) => void }) {
   const { open, setOpen, ref } = usePop<HTMLDivElement>();
   const list = checksOf(a);
   if (!list.length) return null;
@@ -83,4 +84,4 @@ export function Checks({ a, onGroup, onFix }: { a: Calc; onGroup: (id: string) =
       )}
     </div>
   );
-}
+});

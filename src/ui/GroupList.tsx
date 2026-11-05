@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, memo, useEffect, useRef, useState } from 'react';
 import type { Calc, CfgN, LineType, Project, Row } from '../core/types';
 import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
@@ -14,6 +14,7 @@ import { ArmButton } from './common';
 import { AddMenu } from './AddMenu';
 import { FixBar } from './FixBar';
 import { useSwipe } from './swipe';
+import { same } from './hold';
 
 const TYPE_IC: Record<LineType, JSX.Element> = { light: <IconBulb />, socket: <IconSocket />, power: <IconBolt /> };
 
@@ -30,9 +31,7 @@ function rowSub(x: Row, three: boolean): string[] {
   return parts;
 }
 
-function GroupRow({
-  x, i, c, three, sel, hot, onHot, onSelect, onCopy, onDelete, onFix
-}: {
+type RowProps = {
   hot: boolean;
   onHot: (id: string | null) => void;
   x: Row;
@@ -44,7 +43,14 @@ function GroupRow({
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
   onFix: (id: string, act: FixAct) => void;
-}) {
+};
+
+const sameRow = (a: RowProps, b: RowProps): boolean =>
+  a.i === b.i && a.three === b.three && a.sel === b.sel && a.hot === b.hot && a.onHot === b.onHot && a.onSelect === b.onSelect && a.onCopy === b.onCopy && a.onDelete === b.onDelete && a.onFix === b.onFix && a.x.l === b.x.l && same(a.x.r, b.x.r) && same(a.c, b.c);
+
+const GroupRow = memo(function GroupRow({
+  x, i, c, three, sel, hot, onHot, onSelect, onCopy, onDelete, onFix
+}: RowProps) {
   const { dx, handlers } = useSwipe(() => onDelete(x.l.id), () => onCopy(x.l.id));
   const fix = fixFor(x.l, x.r, c);
   return (
@@ -98,9 +104,9 @@ function GroupRow({
       {fix && <FixBar fix={fix} onApply={() => fix.act && onFix(x.l.id, fix.act)} />}
     </div>
   );
-}
+}, sameRow);
 
-export function GroupList({
+export const GroupList = memo(function GroupList({
   p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, onOpenFloor = () => undefined, headExtra, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix
 }: {
   onCopy: (id: string) => void;
@@ -279,4 +285,4 @@ export function GroupList({
       <AddMenu fab onAdd={onAdd} onRooms={onRooms} />
     </section>
   );
-}
+});

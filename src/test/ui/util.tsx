@@ -22,7 +22,10 @@ export const dlg = (title: string): HTMLElement => {
   return d;
 };
 
-export const isOpen = (title: string): boolean => !(dlg(title).parentElement as HTMLElement).hidden;
+export const isOpen = (title: string): boolean => {
+  const d = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === title);
+  return !!d && !(d.parentElement as HTMLElement).hidden;
+};
 
 export const btn = (root: ParentNode, text: string | RegExp): HTMLElement => {
   const all = Array.from(root.querySelectorAll<HTMLElement>('button'));

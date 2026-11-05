@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { KEY } from '../../store/storage';
 import { LIB_KEY } from '../../store/lib';
@@ -117,6 +117,7 @@ describe('Where to buy', () => {
     wide(false);
     render(<App />);
     expect(isOpen('Где купить')).toBe(false);
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Разделы' })).getByRole('button', { name: /Отчёт/ }));
     expect(within(dlg('Отчёт и спецификация')).getByRole('button', { name: 'Где купить', hidden: true })).toBeTruthy();
   });
 });

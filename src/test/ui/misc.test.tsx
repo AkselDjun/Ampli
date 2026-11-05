@@ -61,6 +61,7 @@ describe('WorkSheet', () => {
     const d = dlg('Монтаж и приёмка');
     expect(d.querySelectorAll('.pill.ok').length).toBeGreaterThan(0);
     expect(d.querySelectorAll('.pill.bad, .pill.warn').length).toBeGreaterThan(0);
+    act(() => { window.dispatchEvent(new Event('beforeprint')); });
     expect(document.querySelector('.printdoc')?.textContent).toContain('Протокол замеров');
   });
 });
@@ -209,6 +210,7 @@ describe('LibSheet', () => {
     await act(async () => { await new Promise(r => setTimeout(r, 30)); });
     expect(lib().brand.logo).toBe('data:image/png;base64,BBBB');
     expect(d.querySelector('img.logo-img')).toBeTruthy();
+    act(() => { window.dispatchEvent(new Event('beforeprint')); });
     expect(document.querySelector('.printdoc .pd-brand img')).toBeTruthy();
     click(d, 'Заменить логотип');
     fireEvent.change(input, { target: { files: [new File(['x'], 'l.txt', { type: 'text/plain' })] } });

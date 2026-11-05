@@ -5,8 +5,16 @@ export const pn = (v: unknown, d: number): number => {
   return isFinite(x) ? x : d;
 };
 
-export const fmt = (n: number, d = 1): string =>
-  n.toLocaleString('ru-RU', { minimumFractionDigits: d, maximumFractionDigits: d });
+const NF = new Map<number, Intl.NumberFormat>();
+
+export const fmt = (n: number, d = 1): string => {
+  let f = NF.get(d);
+  if (!f) {
+    f = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: d, maximumFractionDigits: d });
+    NF.set(d, f);
+  }
+  return f.format(n);
+};
 
 export const fs = (s: number | string): string => String(s).replace('.', ',');
 
