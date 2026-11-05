@@ -69,7 +69,15 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}-chromium-shell
+      - if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --only-shell chromium
       - run: npm run test:e2e
         env:
           CI: true
