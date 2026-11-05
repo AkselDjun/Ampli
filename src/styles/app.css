@@ -1559,3 +1559,7 @@ html:has(.sheet:not([hidden])) .toast{top:calc(12px + env(safe-area-inset-top,0p
 .proto-d,.acts-d{min-width:0;max-width:100%}
 .a3-wrap svg.a3+svg.a3{margin-top:12px;border-top:1px dashed var(--line)}
 @media print{.printdoc.a3doc svg.a3+svg.a3{break-before:page;page-break-before:always}}
+@media (max-width:600px){
+  .tabbar{gap:0;padding:6px 8px 0}
+  .tabbar-b{flex:1 1 auto;padding:0 8px;font-size:var(--t-sm)}
+}
