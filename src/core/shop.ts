@@ -1,7 +1,7 @@
-import { plural } from './format';
+import { fs, plural } from './format';
 import type { SpecItem } from './types';
 
-export type Kind = 'breaker' | 'rcbo' | 'rcd' | 'spd' | 'relay' | 'box' | 'cable' | 'board' | 'bus' | 'other';
+export type Kind = 'breaker' | 'rcbo' | 'rcd' | 'spd' | 'relay' | 'box' | 'cable' | 'board' | 'bus' | 'comb' | 'wire' | 'ferrule' | 'tube' | 'duct' | 'other';
 
 export interface Attrs {
   kind: Kind;
@@ -13,6 +13,7 @@ export interface Attrs {
   sect: number;
   modules: number;
   bus: string;
+  size?: string;
   typeA?: boolean;
   arc?: boolean;
 }
@@ -57,6 +58,36 @@ export function parseAttrs(raw: string): Attrs {
     a.kind = 'board';
     const m = s.match(/(\d{1,3})\s*(?:-?\s*)?модул/);
     if (m) a.modules = Number(m[1]);
+    return a;
+  }
+  if (/гребен|шина соединит/.test(s)) {
+    a.kind = 'comb';
+    const pm = fold(s).match(/(?:^|[^a-z0-9])([1-4])\s?p(?![a-z])/);
+    if (pm) a.poles = pm[1];
+    return a;
+  }
+  if (/ншви|наконечник/.test(s)) {
+    a.kind = 'ferrule';
+    const m = s.match(/(\d{1,2}(?:[.,]\d)?)\s*мм/);
+    if (m) a.sect = num(m[1]);
+    return a;
+  }
+  if (/пугв|пв-?3|провод/.test(s)) {
+    a.kind = 'wire';
+    const m = s.match(/(\d{1,2}(?:[.,]\d)?)\s*мм/);
+    if (m) a.sect = num(m[1]);
+    return a;
+  }
+  if (/гофр/.test(s)) {
+    a.kind = 'tube';
+    const m = s.match(/(\d{2})\s*мм/);
+    if (m) a.size = m[1];
+    return a;
+  }
+  if (/короб|кабель-канал/.test(s) && !/коробк/.test(s)) {
+    a.kind = 'duct';
+    const m = s.match(/(\d{2})\s*[xх]\s*(\d{2})/);
+    if (m) a.size = m[1] + 'x' + m[2];
     return a;
   }
   if (/шин/.test(s) && /(нулев|заземл|\bn\b|\bpe\b)/.test(s)) {
@@ -124,6 +155,9 @@ export function matches(want: Attrs, got: Attrs): boolean {
   if (want.kind === 'cable') return want.cores === got.cores && want.sect === got.sect;
   if (want.kind === 'board') return got.modules >= want.modules && got.modules > 0;
   if (want.kind === 'bus') return want.bus === got.bus;
+  if (want.kind === 'comb') return !want.poles || !got.poles || want.poles === got.poles;
+  if (want.kind === 'wire' || want.kind === 'ferrule') return !!got.sect && want.sect === got.sect;
+  if (want.kind === 'tube' || want.kind === 'duct') return !!got.size && want.size === got.size;
   if (want.kind === 'spd' || want.kind === 'box') return true;
   if (want.kind === 'relay') return !want.amp || got.amp >= want.amp;
   if (want.kind === 'rcd') return got.amp === want.amp && (!want.poles || !got.poles || want.poles === got.poles) && (!want.ma || !got.ma || want.ma === got.ma) && (!want.typeA || !!got.typeA);
@@ -152,6 +186,11 @@ export function shopQuery(item: SpecItem): string {
   if (w.kind === 'breaker') return 'Автоматический выключатель ' + w.poles + 'P ' + w.curve + w.amp;
   if (w.kind === 'rcbo') return 'Дифавтомат ' + w.poles + 'P ' + w.curve + w.amp + (w.ma ? ' ' + w.ma + ' мА' : '') + (w.typeA ? ' тип A' : '');
   if (w.kind === 'rcd') return 'УЗО ' + (w.poles ? w.poles + 'P ' : '') + w.amp + 'А ' + w.ma + ' мА' + (w.typeA ? ' тип A' : '');
+  if (w.kind === 'comb') return 'Шина соединительная гребёнка ' + w.poles + 'P';
+  if (w.kind === 'ferrule') return 'Наконечник НШВИ ' + fs(w.sect) + ' мм²';
+  if (w.kind === 'wire') return 'Провод ПуГВ ' + fs(w.sect) + ' мм²';
+  if (w.kind === 'tube') return 'Труба гофрированная ПВХ' + (w.size ? ' ' + w.size + ' мм' : '');
+  if (w.kind === 'duct') return 'Кабель-канал' + (w.size ? ' ' + w.size.replace('x', '×') + ' мм' : '');
   if (w.kind === 'spd') return 'УЗИП тип 2';
   if (w.kind === 'relay') return 'Реле контроля напряжения' + (w.amp ? ' ' + w.amp + 'А' : '');
   return name;
