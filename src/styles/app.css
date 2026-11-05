@@ -1196,6 +1196,7 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
   .kp-of{display:none}
 }
 @media (max-width:380px){button.kpis>div{padding:0 6px}button.kpis b{font-size:var(--t-m)}}
+@media (max-width:359px){button.kpis .kp-in{display:none}}
 @media (prefers-reduced-motion:reduce){.tot-pop{animation:none}.kp-chev{transition:none}}
 
 .hud{display:flex;align-items:stretch;margin-left:auto;background:var(--disp-bg);border-radius:var(--r-m);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),var(--sh-1)}
