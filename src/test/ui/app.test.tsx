@@ -77,34 +77,20 @@ describe('App', () => {
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'groups');
   });
 
-  it('undo and redo via Ctrl+Z shortcuts', async () => {
+  it('has no undo and redo buttons and ignores Ctrl+Z', async () => {
     wide(true);
     const user = userEvent.setup();
     render(<App />);
     const n0 = rowsOf().length;
-    const hb = (name: string) => within(document.querySelector('.ab-main') as HTMLElement).getByRole('button', { name }) as HTMLButtonElement;
-    expect(hb('Отменить').disabled).toBe(true);
-    expect(hb('Вернуть').disabled).toBe(true);
+    expect(screen.queryByRole('group', { name: 'История изменений' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Отменить' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Вернуть' })).toBeNull();
     await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
     await user.click(screen.getByRole('menuitem', { name: 'Розетки' }));
     expect(rowsOf().length).toBe(n0 + 1);
-    fireEvent.click(hb('Отменить'));
-    expect(rowsOf().length).toBe(n0);
-    expect(hb('Вернуть').disabled).toBe(false);
-    fireEvent.click(hb('Вернуть'));
-    expect(rowsOf().length).toBe(n0 + 1);
     fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true });
-    expect(rowsOf().length).toBe(n0);
-    fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true, shiftKey: true });
+    fireEvent.keyDown(document.body, { key: 'z', metaKey: true, shiftKey: true });
     expect(rowsOf().length).toBe(n0 + 1);
-    fireEvent.keyDown(document.body, { key: 'z', metaKey: true });
-    expect(rowsOf().length).toBe(n0);
-    fireEvent.keyDown(document.body, { key: 'a', ctrlKey: true });
-    fireEvent.keyDown(document.body, { key: 'z' });
-    expect(rowsOf().length).toBe(n0);
-    const inp = screen.getByRole('textbox', { name: 'Название группы' });
-    fireEvent.keyDown(inp, { key: 'z', ctrlKey: true });
-    expect(rowsOf().length).toBe(n0);
   });
 
   it('start from scratch clears the sample and shows empty state', async () => {

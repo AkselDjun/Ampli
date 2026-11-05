@@ -76,7 +76,7 @@ describe('Command palette', () => {
     expect(pal().open).toBe(false);
   });
 
-  it('runs commands by click and offers balance, undo and redo when they apply', () => {
+  it('runs commands by click and offers balance but no undo or redo', () => {
     wide(true);
     render(<App />);
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
@@ -93,12 +93,9 @@ describe('Command palette', () => {
     fireEvent.keyDown(q(), { key: 'Enter' });
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
     change(q(), 'отменить');
-    expect(opts()).toEqual(['ОтменитьCtrl+Z']);
-    fireEvent.keyDown(q(), { key: 'Enter' });
-    fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
+    expect(opts()).not.toContain('ОтменитьCtrl+Z');
     change(q(), 'вернуть');
-    expect(opts()).toEqual(['ВернутьCtrl+Shift+Z']);
-    fireEvent.keyDown(q(), { key: 'Enter' });
+    expect(opts()).not.toContain('ВернутьCtrl+Shift+Z');
   });
 
   it('runs every action command without errors', () => {

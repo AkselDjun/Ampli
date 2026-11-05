@@ -4,8 +4,8 @@ import { PRESETS } from '../core/norms';
 import { ROOM_PRESETS, assemble, makeRoom } from '../core/rooms';
 import { nid } from '../core/ids';
 import { plural } from '../core/format';
-import type { HAction } from '../store/history';
-import { toastUndo } from './toast';
+import type { Action } from '../store/reducer';
+import { toastOk } from './toast';
 import { ArmButton, Sheet } from './common';
 
 export function RoomsSheet({
@@ -14,7 +14,7 @@ export function RoomsSheet({
   open: boolean;
   onClose: () => void;
   p: Project;
-  dispatch: (a: HAction) => void;
+  dispatch: (a: Action) => void;
 }) {
   const rooms = p.rooms ?? [];
   const planned = useMemo(() => assemble(rooms).length, [rooms]);
@@ -59,7 +59,7 @@ export function RoomsSheet({
         </section>
       ))}
       <div className="copy-row">
-        <ArmButton className="btn primary" label={'Собрать группы: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])} armedLabel="Заменить текущие группы?" disabled={planned === 0} onRun={() => { dispatch({ t: 'assemble' }); onClose(); toastUndo('Собрано из комнат: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп']), () => dispatch({ t: 'undo' })); }} />
+        <ArmButton className="btn primary" label={'Собрать группы: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])} armedLabel="Заменить текущие группы?" disabled={planned === 0} onRun={() => { dispatch({ t: 'assemble' }); onClose(); toastOk('Собрано из комнат: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])); }} />
       </div>
     </Sheet>
   );

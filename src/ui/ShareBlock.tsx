@@ -7,6 +7,7 @@ import { useLib } from '../store/LibContext';
 import { IconShare } from './Icons';
 import { Tip } from './common';
 import { toast, toastOk } from './toast';
+import { shareText, telegramUrl, viberUrl } from '../core/message';
 
 type Kind = 'project' | 'owner' | 'estimate';
 
@@ -20,6 +21,7 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
   const k: Kind = kind ?? (owner ? 'owner' : 'project');
   const { lib } = useLib();
   const [fallback, setFallback] = useState<string | null>(null);
+  const [send, setSend] = useState<{ url: string; text: string } | null>(null);
   const ta = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (fallback !== null && ta.current) {
@@ -51,13 +53,51 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
       toast('Ссылка выделена, скопируйте её вручную');
     }
   };
+  const toggle = () => {
+    if (send) {
+      setSend(null);
+      return;
+    }
+    const u = url();
+    setSend({ url: u, text: shareText(k, p, u) });
+  };
+  const copyText = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toastOk('Текст скопирован');
+    } catch (e) {
+      void e;
+      toast('Выделите текст и скопируйте его вручную');
+    }
+  };
+  const other = async (text: string) => {
+    try {
+      await navigator.share({ text });
+    } catch (e) {
+      void e;
+    }
+  };
+  const canShare = typeof navigator.share === 'function';
   return (
     <div className="share">
       <div className="data-row">
         <button className="btn ghost" type="button" onClick={copy}><IconShare /> {t.btn}</button>
+        <button className="btn ghost" type="button" aria-expanded={send !== null} onClick={toggle}>Отправить в Viber или Telegram</button>
         <Tip>{t.tip}</Tip>
       </div>
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label={t.btn} />}
+      {send && (
+        <div className="send">
+          <label className="lbl" htmlFor={'msg-' + k}>Текст сообщения</label>
+          <textarea id={'msg-' + k} className="send-text" value={send.text} onChange={e => setSend({ ...send, text: e.target.value })} />
+          <div className="data-row">
+            <a className="btn ghost send-viber" href={viberUrl(send.text)}>Viber</a>
+            <a className="btn ghost send-tg" href={telegramUrl(send.text, send.url)} target="_blank" rel="noopener noreferrer">Telegram</a>
+            {canShare && <button className="btn ghost" type="button" onClick={() => void other(send.text)}>Другое приложение</button>}
+            <button className="btn ghost" type="button" onClick={() => void copyText(send.text)}>Копировать текст</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -16,8 +16,7 @@ import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
 import { ArmButton, Assumptions, Seg, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
 import { Schematic } from './Schematic';
-import { toast, toastBad, toastOk, toastUndo } from './toast';
-import type { HAction } from '../store/history';
+import { toast, toastBad, toastOk } from './toast';
 import { IOS_STEPS, install, usePwa } from './pwa';
 import { PWA_ENABLED } from '../core/flags';
 import { ShareBlock } from './ShareBlock';
@@ -123,7 +122,7 @@ export function ProjectsSheet({
   onClose: () => void;
   state: { list: Project[]; cur: string };
   p: Project;
-  dispatch: (a: HAction) => void;
+  dispatch: (a: Action) => void;
   onLib: () => void;
 }) {
   const { lib, dispatch: libDispatch } = useLib();
@@ -212,7 +211,7 @@ export function ProjectsSheet({
                 <span className="pj-sub">{cur ? 'Открыт · ' : ''}{x.lines.length} {plural(x.lines.length, ['группа', 'группы', 'групп'])} · {dfmt(x.updated)}</span>
               </button>
               <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupProject', id: x.id }); note('Копия создана'); }}>Копировать</button>
-              <ArmButton className="btn danger" label="Удалить" armedLabel="Точно удалить?" onRun={() => { dispatch({ t: 'delProject', id: x.id }); toastUndo('Проект удалён: ' + (x.name || 'Без названия'), () => dispatch({ t: 'undo' })); }} />
+              <ArmButton className="btn danger" label="Удалить" armedLabel="Точно удалить?" onRun={() => { dispatch({ t: 'delProject', id: x.id }); toastOk('Проект удалён: ' + (x.name || 'Без названия')); }} />
             </div>
           );
         })}

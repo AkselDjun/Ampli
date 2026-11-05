@@ -204,6 +204,49 @@ describe('ShareBlock', () => {
     await act(async () => { click(d, /Ссылка на проект/); });
     expect(d.querySelector('.share textarea')).toBeNull();
   });
+  it('opens a message for Viber and Telegram that can be edited, copied and shared', async () => {
+    const write = clip(() => Promise.resolve());
+    const share = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'share', { value: share, configurable: true });
+    render(<App />);
+    const d = openProj();
+    const btn = within(d).getByRole('button', { name: 'Отправить в Viber или Telegram' });
+    expect(btn.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(btn);
+    expect(btn.getAttribute('aria-expanded')).toBe('true');
+    const ta = within(d).getByLabelText('Текст сообщения') as HTMLTextAreaElement;
+    expect(ta.value).toContain(SHARE_PREFIX + 'v1.');
+    expect(ta.value).toContain('Откройте ссылку');
+    const viber = d.querySelector('a.send-viber') as HTMLAnchorElement;
+    expect(viber.getAttribute('href')).toMatch(/^viber:\/\/forward\?text=/);
+    const tg = d.querySelector('a.send-tg') as HTMLAnchorElement;
+    expect(tg.getAttribute('href')).toMatch(/^https:\/\/t\.me\/share\/url\?url=/);
+    expect(tg.getAttribute('target')).toBe('_blank');
+    fireEvent.change(ta, { target: { value: 'Привет' } });
+    expect(decodeURIComponent(viber.getAttribute('href')!)).toBe('viber://forward?text=Привет');
+    await act(async () => { click(d, 'Копировать текст'); });
+    expect(write).toHaveBeenLastCalledWith('Привет');
+    expect(toastText()).toBe('Текст скопирован');
+    await act(async () => { click(d, 'Другое приложение'); });
+    expect(share).toHaveBeenCalledWith({ text: 'Привет' });
+    fireEvent.click(btn);
+    expect(within(d).queryByLabelText('Текст сообщения')).toBeNull();
+    delete (navigator as unknown as { share?: unknown }).share;
+  });
+  it('survives failed clipboard and share and hides the share button without support', async () => {
+    clip(() => Promise.reject(new Error('no')));
+    Object.defineProperty(navigator, 'share', { value: vi.fn(() => Promise.reject(new Error('cancel'))), configurable: true });
+    render(<App />);
+    const d = openProj();
+    fireEvent.click(within(d).getByRole('button', { name: 'Отправить в Viber или Telegram' }));
+    await act(async () => { click(d, 'Копировать текст'); });
+    expect(toastText()).toContain('вручную');
+    await act(async () => { click(d, 'Другое приложение'); });
+    delete (navigator as unknown as { share?: unknown }).share;
+    fireEvent.click(within(d).getByRole('button', { name: 'Отправить в Viber или Telegram' }));
+    fireEvent.click(within(d).getByRole('button', { name: 'Отправить в Viber или Telegram' }));
+    expect(within(d).queryByRole('button', { name: 'Другое приложение' })).toBeNull();
+  });
   it('has no QR code button', () => {
     render(<App />);
     const d = openProj();
@@ -338,7 +381,7 @@ describe('photos', () => {
     expect(stored().list[0].photos).toEqual([]);
     expect(await photoKeys()).toEqual([p[0].id]);
     fireEvent.keyDown(document, { key: 'z', ctrlKey: true });
-    expect(stored().list[0].photos).toHaveLength(1);
+    expect(stored().list[0].photos).toEqual([]);
   });
   it('ignores an empty file selection and reports storage failures', async () => {
     vi.mocked(scalePhoto).mockRejectedValueOnce(new Error('bad'));

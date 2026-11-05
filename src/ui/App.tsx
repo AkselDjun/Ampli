@@ -3,11 +3,10 @@ import { flushSync } from 'react-dom';
 import { calcAll } from '../core/calc';
 import type { LineType } from '../core/types';
 import { blank, sample } from '../core/templates';
-import { cur, init } from '../store/reducer';
+import { cur, init, reducer } from '../store/reducer';
 import { TYPES } from '../core/norms';
 import { HoverTips, Toaster } from './common';
-import { setToastVersion, staleUndo, toast, toastBad, toastOk, toastUndo } from './toast';
-import { hreducer, initH } from '../store/history';
+import { toast, toastBad, toastOk } from './toast';
 import { loadStore, saveStore } from '../store/storage';
 import { libReducer, loadLib, saveLib } from '../store/lib';
 import { LibContext } from '../store/LibContext';
@@ -17,7 +16,7 @@ import { referencedPhotoIds } from '../core/photos';
 import { CompareSheet } from './CompareSheet';
 import { RoomsSheet } from './RoomsSheet';
 import { useBackClose } from './back';
-import { Brand, IconBack, IconCheck, IconDoc, IconList, IconPanel, IconRedo, IconUndo } from './Icons';
+import { Brand, IconBack, IconCheck, IconDoc, IconList, IconPanel } from './Icons';
 import { Palette } from './Palette';
 import type { Cmd } from './Palette';
 import { GroupList } from './GroupList';
@@ -59,12 +58,7 @@ const waitPhotos = async (n: number): Promise<void> => {
 const isWide = () => window.matchMedia('(min-width:1000px)').matches;
 
 export function App() {
-  const [hist, dispatch] = useReducer(hreducer, undefined, () => initH(init(loadStore())));
-  const state = hist.now;
-  const verRef = useRef(hist.ver);
-  verRef.current = hist.ver;
-  useEffect(() => { setToastVersion(() => verRef.current); }, []);
-  useEffect(() => { staleUndo(hist.ver); }, [hist.ver]);
+  const [state, dispatch] = useReducer(reducer, undefined, () => init(loadStore()));
   const [lib, libDispatch] = useReducer(libReducer, undefined, loadLib);
   const [view, setView] = useState<View>('groups');
   const [stack, setStack] = useState<NonNullable<SheetId>[]>([]);
@@ -149,12 +143,7 @@ export function App() {
       if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey && !document.querySelector('.sheet:not([hidden]) [role="dialog"], dialog[open]')) {
         e.preventDefault();
         setPal(true);
-        return;
       }
-      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return;
-      if (typing) return;
-      e.preventDefault();
-      dispatch({ t: e.shiftKey ? 'redo' : 'undo' });
     };
     document.addEventListener('keydown', key);
     return () => document.removeEventListener('keydown', key);
@@ -209,17 +198,6 @@ export function App() {
   };
 
   const closeSheet = useCallback(() => setSheet(null), []);
-  const undo = useCallback(() => dispatch({ t: 'undo' }), []);
-
-  const canUndo = hist.past.length > 0;
-  const canRedo = hist.future.length > 0;
-  const undoBar = useMemo(() => (
-    <div className="ab-ur" role="group" aria-label="История изменений">
-      <button className="ab-ib" type="button" aria-label="Отменить" data-tip="Отменить · Ctrl+Z" disabled={!canUndo} onClick={undo}><IconUndo /></button>
-      <button className="ab-ib" type="button" aria-label="Вернуть" data-tip="Вернуть · Ctrl+Shift+Z" disabled={!canRedo} onClick={() => dispatch({ t: 'redo' })}><IconRedo /></button>
-    </div>
-  ), [canUndo, canRedo, undo]);
-  const headExtra = useMemo(() => <span className="ur-list">{undoBar}</span>, [undoBar]);
   const goEdit = () => {
     if (isWide()) return;
     scrollPos.current = window.scrollY;
@@ -239,29 +217,29 @@ export function App() {
   const copyLine = useStable((id: string) => {
     dispatch({ t: 'select', id });
     dispatch({ t: 'dupLine' });
-    toastUndo('Создана копия группы', undo);
+    toastOk('Создана копия группы');
   });
   const deleteLine = useStable((id: string) => {
     dispatch({ t: 'select', id });
     dispatch({ t: 'delLine' });
-    toastUndo('Группа удалена', undo);
+    toastOk('Группа удалена');
   });
   const fixLine = useStable((id: string, act: FixAct) => {
     dispatch({ t: 'select', id });
     if (act.k === 'len') dispatch({ t: 'lineField', field: 'len', value: act.len });
     else dispatch({ t: 'splitLine', mode: act.k });
-    toastUndo('Исправлено', undo);
+    toastOk('Исправлено');
   });
-  const moveLine = useStable((id: string, to: string) => { dispatch({ t: 'moveLine', id, to }); toastUndo('Порядок групп изменён', undo); });
-  const balance = useStable(() => { dispatch({ t: 'balance' }); toastUndo('Фазы выровнены', undo); });
+  const moveLine = useStable((id: string, to: string) => { dispatch({ t: 'moveLine', id, to }); toastOk('Порядок групп изменён'); });
+  const balance = useStable(() => { dispatch({ t: 'balance' }); toastOk('Фазы выровнены'); });
   const openProj = useStable(() => setSheet('proj'));
   const openNet = useStable(() => setSheet('net'));
   const openOld = useStable(() => setSheet('old'));
   const openFloor = useStable(() => setSheet('floor'));
   const openWeak = useStable(() => setSheet('weak'));
   const openRooms = useStable(() => setSheet('rooms'));
-  const onBlank = useStable(() => { dispatch({ t: 'replace', content: blank() }); toastUndo('Проект очищен', undo); });
-  const onSample = useStable(() => { dispatch({ t: 'replace', content: sample() }); toastUndo('Загружен пример', undo); });
+  const onBlank = useStable(() => { dispatch({ t: 'replace', content: blank() }); toastOk('Проект очищен'); });
+  const onSample = useStable(() => { dispatch({ t: 'replace', content: sample() }); toastOk('Загружен пример'); });
   const onCheckFix = useStable((f: CheckFix) => (f === 'net' ? setSheet('net') : dispatch({ t: 'cfg', field: 'supply', value: f === 'phase3' ? 3 : 1 })));
   const openRep = (t: string) => {
     setRepWant({ tab: t, n: Date.now() });
@@ -292,9 +270,7 @@ export function App() {
     { id: 'old', group: 'Проект', label: 'Старая проводка', words: 'алюминий обследование заземление зануление pe tn-c', run: () => setSheet('old') },
     { id: 'proj', group: 'Проект', label: 'Проекты', words: 'открыть новый файл ссылка', run: () => setSheet('proj') },
     { id: 'lib', group: 'Проект', label: 'Мои данные', words: 'реквизиты шаблоны цены логотип', run: () => setSheet('lib') },
-    ...(a.phases ? [{ id: 'bal', group: 'Проект', label: 'Выровнять нагрузку по фазам', words: 'фазы', run: () => { dispatch({ t: 'balance' }); toastUndo('Фазы выровнены', undo); } }] : []),
-    ...(hist.past.length ? [{ id: 'undo', group: 'Проект', label: 'Отменить', hint: 'Ctrl+Z', run: undo }] : []),
-    ...(hist.future.length ? [{ id: 'redo', group: 'Проект', label: 'Вернуть', hint: 'Ctrl+Shift+Z', run: () => dispatch({ t: 'redo' }) }] : [])
+    ...(a.phases ? [{ id: 'bal', group: 'Проект', label: 'Выровнять нагрузку по фазам', words: 'фазы', run: () => { dispatch({ t: 'balance' }); toastOk('Фазы выровнены'); } }] : [])
   ];
   const tab = (v: View) => {
     setView(v);
@@ -361,7 +337,6 @@ export function App() {
                 <h1 className="ab-title">{selected ? 'Г' + (idx + 1) + ' ' + (selected.name || 'Без названия') : ''}</h1>
                 <div id="ab-sub" className="ab-sub" />
               </div>
-              {undoBar}
               <button className="btn primary sm" type="button" onClick={goBack}>Готово</button>
             </div>
             <div className="ab-main">
@@ -370,7 +345,6 @@ export function App() {
                 <Totals a={da} onNet={openNet} />
                 <Checks a={da} onGroup={pick} onFix={onCheckFix} />
               </div>
-              {undoBar}
               <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
                 <IconPanel />
                 <span className="ab-txt">На щитке</span>
@@ -401,7 +375,6 @@ export function App() {
             onOpenNet={openNet}
             onOpenOld={openOld}
             onOpenFloor={openFloor}
-            headExtra={headExtra}
             onOpenWeak={openWeak}
             oldLabel={dOldLabel}
             hot={hot}

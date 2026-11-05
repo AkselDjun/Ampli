@@ -227,7 +227,8 @@ describe('spec and estimate', () => {
     expect(cab.n).toBe(17);
     expect(cab.note).toContain('запас 10 %');
     expect(spec.find(s => s.name === 'ВВГнг(А)-LS 3×' + (a.inS === 10 ? '10' : String(a.inS)))).toBeTruthy();
-    expect(spec[spec.length - 1].name).toBe('Шина PE (заземления)');
+    expect(spec.some(s => s.name === 'Шина PE (заземления)')).toBe(true);
+    expect(spec[spec.length - 1].name).toMatch(/^Труба гофрированная ПВХ/);
   });
   it('skips lines without breaker and has no input breaker on overload', () => {
     const o = buildSpec(calcAll([mkLine('big', 'power', 7, null, null, [['x', 30000, 1]])], defaultCfg()));
