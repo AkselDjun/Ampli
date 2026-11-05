@@ -1,7 +1,7 @@
 import type { Calc, Device, LineType } from '../core/types';
 import { fmt, fs } from '../core/format';
 import { ROWLEN } from '../core/norms';
-import { layout } from '../core/calc';
+import { railCells, useFitCols } from './railfit';
 import { Fragment, memo, useState } from 'react';
 import { Fold, Tip } from './common';
 import { same } from './hold';
@@ -118,9 +118,8 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
   const kinds = new Set(a.devs.map(d => d.kind));
   const c = a.c;
   const rl = ROWLEN[a.size];
-  const slots = layout(a.devs, rl);
-  const gapBefore = slots.map((sl, i) => (i > 0 && sl.row > slots[i - 1].row ? sl.row * rl - (slots[i - 1].row * rl + slots[i - 1].col + a.devs[i - 1].mod) : 0));
-  const free = Math.max(0, Math.max(a.size, Math.ceil(a.placed / rl) * rl) - a.placed);
+  const [railRef, cols] = useFitCols<HTMLDivElement>(rl, 28, 3);
+  const { gapBefore, free } = railCells(a.devs, cols, rl, a.size);
   const nameOf: Record<string, string> = {};
   const typeOf = new Map<string, LineType>();
   a.rows.forEach((x, i) => {
@@ -135,7 +134,7 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
           Приборов на {a.modSum} мод. Нужен корпус на <b>{a.size}</b> мод. с запасом 20 %{a.fits ? '.' : ', но и он тесен: разделите щиток на два.'}
         </p>
         <div className="rail-wrap">
-          <div className="rail" data-rc={rl} style={{ ['--rc' as string]: rl }}>
+          <div className="rail" ref={railRef} data-rc={cols} style={{ ['--rc' as string]: cols }}>
             {a.devs.map((d, i) => {
               const lid = d.lid;
               const k = lid ? lids.indexOf(lid) : -1;
