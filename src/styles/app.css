@@ -1567,3 +1567,7 @@ html:has(.sheet:not([hidden])) .toast{top:calc(12px + env(safe-area-inset-top,0p
   .row .chev{width:16px;height:16px}
 }
 @media (max-width:380px){.row-name{font-size:var(--t-base)}}
+@media (max-width:600px){
+  .tabbar{gap:0;padding:6px 8px 0}
+  .tabbar-b{flex:1 1 auto;padding:0 8px;font-size:var(--t-sm)}
+}
