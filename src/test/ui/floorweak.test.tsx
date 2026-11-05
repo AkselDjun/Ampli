@@ -17,7 +17,7 @@ const box = () => document.querySelector('.proj-box') as HTMLElement;
 describe('floor heating sheet', () => {
   it('picks a product, checks it and writes it into a group', () => {
     render(<App />);
-    fireEvent.click(within(box()).getByRole('button', { name: 'Тёплый пол: мат, кабель, плёнка' }));
+    fireEvent.click(within(box()).getByRole('button', { name: /^Тёплый пол ?: мат, кабель, плёнка$/ }));
     const d = dlg('Тёплый пол');
     expect(d.querySelector('.empty')).not.toBeNull();
     click(d, '+ Ванная');
@@ -55,7 +55,7 @@ describe('floor heating sheet', () => {
     click(room, 'Точно?');
     expect(stored().list[0].floor).toHaveLength(1);
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(within(box()).getByRole('button', { name: /^Тёплый пол: 1 помещение, \d+ Вт$/ })).toBeTruthy();
+    expect(within(box()).getByRole('button', { name: /^Тёплый пол ?: 1 помещение, \d+ Вт$/ })).toBeTruthy();
     fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
     const input = document.querySelector('dialog.pal input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'терморегулятор' } });
@@ -78,7 +78,7 @@ describe('weak current sheet', () => {
   it('collects points, shows equipment and checks, and adds works', () => {
     wide(false);
     render(<App />);
-    fireEvent.click(within(box()).getByRole('button', { name: 'Слаботочка: интернет, ТВ, камеры' }));
+    fireEvent.click(within(box()).getByRole('button', { name: /^Слаботочка ?: интернет, ТВ, камеры$/ }));
     const d = dlg('Слаботочка');
     expect(d.querySelector('.empty')).not.toBeNull();
     click(d, '+ Интернет');
@@ -109,7 +109,7 @@ describe('weak current sheet', () => {
     click(rows()[2], 'Удалить точку');
     expect(rows()).toHaveLength(2);
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(within(box()).getByRole('button', { name: 'Слаботочка: Интернет 2, ТВ 1, 50 м кабеля' })).toBeTruthy();
+    expect(within(box()).getByRole('button', { name: /^Слаботочка ?: Интернет 2, ТВ 1, 50 м кабеля$/ })).toBeTruthy();
     click(document.querySelector('nav.tabs') as HTMLElement, /Отчёт/);
     const rep = dlg('Отчёт и спецификация');
     fireEvent.click(within(rep).getByRole('tab', { name: 'Смета', hidden: true }));
@@ -160,21 +160,21 @@ describe('arc fault devices in the interface', () => {
   it('turns on from the network sheet and shows on the board, list and report', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(within(box()).getByRole('button', { name: 'Параметры сети' }));
+    fireEvent.click(within(box()).getByRole('button', { name: /^Параметры сети ?:/ }));
     const d = dlg('Параметры сети');
     fireEvent.click(d.querySelector('input[name="afdd"][value="sock"]') as HTMLInputElement);
     expect(stored().list[0].cfg.afdd).toBe('sock');
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(within(box()).getByRole('button', { name: 'Параметры сети' }).textContent).toContain('УЗДП на розетки');
+    expect(within(box()).getByRole('button', { name: /^Параметры сети ?:/ }).textContent).toContain('УЗДП на розетки');
     const arcs = document.querySelectorAll('.rail .dev.arc');
     expect(arcs.length).toBeGreaterThan(0);
     expect(arcs[0].querySelector('.dev-arc')?.textContent).toBe('ДП');
     expect(Array.from(document.querySelectorAll('.legend > span')).map(s => s.textContent)).toContain('УЗДП');
     expect(document.querySelector('.bd-list')?.textContent).toContain('УЗДП с автоматом');
-    fireEvent.click(within(box()).getByRole('button', { name: 'Параметры сети' }));
+    fireEvent.click(within(box()).getByRole('button', { name: /^Параметры сети ?:/ }));
     fireEvent.click(dlg('Параметры сети').querySelector('input[name="afdd"][value="all"]') as HTMLInputElement);
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(within(box()).getByRole('button', { name: 'Параметры сети' }).textContent).toContain('УЗДП на группы');
+    expect(within(box()).getByRole('button', { name: /^Параметры сети ?:/ }).textContent).toContain('УЗДП на группы');
   });
 
   it('prints the arc fault protection in the report', () => {

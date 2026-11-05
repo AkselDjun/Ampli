@@ -99,16 +99,16 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
                       className={'pmb-dev k-' + d.kind + ' v-' + pr.verdict + (cur === lid ? ' sel' : '')}
                       style={style}
                       aria-pressed={cur === lid}
-                      aria-label={no + ' ' + name + ', ' + d.label + ', ' + VERDICT[pr.verdict]}
                       data-tip={no + ' ' + name}
                       onClick={() => setPick(lid)}
                     >
-                      <span className="pmb-strip"><b>{no}</b><span>{d.mod > 1 ? name : shortName(name)}</span></span>
+                      <span className="pmb-strip"><b>{no}</b>{' '}<span>{d.mod > 1 ? name : shortName(name)}</span></span>{' '}
                       <span className="pmb-scr" />
-                      <span className="pmb-rate">{d.label}</span>
+                      <span className="pmb-rate">{d.label}</span>{' '}
                       <span className={'pmb-lever v-' + pr.verdict} />
                       <span className="pmb-sub">{d.kind === 'rcd' ? (d.ma ?? '') + 'мА' : ''}</span>
                       <span className="pmb-scr" />
+                      <span className="vh">{'. ' + no + ' ' + name + ', ' + d.label + ', ' + VERDICT[pr.verdict]}</span>
                     </button>
                   </Fragment>
                 );

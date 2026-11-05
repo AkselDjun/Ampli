@@ -22,6 +22,7 @@ import { UTP_MAX, WEAK_KINDS } from '../core/weak';
 import { BATH_REF, FLOOR_SYS, FLOOR_USES, UZO_REF, floorCalc } from '../core/floor';
 import { actDate, actsOf, hiddenMaterials, hiddenWorks, ruDate, warrantyText } from '../core/acts';
 import { useNow } from './now';
+import { stamp } from '../core/version';
 
 function ProtoTable({ a }: { a: Calc }) {
   const rows = protocolRows(a);
@@ -132,7 +133,7 @@ function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
         Допустимые значения: ток однофазного замыкания не меньше тока мгновенного срабатывания защиты (5×In для кривой B, 10×In для C) при времени отключения 0,4 с для 230 В (ТКП 339-2022, п. 4.3.5.4, п. 4.4.28.5); сопротивление изоляции не менее 0,5 МОм (п. 4.4.26.1, табл. 4.4.46); ток утечки не более трети уставки УЗО (СН 4.04.01-2019, п. 16.3.7); время отключения УЗО при номинальном дифференциальном токе не более значений табл. 4.4.47 и 4.4.48 ТКП 339-2022 в редакции изм. № 1 (для 30 мА 0,5 с).
       </p>
       <SignBlock />
-      <div className="pd-foot">Ampli · {dfmt(now)}</div>
+      <div className="pd-foot">{stamp(dfmt(now))}</div>
     </>
   );
 }
@@ -548,7 +549,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
       <h2>Допущения и источники</h2>
       <Assumptions cfg={cfgN(p.cfg)} />
       <SignBlock />
-      <div className="pd-foot">Ampli · {now}</div>
+      <div className="pd-foot">{stamp(now)}</div>
     </div>
   );
 }

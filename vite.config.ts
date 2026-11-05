@@ -1,15 +1,55 @@
+import { createHash } from 'node:crypto';
+import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import babel from '@rolldown/plugin-babel';
 import { VitePWA } from 'vite-plugin-pwa';
 import { PWA_ENABLED } from './src/core/flags';
+import pkg from './package.json' with { type: 'json' };
 
 const preset = reactCompilerPreset();
 const compiler = { ...preset, rolldown: { ...preset.rolldown, applyToEnvironmentHook: undefined } };
 
+const sha = (s: string): string => "'sha256-" + createHash('sha256').update(s).digest('base64') + "'";
+
+const csp = (): Plugin => ({
+  name: 'ampli-csp',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler(html) {
+      const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m => sha(m[1]));
+      const styles = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m => sha(m[1]));
+      const policy = [
+        "default-src 'self'",
+        ["script-src 'self'", ...scripts].join(' '),
+        ["style-src 'self'", ...styles].join(' '),
+        "img-src 'self' data: blob:",
+        "font-src 'self'",
+        "connect-src 'self'",
+        "worker-src 'self'",
+        "manifest-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'none'"
+      ].join('; ');
+      return html.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="' + policy + '">');
+    }
+  }
+});
+
 export default defineConfig({
   base: './',
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: { groups: [{ name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ }] }
+      }
+    }
+  },
   plugins: [
+    csp(),
     react(),
     babel({ presets: [compiler] }),
     VitePWA({

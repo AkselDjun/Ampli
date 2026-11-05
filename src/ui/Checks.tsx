@@ -56,7 +56,8 @@ export const Checks = memo(function Checks({ a, onGroup, onFix }: { a: Calc; onG
   const noOf = (id: string): string => 'Г' + (a.rows.findIndex(x => x.l.id === id) + 1);
   return (
     <div className={'chk-w' + (open ? ' open' : '')} ref={ref}>
-      <button className={'chk-b st-' + st.k} type="button" aria-expanded={open} aria-controls="chk-pop" aria-label={'Проверки по нормам: ' + st.text} data-tip={open ? undefined : 'Проверки по нормам: ' + st.text.toLowerCase()} onClick={() => setOpen(!open)}>
+      <button className={'chk-b st-' + st.k} type="button" aria-expanded={open} aria-controls="chk-pop" data-tip={open ? undefined : 'Проверки по нормам: ' + st.text.toLowerCase()} onClick={() => setOpen(!open)}>
+        <span className="vh">{'Проверки по нормам: ' + st.text + '. '}</span>
         <span className="lbl">Нормы</span>
         <b>{st.k === 'ok' ? <IconDone /> : <IconAlert />}{st.n > 0 && <em className="chk-n">{st.n}</em>}</b>
       </button>

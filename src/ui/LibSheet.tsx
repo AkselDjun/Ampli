@@ -7,6 +7,8 @@ import { toastBad } from './toast';
 import { THEME_LABEL, useTheme } from './theme';
 import type { Theme } from './theme';
 import { Button, Field } from './kit';
+import { APP_VERSION, NORMS_CHECKED, NORMS_EDITION } from '../core/version';
+import { CHANGELOG_URL } from './release';
 
 export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lib, dispatch } = useLib();
@@ -77,6 +79,9 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
       <h3 className="sec-t" id="themeT">Тема оформления</h3>
       <Seg<Theme> name="theme" labelledBy="themeT" value={theme} onChange={setTheme} items={(Object.keys(THEME_LABEL) as Theme[]).map(k => [k, THEME_LABEL[k]])} />
       <p className="muted">«Как в системе» следует настройке телефона или компьютера. Выбор хранится на этом устройстве.</p>
+      <h3 className="sec-t">О программе</h3>
+      <p className="muted">Ampli {APP_VERSION}. Нормы: {NORMS_EDITION}, сверено {NORMS_CHECKED}.</p>
+      <p><a className="link" href={CHANGELOG_URL} target="_blank" rel="noopener noreferrer">Что нового</a></p>
       </TabPanel>
     </Sheet>
   );

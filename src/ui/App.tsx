@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { calcAll } from '../core/calc';
 import type { LineType } from '../core/types';
@@ -10,32 +10,27 @@ import { toast, toastBad, toastOk } from './toast';
 import { loadStore, saveStore } from '../store/storage';
 import { libReducer, loadLib, saveLib } from '../store/lib';
 import { LibContext } from '../store/LibContext';
-import { LibSheet } from './LibSheet';
 import { gcPhotos } from '../store/photos';
 import { referencedPhotoIds } from '../core/photos';
-import { CompareSheet } from './CompareSheet';
-import { RoomsSheet } from './RoomsSheet';
 import { useBackClose } from './back';
 import { Brand, IconBack, IconCheck, IconDoc, IconList, IconPanel } from './Icons';
 import { Palette } from './Palette';
 import type { Cmd } from './Palette';
 import { setTheme } from './theme';
+import { updatedFrom } from './release';
+import { APP_VERSION } from '../core/version';
 import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
 import { Totals } from './Totals';
 import { Checks } from './Checks';
-import { NetSheet, ProjectsSheet, ReportSheet } from './sheets';
 import { SheetNavContext } from './sheetnav';
-import { FloorSheet, OldSheet, PrintDoc, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
+import { CompareSheet, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, PanelMode, PrintDoc, ProjectsSheet, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
-import { PanelMode } from './PanelMode';
 import { IncomingSheet } from './IncomingSheet';
 import { readEstimateHash, readOwnerHash, readShareHash, unpackEstimate, unpackProject } from '../core/share';
 import type { EstimateShare } from '../core/share';
-import { EstimateView } from './EstimateView';
-import { OwnerView } from './Passport';
 import { uniqName } from '../core/project';
 import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
@@ -110,6 +105,7 @@ export function App() {
 
   useEffect(() => {
     const t = window.setTimeout(() => { preloadParts().catch(() => undefined); }, 1500);
+    if (updatedFrom()) toastOk('Ampli обновлён до версии ' + APP_VERSION + '. Что нового: Мои данные, Оформление');
     const before = () => flushSync(() => setPrinting(true));
     const after = () => setPrinting(false);
     window.addEventListener('beforeprint', before);
@@ -309,26 +305,30 @@ export function App() {
 
   if (shared) {
     return (
-      <EstimateView
-        data={shared}
-        onClose={() => {
-          window.history.replaceState(null, '', window.location.pathname + window.location.search);
-          setShared(null);
-        }}
-      />
+      <Suspense fallback={null}>
+        <EstimateView
+          data={shared}
+          onClose={() => {
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+            setShared(null);
+          }}
+        />
+      </Suspense>
     );
   }
 
   if (owner) {
     return (
-      <OwnerView
-        project={owner}
-        onAdd={() => {
-          window.history.replaceState(null, '', window.location.pathname + window.location.search);
-          setIncoming(owner);
-          setOwner(null);
-        }}
-      />
+      <Suspense fallback={null}>
+        <OwnerView
+          project={owner}
+          onAdd={() => {
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+            setIncoming(owner);
+            setOwner(null);
+          }}
+        />
+      </Suspense>
     );
   }
 

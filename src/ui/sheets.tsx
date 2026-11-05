@@ -27,6 +27,7 @@ import { estimate } from '../core/spec';
 import { DrawingA3 } from './parts';
 import type { PrintMode } from './WorkSheet';
 import { Button, Field } from './kit';
+import { APP_VERSION, NORMS_EDITION } from '../core/version';
 
 export function NetSheet({
   open, onClose, p, dispatch, onOld, oldLabel
@@ -151,7 +152,7 @@ export function ProjectsSheet({
   };
   const exportFile = () => {
     try {
-      const text = JSON.stringify({ app: 'ampli', version: 1, ...p }, null, 2);
+      const text = JSON.stringify({ app: 'ampli', version: 1, appVersion: APP_VERSION, norms: NORMS_EDITION, ...p }, null, 2);
       const u = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
       const a = document.createElement('a');
       a.href = u;
@@ -412,7 +413,7 @@ export function ReportSheet({
         <h3 className="sec-t">Схема щитка</h3>
         <Button size="sm" onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
       </div>
-      <div className="schem-wrap"><Schematic a={a} /></div>
+      <div className="schem-wrap" role="region" aria-label="Однолинейная схема, прокручивается" tabIndex={0}><Schematic a={a} /></div>
       <details className="bd-help a3-prev">
         <summary>Лист А3 со штампом</summary>
         <p className="muted">Принципиальная схема распределительной сети по ГОСТ 21.613 с таблицей групп и основной надписью. Реквизиты организации берутся из «Мои данные», разработчик из карточки проекта.</p>

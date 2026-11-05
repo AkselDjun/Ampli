@@ -81,7 +81,6 @@ const Module = memo(function Module({ d, i, cap, t, drag, over, sel, hot, prev, 
       className={cls}
       style={style}
       data-tip={d.title}
-      aria-label={d.title + ', ' + d.label + '. Открыть группу. Alt и стрелки меняют порядок'}
       data-ph={d.ph}
       data-t={t}
       aria-current={sel ? 'true' : undefined}
@@ -106,9 +105,10 @@ const Module = memo(function Module({ d, i, cap, t, drag, over, sel, hot, prev, 
     >
       {d.arc && <span className="dev-arc" aria-hidden="true">ДП</span>}
       {d.ph && <span className="dev-ph" aria-hidden="true">{d.ph === '3' ? '3Ф' : d.ph}</span>}
-      <b>{d.label}</b>
-      <i>{d.sub}</i>
+      <b>{d.label}</b>{' '}
+      <i>{d.sub}</i>{' '}
       <em className={'dev-cap' + (d.mod === 1 ? ' sm' : '')}>{cap}</em>
+      <span className="vh">{'. ' + d.title + ', ' + d.label + '. Открыть группу. Alt и стрелки меняют порядок'}</span>
     </button>
   );
 }, sameMod);
