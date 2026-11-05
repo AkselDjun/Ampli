@@ -1,21 +1,15 @@
-# Security Policy
+# Безопасность
 
-## Supported Versions
+## Поддерживаемые версии
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+Исправления выходят только для последней опубликованной версии. Сайт обновляется автоматически, установленное приложение предлагает обновиться.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+## Как сообщить об уязвимости
 
-## Reporting a Vulnerability
+Сообщите через вкладку Security репозитория (Report a vulnerability), не открывая публичный issue. Ответ в течение недели; после подтверждения исправление выходит в ближайшем релизе, а в журнале изменений появляется запись без деталей эксплуатации.
 
-Use this section to tell people how to report a vulnerability.
+## Что уже защищено
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+- Политика безопасности контента (CSP) в `index.html` собирается при сборке: только свои скрипты и стили, встроенный код разрешён по хэшу, без `eval`, плагинов и отправки форм. E2E-тест `e2e/security.spec.ts` проходит основные сценарии и падает на любом нарушении политики.
+- Ссылки на проект (`#p=`, `#o=`, `#e=`) длиннее 1 000 000 символов не открываются, распакованные данные ограничены 2 МБ, после распаковки проект проходит проверку `normProject`.
+- Данные проектов и фото хранятся только на устройстве, сервера у приложения нет.

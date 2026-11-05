@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { deflateSync, strToU8 } from 'fflate';
-import { SHARE_PREFIX, SHARE_VERSION, packProject, readShareHash, shareUrl, unpackProject } from '../../core/share';
+import { LINK_LIMIT, SHARE_PREFIX, SHARE_VERSION, packProject, readShareHash, shareUrl, unpackProject } from '../../core/share';
 import { sampleProject } from '../../core/project';
 import { calcAll } from '../../core/calc';
 
@@ -38,6 +38,14 @@ describe('project packing', () => {
     const notProject = SHARE_VERSION + btoa(String.fromCharCode(...deflateSync(strToU8('{"a":1}')))).replace(/=+$/, '');
     expect(unpackProject(notProject)).toBeNull();
   });
+  it('refuses oversized links and payloads that inflate beyond the limit', () => {
+    expect(unpackProject(SHARE_VERSION + 'A'.repeat(LINK_LIMIT))).toBeNull();
+    const bomb = deflateSync(strToU8('{"name":"' + 'x'.repeat(5_000_000) + '"}'), { level: 9 });
+    const b64 = btoa(String.fromCharCode(...bomb)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    expect(b64.length).toBeLessThan(LINK_LIMIT);
+    expect(unpackProject(SHARE_VERSION + b64)).toBeNull();
+  });
+
   it('trims whitespace', () => {
     expect(unpackProject('  ' + packProject(p) + '\n')).not.toBeNull();
   });

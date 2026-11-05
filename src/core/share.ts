@@ -9,6 +9,7 @@ export const OWNER_PREFIX = '#o=';
 export const ESTIMATE_PREFIX = '#e=';
 export const SHARE_VERSION = 'v1.';
 const INFLATE_LIMIT = 2_000_000;
+export const LINK_LIMIT = 1_000_000;
 
 const b64 = (u: Uint8Array): string => {
   let s = '';
@@ -43,7 +44,7 @@ const packJson = (o: unknown): string => SHARE_VERSION + b64(deflateSync(strToU8
 
 const unpackJson = (text: string): unknown => {
   const t = text.trim();
-  if (!t.startsWith(SHARE_VERSION)) return null;
+  if (!t.startsWith(SHARE_VERSION) || t.length > LINK_LIMIT) return null;
   const raw = inflateSync(unb64(t.slice(SHARE_VERSION.length)), { out: new Uint8Array(INFLATE_LIMIT) });
   const end = raw.indexOf(0);
   return JSON.parse(strFromU8(end < 0 ? raw : raw.subarray(0, end)));
