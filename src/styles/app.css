@@ -39,7 +39,7 @@ svg{display:block;flex:none}
 .btn.sm{min-height:38px;padding:0 var(--s-4)}
 .link{border:0;background:transparent;color:var(--accent);font-weight:600;text-decoration:underline;cursor:pointer;padding:0}
 .btn,.ab-btn,.ab-back,.row,.chip,.netline,.projbar,.tabs button,.step button,.icon-btn,.sheet-close{touch-action:manipulation}
-.tpl-b:focus-visible,.why-t:focus-visible,.btn:focus-visible,.ab-btn:focus-visible,.ab-back:focus-visible,.row:focus-visible,.chip:focus-visible,.netline:focus-visible,.projbar:focus-visible,.tabs button:focus-visible,.step button:focus-visible,.icon-btn:focus-visible,.sheet-close:focus-visible,input:focus-visible,select:focus-visible,.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.schem-wrap:focus-visible,.tpl-b:focus-visible,.why-t:focus-visible,.btn:focus-visible,.ab-btn:focus-visible,.ab-back:focus-visible,.row:focus-visible,.chip:focus-visible,.netline:focus-visible,.projbar:focus-visible,.tabs button:focus-visible,.step button:focus-visible,.icon-btn:focus-visible,.sheet-close:focus-visible,input:focus-visible,select:focus-visible,.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 input,select{font:inherit;font-size:var(--t-base);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:var(--r-m);padding:0 var(--s-3);height:44px;width:100%;min-width:0}
 input[inputmode=decimal],input[inputmode=numeric]{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
@@ -623,7 +623,7 @@ h2{font-size:var(--t-xl);letter-spacing:-0.012em}
 .appbar{background:var(--glass);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px)}
 .kpis{gap:0;align-items:stretch;background:var(--disp-bg);border-radius:var(--r-m);padding:5px var(--s-1);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),var(--sh-1)}
 .kpis>div{padding:0 14px;border-left:1px solid rgba(255,255,255,0.09)}
-.kpis>div:first-child{border-left:0}
+.kpis>div:first-of-type{border-left:0}
 .kpis .lbl{color:var(--disp-dim);font-size:var(--t-xs);font-weight:500;letter-spacing:0.02em}
 .kpis b{color:var(--disp-lit);font-size:var(--t-l);text-shadow:0 0 12px rgba(127,224,176,0.35)}
 

@@ -8,7 +8,8 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: {
     baseURL: 'http://localhost:4173/',
-    trace: 'retain-on-failure'
+    trace: 'retain-on-failure',
+    launchOptions: process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {}
   },
   projects: [
     { name: 'phone', use: { ...devices['Pixel 7'] } },

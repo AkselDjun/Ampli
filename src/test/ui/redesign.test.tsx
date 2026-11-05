@@ -299,7 +299,7 @@ describe('GroupList', () => {
     const user = userEvent.setup();
     const { h, el } = props(proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]));
     render(el);
-    const b = screen.getByRole('button', { name: 'Параметры сети' });
+    const b = screen.getByRole('button', { name: /^Параметры сети ?:/ });
     expect(b).toHaveTextContent('1 фаза, 230 В');
     expect(b).toHaveTextContent('Скрытая');
     expect(b).toHaveTextContent('дифавтоматы');
@@ -309,7 +309,7 @@ describe('GroupList', () => {
   it('describes an open three-phase network with residual-current devices per room', () => {
     const { el } = props(proj([mkLine('A', 'power', 5, 1, 1, [['x', 100, 1]], '3')], { supply: 3, method: 'open', prot: 'rcd' }));
     render(el);
-    const b = screen.getByRole('button', { name: 'Параметры сети' });
+    const b = screen.getByRole('button', { name: /^Параметры сети ?:/ });
     expect(b).toHaveTextContent('3 фазы, 400 В');
     expect(b).toHaveTextContent('Открытая');
     expect(b).toHaveTextContent('УЗО на помещение');
@@ -344,7 +344,7 @@ describe('GroupList', () => {
     expect(rows[2].querySelector('.flag')).toBeNull();
     await user.click(rows[2]);
     expect(h.onSelect).toHaveBeenCalledWith(p.lines[2].id);
-    await user.click(screen.getByRole('button', { name: 'Проекты' }));
+    await user.click(screen.getByRole('button', { name: /^Проекты:/ }));
     expect(h.onOpenProj).toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
     await user.click(screen.getByRole('menuitem', { name: 'Из комнат' }));
@@ -442,7 +442,7 @@ describe('Side folds', () => {
   it('uses the plural forms in the label', () => {
     const heavy = Array.from({ length: 6 }, (_, i) => mkLine('П' + i, 'power', 400, 1, 1, [['x', 3500, 1]]));
     const b = chkOf(proj(heavy));
-    expect(b.getAttribute('aria-label')).toMatch(/^Проверки по нормам: \d+ замечани(е|я|й)$/);
+    expect(b.querySelector('.vh')?.textContent).toMatch(/^Проверки по нормам: \d+ замечани(е|я|й)\. $/);
     expect(checksState([{ k: 'warn', t: 'a' }]).text).toBe('1 замечание');
     expect(checksState([{ k: 'warn', t: 'a' }, { k: 'warn', t: 'b' }]).text).toBe('2 замечания');
     expect(checksState(Array.from({ length: 5 }, () => ({ k: 'warn' as const, t: 'x' }))).text).toBe('5 замечаний');
@@ -450,7 +450,7 @@ describe('Side folds', () => {
   it('shows a quiet green button when everything is fine and nothing without load', () => {
     const b = chkOf(proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]]), mkLine('B', 'socket', 5, 1, 1, [['x', 100, 1]])]));
     expect(b).toHaveClass('st-ok');
-    expect(b.getAttribute('aria-label')).toBe('Проверки по нормам: Всё в норме');
+    expect(b.querySelector('.vh')?.textContent).toBe('Проверки по нормам: Всё в норме. ');
     expect(b.querySelector('.chk-n')).toBeNull();
     const w = checksState([{ k: 'warn', t: 'a' }]);
     expect(w.k).toBe('warn');

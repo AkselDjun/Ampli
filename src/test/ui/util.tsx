@@ -31,7 +31,7 @@ export const btn = (root: ParentNode, text: string | RegExp): HTMLElement => {
   const all = Array.from(root.querySelectorAll<HTMLElement>('button'));
   const b = all.find(x => {
     const t = (x.getAttribute('aria-label') ?? '') + '|' + (x.textContent ?? '');
-    return typeof text === 'string' ? (x.textContent === text || x.getAttribute('aria-label') === text) : text.test(t);
+    return typeof text === 'string' ? (x.textContent === text || x.getAttribute('aria-label') === text || (x.textContent ?? '').startsWith(text + ': ')) : text.test(t);
   });
   if (!b) throw new Error('no button ' + String(text));
   return b;

@@ -42,7 +42,7 @@ describe('old wiring survey', () => {
     act(() => { vi.advanceTimersByTime(60); });
     expect(window.print).toHaveBeenCalledTimes(1);
     fireEvent.keyDown(document, { key: 'Escape' });
-    const row = screen.getByRole('button', { name: 'Старая проводка: Заменить' });
+    const row = screen.getByRole('button', { name: /^Старая проводка ?: Заменить$/ });
     fireEvent.click(row);
     const d2 = dlg('Старая проводка');
     fireEvent.click(screen.getByRole('button', { name: 'Очистить ответы' }));

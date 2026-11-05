@@ -413,7 +413,7 @@ export function ReportSheet({
         <h3 className="sec-t">Схема щитка</h3>
         <Button size="sm" onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
       </div>
-      <div className="schem-wrap"><Schematic a={a} /></div>
+      <div className="schem-wrap" role="region" aria-label="Однолинейная схема, прокручивается" tabIndex={0}><Schematic a={a} /></div>
       <details className="bd-help a3-prev">
         <summary>Лист А3 со штампом</summary>
         <p className="muted">Принципиальная схема распределительной сети по ГОСТ 21.613 с таблицей групп и основной надписью. Реквизиты организации берутся из «Мои данные», разработчик из карточки проекта.</p>

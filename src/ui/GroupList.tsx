@@ -175,7 +175,8 @@ export const GroupList = memo(function GroupList({
   return (
     <section className="col col-list" id="groups" tabIndex={-1} aria-label="Группы линий">
       <div className="proj-box">
-        <button className="projbar" type="button" onClick={onOpenProj} aria-label="Проекты">
+        <button className="projbar" type="button" onClick={onOpenProj}>
+          <span className="vh">Проекты: </span>
           <IconFolder />
           <span className="pb-main">
             <span className="pb-name">{p.name || 'Без названия'}</span>
@@ -184,27 +185,27 @@ export const GroupList = memo(function GroupList({
           <span className="pb-more">Проекты</span>
         </button>
         <div className="netchips">
-          <button className="netfold" type="button" aria-label="Параметры сети" onClick={onOpenNet}>
+          <button className="netfold" type="button" onClick={onOpenNet}>
             <IconNet />
-            <span className="nf-main">Параметры сети<small>{net.map(t => t[1]).join(', ')}</small></span>
+            <span className="nf-main">Параметры сети<span className="vh">: </span><small>{net.map(t => t[1]).join(', ')}</small></span>
             <IconChev className="chev" />
           </button>
           {oldLabel && (
-            <button className="netfold" type="button" aria-label={'Старая проводка: ' + oldLabel} onClick={onOpenOld}>
+            <button className="netfold" type="button" onClick={onOpenOld}>
               <IconWire />
-              <span className="nf-main">Старая проводка<small>{oldLabel}</small></span>
+              <span className="nf-main">Старая проводка<span className="vh">: </span><small>{oldLabel}</small></span>
               <IconChev className="chev" />
             </button>
           )}
           <div className="nf-pair">
-            <button className="netfold" type="button" aria-label={'Тёплый пол: ' + floorLabel} onClick={onOpenFloor}>
+            <button className="netfold" type="button" onClick={onOpenFloor}>
               <IconHeat />
-              <span className="nf-main">Тёплый пол<small>{floorLabel}</small></span>
+              <span className="nf-main">Тёплый пол<span className="vh">: </span><small>{floorLabel}</small></span>
               <IconChev className="chev" />
             </button>
-            <button className="netfold" type="button" aria-label={'Слаботочка: ' + weakLabel} onClick={onOpenWeak}>
+            <button className="netfold" type="button" onClick={onOpenWeak}>
               <IconLan />
-              <span className="nf-main">Слаботочка<small>{weakLabel}</small></span>
+              <span className="nf-main">Слаботочка<span className="vh">: </span><small>{weakLabel}</small></span>
               <IconChev className="chev" />
             </button>
           </div>

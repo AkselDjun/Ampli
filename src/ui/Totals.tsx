@@ -31,7 +31,8 @@ export const Totals = memo(function Totals({ a, onNet }: { a: Calc; onNet: () =>
   const width = Math.min(100, Math.max(0, st.pct)) + '%';
   return (
     <div className={'tot-w' + (open ? ' open' : '')} ref={ref}>
-      <button className={'kpis st-' + st.k} type="button" aria-expanded={open} aria-controls="tot-pop" aria-label={'Итого по квартире: ' + fmt(a.P / 1000, 1) + ' из ' + fmt(c.alloc, 1) + ' кВт, ' + st.text} onClick={() => setOpen(!open)}>
+      <button className={'kpis st-' + st.k} type="button" aria-expanded={open} aria-controls="tot-pop" onClick={() => setOpen(!open)}>
+        <span className="vh">{'Итого по квартире: ' + fmt(a.P / 1000, 1) + ' из ' + fmt(c.alloc, 1) + ' кВт, ' + st.text + '. '}</span>
         <div><span className="lbl">Мощность</span><b>{a.P > 0 ? fmt(a.P / 1000, 1) : '—'}<small className="kp-of">/{fmt(c.alloc, 0)}</small><small> кВт</small></b></div>
         <div><span className="lbl">{three ? 'Фаза' : 'Ток'}</span><b>{a.Itot > 0 ? fmt(a.Itot, 0) + ' А' : '—'}</b></div>
         <div className="kp-in"><span className="lbl">Ввод</span><b>{a.inIn ? 'C' + a.inIn : '—'}</b></div>
