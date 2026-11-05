@@ -19,6 +19,7 @@ import { useLib } from '../store/LibContext';
 import { parseApps } from '../core/quick';
 import { zoneOf } from '../core/calc';
 import { useByRoom } from './prefs';
+import { Button, IconButton } from './kit';
 
 const CHIP_MAX = 6;
 
@@ -286,7 +287,7 @@ export function Editor({
                     </span>
                   </label>
                 )}
-                <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" data-tip="Удалить прибор" onClick={() => keepChips(() => { dispatch({ t: 'delApp', id: ap.id }); if (ap.name.trim() || pn(ap.w, 0) > 0) toastOk('Прибор удалён: ' + (ap.name.trim() || 'без названия')); })}>×</button>
+                <IconButton className="a-del" label="Удалить прибор" tip="Удалить прибор" onClick={() => keepChips(() => { dispatch({ t: 'delApp', id: ap.id }); if (ap.name.trim() || pn(ap.w, 0) > 0) toastOk('Прибор удалён: ' + (ap.name.trim() || 'без названия')); })}>×</IconButton>
               </div>
             ))}
           </div>
@@ -346,12 +347,12 @@ export function Editor({
             <div className="quick">
               <textarea aria-label="Список приборов" rows={3} placeholder="чайник 2200, духовка 2,5 кВт, лампы 60 x5" value={quick} onChange={e => setQuick(e.target.value)} />
               <div className="copy-row">
-                <button className="btn primary" type="button" onClick={() => {
+                <Button variant="primary" onClick={() => {
                   const r = parseApps(quick);
                   if (r.apps.length) dispatch({ t: 'addApps', apps: r.apps });
                   setQuickMsg((r.apps.length ? 'Добавлено: ' + r.apps.length : 'Ничего не добавлено') + (r.skipped.length ? '. Не разобрано: ' + r.skipped.join('; ') : ''));
                   if (r.apps.length) setQuick(r.skipped.join('\n'));
-                }}>Добавить</button>
+                }}>Добавить</Button>
                 <span role="status" className="muted">{quickMsg}</span>
               </div>
             </div>
@@ -465,8 +466,8 @@ export function Editor({
           </div>
         </div>
         <div className="ed-end">
-          <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupLine' }); toastOk('Создана копия группы'); }}>Копировать группу</button>
-          <ArmButton className="btn danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); toastOk('Группа удалена'); }} />
+          <Button onClick={() => { dispatch({ t: 'dupLine' }); toastOk('Создана копия группы'); }}>Копировать группу</Button>
+          <ArmButton variant="danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); toastOk('Группа удалена'); }} />
         </div>
       </div>
     </section>

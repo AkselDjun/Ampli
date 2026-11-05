@@ -10,6 +10,7 @@ import { actsOf, actsSummary } from '../core/acts';
 import { oldStarted } from '../core/oldwire';
 import { IconPrint } from './Icons';
 import { usePack } from './pack';
+import { Button, Field, IconButton } from './kit';
 
 export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3' | 'hidden' | 'accept' | 'old';
 
@@ -71,14 +72,14 @@ export function WorkSheet({
       <details className="bd-help proto-d">
         <summary>Данные протокола{proto.date || proto.by || proto.device ? ': ' + [proto.date ? ymd(proto.date) : '', proto.by, proto.device].filter(Boolean).join(', ') : ''}</summary>
       <div className="meta-grid">
-        <div className="f"><label className="lbl" htmlFor="pDate">Дата замеров</label><input id="pDate" type="date" value={proto.date} onChange={e => dispatch({ t: 'proto', field: 'date', value: e.target.value })} /></div>
-        <div className="f"><label className="lbl" htmlFor="pBy">Измерения выполнил</label><input id="pBy" type="text" maxLength={80} autoComplete="off" value={proto.by} onChange={e => dispatch({ t: 'proto', field: 'by', value: e.target.value })} /></div>
-        <div className="f wide"><label className="lbl" htmlFor="pDev">Прибор, номер, поверка</label><input id="pDev" type="text" maxLength={120} autoComplete="off" value={proto.device} onChange={e => dispatch({ t: 'proto', field: 'device', value: e.target.value })} /></div>
+        <Field id="pDate" label="Дата замеров"><input id="pDate" type="date" value={proto.date} onChange={e => dispatch({ t: 'proto', field: 'date', value: e.target.value })} /></Field>
+        <Field id="pBy" label="Измерения выполнил"><input id="pBy" type="text" maxLength={80} autoComplete="off" value={proto.by} onChange={e => dispatch({ t: 'proto', field: 'by', value: e.target.value })} /></Field>
+        <Field id="pDev" label="Прибор, номер, поверка" wide><input id="pDev" type="text" maxLength={120} autoComplete="off" value={proto.device} onChange={e => dispatch({ t: 'proto', field: 'device', value: e.target.value })} /></Field>
       </div>
       </details>
       <div className="ms-head">
         <h3 className="sec-t">Результаты по группам</h3>
-        <button className="btn sm primary" type="button" onClick={onBoard}>Ввести на щитке</button>
+        <Button variant="primary" size="sm" onClick={onBoard}>Ввести на щитке</Button>
       </div>
       <ul className="ms-list">
         {rows.map(r => {
@@ -111,20 +112,20 @@ export function WorkSheet({
               <input type="checkbox" checked={pack.includes(d.m)} onChange={e => setPack(e.target.checked ? [...pack, d.m] : pack.filter(x => x !== d.m))} />
               <span className="pk-t"><b>{d.name}</b><small>{d.hint}</small></span>
             </label>
-            <button className="icon-btn pk-p" type="button" aria-label={d.one} data-tip="Напечатать только этот" disabled={empty && d.m !== 'old'} onClick={() => onPrint(d.m)}><IconPrint /></button>
+            <IconButton className="pk-p" label={d.one} tip="Напечатать только этот" disabled={empty && d.m !== 'old'} onClick={() => onPrint(d.m)}><IconPrint /></IconButton>
           </li>
         ))}
       </ul>
       <div className="copy-row">
-        <button className="btn primary" type="button" disabled={!chosen.length || empty} onClick={() => onPrint(chosen)}>Печать комплекта{chosen.length ? ' · ' + chosen.length : ''}</button>
+        <Button variant="primary" disabled={!chosen.length || empty} onClick={() => onPrint(chosen)}>Печать комплекта{chosen.length ? ' · ' + chosen.length : ''}</Button>
         {empty && <span className="muted">В проекте нет групп, печатать пока нечего.</span>}
       </div>
       <details className="bd-help proto-d acts-d">
         <summary>Сроки и гарантия для актов{actSum ? ': ' + actSum : ''}</summary>
         <div className="meta-grid">
-          <div className="f"><label className="lbl" htmlFor="aStart">Начало работ</label><input id="aStart" type="date" value={acts.start} onChange={e => dispatch({ t: 'acts', field: 'start', value: e.target.value })} /></div>
-          <div className="f"><label className="lbl" htmlFor="aEnd">Окончание работ</label><input id="aEnd" type="date" value={acts.end} onChange={e => dispatch({ t: 'acts', field: 'end', value: e.target.value })} /></div>
-          <div className="f"><label className="lbl" htmlFor="aWar">Гарантия, мес.</label><input id="aWar" type="text" inputMode="numeric" min={0} max={120} step={1} value={acts.warranty || ''} placeholder="без гарантии" onChange={e => dispatch({ t: 'acts', field: 'warranty', value: e.target.value })} /></div>
+          <Field id="aStart" label="Начало работ"><input id="aStart" type="date" value={acts.start} onChange={e => dispatch({ t: 'acts', field: 'start', value: e.target.value })} /></Field>
+          <Field id="aEnd" label="Окончание работ"><input id="aEnd" type="date" value={acts.end} onChange={e => dispatch({ t: 'acts', field: 'end', value: e.target.value })} /></Field>
+          <Field id="aWar" label="Гарантия, мес."><input id="aWar" type="text" inputMode="numeric" min={0} max={120} step={1} value={acts.warranty || ''} placeholder="без гарантии" onChange={e => dispatch({ t: 'acts', field: 'warranty', value: e.target.value })} /></Field>
         </div>
       </details>
       <h3 className="sec-t">Паспорт для владельца</h3>

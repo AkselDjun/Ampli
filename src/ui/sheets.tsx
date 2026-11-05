@@ -26,6 +26,7 @@ import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
 import { DrawingA3 } from './parts';
 import type { PrintMode } from './WorkSheet';
+import { Button, Field } from './kit';
 
 export function NetSheet({
   open, onClose, p, dispatch, onOld, oldLabel
@@ -190,15 +191,15 @@ export function ProjectsSheet({
       <TabPanel scope="pj" id="main" cur={tab}>
       <h3 className="sec-t">Текущий проект</h3>
       <div className="meta-grid">
-        <div className="f wide"><label className="lbl" htmlFor="mName">Название</label><input id="mName" ref={nameRef} type="text" autoComplete="off" maxLength={80} value={p.name} onChange={e => dispatch({ t: 'meta', field: 'name', value: e.target.value })} /></div>
-        <div className="f wide"><label className="lbl" htmlFor="mAddr">Объект, адрес</label><input id="mAddr" type="text" autoComplete="off" maxLength={120} value={p.address} onChange={e => dispatch({ t: 'meta', field: 'address', value: e.target.value })} /></div>
-        <div className="f"><label className="lbl" htmlFor="mClient">Заказчик</label><input id="mClient" type="text" autoComplete="off" maxLength={80} value={p.client} onChange={e => dispatch({ t: 'meta', field: 'client', value: e.target.value })} /></div>
-        <div className="f"><label className="lbl" htmlFor="mAuthor">Исполнитель</label><input id="mAuthor" type="text" autoComplete="off" maxLength={80} value={p.author} onChange={e => dispatch({ t: 'meta', field: 'author', value: e.target.value })} /></div>
+        <Field id="mName" label="Название" wide><input id="mName" ref={nameRef} type="text" autoComplete="off" maxLength={80} value={p.name} onChange={e => dispatch({ t: 'meta', field: 'name', value: e.target.value })} /></Field>
+        <Field id="mAddr" label="Объект, адрес" wide><input id="mAddr" type="text" autoComplete="off" maxLength={120} value={p.address} onChange={e => dispatch({ t: 'meta', field: 'address', value: e.target.value })} /></Field>
+        <Field id="mClient" label="Заказчик"><input id="mClient" type="text" autoComplete="off" maxLength={80} value={p.client} onChange={e => dispatch({ t: 'meta', field: 'client', value: e.target.value })} /></Field>
+        <Field id="mAuthor" label="Исполнитель"><input id="mAuthor" type="text" autoComplete="off" maxLength={80} value={p.author} onChange={e => dispatch({ t: 'meta', field: 'author', value: e.target.value })} /></Field>
       </div>
       <div className="data-row pj-reset">
         <span className="muted">Заменить группы текущего проекта:</span>
-        <ArmButton className="btn sm ghost" label="Загрузить пример" onRun={() => { dispatch({ t: 'replace', content: sample() }); onClose(); }} />
-        <ArmButton className="btn sm ghost" label="Начать с нуля" onRun={() => { dispatch({ t: 'replace', content: blank() }); onClose(); }} />
+        <ArmButton variant="ghost" size="sm" label="Загрузить пример" onRun={() => { dispatch({ t: 'replace', content: sample() }); onClose(); }} />
+        <ArmButton variant="ghost" size="sm" label="Начать с нуля" onRun={() => { dispatch({ t: 'replace', content: blank() }); onClose(); }} />
       </div>
       <div className="sec-row">
         <h3 className="sec-t">Все проекты</h3>
@@ -213,14 +214,14 @@ export function ProjectsSheet({
                 <span className="pj-name">{x.name || 'Без названия'}</span>
                 <span className="pj-sub">{cur ? 'Открыт · ' : ''}{x.lines.length} {plural(x.lines.length, ['группа', 'группы', 'групп'])} · {dfmt(x.updated)}</span>
               </button>
-              <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupProject', id: x.id }); note('Копия создана'); }}>Копировать</button>
-              <ArmButton className="btn danger" label="Удалить" armedLabel="Точно удалить?" onRun={() => { dispatch({ t: 'delProject', id: x.id }); toastOk('Проект удалён: ' + (x.name || 'Без названия')); }} />
+              <Button onClick={() => { dispatch({ t: 'dupProject', id: x.id }); note('Копия создана'); }}>Копировать</Button>
+              <ArmButton variant="danger" label="Удалить" armedLabel="Точно удалить?" onRun={() => { dispatch({ t: 'delProject', id: x.id }); toastOk('Проект удалён: ' + (x.name || 'Без названия')); }} />
             </div>
           );
         })}
       </div>
       <div className="data-row">
-        <button className="btn primary" type="button" aria-expanded={tplOpen} aria-controls="tpl" onClick={() => setTplOpen(!tplOpen)}>+ Новый проект</button>
+        <Button variant="primary" aria-expanded={tplOpen} aria-controls="tpl" onClick={() => setTplOpen(!tplOpen)}>+ Новый проект</Button>
       </div>
       <div className="tpl" id="tpl" hidden={!tplOpen}>
         <span className="lbl" id="l-stove">Плита</span>
@@ -258,8 +259,8 @@ export function ProjectsSheet({
       <p className="muted">Ссылка открывает этот проект на другом телефоне или компьютере. Файл подходит для архива и отправки почтой.</p>
       <ShareBlock p={p} />
       <div className="data-row">
-        <button className="btn ghost" type="button" onClick={exportFile}>Сохранить в файл</button>
-        <button className="btn ghost" type="button" onClick={() => file.current?.click()}>Открыть из файла</button>
+        <Button variant="ghost" onClick={exportFile}>Сохранить в файл</Button>
+        <Button variant="ghost" onClick={() => file.current?.click()}>Открыть из файла</Button>
         <input
           className="pj-file"
           ref={file}
@@ -284,12 +285,12 @@ export function ProjectsSheet({
       <h3 className="sec-t">Шаблон</h3>
       <p className="muted">Группы и параметры этого проекта станут заготовкой для новых проектов.</p>
       <div className="data-row">
-        <button className="btn ghost" type="button" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines, floor: p.floor, weak: p.weak }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</button>
+        <Button variant="ghost" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines, floor: p.floor, weak: p.weak }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</Button>
       </div>
       <h3 className="sec-t">Мои данные</h3>
       <p className="muted">Реквизиты для отчёта, шаблоны и цены.</p>
       <div className="data-row">
-        <button className="btn ghost" type="button" onClick={onLib}>Открыть мои данные</button>
+        <Button variant="ghost" onClick={onLib}>Открыть мои данные</Button>
       </div>
       <InstallBlock />
       </TabPanel>
@@ -349,9 +350,9 @@ export function ReportSheet({
     <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Допущения' }]} />}>
       <TabPanel scope="rep" id="groups" cur={tab}>
       <div className="copy-row">
-        <button className="btn primary" type="button" onClick={() => onPrint('report')}>Печать / PDF</button>
-        <button className="btn" type="button" onClick={copy}>Скопировать отчёт</button>
-        <button className="btn" type="button" onClick={onCompare}>Сравнить варианты</button>
+        <Button variant="primary" onClick={() => onPrint('report')}>Печать / PDF</Button>
+        <Button onClick={copy}>Скопировать отчёт</Button>
+        <Button onClick={onCompare}>Сравнить варианты</Button>
       </div>
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <h3 className="sec-t">Группы линий</h3>
@@ -409,7 +410,7 @@ export function ReportSheet({
       <TabPanel scope="rep" id="scheme" cur={tab}>
       <div className="sec-row">
         <h3 className="sec-t">Схема щитка</h3>
-        <button className="btn sm" type="button" onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</button>
+        <Button size="sm" onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
       </div>
       <div className="schem-wrap"><Schematic a={a} /></div>
       <details className="bd-help a3-prev">
@@ -420,9 +421,9 @@ export function ReportSheet({
       </TabPanel>
       <TabPanel scope="rep" id="estimate" cur={tab}>
       <div className="copy-row">
-        <button className="btn" type="button" onClick={() => saveFile('xlsx')} data-tip="Смета и группы в Excel"><IconDownload /> Excel</button>
-        <button className="btn" type="button" onClick={() => saveFile('csv')} data-tip="Смета в CSV"><IconDownload /> CSV</button>
-        <button className="btn" type="button" onClick={onShop}>Где купить</button>
+        <Button onClick={() => saveFile('xlsx')} data-tip="Смета и группы в Excel"><IconDownload /> Excel</Button>
+        <Button onClick={() => saveFile('csv')} data-tip="Смета в CSV"><IconDownload /> CSV</Button>
+        <Button onClick={onShop}>Где купить</Button>
       </div>
       {est.rows.length > 0 && est.rows.every(r => r.sum === null) && (
         <div className="sample est-hint">
@@ -485,7 +486,7 @@ export function InstallBlock() {
   else if (s.can) {
     body = (
       <div className="data-row">
-        <button className="btn" type="button" onClick={() => { void install(); }}><IconDownload /> Установить приложение</button>
+        <Button onClick={() => { void install(); }}><IconDownload /> Установить приложение</Button>
         <Tip>Ampli откроется с экрана устройства как обычное приложение и будет работать без интернета. Проекты останутся на этом устройстве.</Tip>
       </div>
     );

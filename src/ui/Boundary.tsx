@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { KEY } from '../store/storage';
 import { LIB_KEY } from '../store/lib';
 import { download } from './download';
+import { Button } from './kit';
 
 const backup = (): void => {
   const out: Record<string, unknown> = {};
@@ -42,9 +43,9 @@ export class Boundary extends Component<{ children: ReactNode }, { err: boolean 
         <h1>Что-то пошло не так</h1>
         <p>Приложение не смогло показать проект. Скорее всего, данные проекта повреждены. Скачайте резервную копию, чтобы ничего не потерять, и перезагрузите страницу.</p>
         <div className="crash-act">
-          <button className="btn" type="button" onClick={backup}>Скачать резервную копию</button>
-          <button className="btn" type="button" onClick={() => window.location.reload()}>Перезагрузить</button>
-          <button className="btn danger" type="button" onClick={this.reset}>Скачать копию и начать заново</button>
+          <Button onClick={backup}>Скачать резервную копию</Button>
+          <Button onClick={() => window.location.reload()}>Перезагрузить</Button>
+          <Button variant="danger" onClick={this.reset}>Скачать копию и начать заново</Button>
         </div>
       </main>
     );

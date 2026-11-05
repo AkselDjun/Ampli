@@ -35,7 +35,7 @@ describe('haptics', () => {
     Object.defineProperty(navigator, 'vibrate', { value: vib, configurable: true });
     coarse(true);
     const run = vi.fn();
-    render(<ArmButton className="btn" label="Удалить" onRun={run} />);
+    render(<ArmButton label="Удалить" onRun={run} />);
     fireEvent.click(screen.getByRole('button', { name: 'Удалить' }));
     expect(vib).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Нажмите ещё раз' }));

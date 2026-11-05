@@ -4,6 +4,7 @@ import { fmt, fs } from '../core/format';
 import { inCableName } from '../core/protection';
 import { IconDown } from './Icons';
 import { usePop } from './pop';
+import { Button } from './kit';
 
 export interface AllocState {
   pct: number;
@@ -57,7 +58,7 @@ export const Totals = memo(function Totals({ a, onNet }: { a: Calc; onNet: () =>
             <div><dt>Вводной автомат</dt><dd>{inDev}</dd></div>
             <div className="wide"><dt>Вводной кабель</dt><dd>{inCab}</dd></div>
           </dl>
-          <button className="btn sm" type="button" onClick={() => { setOpen(false); onNet(); }}>Изменить выделенную мощность</button>
+          <Button size="sm" onClick={() => { setOpen(false); onNet(); }}>Изменить выделенную мощность</Button>
         </section>
       )}
     </div>

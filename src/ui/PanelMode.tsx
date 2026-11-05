@@ -9,6 +9,7 @@ import { cableName } from '../core/protection';
 import type { Action, MeasField } from '../store/reducer';
 import { Sheet } from './common';
 import { shortName } from './Side';
+import { Button } from './kit';
 
 const FIELDS: { f: MeasField; label: string; unit: string; step: number }[] = [
   { f: 'zs', label: 'Петля фаза-нуль', unit: 'Ом', step: 0.01 },
@@ -155,8 +156,8 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
             {r.rcdT !== null && <span>УЗО до {fmt(r.rcdLim, 0)} мс</span>}
           </div>
           <div className="pm-nav">
-            <button className="btn" type="button" disabled={at <= 0} onClick={() => go(at - 1)}>← {at > 0 ? noOf(order[at - 1]) : 'Назад'}</button>
-            <button className="btn primary" type="button" disabled={at >= order.length - 1} onClick={() => go(at + 1)}>{at < order.length - 1 ? 'Дальше: ' + noOf(order[at + 1]) : 'Последняя группа'} →</button>
+            <Button disabled={at <= 0} onClick={() => go(at - 1)}>← {at > 0 ? noOf(order[at - 1]) : 'Назад'}</Button>
+            <Button variant="primary" disabled={at >= order.length - 1} onClick={() => go(at + 1)}>{at < order.length - 1 ? 'Дальше: ' + noOf(order[at + 1]) : 'Последняя группа'} →</Button>
           </div>
         </section>
       )}

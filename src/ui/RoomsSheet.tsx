@@ -7,6 +7,7 @@ import { plural } from '../core/format';
 import type { Action } from '../store/reducer';
 import { toastOk } from './toast';
 import { ArmButton, Sheet } from './common';
+import { Button, IconButton } from './kit';
 
 export function RoomsSheet({
   open, onClose, p, dispatch
@@ -31,7 +32,7 @@ export function RoomsSheet({
         <section className="card room" key={r.id}>
           <div className="card-head">
             <input className="ed-name" aria-label="Название комнаты" value={r.name} onChange={e => dispatch({ t: 'roomName', id: r.id, value: e.target.value })} />
-            <ArmButton className="btn danger sm" label="Удалить" armedLabel="Точно?" onRun={() => dispatch({ t: 'roomDel', id: r.id })} />
+            <ArmButton variant="danger" size="sm" label="Удалить" armedLabel="Точно?" onRun={() => dispatch({ t: 'roomDel', id: r.id })} />
           </div>
           {r.apps.map(ap => (
             <div className="room-app" key={ap.id}>
@@ -43,7 +44,7 @@ export function RoomsSheet({
                 <option value="s">Розетка</option>
                 <option value="p">Мощный</option>
               </select>
-              <button className="icon-btn" type="button" aria-label="Удалить прибор" onClick={() => dispatch({ t: 'roomAppDel', rid: r.id, aid: ap.id })}>×</button>
+              <IconButton label="Удалить прибор" onClick={() => dispatch({ t: 'roomAppDel', rid: r.id, aid: ap.id })}>×</IconButton>
             </div>
           ))}
           <div className="room-tools">
@@ -54,12 +55,12 @@ export function RoomsSheet({
               <option value="">+ Прибор из списка</option>
               {PRESETS.map((pr, i) => <option key={pr[0]} value={i}>{pr[0]}, {pr[1]} Вт</option>)}
             </select>
-            <button className="btn" type="button" onClick={() => addApp(r.id, { id: nid(), name: '', w: '', n: 1, tag: 's' })}>+ Свой прибор</button>
+            <Button onClick={() => addApp(r.id, { id: nid(), name: '', w: '', n: 1, tag: 's' })}>+ Свой прибор</Button>
           </div>
         </section>
       ))}
       <div className="copy-row">
-        <ArmButton className="btn primary" label={'Собрать группы: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])} armedLabel="Заменить текущие группы?" disabled={planned === 0} onRun={() => { dispatch({ t: 'assemble' }); onClose(); toastOk('Собрано из комнат: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])); }} />
+        <ArmButton variant="primary" label={'Собрать группы: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])} armedLabel="Заменить текущие группы?" disabled={planned === 0} onRun={() => { dispatch({ t: 'assemble' }); onClose(); toastOk('Собрано из комнат: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])); }} />
       </div>
     </Sheet>
   );

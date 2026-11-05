@@ -7,6 +7,7 @@ import type { Action } from '../store/reducer';
 import { ArmButton, Sheet } from './common';
 import { IconAlert, IconDone } from './Icons';
 import { toastOk } from './toast';
+import { Button } from './kit';
 
 const ADD: [FloorUse, string][] = [['bath', 'Ванная'], ['kitchen', 'Кухня'], ['room', 'Комната'], ['loggia', 'Лоджия']];
 
@@ -27,7 +28,7 @@ function RoomCard({ r, p, dispatch }: { r: FloorRoom; p: Project; dispatch: (a: 
     <section className="card fl-room" aria-label={'Тёплый пол: ' + r.name}>
       <div className="card-head">
         <input className="ed-name" aria-label="Название помещения" value={r.name} onChange={e => set('name')(e.target.value)} />
-        <ArmButton className="btn danger sm" label="Удалить" armedLabel="Точно?" onRun={() => dispatch({ t: 'floorDel', id: r.id })} />
+        <ArmButton variant="danger" size="sm" label="Удалить" armedLabel="Точно?" onRun={() => dispatch({ t: 'floorDel', id: r.id })} />
       </div>
       <div className="fl-grid">
         <label className="f">
@@ -80,7 +81,7 @@ function RoomCard({ r, p, dispatch }: { r: FloorRoom; p: Project; dispatch: (a: 
                 {lines.map(x => <option key={x.l.id} value={x.l.id}>Г{x.i + 1} {x.l.name || 'Без названия'}</option>)}
               </select>
             </label>
-            <button className="btn primary" type="button" onClick={apply}>Записать</button>
+            <Button variant="primary" onClick={apply}>Записать</Button>
           </div>
         </div>
       ) : (

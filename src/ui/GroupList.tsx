@@ -213,7 +213,7 @@ export const GroupList = memo(function GroupList({
       {p.sample && (
         <div className="sample">
           Пример двухкомнатной квартиры. Нажмите на группу, чтобы изменить её.{' '}
-          <ArmButton className="link js-blank" label="Начать с нуля" onRun={onBlank} />
+          <ArmButton link className="js-blank" label="Начать с нуля" onRun={onBlank} />
         </div>
       )}
       <div className="list-head">
