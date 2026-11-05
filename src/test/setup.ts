@@ -1,11 +1,16 @@
 import '@testing-library/jest-dom/vitest';
-import { afterEach, beforeEach, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { IDBFactory } from 'fake-indexeddb';
 import { resetPhotoCache } from '../store/photos';
 import { dismissToast } from '../ui/toast';
+import { preloadParts } from '../ui/parts';
 
 let seq = 0;
+
+beforeAll(async () => {
+  await preloadParts();
+});
 
 beforeEach(() => {
   localStorage.clear();

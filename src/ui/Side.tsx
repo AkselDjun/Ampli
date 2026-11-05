@@ -1,11 +1,12 @@
-import type { Calc } from '../core/types';
+import type { Calc, Device, LineType } from '../core/types';
 import { fmt, fs } from '../core/format';
 import { ROWLEN } from '../core/norms';
 import { layout } from '../core/calc';
-import { Fragment, useState } from 'react';
+import { Fragment, memo, useState } from 'react';
 import { Fold, Tip } from './common';
+import { same } from './hold';
 
-export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: () => void; solo?: boolean }) {
+export const Summary = memo(function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: () => void; solo?: boolean }) {
   const mx = a.phases ? Math.max(a.phases.L1, a.phases.L2, a.phases.L3, 0.001) : 1;
   const cols = { L1: 'var(--l1)', L2: 'var(--l2)', L3: 'var(--l3)' };
   return (
@@ -24,7 +25,7 @@ export function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: ()
       )}
     </div>
   );
-}
+});
 
 const EXTRA: Record<string, [string, string]> = { spd: ['УЗИП', 'Защита от перенапряжений'], vr: ['Реле U', 'Реле контроля напряжения'] };
 
@@ -36,7 +37,82 @@ export function shortName(t: string): string {
   return cut + '.';
 }
 
-export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = () => undefined }: { a: Calc; onPick?: (id: string) => void; onMove?: (id: string, to: string) => void; sel?: string | null; hot?: string | null; onHot?: (id: string | null) => void }) {
+type ModProps = {
+  d: Device;
+  i: number;
+  cap: string;
+  t?: LineType;
+  drag: string | null;
+  over: boolean;
+  sel: boolean;
+  hot: boolean;
+  prev?: string;
+  next?: string;
+  onPick?: (id: string) => void;
+  onMove?: (id: string, to: string) => void;
+  onHot: (id: string | null) => void;
+  setDrag: (v: string | null) => void;
+  setOver: (v: string | null) => void;
+};
+
+const sameMod = (a: ModProps, b: ModProps): boolean => {
+  const { d: da, ...ra } = a;
+  const { d: db, ...rb } = b;
+  return same(ra, rb) && same(da, db);
+};
+
+const Module = memo(function Module({ d, i, cap, t, drag, over, sel, hot, prev, next, onPick, onMove, onHot, setDrag, setOver }: ModProps) {
+  const cls = 'dev dev-' + d.kind + (d.arc ? ' arc' : '') + (d.st ? ' st-' + d.st : '') + (d.lid && drag === d.lid ? ' drag' : '') + (over && drag !== d.lid ? ' over' : '') + (sel ? ' sel' : '') + (hot ? ' hot' : '');
+  const style = { gridColumn: 'span ' + d.mod, ['--i' as string]: i };
+  if (!d.lid) {
+    return (
+      <div className={cls} style={style} data-tip={d.title}>
+        <b>{d.label}</b>
+        <i>{d.sub}</i>
+        <em className="dev-cap">{d.kind === 'in' ? 'Ввод' : (d.kind === 'spd' || d.kind === 'vr' ? EXTRA[d.kind][0] : d.zone)}</em>
+      </div>
+    );
+  }
+  const lid = d.lid;
+  return (
+    <button
+      type="button"
+      className={cls}
+      style={style}
+      data-tip={d.title}
+      aria-label={d.title + ', ' + d.label + '. Открыть группу. Alt и стрелки меняют порядок'}
+      data-ph={d.ph}
+      data-t={t}
+      aria-current={sel ? 'true' : undefined}
+      onMouseEnter={() => onHot(lid)}
+      onMouseLeave={() => onHot(null)}
+      data-lid={lid}
+      draggable={!!onMove}
+      onClick={() => onPick?.(lid)}
+      onDragStart={e => { setDrag(lid); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', lid); }}
+      onDragOver={e => { if (drag) { e.preventDefault(); setOver(lid); } }}
+      onDragEnd={() => { setDrag(null); setOver(null); }}
+      onDrop={e => { e.preventDefault(); if (drag && drag !== lid) onMove?.(drag, lid); setDrag(null); setOver(null); }}
+      onKeyDown={e => {
+        if (!e.altKey || !onMove) return;
+        const to = e.key === 'ArrowLeft' ? prev : (e.key === 'ArrowRight' ? next : undefined);
+        if (to) {
+          e.preventDefault();
+          onMove(lid, to);
+          requestAnimationFrame(() => (document.querySelector('.rail [data-lid="' + lid + '"]') as HTMLElement | null)?.focus());
+        }
+      }}
+    >
+      {d.arc && <span className="dev-arc" aria-hidden="true">ДП</span>}
+      {d.ph && <span className="dev-ph" aria-hidden="true">{d.ph === '3' ? '3Ф' : d.ph}</span>}
+      <b>{d.label}</b>
+      <i>{d.sub}</i>
+      <em className={'dev-cap' + (d.mod === 1 ? ' sm' : '')}>{cap}</em>
+    </button>
+  );
+}, sameMod);
+
+export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = () => undefined }: { a: Calc; onPick?: (id: string) => void; onMove?: (id: string, to: string) => void; sel?: string | null; hot?: string | null; onHot?: (id: string | null) => void }) {
   const [drag, setDrag] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
   const kinds = new Set(a.devs.map(d => d.kind));
@@ -46,9 +122,12 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
   const gapBefore = slots.map((sl, i) => (i > 0 && sl.row > slots[i - 1].row ? sl.row * rl - (slots[i - 1].row * rl + slots[i - 1].col + a.devs[i - 1].mod) : 0));
   const free = Math.max(0, Math.max(a.size, Math.ceil(a.placed / rl) * rl) - a.placed);
   const nameOf: Record<string, string> = {};
+  const typeOf = new Map<string, LineType>();
   a.rows.forEach((x, i) => {
     nameOf['Г' + (i + 1)] = x.l.name || 'Без названия';
+    typeOf.set(x.l.id, x.l.type);
   });
+  const lids = a.devs.filter(x => x.lid).map(x => x.lid as string);
   return (
     <div className="pane-panel">
       <Fold title="Щиток" className="c-panel" open>
@@ -57,59 +136,17 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
         </p>
         <div className="rail-wrap">
           <div className="rail" data-rc={rl} style={{ ['--rc' as string]: rl }}>
-            {a.devs.map((d, i) => <Fragment key={d.lid ?? d.kind + i}>{Array.from({ length: gapBefore[i] }, (_, g) => <div key={'g' + g} className="dev dev-free" data-tip="Резерв" />)}{((): JSX.Element => {
-              const cls = 'dev dev-' + d.kind + (d.arc ? ' arc' : '') + (d.st ? ' st-' + d.st : '') + (d.lid && drag === d.lid ? ' drag' : '') + (d.lid && over === d.lid && drag !== d.lid ? ' over' : '') + (d.lid && d.lid === sel ? ' sel' : '') + (d.lid && d.lid === hot ? ' hot' : '');
-              const style = { gridColumn: 'span ' + d.mod, ['--i' as string]: i };
-              if (!d.lid) {
-                return (
-                  <div key={'in' + i} className={cls} style={style} data-tip={d.title}>
-                    <b>{d.label}</b>
-                    <i>{d.sub}</i>
-                    <em className="dev-cap">{d.kind === 'in' ? 'Ввод' : (d.kind === 'spd' || d.kind === 'vr' ? EXTRA[d.kind][0] : d.zone)}</em>
-                  </div>
-                );
-              }
+            {a.devs.map((d, i) => {
               const lid = d.lid;
-              const idx = a.devs.filter(x => x.lid).findIndex(x => x.lid === lid);
-              const lids = a.devs.filter(x => x.lid).map(x => x.lid as string);
+              const k = lid ? lids.indexOf(lid) : -1;
+              const cap = lid ? (d.mod === 1 ? shortName(nameOf[d.sub.split(' ')[0]]) : nameOf[d.sub.split(' ')[0]]) : '';
               return (
-                <button
-                  key={lid}
-                  type="button"
-                  className={cls}
-                  style={style}
-                  data-tip={d.title}
-                  aria-label={d.title + ', ' + d.label + '. Открыть группу. Alt и стрелки меняют порядок'}
-                  data-ph={d.ph}
-                  data-t={a.rows.find(y => y.l.id === lid)?.l.type}
-                  aria-current={d.lid === sel ? 'true' : undefined}
-                  onMouseEnter={() => onHot(lid)}
-                  onMouseLeave={() => onHot(null)}
-                  data-lid={lid}
-                  draggable={!!onMove}
-                  onClick={() => onPick?.(lid)}
-                  onDragStart={e => { setDrag(lid); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', lid); }}
-                  onDragOver={e => { if (drag) { e.preventDefault(); setOver(lid); } }}
-                  onDragEnd={() => { setDrag(null); setOver(null); }}
-                  onDrop={e => { e.preventDefault(); if (drag && drag !== lid) onMove?.(drag, lid); setDrag(null); setOver(null); }}
-                  onKeyDown={e => {
-                    if (!e.altKey || !onMove) return;
-                    const t = e.key === 'ArrowLeft' ? lids[idx - 1] : (e.key === 'ArrowRight' ? lids[idx + 1] : undefined);
-                    if (t) {
-                      e.preventDefault();
-                      onMove(lid, t);
-                      requestAnimationFrame(() => (document.querySelector('.rail [data-lid="' + lid + '"]') as HTMLElement | null)?.focus());
-                    }
-                  }}
-                >
-                  {d.arc && <span className="dev-arc" aria-hidden="true">ДП</span>}
-                  {d.ph && <span className="dev-ph" aria-hidden="true">{d.ph === '3' ? '3Ф' : d.ph}</span>}
-                  <b>{d.label}</b>
-                  <i>{d.sub}</i>
-                  <em className={'dev-cap' + (d.mod === 1 ? ' sm' : '')}>{d.mod === 1 ? shortName(nameOf[d.sub.split(' ')[0]]) : nameOf[d.sub.split(' ')[0]]}</em>
-                </button>
+                <Fragment key={d.lid ?? d.kind + i}>
+                  {Array.from({ length: gapBefore[i] }, (_, g) => <div key={'g' + g} className="dev dev-free" data-tip="Резерв" />)}
+                  <Module d={d} i={i} cap={cap} t={lid ? typeOf.get(lid) : undefined} drag={drag} over={!!lid && over === lid} sel={!!lid && lid === sel} hot={!!lid && lid === hot} prev={k > 0 ? lids[k - 1] : undefined} next={k >= 0 ? lids[k + 1] : undefined} onPick={onPick} onMove={onMove} onHot={onHot} setDrag={setDrag} setOver={setOver} />
+                </Fragment>
               );
-            })()}</Fragment>)}
+            })}
             {Array.from({ length: free }, (_, i) => (
               <div key={'f' + i} className="dev dev-free" data-tip="Резерв" />
             ))}
@@ -161,4 +198,4 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
       </Fold>
     </div>
   );
-}
+});

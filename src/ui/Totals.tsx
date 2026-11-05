@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Calc } from '../core/types';
 import { fmt, fs } from '../core/format';
 import { inCableName } from '../core/protection';
@@ -19,7 +20,7 @@ export function allocState(a: Calc): AllocState {
   return { pct, k: 'ok', text: 'Укладывается' };
 }
 
-export function Totals({ a, onNet }: { a: Calc; onNet: () => void }) {
+export const Totals = memo(function Totals({ a, onNet }: { a: Calc; onNet: () => void }) {
   const { open, setOpen, ref } = usePop<HTMLDivElement>();
   const c = a.c;
   const st = allocState(a);
@@ -61,4 +62,4 @@ export function Totals({ a, onNet }: { a: Calc; onNet: () => void }) {
       )}
     </div>
   );
-}
+});
