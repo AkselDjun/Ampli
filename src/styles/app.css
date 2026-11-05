@@ -1559,3 +1559,12 @@ html:has(.sheet:not([hidden])) .toast{top:calc(12px + env(safe-area-inset-top,0p
 .proto-d,.acts-d{min-width:0;max-width:100%}
 .a3-wrap svg.a3+svg.a3{margin-top:12px;border-top:1px dashed var(--line)}
 @media print{.printdoc.a3doc svg.a3+svg.a3{break-before:page;page-break-before:always}}
+.pm-nav .btn{flex-basis:120px}
+@media (max-width:760px) and (max-height:760px){
+  .pm{gap:6px;padding-top:10px}
+  .pm-where{display:none}
+  .pm-in{gap:6px 10px}
+  .pm-in .lbl{font-size:var(--t-xs)}
+  .pm-in input{height:44px;font-size:var(--t-xl)}
+  .pm-note{font-size:var(--t-sm)}
+}
