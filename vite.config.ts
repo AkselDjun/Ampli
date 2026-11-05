@@ -52,7 +52,7 @@ export default defineConfig({
     ],
     pool: 'threads',
     setupFiles: ['./src/test/setup.ts'],
-    css: false,
+    css: { include: [/\.css\?raw/] },
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],

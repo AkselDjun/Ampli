@@ -1,0 +1,22 @@
+{
+  "rules": {
+    "color-no-invalid-hex": true,
+    "color-no-hex": true,
+    "color-named": "never",
+    "unit-no-unknown": true,
+    "property-no-unknown": [true, { "ignoreProperties": ["container-type"] }],
+    "declaration-block-no-duplicate-custom-properties": true,
+    "custom-property-no-missing-var-function": true,
+    "function-no-unknown": [true, { "ignoreFunctions": ["light-dark"] }],
+    "declaration-property-value-allowed-list": {
+      "z-index": ["/^var\\(--z-/", "/^-?[0-9]$/", "auto"]
+    },
+    "length-zero-no-unit": null
+  },
+  "overrides": [
+    {
+      "files": ["src/styles/tokens.css"],
+      "rules": { "color-no-hex": null }
+    }
+  ]
+}
