@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import type { Calc } from '../core/types';
 import { fmt } from '../core/format';
 import { ROWLEN } from '../core/norms';
@@ -28,9 +28,11 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
   const order = a.devs.filter(d => d.lid && byNo.has(noOf(d.lid))).map(d => d.lid as string);
   const firstOpen = order.find(id => byNo.get(noOf(id))?.verdict === 'none') ?? order[0];
   const [pick, setPick] = useState<string | null>(null);
-  useEffect(() => {
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (!open) setPick(null);
-  }, [open]);
+  }
   const cur = pick && order.includes(pick) ? pick : (firstOpen ?? null);
   const done = rows.filter(r => r.verdict !== 'none').length;
   const rl = ROWLEN[a.size];

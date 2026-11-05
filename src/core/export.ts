@@ -100,7 +100,7 @@ export function toCsv(...ts: Table[]): string {
 }
 
 const esc = (s: string): string =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').split('').filter(ch => { const c = ch.charCodeAt(0); return c > 31 || c === 9 || c === 10 || c === 13; }).join('');
 
 export function colName(i: number): string {
   let n = i + 1;

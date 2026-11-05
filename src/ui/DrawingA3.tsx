@@ -3,6 +3,7 @@ import { fmt, fs, plural, pn } from '../core/format';
 import { HEAT_RX, IN_CABLE } from '../core/norms';
 import { inCableName } from '../core/protection';
 import { vrRating } from '../core/calc';
+import { useNow } from './now';
 
 const W = 420;
 const H = 297;
@@ -68,6 +69,7 @@ function Breaker({ x, y, h, diff }: { x: number; y: number; h: number; diff: boo
 }
 
 export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: string }) {
+  const now = useNow();
   const c = a.c;
   const three = c.supply === 3;
   const rows = a.rows.map((x, i) => ({ x, i })).filter(o => !o.x.r.empty && o.x.r.In);
@@ -249,7 +251,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
         <text x={SX + 1} y={SY + 23.9} {...t} fontSize="2.2">Пров.</text>
         <text x={SX + 1} y={SY + 43.9} {...t} fontSize="2.2">Н.контр.</text>
         <text x={SX + 1} y={SY + 48.9} {...t} fontSize="2.2">Утв.</text>
-        <text x={SX + 125} y={SY + 9.5} {...t} fontSize="4" textAnchor="middle">{drawCode(Date.now())}</text>
+        <text x={SX + 125} y={SY + 9.5} {...t} fontSize="4" textAnchor="middle">{drawCode(now)}</text>
         {objName.map((ln, j) => <text key={j} x={SX + 125} y={SY + 22 + (j - (objName.length - 1) / 2) * 4} {...t} fontSize="3" textAnchor="middle">{ln}</text>)}
         <text x={SX + 100} y={SY + 40} {...t} fontSize="2.8" textAnchor="middle">Щиток квартирный ЩК.</text>
         <text x={SX + 100} y={SY + 44.5} {...t} fontSize="2.8" textAnchor="middle">Принципиальная схема</text>

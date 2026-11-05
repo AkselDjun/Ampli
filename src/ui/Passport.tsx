@@ -3,8 +3,10 @@ import type { Calc, Project } from '../core/types';
 import { calcAll } from '../core/calc';
 import { dfmt, fmt } from '../core/format';
 import { SCOPE_NOTE, TEST_NOTE, TRIP_STEPS, passportInput, passportRows, watts } from '../core/passport';
+import { useNow } from './now';
 
 export function PassportBody({ p, a }: { p: Project; a: Calc }) {
+  const now = useNow();
   const rows = passportRows(a);
   const inp = passportInput(a);
   const anyRcd = rows.some(r => r.rcd);
@@ -15,7 +17,7 @@ export function PassportBody({ p, a }: { p: Project; a: Calc }) {
       <div className="pp-meta">
         {p.client && <div><span>Владелец: </span>{p.client}</div>}
         {p.author && <div><span>Исполнитель: </span>{p.author}</div>}
-        <div><span>Дата: </span>{dfmt(p.updated || Date.now())}</div>
+        <div><span>Дата: </span>{dfmt(p.updated || now)}</div>
       </div>
       <div className="pp-in">
         <b>{inp.text}</b>

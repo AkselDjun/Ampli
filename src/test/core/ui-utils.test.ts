@@ -68,11 +68,9 @@ describe('scalePhoto', () => {
 describe('download', () => {
   it('clicks a temporary link and revokes the url later', () => {
     vi.useFakeTimers();
-    let seen: HTMLAnchorElement | null = null;
-    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
-      seen = this;
-    });
+    const spy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
     download('f.csv', 'a,b', 'text/csv');
+    const seen = (spy.mock.contexts[0] ?? null) as HTMLAnchorElement | null;
     expect(seen).not.toBeNull();
     expect((seen as unknown as HTMLAnchorElement).download).toBe('f.csv');
     expect((seen as unknown as HTMLAnchorElement).href).toContain('blob:test/');

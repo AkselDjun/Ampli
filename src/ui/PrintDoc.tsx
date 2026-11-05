@@ -21,6 +21,7 @@ import { OLD_EMPTY, OLD_SIGNS, oldVerdict } from '../core/oldwire';
 import { UTP_MAX, WEAK_KINDS } from '../core/weak';
 import { BATH_REF, FLOOR_SYS, FLOOR_USES, UZO_REF, floorCalc } from '../core/floor';
 import { actDate, actsOf, hiddenMaterials, hiddenWorks, ruDate, warrantyText } from '../core/acts';
+import { useNow } from './now';
 
 function ProtoTable({ a }: { a: Calc }) {
   const rows = protocolRows(a);
@@ -75,12 +76,13 @@ function SignBlock() {
 }
 
 function Meta({ p }: { p: Project }) {
+  const now = useNow();
   return (
     <div className="pd-meta">
       {p.address && <div><span>Объект: </span>{p.address}</div>}
       {p.client && <div><span>Заказчик: </span>{p.client}</div>}
       {p.author && <div><span>Исполнитель: </span>{p.author}</div>}
-      <div><span>Дата: </span>{dfmt(Date.now())}</div>
+      <div><span>Дата: </span>{dfmt(now)}</div>
     </div>
   );
 }
@@ -105,6 +107,7 @@ function PhotoSheet({ p }: { p: Project }) {
 }
 
 function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
+  const now = useNow();
   const pr = p.proto ?? { date: '', device: '', by: '' };
   return (
     <>
@@ -129,7 +132,7 @@ function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
         Допустимые значения: ток однофазного замыкания не меньше тока мгновенного срабатывания защиты (5×In для кривой B, 10×In для C) при времени отключения 0,4 с для 230 В (ТКП 339-2022, п. 4.3.5.4, п. 4.4.28.5); сопротивление изоляции не менее 0,5 МОм (п. 4.4.26.1, табл. 4.4.46); ток утечки не более трети уставки УЗО (СН 4.04.01-2019, п. 16.3.7); время отключения УЗО при номинальном дифференциальном токе не более значений табл. 4.4.47 и 4.4.48 ТКП 339-2022 в редакции изм. № 1 (для 30 мА 0,5 с).
       </p>
       <SignBlock />
-      <div className="pd-foot">Ampli · {dfmt(Date.now())}</div>
+      <div className="pd-foot">Ampli · {dfmt(now)}</div>
     </>
   );
 }
@@ -257,6 +260,7 @@ function Signs({ who }: { who: [string, string][] }) {
 }
 
 function HiddenDoc({ p, a }: { p: Project; a: Calc }) {
+  const now = useNow();
   const { lib } = useLib();
   const b = lib.brand;
   const x = actsOf(p.acts);
@@ -279,7 +283,7 @@ function HiddenDoc({ p, a }: { p: Project; a: Calc }) {
           К освидетельствованию предъявлены следующие работы:
           <ul>{works.length ? works.map((w, i) => <li key={i}>{w}</li>) : <li>групповые линии не заданы</li>}</ul>
         </li>
-        <li>Работы выполнены по проектной документации: однолинейная схема щитка {drawCode(Date.now())}, расчёт групп Ampli по ТКП 339-2022 и СН 4.04.01-2019.</li>
+        <li>Работы выполнены по проектной документации: однолинейная схема щитка {drawCode(now)}, расчёт групп Ampli по ТКП 339-2022 и СН 4.04.01-2019.</li>
         <li>
           При выполнении работ применены:
           <ul>{mats.map((m, i) => <li key={i}>{m}</li>)}</ul>
@@ -414,7 +418,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
   const priced = Object.keys(lib.prices).length > 0;
   const le = laborEstimate(a, p.work, lib.labor);
   const works = le.rows.filter(r => r.qty > 0 && r.price !== null);
-  const now = dfmt(Date.now());
+  const now = dfmt(useNow());
   return (
     <div className="printdoc" aria-hidden="true">
       <BrandHead />

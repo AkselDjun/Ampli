@@ -1,4 +1,4 @@
-import { Suspense, memo, useCallback, useRef, useState } from 'react';
+import { Suspense, memo, useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
 export const Hold = memo(
@@ -12,7 +12,9 @@ export const Hold = memo(
 
 export function useStable<A extends unknown[], R>(fn: (...a: A) => R): (...a: A) => R {
   const ref = useRef(fn);
-  ref.current = fn;
+  useLayoutEffect(() => {
+    ref.current = fn;
+  });
   return useCallback((...a: A) => ref.current(...a), []);
 }
 

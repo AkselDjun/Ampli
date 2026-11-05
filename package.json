@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint ."
   },
   "dependencies": {
     "fflate": "^0.8.3",
@@ -18,6 +19,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.13",
+    "@eslint/js": "^10.0.1",
     "@rolldown/plugin-babel": "^0.3.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
@@ -28,9 +30,13 @@
     "@vitejs/plugin-react": "^6.2.1",
     "@vitest/coverage-v8": "^5.1.0",
     "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "fake-indexeddb": "^6.2.7",
+    "globals": "^17.14.0",
     "happy-dom": "^21.0.4",
     "typescript": "^5.6.3",
+    "typescript-eslint": "^8.72.1",
     "vite": "^8.3.6",
     "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.1.0",

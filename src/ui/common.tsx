@@ -219,6 +219,10 @@ export function Sheet({
   const nav = useSheetNav();
   const y0 = useRef<number | null>(null);
   const [dy, setDy] = useState(0);
+  const titleRef = useRef(title);
+  useLayoutEffect(() => {
+    titleRef.current = title;
+  });
   const trap = (e: ReactKeyEvent<HTMLDivElement>) => {
     if (e.key !== 'Tab') return;
     const all = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')).filter(el => !el.closest('[hidden]') && el.getClientRects().length > 0 && !(el instanceof HTMLInputElement && el.type === 'radio' && !el.checked));
@@ -246,10 +250,11 @@ export function Sheet({
   useEffect(() => {
     if (!open) return;
     const me = {};
+    const ttl = titleRef.current;
     STACK.push(me);
     opener.current = document.activeElement;
     const body = bodyRef.current;
-    if (body) body.scrollTop = BACK.on ? SCROLL.get(title) ?? 0 : 0;
+    if (body) body.scrollTop = BACK.on ? SCROLL.get(ttl) ?? 0 : 0;
     BACK.on = false;
     document.documentElement.style.overflow = 'hidden';
     closeRef.current?.focus();
@@ -258,7 +263,7 @@ export function Sheet({
     };
     document.addEventListener('keydown', key);
     return () => {
-      if (body) SCROLL.set(title, body.scrollTop);
+      if (body) SCROLL.set(ttl, body.scrollTop);
       const i = STACK.indexOf(me);
       if (i >= 0) STACK.splice(i, 1);
       document.removeEventListener('keydown', key);
@@ -329,16 +334,15 @@ export function Fold({
 
 export function Toaster() {
   const t = useSyncExternalStore(subscribeToast, currentToast);
-  const [hold, setHold] = useState(false);
+  const [holdId, setHoldId] = useState<number | null>(null);
+  const hold = !!t && holdId === t.id;
+  const setHold = (v: boolean) => setHoldId(v && t ? t.id : null);
   useEffect(() => {
     if (!t || hold) return;
     const id = t.id;
     const tm = window.setTimeout(() => dismissToast(id), toastLife(t));
     return () => window.clearTimeout(tm);
   }, [t, hold]);
-  useEffect(() => {
-    setHold(false);
-  }, [t]);
   const card = t && (
     <div
       key={t.id}
@@ -371,7 +375,9 @@ export function HoverTips() {
   const [st, setSt] = useState<{ text: string; el: HTMLElement } | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const shown = useRef(false);
-  shown.current = st !== null;
+  useEffect(() => {
+    shown.current = st !== null;
+  }, [st]);
   useEffect(() => {
     let timer = 0;
     let keys = false;

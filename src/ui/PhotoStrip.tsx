@@ -13,7 +13,7 @@ export function usePhotoUrls(ids: string[]): Record<string, string> {
   const key = ids.join(',');
   useEffect(() => {
     let live = true;
-    ids.forEach(id => {
+    (key ? key.split(',') : []).forEach(id => {
       photoUrl(id).then(u => {
         if (live && u) setMap(m => (m[id] === u ? m : { ...m, [id]: u }));
       }, () => undefined);
