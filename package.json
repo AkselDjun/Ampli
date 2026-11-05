@@ -38,6 +38,7 @@
     "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "fake-indexeddb": "^6.2.7",
+    "fast-check": "^4.10.2",
     "globals": "^17.14.0",
     "happy-dom": "^21.0.4",
     "stylelint": "^18.0.0",
