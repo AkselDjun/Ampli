@@ -86,8 +86,9 @@ describe('printed stickers and tags', () => {
     const p = proj(lines(), { prot: 'rcd' });
     render(<PrintDoc p={p} a={calcAll(p.lines, p.cfg)} mode="stickers" />);
     const rowsEl = document.querySelectorAll('.stk-row');
-    expect(rowsEl.length).toBe(1);
-    expect(document.querySelector('.stk-rn')?.textContent).toBe('Ряд 1');
+    expect(rowsEl.length).toBe(2);
+    expect(Array.from(document.querySelectorAll('.stk-rn')).map(e => e.textContent)).toEqual(['Ряд 1, часть 1 из 2', 'Ряд 1, часть 2 из 2']);
+    rowsEl.forEach(r => expect(parseFloat((r as HTMLElement).style.width)).toBeLessThanOrEqual(175));
     const legend = Array.from(document.querySelectorAll('.stk-legend .stk-k')).map(e => e.textContent);
     expect(legend).toEqual(['Ввод', 'УЗО', 'Свет', 'Розетки', 'Силовая']);
     expect(document.querySelectorAll('.stk-i.k-uzo').length).toBe(2);
@@ -110,7 +111,7 @@ describe('printed stickers and tags', () => {
     const t = tags.map(e => e.textContent).join(' ');
     expect(t).not.toMatch(/Дифавтомат|мА/);
     expect(t).toContain('Гостиная');
-    expect(t).toContain('кабель 10 м');
+    expect(t).toContain('до дальней точки 10 м');
   });
 });
 

@@ -37,7 +37,13 @@ describe('floorCalc', () => {
     expect(r.step).toBe(14.3);
     expect(r.size).toBe('500 Вт, 28 м');
     expect(r.notes[0]).toMatchObject({ k: 'ok', text: 'Шаг укладки 14,3 см.' });
-    expect(floorCalc(room({ sys: 'cable', area: 1, wpm: 300 })).notes[0].text).toContain('меньше 7 см');
+    expect(floorCalc(room({ sys: 'cable', area: 0.3, wpm: 150 })).notes[0].text).toContain('меньше 7 см');
+    const fit = floorCalc(room({ sys: 'cable', area: 2.2, wpm: 120 }));
+    expect([fit.watts, fit.step]).toEqual([300, 12.9]);
+    const big = floorCalc(room({ sys: 'cable', area: 30, wpm: 120 }));
+    expect(big.parts).toHaveLength(2);
+    expect(big.size.replace(/\s/g, ' ')).toBe('2 × 1 800 Вт, 2 × 100 м');
+    expect(big.notes[0].text).toContain('нужно 2 секции');
     expect(floorCalc(room({ sys: 'cable', area: 6, wpm: 60 })).notes[0].text).toContain('больше 15 см');
     expect(floorCalc(room({ sys: 'cable', area: 0.5, wpm: 50 })).watts).toBe(150);
   });
@@ -51,7 +57,15 @@ describe('floorCalc', () => {
   });
 
   it('warns about the thermostat limit and the bathroom', () => {
-    expect(floorCalc(room({ sys: 'film', area: 20, wpm: 220 })).notes.find(n => n.k === 'bad')?.text).toContain('контактор');
+    const hot = floorCalc(room({ sys: 'film', area: 20, wpm: 220 }));
+    expect(hot.notes.find(n => n.k === 'warn' && n.text.includes('контактор'))).toBeTruthy();
+    expect(hot.contactor).toBe(25);
+    expect(floorSpec([room({ sys: 'film', area: 20, wpm: 220 })]).some(i => i.name === 'Контактор модульный 2P 25 А')).toBe(true);
+    const mats = floorCalc(room({ sys: 'mat', area: 25 }));
+    expect(mats.parts).toEqual([15, 10]);
+    expect(mats.size).toBe('15 м² + 10 м²');
+    expect(mats.notes[0].text).toContain('нужно 2 мата');
+    expect(floorSpec([room({ sys: 'mat', area: 30.5 })]).filter(i => i.name.startsWith('Нагревательный мат')).map(i => [i.name, i.n])).toEqual([['Нагревательный мат 150 Вт/м² 15 м²', 2], ['Нагревательный мат 150 Вт/м² 0,5 м²', 1]]);
     const bath = floorCalc(room({ use: 'bath', sys: 'mat', area: 3 }));
     expect(bath.notes.find(n => n.ref.includes('ГОСТ 30331.11'))?.k).toBe('warn');
     expect(floorCalc(room({ use: 'bath', sys: 'film', area: 3 })).notes.some(n => n.k === 'bad' && n.text.includes('Плёнку в ванной'))).toBe(true);

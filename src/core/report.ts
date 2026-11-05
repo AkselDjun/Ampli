@@ -1,10 +1,10 @@
 import type { Calc, Project } from './types';
-import { fmt } from './format';
+import { fmt, plural } from './format';
 import { buildSpec, estimate } from './spec';
 import { cableName, inCableName, protName, uzoName } from './protection';
 
-export const dropText = (drop: number): string =>
-  drop > 0 ? 'не более ' + fmt(drop, 0) + ' %' : '3 % освещение, 5 % прочие (СН 4.04.01-2019, п. 9.14)';
+export const dropText = (drop: number, feeder = 0): string =>
+  drop > 0 ? 'не более ' + fmt(drop, 0) + ' %' : fmt(3 - feeder, 1).replace(',0', '') + ' % освещение, ' + fmt(5 - feeder, 1).replace(',0', '') + ' % прочие (СН 4.04.01-2019, п. 9.14' + (feeder > 0 ? ', за вычетом ' + fmt(feeder, 1) + ' % до щитка' : '') + ')';
 
 export function reportText(p: Project, a: Calc, prices: Record<string, number> = {}): string {
   const c = a.c;
@@ -13,7 +13,7 @@ export function reportText(p: Project, a: Calc, prices: Record<string, number> =
   if (p.address) out.push('Объект: ' + p.address);
   if (p.client) out.push('Заказчик: ' + p.client);
   if (p.author) out.push('Исполнитель: ' + p.author);
-  out.push('Питание: ' + (c.supply === 3 ? '3 фазы, 400 В' : '1 фаза, 230 В') + '; прокладка: ' + (c.method === 'wall' ? 'скрытая' : 'открытая') + '; допустимая потеря напряжения: ' + dropText(c.drop));
+  out.push('Питание: ' + (c.supply === 3 ? '3 фазы, 400 В' : '1 фаза, 230 В') + '; прокладка: ' + (c.method === 'wall' ? 'скрытая' : 'открытая') + '; допустимая потеря напряжения: ' + dropText(c.drop, c.feeder));
   out.push('');
   a.rows.forEach((x, i) => {
     const r = x.r;
@@ -35,7 +35,7 @@ export function reportText(p: Project, a: Calc, prices: Record<string, number> =
   out.push('Защита групп: ' + (c.rcdMode ? 'УЗО на помещение и автоматы' : 'дифавтомат на каждую группу'));
   a.uzos.forEach(u => out.push(uzoName(u) + ': ' + u.zone + ' (' + u.groups.map(g => 'Г' + (g + 1)).join(', ') + '), своя шина N'));
   if (a.phases) out.push('Фазы: L1 ' + fmt(a.phases.L1, 1) + ' А, L2 ' + fmt(a.phases.L2, 1) + ' А, L3 ' + fmt(a.phases.L3, 1) + ' А');
-  out.push('Щиток: ' + a.size + ' модулей');
+  out.push('Щиток: ' + a.size + ' ' + plural(a.size, ['модуль', 'модуля', 'модулей']));
   out.push('');
   out.push('Спецификация:');
   buildSpec(a).forEach(x => {

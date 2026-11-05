@@ -20,7 +20,7 @@ describe('labour quantities', () => {
     const q = autoQty(a);
     expect(q.panel).toBe(1);
     expect(q.module).toBe(a.modSum);
-    expect(q.cable).toBe(Math.ceil(43 * 1.1));
+    expect(q.cable).toBe(43);
     expect(q.chase).toBe(q.cable);
     expect(q.light).toBe(3);
     expect(q.socket).toBe(1);

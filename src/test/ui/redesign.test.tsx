@@ -657,7 +657,7 @@ describe('App flows', () => {
     const b = within(ed).getByRole('button', { name: /Сократить до \d+ м/ });
     const L = Number(/(\d+) м/.exec(b.textContent as string)?.[1]);
     await user.click(b);
-    expect((within(ed).getByRole('spinbutton', { name: 'Длина линии, м' }) as HTMLInputElement).value).toBe(String(L));
+    expect((within(ed).getByRole('textbox', { name: 'Длина линии, м' }) as HTMLInputElement).value).toBe(String(L));
     expect(within(ed).queryByRole('button', { name: /Сократить до/ })).toBeNull();
   });
   it('the editor fix bar splits an overloaded line', async () => {

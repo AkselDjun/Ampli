@@ -1,5 +1,5 @@
 import type { Calc, SpecItem } from './types';
-import { fmt } from './format';
+import { fmt, plural } from './format';
 import { cableName, inCableName, protFull, uzoName } from './protection';
 import { BOX_NAME } from './norms';
 import { vrRating } from './calc';
@@ -9,7 +9,7 @@ import { floorSpec } from './floor';
 export function buildSpec(a: Calc): SpecItem[] {
   const c = a.c;
   const items: SpecItem[] = [];
-  items.push({ name: 'Щиток на ' + a.size + ' модулей', qty: '1 шт', note: 'с запасом 20 % свободных модулей', n: 1, unit: 'шт' });
+  items.push({ name: 'Щиток на ' + a.size + ' ' + plural(a.size, ['модуль', 'модуля', 'модулей']), qty: '1 шт', note: 'с запасом 20 % свободных модулей', n: 1, unit: 'шт' });
   if (a.inIn) items.push({ name: 'Вводной автомат ' + (c.supply === 3 ? '4P' : '2P') + ' C' + a.inIn, qty: '1 шт', note: 'ток линии ввода ' + fmt(a.Itot, 0) + ' А', n: 1, unit: 'шт' });
   if (a.inIn && c.vr) {
     const vr = vrRating(a.inIn);

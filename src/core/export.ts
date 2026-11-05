@@ -12,7 +12,7 @@ export interface Table {
   name: string;
   head: string[];
   rows: Cell[][];
-  total?: { label: string; col: number; value: number };
+  total?: { label: string; col: number; value: number; span?: [number, number] };
   widths: number[];
 }
 
@@ -67,7 +67,7 @@ export function laborTable(a: Calc, prices: Record<string, number>, labor: WorkP
     name: 'Работы',
     head: ['№', 'Работа', 'Количество', 'Ед.', 'Цена, BYN', 'Сумма, BYN'],
     rows,
-    total: { label: 'Итого', col: 5, value: grandTotal(materials, le.total) },
+    total: { label: 'Итого', col: 5, value: grandTotal(materials, le.total), span: [rows.length - 2, rows.length - 1] },
     widths: [5, 40, 14, 8, 12, 14]
   };
 }
@@ -129,7 +129,7 @@ export function sheetXml(t: Table): string {
     t.head.forEach((_, c) => {
       const ref = colName(c) + rn;
       if (c === t.total!.col - 1) cells.push(cellXml(t.total!.label, ref, 3));
-      else if (c === t.total!.col) cells.push('<c r="' + ref + '" s="4"><f>SUM(' + col + '2:' + col + (rn - 1) + ')</f><v>' + t.total!.value + '</v></c>');
+      else if (c === t.total!.col) cells.push('<c r="' + ref + '" s="4"><f>SUM(' + col + (t.total!.span ? t.total!.span[0] + 2 : 2) + ':' + col + (t.total!.span ? t.total!.span[1] + 2 : rn - 1) + ')</f><v>' + t.total!.value + '</v></c>');
       else cells.push(cellXml(null, ref, 3));
     });
     rows.push('<row r="' + rn + '">' + cells.join('') + '</row>');

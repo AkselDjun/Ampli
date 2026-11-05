@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { EstimateShare } from '../core/share';
 import { calcAll } from '../core/calc';
 import { buildSpec, estimate } from '../core/spec';
-import { grandTotal, laborEstimate } from '../core/labor';
+import { grandTotal, laborEstimate, unitQty } from '../core/labor';
 import { dfmt, fmt, plural } from '../core/format';
 import { Toaster } from './common';
 import { Totals } from './Labor';
@@ -80,7 +80,7 @@ export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: 
                   {works.map(r => (
                     <tr key={r.def.key}>
                       <td className="t-name">{r.def.name}</td>
-                      <td className="num" data-label="Количество">{fmt(r.qty, r.qty % 1 ? 1 : 0)} {r.def.unit}</td>
+                      <td className="num" data-label="Количество">{unitQty(r.qty, r.def.unit)}</td>
                       <td className="num" data-label="Цена, BYN">{fmt(r.price as number, 2)}</td>
                       <td className="num" data-label="Сумма, BYN">{fmt(r.sum as number, 2)}</td>
                     </tr>
@@ -108,7 +108,7 @@ export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: 
             </tbody>
           </table>
         </div>
-        {est.missing > 0 && <p className="pp-note">Для {est.missing} поз. цена не указана, они не входят в итог.</p>}
+        {est.missing > 0 && <p className="pp-note">Для {est.missing} поз. не задана цена или количество, они не входят в итог.</p>}
         <p className="pp-note">Смета составлена в Ampli по расчёту щитка. Количество кабеля дано с запасом 10 %, точный расход уточняется по месту.</p>
         <div className="owner-act">
           <button className="btn ghost" type="button" onClick={onClose}>Открыть Ampli</button>

@@ -280,9 +280,10 @@ describe('Editor search', () => {
     expect(chips()[0]).toBe('+ Светильник');
     const chip = (t: string) => within(ed().querySelector('.chips:not(.often)') as HTMLElement).getByRole('button', { name: t });
     fireEvent.click(chip('+ LED-лента'));
-    fireEvent.click(chip('+ LED-лента'));
+    fireEvent.click(within(ed().querySelector('.often') as HTMLElement).getByRole('button', { name: '+ LED-лента' }));
     fireEvent.click(chip('+ Люстра'));
-    expect(chips().slice(0, 3)).toEqual(['+ LED-лента', '+ Люстра', '+ Светильник']);
+    expect(chips()[0]).toBe('+ Светильник');
+    expect(chips()).not.toContain('+ LED-лента');
     const often = ed().querySelector('.often') as HTMLElement;
     expect(often.getAttribute('aria-label')).toBe('Часто используемые');
     expect(Array.from(often.querySelectorAll('button')).map(b => b.textContent)).toEqual(['+ LED-лента', '+ Люстра']);
@@ -335,7 +336,9 @@ describe('photos', () => {
     fireEvent.click(within(strip()).getByRole('button', { name: 'Удалить фото' }));
     expect(strip().querySelector('.photo-list')).toBeNull();
     expect(stored().list[0].photos).toEqual([]);
-    await waitFor(async () => expect(await photoKeys()).toEqual([]));
+    expect(await photoKeys()).toEqual([p[0].id]);
+    fireEvent.keyDown(document, { key: 'z', ctrlKey: true });
+    expect(stored().list[0].photos).toHaveLength(1);
   });
   it('ignores an empty file selection and reports storage failures', async () => {
     vi.mocked(scalePhoto).mockRejectedValueOnce(new Error('bad'));

@@ -49,7 +49,7 @@ describe('floor heating sheet', () => {
     change(byLabel(room, 'Название помещения'), 'Спальня');
     fireEvent.change(within(room).getByLabelText('Свободная площадь, м²'), { target: { value: '30' } });
     fireEvent.change(within(room).getByLabelText('Мощность, Вт/м²'), { target: { value: '220' } });
-    expect(room.querySelector('.ow-f.k-bad')?.textContent).toContain('через контактор');
+    expect(room.querySelector('.ow-f.k-warn')?.textContent).toContain('через контактор');
     fireEvent.change(within(room).getByLabelText('Записать в группу'), { target: { value: nl.id } });
     click(room, 'Удалить');
     click(room, 'Точно?');
@@ -114,7 +114,7 @@ describe('weak current sheet', () => {
     const rep = dlg('Отчёт и спецификация');
     fireEvent.click(within(rep).getByRole('tab', { name: 'Смета', hidden: true }));
     expect(byLabel(rep, 'Количество: Установка слаботочной розетки').placeholder).toBe('3');
-    expect(byLabel(rep, 'Количество: Прокладка слаботочного кабеля').placeholder).toBe('50');
+    expect(byLabel(rep, 'Количество: Прокладка слаботочного кабеля').placeholder).toBe('45');
   });
 
   it('hides weak current works when there are no points', () => {

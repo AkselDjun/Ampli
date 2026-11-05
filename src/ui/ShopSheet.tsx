@@ -9,12 +9,12 @@ import { MAX_LISTS, addList, loadLists, saveLists } from '../store/pricelists';
 import type { PriceList } from '../store/pricelists';
 import { useLib } from '../store/LibContext';
 import { Sheet, TabPanel, Tabs, Tip } from './common';
-import { toastBad, toastOk } from './toast';
+import { toastBad, toastOk, toastUndo } from './toast';
 
 const BYN = ' BYN';
 
 export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => void; a: Calc }) {
-  const { dispatch } = useLib();
+  const { lib, dispatch } = useLib();
   const [lists, setLists] = useState<PriceList[]>(loadLists);
   const [pick, setPick] = useState<Record<string, number>>({});
   const [tab, setTab] = useState('buy');
@@ -66,14 +66,16 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
   };
 
   const apply = () => {
-    let n = 0;
+    const prev: [string, string][] = [];
     rows.forEach(r => {
       if (r.chosen) {
+        prev.push([r.item.name, r.item.name in lib.prices ? String(lib.prices[r.item.name]) : '']);
         dispatch({ t: 'price', name: r.item.name, value: String(r.chosen.price) });
-        n++;
       }
     });
-    note(n ? 'Цены подставлены в смету: ' + n + ' поз.' : 'В прайсах нет цен для позиций сметы', !n);
+    const changed = prev.filter(([k, v]) => v !== '' && v !== String(rows.find(r => r.item.name === k)?.chosen?.price)).length;
+    if (!prev.length) note('В прайсах нет цен для позиций сметы', true);
+    else toastUndo('Цены подставлены в смету: ' + prev.length + ' поз.' + (changed ? ', из них заменено ваших цен: ' + changed : ''), () => prev.forEach(([name, value]) => dispatch({ t: 'price', name, value })), false);
   };
 
   return (

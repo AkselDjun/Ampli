@@ -36,8 +36,8 @@ export function RoomsSheet({
           {r.apps.map(ap => (
             <div className="room-app" key={ap.id}>
               <input aria-label="Название прибора" placeholder="Прибор" value={ap.name} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'name', value: e.target.value })} />
-              <input aria-label="Мощность, Вт" type="number" inputMode="numeric" min={0} placeholder="Вт" value={String(ap.w)} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'w', value: e.target.value })} />
-              <input aria-label="Количество" type="number" inputMode="numeric" min={1} value={String(ap.n)} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'n', value: e.target.value })} />
+              <span className="fld" data-sfx="Вт"><input aria-label="Мощность, Вт" type="text" inputMode="numeric" min={0} placeholder="0" value={String(ap.w)} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'w', value: e.target.value })} /></span>
+              <span className="fld" data-sfx="шт"><input aria-label="Количество" type="text" inputMode="numeric" min={1} value={String(ap.n)} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'n', value: e.target.value })} /></span>
               <select aria-label="Тип нагрузки" value={ap.tag} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'tag', value: e.target.value })}>
                 <option value="l">Свет</option>
                 <option value="s">Розетка</option>

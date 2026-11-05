@@ -32,10 +32,12 @@ export function loadStore(): Store {
   return { list: [pr], cur: pr.id };
 }
 
-export function saveStore(s: Store): void {
+export function saveStore(s: Store): boolean {
   try {
     localStorage.setItem(KEY, JSON.stringify(s));
+    return true;
   } catch (e) {
     void e;
+    return false;
   }
 }

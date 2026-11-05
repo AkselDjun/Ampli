@@ -1,3 +1,4 @@
+import { normProject, uniqName } from '../core/project';
 import type { Cfg, Line } from '../core/types';
 import { pn } from '../core/format';
 import { nid } from '../core/ids';
@@ -40,6 +41,7 @@ export function normLib(o: unknown): Lib {
   if (Array.isArray(x.templates)) {
     lib.templates = x.templates
       .filter((t): t is UserTpl => !!t && typeof (t as UserTpl).name === 'string' && Array.isArray((t as UserTpl).lines) && !!(t as UserTpl).cfg)
+      .filter(t => !!normProject({ cfg: t.cfg, lines: t.lines }))
       .map(t => ({ id: String(t.id || nid()), name: t.name.slice(0, 60), cfg: t.cfg, lines: t.lines }));
   }
   if (x.prices && typeof x.prices === 'object') {
@@ -83,11 +85,13 @@ export function loadLib(): Lib {
   }
 }
 
-export function saveLib(l: Lib): void {
+export function saveLib(l: Lib): boolean {
   try {
     localStorage.setItem(LIB_KEY, JSON.stringify(l));
+    return true;
   } catch (e) {
     void e;
+    return false;
   }
 }
 
@@ -105,7 +109,7 @@ export type LibAction =
 export function libReducer(l: Lib, a: LibAction): Lib {
   switch (a.t) {
     case 'addTpl': {
-      const name = a.name.trim() || 'Мой шаблон';
+      const name = uniqName(l.templates.map(t => t.name), a.name.trim() || 'Мой шаблон');
       const copy: UserTpl = { id: nid() + Date.now().toString(36), name: name.slice(0, 60), cfg: { ...a.cfg }, lines: JSON.parse(JSON.stringify(a.lines)) };
       return { ...l, templates: [...l.templates, copy] };
     }
@@ -114,7 +118,7 @@ export function libReducer(l: Lib, a: LibAction): Lib {
     case 'price': {
       const prices = { ...l.prices };
       const n = pn(a.value, NaN);
-      if (isFinite(n) && n >= 0) prices[a.name] = n;
+      if (isFinite(n) && n >= 0) prices[a.name] = Math.min(n, 1000000);
       else delete prices[a.name];
       return { ...l, prices };
     }
@@ -125,7 +129,7 @@ export function libReducer(l: Lib, a: LibAction): Lib {
       const v = a.value.trim();
       const n = pn(v, NaN);
       if (v === '' || !isFinite(n) || n < 0) delete labor[a.key];
-      else labor[a.key] = n;
+      else labor[a.key] = Math.min(n, 100000);
       return { ...l, labor };
     }
     case 'use': {

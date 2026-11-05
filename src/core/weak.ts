@@ -110,6 +110,8 @@ export function weakCalc(w: Weak): WeakCalc {
   const notes: WeakNote[] = [];
   if (long.length) notes.push({ k: 'bad', text: 'Линия UTP длиннее ' + UTP_MAX + ' м: ' + long.join(', ') + '. Поставьте коммутатор ближе или разбейте линию.', ref: 'ISO/IEC 11801, постоянная линия до 90 м' });
   if (unknownLen) notes.push({ k: 'warn', text: 'Не задана длина у ' + unknownLen + ' ' + plural(unknownLen, ['строки', 'строк', 'строк']) + ', кабель для них не посчитан.', ref: '' });
+  if (ports + 1 > SW[SW.length - 1]) notes.push({ k: 'warn', text: 'Линий ' + ports + ': одного коммутатора на ' + SW[SW.length - 1] + ' портов не хватит, нужны два.', ref: 'практика' });
+  if (count.tv > SPLIT[SPLIT.length - 1]) notes.push({ k: 'warn', text: 'TV-розеток ' + count.tv + ': делителя на ' + SPLIT[SPLIT.length - 1] + ' выходов не хватит, нужен усилитель и два делителя.', ref: 'практика' });
   if (ports > 0 && !sw) notes.push({ k: 'tip', text: 'Хватит портов LAN роутера, коммутатор не нужен.', ref: 'практика' });
   if (sw) notes.push({ k: 'tip', text: 'Коммутатор на ' + sw + ' портов' + (poe ? ' с PoE для камер' : '') + ': ' + ports + ' ' + plural(ports, ['линия', 'линии', 'линий']) + ' и один порт на роутер.', ref: 'практика' });
   notes.push({ k: 'tip', text: 'Слаботочные кабели ведите отдельно от силовых, не ближе 5 см при параллельной прокладке, пересечения под прямым углом. Каждую точку отдельной линией от щитка, без разветвлений.', ref: 'практика' });

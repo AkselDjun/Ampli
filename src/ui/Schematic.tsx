@@ -54,7 +54,8 @@ export function Schematic({ a }: { a: Calc }) {
             <g key={'u' + u.zone}>
               <path d={'M' + bus + ' ' + y + 'H130'} />
               <rect x="130" y={y - 14} width="64" height="28" rx="4" strokeDasharray="4 3" />
-              <text x="162" y={y + 4} textAnchor="middle" {...t} fontSize="11" fontWeight="700">{u.In + ' А ' + u.ma + ' мА'}</text>
+              <text x="162" y={y - 2} textAnchor="middle" {...t} fontSize="10" fontWeight="700">{u.In + ' А'}</text>
+              <text x="162" y={y + 9} textAnchor="middle" {...t} fontSize="9">{u.ma + ' мА' + (u.typeA ? ', A' : '')}</text>
               <path d={'M194 ' + y + 'H206V' + (y + e.n * step)} strokeWidth="2.5" />
               <text x="214" y={y - 3} {...t} fontSize="12" fontWeight="700">УЗО: {cut(u.zone, 34)}</text>
               <text x="214" y={y + 12} {...t} fontSize="11">своя шина N, групп: {e.n}</text>
@@ -79,7 +80,7 @@ export function Schematic({ a }: { a: Calc }) {
             )}
             <path d={'M' + (b + (r.rcbo ? 108 : 56)) + ' ' + y + 'H' + (b + 132)} />
             <text x={b + 140} y={y - 3} {...t} fontSize="12" fontWeight="700">Г{e.i + 1} {cut(e.x.l.name || 'Без названия', e.sub ? 26 : 34)}</text>
-            <text x={b + 140} y={y + 12} {...t} fontSize="11">{cableName(r)} · {fmt(r.pInst, 0)} Вт · {fmt(r.I, 1)} А</text>
+            <text x={b + 140} y={y + 12} {...t} fontSize="11">{r.arc ? 'УЗДП · ' : ''}{cableName(r)} · {fmt(r.pInst, 0)} Вт · {fmt(r.I, 1)} А</text>
           </g>
         );
       })}

@@ -17,6 +17,8 @@ import { fixFor } from '../core/fixes';
 import { ArmButton, Seg, Stepper } from './common';
 import { useLib } from '../store/LibContext';
 import { parseApps } from '../core/quick';
+import { zoneOf } from '../core/calc';
+import { useByRoom } from './prefs';
 
 const CHIP_MAX = 6;
 
@@ -60,6 +62,7 @@ export function Editor({
   const [measOpen, setMeasOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [byRoom] = useByRoom();
   const [quick, setQuick] = useState<string | null>(null);
   const [quickMsg, setQuickMsg] = useState('');
   const [allChips, setAllChips] = useState(false);
@@ -75,7 +78,7 @@ export function Editor({
     setBrOn(false);
     const el = resRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(([e]) => setMini(!e.isIntersecting && e.boundingClientRect.top < e.rootBounds!.top + 1), { rootMargin: '-56px 0px 0px 0px' });
+    const io = new IntersectionObserver(([e]) => setMini(!e.isIntersecting && e.boundingClientRect.top < (e.rootBounds ? e.rootBounds.top : 56) + 1), { rootMargin: '-56px 0px 0px 0px' });
     io.observe(el);
     return () => io.disconnect();
   }, [lid]);
@@ -118,13 +121,13 @@ export function Editor({
   const cat = catalog();
   const found = searchCatalog(cat, search, lib.usage, tag);
   const often = topUsed(cat, lib.usage, tag);
-  const presets = byUsage(catalog().filter(it => it.tags.indexOf(tag) >= 0), lib.usage);
+  const presets = byUsage(catalog().filter(it => it.tags.indexOf(tag) >= 0 && (search.trim() || !often.some(o => o.key === it.key))), lib.usage);
   const addFrom = (name: string, w: number) => {
     keepChips(() => dispatch({ t: 'addApp', name, w, ...(/лент/i.test(name) ? { m: 5 } : {}) }));
     libDispatch({ t: 'use', name });
     setSearch('');
   };
-  const nMeas = (['zs', 'ins', 'leak', 'rcd'] as const).filter(k => pn(l.meas?.[k], 0) > 0).length;
+  const nMeas = (['zs', 'ins', 'leak', 'rcd'] as const).filter(k => String(l.meas?.[k] ?? '').trim() !== '').length;
   const nPhotos = photos.filter(ph => ph.line === l.id).length;
   const measSum = [nMeas ? nMeas + ' ' + plural(nMeas, ['замер', 'замера', 'замеров']) : '', nPhotos ? nPhotos + ' фото' : ''].filter(Boolean).join(', ');
   const moreSum = [a.c.rcdMode ? '' : (l.zone?.trim() ?? ''), l.where?.trim() ?? '', l.type !== 'light' ? (l.wet ? 'особо опасные условия' : 'обычные условия') : ''].filter(Boolean).join(', ');
@@ -139,6 +142,10 @@ export function Editor({
     if (next) powRefs.current[next.id]?.focus();
     else addEmpty();
   };
+  const peers = a.rows.map((_y, i) => i).filter(i => !(byRoom || a.c.rcdMode) || zoneOf(a.rows[i].l).toLowerCase() === zoneOf(l).toLowerCase());
+  const pi = peers.indexOf(idx);
+  const prevPeer = pi > 0 ? peers[pi - 1] : -1;
+  const nextPeer = pi >= 0 && pi < peers.length - 1 ? peers[pi + 1] : -1;
   const setLen = (v: number) => dispatch({ t: 'lineField', field: 'len', value: Math.max(0, Math.min(500, round2(v))) });
   return (
     <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы">
@@ -191,7 +198,7 @@ export function Editor({
                 }}
               />
             )}
-            <ul className="notes">
+            <ul className={'notes' + (r.status === 'bad' ? ' bad' : '')}>
               {!r.empty && r.notes.map(n => <li key={n}>{n}</li>)}
               {!r.empty && r.tips.map(n => <li key={n} className="tip-n">{n}</li>)}
             </ul>
@@ -222,11 +229,11 @@ export function Editor({
           <div className="grid3 sock">
             <label className="f">
               <span className="lbl">Розеток, шт</span>
-              <input type="number" inputMode="numeric" min={0} step={1} aria-label="Розеток в группе, шт" placeholder="0" value={String(l.sockets ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'sockets', value: e.target.value })} />
+              <input type="text" inputMode="numeric" min={0} step={1} aria-label="Розеток в группе, шт" placeholder="0" value={String(l.sockets ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'sockets', value: e.target.value })} />
             </label>
             <label className="f">
               <span className="lbl">На розетку, Вт</span>
-              <input type="number" inputMode="numeric" min={0} step="any" aria-label="Нагрузка на розетку, Вт" placeholder="0" value={String(l.perSocket ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'perSocket', value: e.target.value })} />
+              <input type="text" inputMode="numeric" min={0} step="any" aria-label="Нагрузка на розетку, Вт" placeholder="0" value={String(l.perSocket ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'perSocket', value: e.target.value })} />
             </label>
           </div>
         )}
@@ -248,23 +255,23 @@ export function Editor({
                 <label className="a-w">
                   <span className="lbl a-lbl">Мощность</span>
                   <span className="fld" data-sfx={ap.m !== undefined ? 'Вт/м' : 'Вт'}>
-                    <input aria-label={ap.m !== undefined ? 'Мощность, Вт на метр' : 'Мощность, Вт'} type="number" inputMode="numeric" enterKeyHint="next" min={0} step="any" placeholder="0" value={String(ap.w)} ref={el => { powRefs.current[ap.id] = el; }} onKeyDown={e => onPowKey(e, i)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'w', value: e.target.value })} />
+                    <input aria-label={ap.m !== undefined ? 'Мощность, Вт на метр' : 'Мощность, Вт'} type="text" inputMode="numeric" enterKeyHint="next" min={0} step="any" placeholder="0" value={String(ap.w)} ref={el => { powRefs.current[ap.id] = el; }} onKeyDown={e => onPowKey(e, i)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'w', value: e.target.value })} />
                   </span>
                 </label>
                 {ap.m !== undefined ? (
                   <label className="a-n">
                     <span className="lbl a-lbl">Длина ленты</span>
                     <span className="fld" data-sfx="м">
-                      <input aria-label="Длина ленты, м" type="number" inputMode="decimal" min={0} step="any" value={String(ap.m)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'm', value: e.target.value })} />
+                      <input aria-label="Длина ленты, м" type="text" inputMode="decimal" min={0} step="any" value={String(ap.m)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'm', value: e.target.value })} />
                     </span>
                   </label>
                 ) : (
                   <div className="a-n">
                     <span className="lbl a-lbl">Штук</span>
                     <div className="step">
-                      <button type="button" aria-label="Меньше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(99, pn(ap.n, 1) - 1)) })}>−</button>
-                      <input aria-label="Количество" type="number" inputMode="numeric" min={0} step={1} value={String(ap.n)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'n', value: e.target.value })} />
-                      <button type="button" aria-label="Больше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(99, pn(ap.n, 1) + 1)) })}>+</button>
+                      <button type="button" aria-label="Меньше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(999, pn(ap.n, 1) - 1)) })}>−</button>
+                      <input aria-label="Количество" type="text" inputMode="numeric" min={0} step={1} value={String(ap.n)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'n', value: e.target.value })} />
+                      <button type="button" aria-label="Больше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(999, pn(ap.n, 1) + 1)) })}>+</button>
                     </div>
                   </div>
                 )}
@@ -272,11 +279,11 @@ export function Editor({
                   <label className="a-br">
                     <span className="lbl a-lbl">Отвод</span>
                     <span className="fld" data-sfx="м">
-                      <input aria-label="Отвод от коробки, м" type="number" inputMode="decimal" min={0} step="any" placeholder="0" value={String(ap.br ?? '')} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'br', value: e.target.value })} />
+                      <input aria-label="Отвод от коробки, м" type="text" inputMode="decimal" min={0} step="any" placeholder="0" value={String(ap.br ?? '')} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'br', value: e.target.value })} />
                     </span>
                   </label>
                 )}
-                <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" data-tip="Удалить прибор" onClick={() => keepChips(() => dispatch({ t: 'delApp', id: ap.id }))}>×</button>
+                <button className="icon-btn a-del" type="button" aria-label="Удалить прибор" data-tip="Удалить прибор" onClick={() => keepChips(() => { dispatch({ t: 'delApp', id: ap.id }); if (ap.name.trim() || pn(ap.w, 0) > 0) toastUndo('Прибор удалён: ' + (ap.name.trim() || 'без названия'), undo); })}>×</button>
               </div>
             ))}
           </div>
@@ -327,8 +334,8 @@ export function Editor({
               <div className="ed-menu" role="menu" aria-label="Действия с группой" ref={el => { mk.list.current = el; }} onKeyDown={mk.onKeyDown}>
                 <button type="button" role="menuitem" onClick={() => { mk.back(); setQuick(quick === null ? '' : null); setQuickMsg(''); }}>{quick === null ? 'Вставить список текстом' : 'Скрыть вставку списком'}</button>
                 {(brOn || !showBr) && <button type="button" role="menuitem" onClick={() => { mk.back(); setBrOn(!brOn); }}>{brOn ? 'Скрыть отводы к точкам' : 'Указать отводы к точкам'}</button>}
-                {idx > 0 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[idx - 1].l.id }); toastUndo('Группа перемещена на место Г' + idx, undo); }}>Переставить раньше, на место Г{idx}</button>}
-                {idx < a.rows.length - 1 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[idx + 1].l.id }); toastUndo('Группа перемещена на место Г' + (idx + 2), undo); }}>Переставить позже, на место Г{idx + 2}</button>}
+                {prevPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[prevPeer].l.id }); toastUndo('Группа перемещена на место Г' + (prevPeer + 1), undo); }}>Переставить раньше, на место Г{prevPeer + 1}</button>}
+                {nextPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[nextPeer].l.id }); toastUndo('Группа перемещена на место Г' + (nextPeer + 1), undo); }}>Переставить позже, на место Г{nextPeer + 1}</button>}
               </div>
             )}
           </div>
@@ -340,7 +347,7 @@ export function Editor({
                   const r = parseApps(quick);
                   if (r.apps.length) dispatch({ t: 'addApps', apps: r.apps });
                   setQuickMsg((r.apps.length ? 'Добавлено: ' + r.apps.length : 'Ничего не добавлено') + (r.skipped.length ? '. Не разобрано: ' + r.skipped.join('; ') : ''));
-                  if (r.apps.length && !r.skipped.length) setQuick('');
+                  if (r.apps.length) setQuick(r.skipped.join('\n'));
                 }}>Добавить</button>
                 <span role="status" className="muted">{quickMsg}</span>
               </div>
@@ -369,6 +376,7 @@ export function Editor({
               onStep={d => setLen(pn(l.len, 0) + d)}
               d={1}
               min={0}
+              max={500}
               step="any"
               label="Длина линии, м"
               less="Короче"
@@ -421,20 +429,20 @@ export function Editor({
             <div className="grid3">
               <label className="f">
                 <span className="lbl">Петля фаза-нуль, Ом</span>
-                <input type="number" inputMode="decimal" min={0} step={0.01} aria-label="Замер петли фаза-нуль, Ом" value={String(l.meas?.zs ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'zs', value: e.target.value })} />
+                <input type="text" inputMode="decimal" min={0} step={0.01} aria-label="Замер петли фаза-нуль, Ом" value={String(l.meas?.zs ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'zs', value: e.target.value })} />
               </label>
               <label className="f">
                 <span className="lbl">Изоляция, МОм</span>
-                <input type="number" inputMode="decimal" min={0} step={0.1} aria-label="Замер сопротивления изоляции, МОм" value={String(l.meas?.ins ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'ins', value: e.target.value })} />
+                <input type="text" inputMode="decimal" min={0} step={0.1} aria-label="Замер сопротивления изоляции, МОм" value={String(l.meas?.ins ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'ins', value: e.target.value })} />
               </label>
               <label className="f">
                 <span className="lbl">Ток утечки, мА</span>
-                <input type="number" inputMode="decimal" min={0} step={0.1} aria-label="Замер тока утечки, мА" value={String(l.meas?.leak ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'leak', value: e.target.value })} />
+                <input type="text" inputMode="decimal" min={0} step={0.1} aria-label="Замер тока утечки, мА" value={String(l.meas?.leak ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'leak', value: e.target.value })} />
               </label>
               {r?.rcd && (
                 <label className="f">
                   <span className="lbl">УЗО при IΔn, мс</span>
-                  <input type="number" inputMode="numeric" min={0} step={1} aria-label="Замер времени отключения УЗО, мс" placeholder={'до ' + fmt(r.rcdLim, 0)} value={String(l.meas?.rcd ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'rcd', value: e.target.value })} />
+                  <input type="text" inputMode="numeric" min={0} step={1} aria-label="Замер времени отключения УЗО, мс" placeholder={'до ' + fmt(r.rcdLim, 0)} value={String(l.meas?.rcd ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'rcd', value: e.target.value })} />
                 </label>
               )}
             </div>

@@ -30,6 +30,12 @@ export function cfgN(c: Cfg): CfgN {
 const isBox = (b: unknown): b is BoxType => b === 'brick' || b === 'gkl' || b === 'surface';
 const boxOf = (c: Cfg): BoxType => (isBox(c.box) ? c.box : (c.method === 'open' ? 'surface' : 'brick'));
 
+const measOf = (v: unknown): number | null => {
+  if (v === undefined || v === null || String(v).trim() === '') return null;
+  const x = pn(v, NaN);
+  return Number.isFinite(x) ? x : null;
+};
+
 export const appW = (a: App): number => Math.max(0, pn(a.w, 0)) * (a.m !== undefined ? Math.max(0, pn(a.m, 0)) : 1) * Math.max(0, pn(a.n, 0));
 export const appBr = (a: App): number => Math.max(0, pn(a.br, 0));
 export const zoneOf = (l: Line): string => (l.zone ?? '').trim() || 'Без помещения';
@@ -117,7 +123,7 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
   }
   if (i > afterDrop) {
     r.status = 'warn';
-    r.notes.push('Сечение увеличено до ' + fs(r.S) + ' мм², чтобы автомат отключил короткое замыкание за ' + fs(KZ_TIME) + ' с.');
+    r.notes.push('Сечение увеличено до ' + fs(r.S) + ' мм², чтобы автомат отключил короткое замыкание за ' + fs(KZ_TIME) + ' с.' + (l.type !== 'power' && r.S > 4 ? ' Такой кабель не заходит в клеммы розеток и выключателей: сократите линию' + (t.curve === 'C' ? ' или возьмите автомат с кривой B' : '') + '.' : ''));
   }
   if ((len > 0 || r.zsMeas !== null) && r.ik < r.ikNeed) {
     r.status = 'bad';
@@ -128,8 +134,8 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
   if (r.rcd) {
     r.leakLim = r.ma * LEAK_FRACTION;
     r.leakEst = cable * LEAK_PER_M_MA + (I > LEAK_LOAD_ABOVE_A ? I * LEAK_PER_A_MA : 0);
-    const lm = pn(l.meas?.leak, 0);
-    if (lm > 0) r.leakMeas = lm;
+    const lm = measOf(l.meas?.leak);
+    if (lm !== null && lm >= 0) r.leakMeas = lm;
     if (r.leakMeas !== null && r.leakMeas > r.leakLim) {
       r.status = 'bad';
       r.notes.push('Ток утечки ' + fmt(r.leakMeas, 1) + ' мА больше трети уставки УЗО (' + fmt(r.leakLim, 1) + ' мА): возможны ложные отключения (СН 4.04.01-2019, п. 16.3.7).');
@@ -147,8 +153,8 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
       }
     }
   }
-  const im = pn(l.meas?.ins, 0);
-  if (im > 0) {
+  const im = measOf(l.meas?.ins);
+  if (im !== null && im >= 0) {
     r.insMeas = im;
     if (im < INS_MIN_MOHM) {
       r.status = 'bad';

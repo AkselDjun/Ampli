@@ -44,11 +44,11 @@ function RoomCard({ r, p, dispatch }: { r: FloorRoom; p: Project; dispatch: (a: 
         </label>
         <label className="f">
           <span className="lbl">Свободная площадь, м²</span>
-          <input type="number" inputMode="decimal" min={0} step={0.1} placeholder="3,5" value={String(r.area)} onChange={e => set('area')(e.target.value)} />
+          <input type="text" inputMode="decimal" min={0} step={0.1} placeholder="3,5" value={String(r.area)} onChange={e => set('area')(e.target.value)} />
         </label>
         <label className="f">
           <span className="lbl">Мощность, Вт/м²</span>
-          <input type="number" inputMode="numeric" min={0} step={10} value={String(r.wpm)} disabled={r.sys === 'mat'} onChange={e => set('wpm')(e.target.value)} />
+          <input type="text" inputMode="numeric" min={0} step={10} value={String(r.wpm)} disabled={r.sys === 'mat'} onChange={e => set('wpm')(e.target.value)} />
         </label>
       </div>
       <p className="muted fl-hint">{FLOOR_SYS[r.sys].hint}. Площадь без мебели, ванны и сантехники.</p>

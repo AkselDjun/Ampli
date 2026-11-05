@@ -1,5 +1,5 @@
 import type { Calc, Project, Row } from '../core/types';
-import { fmt, fs, pn } from '../core/format';
+import { fmt, fs, plural, pn } from '../core/format';
 import { HEAT_RX, IN_CABLE } from '../core/norms';
 import { inCableName } from '../core/protection';
 import { vrRating } from '../core/calc';
@@ -22,6 +22,12 @@ export const drawCode = (t: number): string => {
   const d = new Date(t);
   const p = (n: number) => String(n).padStart(2, '0');
   return 'ЭМ-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+};
+
+const shortName = (n: string): string => {
+  const w = n.trim().split(/\s+/).filter(Boolean);
+  const s = w.length > 1 && !w.slice(1).every(x => x.includes('.')) ? w[0] + ' ' + w.slice(1, 3).map(x => x[0].toUpperCase() + '.').join('') : w.join(' ');
+  return s.length > 18 ? s.slice(0, 17) + '…' : s;
 };
 
 export function wrap(text: string, max: number, lines = 2): string[] {
@@ -72,7 +78,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
   const n = Math.max(1, order.length);
   const cw = Math.min(40, (TR - TX1) / n);
   const cx = (k: number) => TX1 + cw * k + cw / 2;
-  const fsz = cw < 17 ? 2.2 : 2.6;
+  const fsz = cw < 11 ? 1.6 : cw < 14 ? 1.9 : cw < 17 ? 2.2 : 2.6;
   const maxCh = Math.max(6, Math.floor(cw / (fsz * 0.52)));
   const labels: [string, number][] = [
     ['Обозначение аппарата', 8],
@@ -95,8 +101,8 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
   const label = (r: Row['r']) => (r.rcbo ? 'QFD' : 'QF');
   const cellVals = (o: { x: Row; i: number }, k: number): string[] => {
     const r = o.x.r;
-    const vals: string[] = [label(r) + (k + 1), r.curve + r.In];
-    if (labels.some(l => l[0] === 'Дифф. ток, мА')) vals.push(r.rcbo ? r.ma + (r.rcdA ? ', тип A' : '') : (zoneOf[k] !== null ? 'QD' + ((zoneOf[k] as number) + 1) + ' / ' + a.uzos[zoneOf[k] as number].ma + (a.uzos[zoneOf[k] as number].typeA ? ' A' : '') : '—'));
+    const vals: string[] = [label(r) + (k + 1), r.curve + r.In + (r.arc ? ' УЗДП' : '')];
+    if (labels.some(l => l[0] === 'Дифф. ток, мА')) vals.push(r.rcbo ? r.ma + (r.rcdA ? ', тип A' : '') : (zoneOf[k] !== null ? 'QD' + ((zoneOf[k] as number) + 1) + ' / ' + a.uzos[zoneOf[k] as number].ma + (a.uzos[zoneOf[k] as number].typeA ? ', тип A' : '') : '—'));
     if (three) vals.push(r.three ? 'L1–L3' : o.x.l.phase);
     vals.push('ВВГнг(А)-LS', (r.three ? 5 : 3) + '×' + fs(r.S as number), r.cable > 0 ? fmt(r.cable, 0) : '—', fmt(r.pInst / 1000, 2), fmt(r.I, 1), fmt(r.drop, 1), 'Г' + (o.i + 1));
     return vals;
@@ -198,7 +204,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
       <g>
         <text x={TX0} y={tableBottom + 8} {...t} fontSize="2.8" fontWeight="700">Итого по щитку</text>
         <text x={TX0} y={tableBottom + 13} {...t} fontSize="2.5">Руст = {fmt(a.sumInst / 1000, 2)} кВт; Ко = {fs(c.ko)}; Рр = {fmt(a.P / 1000, 2)} кВт; Iр = {fmt(a.Itot, 1)} А{three ? ' (наиболее загруженная фаза)' : ''}.</text>
-        <text x={TX0} y={tableBottom + 17.5} {...t} fontSize="2.5">Выделенная мощность {fmt(c.alloc, 1)} кВт. Корпус щитка на {a.size} модулей.{vr ? ' Реле напряжения KV1' + (three ? ' по одному на фазу' : '') + (vrA ? ', ' + vrA + ' А.' : ', через контактор.') : ''}{spd ? ' УЗИП FV1 тип 2 ' + (three ? '3P+N.' : '1P+N.') : ''}</text>
+        <text x={TX0} y={tableBottom + 17.5} {...t} fontSize="2.5">Выделенная мощность {fmt(c.alloc, 1)} кВт. Корпус щитка на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}.{vr ? ' Реле напряжения KV1' + (three ? ' по одному на фазу' : '') + (vrA ? ', ' + vrA + ' А.' : ', через контактор.') : ''}{spd ? ' УЗИП FV1 тип 2 ' + (three ? '3P+N.' : '1P+N.') : ''}</text>
         <text x={TX0} y={tableBottom + 25} {...t} fontSize="2.8" fontWeight="700">Примечания</text>
         {[
           '1. Схема выполнена по ГОСТ 21.613-2014. Расчёт по ТКП 339-2022 с изм. № 1 и СН 4.04.01-2019.',
@@ -220,7 +226,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
         <path d={'M' + (SX + 150) + ' ' + (SY + 30) + 'V' + (SY + 40) + 'M' + (SX + 165) + ' ' + (SY + 30) + 'V' + (SY + 40)} strokeWidth="0.5" />
         {['Изм.', 'Кол.уч', 'Лист', '№ док.', 'Подп.', 'Дата'].map((h, k) => <text key={h} x={SX + [5, 15, 25, 35, 47.5, 60][k]} y={SY + 13.9} {...t} fontSize="2" textAnchor="middle">{h}</text>)}
         <text x={SX + 1} y={SY + 18.9} {...t} fontSize="2.2">Разраб.</text>
-        <text x={SX + 21} y={SY + 18.9} {...t} fontSize="2.2">{(p.author || '').slice(0, 14)}</text>
+        <text x={SX + 21} y={SY + 18.9} {...t} fontSize="2.2">{shortName(p.author || '')}</text>
         <text x={SX + 56} y={SY + 18.9} {...t} fontSize="2">{dd}</text>
         <text x={SX + 1} y={SY + 23.9} {...t} fontSize="2.2">Пров.</text>
         <text x={SX + 1} y={SY + 43.9} {...t} fontSize="2.2">Н.контр.</text>

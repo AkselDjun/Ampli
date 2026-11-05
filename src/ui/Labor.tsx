@@ -26,12 +26,12 @@ export function LaborTable({ p, a, dispatch }: { p: Project; a: Calc; dispatch: 
                 <td className="t-name">{r.def.name}<small className="muted lb-hint">{r.def.hint}</small></td>
                 <td className="num" data-label="Количество">
                   <span className="lb-q">
-                    <input className="price-in" type="number" inputMode="decimal" min={0} step="any" aria-label={'Количество: ' + r.def.name} placeholder={String(r.auto)} value={r.manual ? String(r.qty) : ''} onChange={e => dispatch({ t: 'workQty', key: r.def.key, value: e.target.value })} />
+                    <input className="price-in" type="text" inputMode="decimal" min={0} step="any" aria-label={'Количество: ' + r.def.name} placeholder={String(r.auto)} value={r.manual ? String(r.qty) : ''} onChange={e => dispatch({ t: 'workQty', key: r.def.key, value: e.target.value })} />
                     <span className="lb-u">{r.def.unit}</span>
                   </span>
                 </td>
                 <td className="num" data-label="Цена, BYN">
-                  <input className="price-in" type="number" inputMode="decimal" min={0} step={0.01} aria-label={'Цена: ' + r.def.name} value={lib.labor[r.def.key] ?? ''} onChange={e => libDispatch({ t: 'labor', key: r.def.key, value: e.target.value })} />
+                  <input className="price-in" type="text" inputMode="decimal" min={0} step={0.01} aria-label={'Цена: ' + r.def.name} value={lib.labor[r.def.key] ?? ''} onChange={e => libDispatch({ t: 'labor', key: r.def.key, value: e.target.value })} />
                 </td>
                 <td className="num" data-label="Сумма, BYN">{r.sum === null ? '—' : fmt(r.sum, 2)}</td>
               </tr>

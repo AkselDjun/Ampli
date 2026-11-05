@@ -5,7 +5,7 @@ import { blank, sample } from '../core/templates';
 import { cur, init } from '../store/reducer';
 import { TYPES } from '../core/norms';
 import { HoverTips, Toaster } from './common';
-import { toast, toastOk, toastUndo } from './toast';
+import { setToastVersion, staleUndo, toast, toastBad, toastOk, toastUndo } from './toast';
 import { hreducer, initH } from '../store/history';
 import { loadStore, saveStore } from '../store/storage';
 import { libReducer, loadLib, saveLib } from '../store/lib';
@@ -61,6 +61,10 @@ const isWide = () => window.matchMedia('(min-width:1000px)').matches;
 export function App() {
   const [hist, dispatch] = useReducer(hreducer, undefined, () => initH(init(loadStore())));
   const state = hist.now;
+  const verRef = useRef(hist.ver);
+  verRef.current = hist.ver;
+  useEffect(() => { setToastVersion(() => verRef.current); }, []);
+  useEffect(() => { staleUndo(hist.ver); }, [hist.ver]);
   const [lib, libDispatch] = useReducer(libReducer, undefined, loadLib);
   const [view, setView] = useState<View>('groups');
   const [stack, setStack] = useState<NonNullable<SheetId>[]>([]);
@@ -92,8 +96,15 @@ export function App() {
   const selected = p.lines.find(l => l.id === state.sel) || null;
   const idx = selected ? p.lines.indexOf(selected) : -1;
 
+  const saveFail = useRef(false);
+  const onSaved = (ok: boolean) => {
+    if (!ok && !saveFail.current) toastBad('Не удалось сохранить изменения: в браузере закончилось место. Удалите лишние проекты или фото и сохраните проект в файл.');
+    saveFail.current = !ok;
+  };
+  const viewOnly = !!shared || !!owner;
+
   useEffect(() => {
-    saveLib(lib);
+    if (!viewOnly) onSaved(saveLib(lib));
   }, [lib]);
 
   useEffect(() => {
@@ -101,7 +112,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    saveStore({ cur: state.cur, list: state.list });
+    if (!viewOnly) onSaved(saveStore({ cur: state.cur, list: state.list }));
   }, [state.cur, state.list]);
 
   useEffect(() => {
@@ -141,8 +152,23 @@ export function App() {
       const e = readEstimateHash(window.location.hash);
       setShared(e ? unpackEstimate(e) : null);
     };
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    const bad = () => {
+      const hs = window.location.hash;
+      const r = readShareHash(hs) ?? readOwnerHash(hs) ?? readEstimateHash(hs);
+      if (!r) return;
+      const okp = readShareHash(hs) ? unpackProject(r) : readOwnerHash(hs) ? unpackProject(r) : unpackEstimate(r);
+      if (okp) return;
+      toastBad('Ссылка повреждена или обрезана, её не удалось открыть. Попросите отправить её ещё раз.');
+      try {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      } catch (e) {
+        void e;
+      }
+    };
+    bad();
+    const onHash2 = () => { onHash(); bad(); };
+    window.addEventListener('hashchange', onHash2);
+    return () => window.removeEventListener('hashchange', onHash2);
   }, []);
 
   const clearHash = () => {

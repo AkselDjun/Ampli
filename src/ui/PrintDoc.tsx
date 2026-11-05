@@ -1,8 +1,8 @@
 import type { Calc, Project } from '../core/types';
-import { dfmt, fmt, fs, plural } from '../core/format';
+import { dfmt, fmt, fs, plural, pn, ymd } from '../core/format';
 import { ROWLEN, STATUS } from '../core/norms';
 import { buildSpec, estimate } from '../core/spec';
-import { grandTotal, laborEstimate } from '../core/labor';
+import { grandTotal, laborEstimate, unitQty } from '../core/labor';
 import { useLib } from '../store/LibContext';
 import { cableName, inCableName, protName } from '../core/protection';
 import { dropText } from '../core/report';
@@ -33,13 +33,13 @@ function ProtoTable({ a }: { a: Calc }) {
           <tr key={r.no}>
             <td>{r.no}</td>
             <td>{r.name}</td>
-            <td>{r.prot}</td>
+            <td className="nw">{r.prot}</td>
             <td className="r">{r.zs === null ? '—' : fmt(r.zs, 2)}</td>
             <td className="r">{r.ik === null ? '—' : fmt(r.ik, 0) + ' / ' + fmt(r.need, 0)}</td>
             <td className="r">{r.ins === null ? '—' : fmt(r.ins, 2)}</td>
             <td className="r">{r.leak === null ? '—' : fmt(r.leak, 1) + ' / ' + fmt(r.leakLim, 1)}</td>
             <td className="r">{r.rcdT === null ? '—' : fmt(r.rcdT, 0) + ' / ' + fmt(r.rcdLim, 0)}</td>
-            <td>{VERDICT[r.verdict]}</td>
+            <td className="nw">{VERDICT[r.verdict]}</td>
           </tr>
         ))}
       </tbody>
@@ -112,7 +112,7 @@ function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
       <p className="pd-sub">{p.name || 'Без названия'}</p>
       <Meta p={p} />
       <div className="pd-meta">
-        <div><span>Дата замеров: </span>{pr.date ? dfmt(new Date(pr.date).getTime()) : '—'}</div>
+        <div><span>Дата замеров: </span>{pr.date ? ymd(pr.date) : '—'}</div>
         <div><span>Измерения выполнил: </span>{pr.by || '—'}</div>
         <div><span>Прибор: </span>{pr.device || '—'}</div>
       </div>
@@ -164,7 +164,7 @@ function StickersDoc({ p, a }: { p: Project; a: Calc }) {
   return (
     <>
       <h1>Наклейки для щитка</h1>
-      <p className="pd-sub">{p.name || 'Без названия'}. Наклейки разложены по рядам щитка на {a.size} модулей: каждую полосу можно вырезать целиком. Ширина ячейки равна ширине аппарата (1 модуль = 17,5 мм).</p>
+      <p className="pd-sub">{p.name || 'Без названия'}. Наклейки разложены по рядам щитка на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}: каждую полосу можно вырезать целиком, длинные ряды разбиты на части по ширине листа. Ширина ячейки равна ширине аппарата (1 модуль = 17,5 мм).</p>
       <div className="stk-legend">
         {['in', 'vr', 'spd', 'uzo', 'light', 'socket', 'power'].filter(k => rows.some(r => r.some(x => x.k === k))).map(k => (
           <span key={k} className={'stk-k k-' + k}><StkIcon k={k} />{STK_KIND[k]}</span>
@@ -172,23 +172,34 @@ function StickersDoc({ p, a }: { p: Project; a: Calc }) {
       </div>
       {rows.map((r, n) => {
         const used = r.reduce((s, x) => s + x.d.mod, 0);
-        return (
-          <div className="stk-row" key={n} style={{ width: rl * 17.5 + 'mm' }}>
-            <span className="stk-rn">Ряд {n + 1}</span>
-            {r.map((x, i) => (
-              <div className={'stk-i k-' + x.k} key={i} style={{ width: x.d.mod * 17.5 + 'mm' }}>
-                <span className="stk-top"><StkIcon k={x.k} /><b>{x.no}</b></span>
-                <span className="stk-nm">{x.nm}</span>
-                <small>{x.d.label}{x.d.ma && x.d.kind !== 'mcb' ? ' ' + x.d.ma + 'мА' : ''}</small>
+        const cells: { x: (typeof r)[number] | null; mod: number }[] = r.map(x => ({ x, mod: x.d.mod }));
+        for (let free = rl - used; free > 0; free -= STK_MAX) cells.push({ x: null, mod: Math.min(STK_MAX, free) });
+        const strips: (typeof cells)[] = [[]];
+        cells.forEach(c => {
+          const cur = strips[strips.length - 1];
+          if (cur.length && cur.reduce((s2, y) => s2 + y.mod, 0) + c.mod > STK_MAX) strips.push([c]);
+          else cur.push(c);
+        });
+        return strips.map((st, k) => (
+          <div className="stk-row" key={n + '-' + k} style={{ width: st.reduce((s2, y) => s2 + y.mod, 0) * 17.5 + 'mm' }}>
+            <span className="stk-rn">Ряд {n + 1}{strips.length > 1 ? ', часть ' + (k + 1) + ' из ' + strips.length : ''}</span>
+            {st.map((c, i) => c.x ? (
+              <div className={'stk-i k-' + c.x.k} key={i} style={{ width: c.mod * 17.5 + 'mm' }}>
+                <span className="stk-top"><StkIcon k={c.x.k} /><b>{c.x.no}</b></span>
+                <span className="stk-nm">{c.x.nm}</span>
+                <small>{c.x.d.label}{c.x.d.ma && c.x.d.kind !== 'mcb' ? ' ' + c.x.d.ma + 'мА' : ''}</small>
               </div>
+            ) : (
+              <div className="stk-i stk-free" key={i} style={{ width: c.mod * 17.5 + 'mm' }}><small>резерв</small></div>
             ))}
-            {used < rl && <div className="stk-i stk-free" style={{ width: (rl - used) * 17.5 + 'mm' }}><small>резерв</small></div>}
           </div>
-        );
+        ));
       })}
     </>
   );
 }
+
+const STK_MAX = 10;
 
 function TagsDoc({ p, a }: { p: Project; a: Calc }) {
   const rows = a.rows.map((x, i) => ({ x, i })).filter(o => !o.x.r.empty && o.x.r.In);
@@ -202,7 +213,7 @@ function TagsDoc({ p, a }: { p: Project; a: Calc }) {
             <b>Г{i + 1} {x.l.name || 'Без названия'}</b>
             <span>{cableName(x.r)}</span>
             {x.l.where && <span>{x.l.where}</span>}
-            <small>{k === 0 ? 'Конец у щитка' : 'Конец у потребителя'}{x.r.cable ? ' · кабель ' + fmt(x.r.cable, 0) + ' м' : ''}</small>
+            <small>{k === 0 ? 'Конец у щитка' : 'Конец у потребителя'}{x.r.len ? ' · до дальней точки ' + fmt(x.r.len, 0) + ' м' : ''}</small>
           </div>
         )))}
       </div>
@@ -351,7 +362,7 @@ function OldDoc({ p, a }: { p: Project; a: Calc }) {
     ['Этажный щит', OLD_ANS.net[o.net]],
     ['Щиток квартиры', OLD_ANS.panel[o.panel]],
     ['Сопротивление изоляции', o.ins ? o.ins.replace('.', ',') + ' МОм' : ''],
-    ['Возраст проводки', o.age ? o.age + ' лет' : ''],
+    ['Возраст проводки', o.age ? o.age + ' ' + plural(pn(o.age, 0), ['год', 'года', 'лет']) : ''],
     ['При осмотре', OLD_SIGNS.filter(s => o.signs.includes(s[0])).map(s => s[1].toLowerCase()).join('; ')]
   ];
   return (
@@ -415,7 +426,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
         <div><span>Дата: </span>{now}</div>
       </div>
       <p>
-        <span style={{ color: '#555' }}>Питание: </span>{three ? '3 фазы, 400 В' : '1 фаза, 230 В'}; <span style={{ color: '#555' }}>прокладка: </span>{c.method === 'wall' ? 'скрытая' : 'открытая'}; <span style={{ color: '#555' }}>потеря напряжения </span>{dropText(c.drop)}; <span style={{ color: '#555' }}>Ко </span>{fs(c.ko)}; <span style={{ color: '#555' }}>поправка </span>{fs(c.k)}
+        <span style={{ color: '#555' }}>Питание: </span>{three ? '3 фазы, 400 В' : '1 фаза, 230 В'}; <span style={{ color: '#555' }}>прокладка: </span>{c.method === 'wall' ? 'скрытая' : 'открытая'}; <span style={{ color: '#555' }}>потеря напряжения </span>{dropText(c.drop, c.feeder)}; <span style={{ color: '#555' }}>Ко </span>{fs(c.ko)}; <span style={{ color: '#555' }}>поправка </span>{fs(c.k)}
       </p>
       <h2>Группы линий</h2>
       <table>
@@ -463,7 +474,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
       </table>
       <h2>Ввод и щиток</h2>
       <p>
-        Вводной автомат: {a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—'}{a.inS ? ', кабель ввода ' + inCableName(c, a.inS) : ''}. Защита групп: {c.rcdMode ? 'УЗО на помещение и автоматы, у каждого УЗО своя шина N' : 'дифавтомат на каждую группу'}{a.rows.some(x => x.r.rcd && x.r.rcdA && !x.r.empty) ? ', тип A для групп с электроникой' : ''}{a.rows.some(x => x.r.arc && !x.r.empty) ? '; УЗДП на ' + (c.afdd === 'sock' ? 'розеточные группы' : 'однофазные группы') : ''}.{a.devs.some(d => d.kind === 'vr') ? ' Реле контроля напряжения после вводного автомата.' : ''}{a.devs.some(d => d.kind === 'spd') ? ' УЗИП тип 2 после вводного автомата.' : ''} Щиток на {a.size} модулей, занято {a.modSum}.
+        Вводной автомат: {a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—'}{a.inS ? ', кабель ввода ' + inCableName(c, a.inS) : ''}. Защита групп: {c.rcdMode ? 'УЗО на помещение и автоматы, у каждого УЗО своя шина N' : 'дифавтомат на каждую группу'}{a.rows.some(x => x.r.rcd && x.r.rcdA && !x.r.empty) ? ', тип A для групп с электроникой' : ''}{a.rows.some(x => x.r.arc && !x.r.empty) ? '; УЗДП на ' + (c.afdd === 'sock' ? 'розеточные группы' : 'однофазные группы') : ''}.{a.devs.some(d => d.kind === 'vr') ? ' Реле контроля напряжения после вводного автомата.' : ''}{a.devs.some(d => d.kind === 'spd') ? ' УЗИП тип 2 после вводного автомата.' : ''} Щиток на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}, занято {a.modSum}.
       </p>
       {a.phases && (
         <p>Токи по фазам: L1 {fmt(a.phases.L1, 1)} А, L2 {fmt(a.phases.L2, 1)} А, L3 {fmt(a.phases.L3, 1)} А; перекос {fmt(a.imb, 0)} %.</p>
@@ -501,6 +512,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
           </tfoot>
         )}
       </table>
+      {priced && est.missing > 0 && <p className="pd-note">Для {est.missing} поз. не задана цена или количество, они не входят в итог.</p>}
       {le.priced && (
         <>
           <h2>Работы</h2>
@@ -512,7 +524,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
               {works.map(r => (
                 <tr key={r.def.key}>
                   <td>{r.def.name}</td>
-                  <td className="r">{fmt(r.qty, r.qty % 1 ? 1 : 0)} {r.def.unit}</td>
+                  <td className="r">{unitQty(r.qty, r.def.unit)}</td>
                   <td className="r">{fmt(r.price as number, 2)}</td>
                   <td className="r">{fmt(r.sum as number, 2)}</td>
                 </tr>

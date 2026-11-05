@@ -25,6 +25,7 @@ const unb64 = (t: string): Uint8Array => {
 
 const slimProject = (p: Project) => ({
   name: p.name,
+  updated: p.updated,
   address: p.address,
   client: p.client,
   author: p.author,

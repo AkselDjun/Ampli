@@ -92,16 +92,16 @@ describe('reorder without dragging', () => {
   it('moves the group earlier and later from the actions menu', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(rows()[1]);
+    fireEvent.click(rows()[2]);
     const names = () => stored().list[0].lines.map((l: { name: string }) => l.name);
-    const second = names()[1];
+    const [first, kitchen, third] = names();
     click(ed(), /Ещё действия/);
     click(ed(), 'Переставить раньше, на место Г1');
-    expect(names()[0]).toBe(second);
+    expect(names().slice(0, 3)).toEqual([third, kitchen, first]);
     click(ed(), /Ещё действия/);
     expect(ed().textContent).not.toContain('Переставить раньше');
-    click(ed(), 'Переставить позже, на место Г2');
-    expect(names()[1]).toBe(second);
+    click(ed(), 'Переставить позже, на место Г3');
+    expect(names().slice(0, 3)).toEqual([first, kitchen, third]);
     fireEvent.click(rows()[rows().length - 1]);
     click(ed(), /Ещё действия/);
     expect(ed().textContent).not.toContain('Переставить позже');

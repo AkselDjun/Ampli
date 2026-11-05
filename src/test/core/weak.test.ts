@@ -97,8 +97,8 @@ describe('weak current in the calculation', () => {
     expect(buildSpec(a).some(i => i.name === 'Розетка компьютерная RJ45 cat.5e')).toBe(true);
     const q = autoQty(a);
     expect(q.weak).toBe(3);
-    expect(q.weakCable).toBe(33);
-    expect(q.chase).toBe(q.cable + 33);
+    expect(q.weakCable).toBe(30);
+    expect(q.chase).toBe(q.cable + 30);
     expect(laborEstimate(a, undefined, { weak: 10 }).total).toBe(30);
     const b = calcAll(lines, defaultCfg());
     expect(b.weak).toBeUndefined();

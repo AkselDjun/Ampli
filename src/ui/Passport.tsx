@@ -15,7 +15,7 @@ export function PassportBody({ p, a }: { p: Project; a: Calc }) {
       <div className="pp-meta">
         {p.client && <div><span>Владелец: </span>{p.client}</div>}
         {p.author && <div><span>Исполнитель: </span>{p.author}</div>}
-        <div><span>Дата: </span>{dfmt(Date.now())}</div>
+        <div><span>Дата: </span>{dfmt(p.updated || Date.now())}</div>
       </div>
       <div className="pp-in">
         <b>{inp.text}</b>

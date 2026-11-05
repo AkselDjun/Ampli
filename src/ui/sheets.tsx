@@ -11,13 +11,13 @@ import { cableName, protName } from '../core/protection';
 import { reportText } from '../core/report';
 import { buildXlsx, exportName, exportTables, toCsv } from '../core/export';
 import { download } from './download';
-import { delPhoto, forgetPhotoUrl } from '../store/photos';
 import { IconChev, IconDownload, IconWire } from './Icons';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
 import { ArmButton, Assumptions, Seg, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
 import { Schematic } from './Schematic';
-import { toast, toastBad, toastOk } from './toast';
+import { toast, toastBad, toastOk, toastUndo } from './toast';
+import type { HAction } from '../store/history';
 import { IOS_STEPS, install, usePwa } from './pwa';
 import { PWA_ENABLED } from '../core/flags';
 import { ShareBlock } from './ShareBlock';
@@ -123,7 +123,7 @@ export function ProjectsSheet({
   onClose: () => void;
   state: { list: Project[]; cur: string };
   p: Project;
-  dispatch: (a: Action) => void;
+  dispatch: (a: HAction) => void;
   onLib: () => void;
 }) {
   const { lib, dispatch: libDispatch } = useLib();
@@ -174,7 +174,7 @@ export function ProjectsSheet({
     }
     const list = (o as { list?: unknown }).list;
     const arr: unknown[] = Array.isArray(o) ? o : (Array.isArray(list) ? list : [o]);
-    const added = arr.map(x => normProject(x)).filter((x): x is Project => !!x);
+    const added = arr.map(x => { try { return normProject(x); } catch (e) { void e; return null; } }).filter((x): x is Project => !!x);
     if (!added.length) {
       note('В файле нет проекта Ampli', true);
       return;
@@ -212,7 +212,7 @@ export function ProjectsSheet({
                 <span className="pj-sub">{cur ? 'Открыт · ' : ''}{x.lines.length} {plural(x.lines.length, ['группа', 'группы', 'групп'])} · {dfmt(x.updated)}</span>
               </button>
               <button className="btn" type="button" onClick={() => { dispatch({ t: 'dupProject', id: x.id }); note('Копия создана'); }}>Копировать</button>
-              <ArmButton className="btn danger" label="Удалить" armedLabel="Точно удалить?" onRun={() => { (x.photos ?? []).forEach(ph => { forgetPhotoUrl(ph.id); delPhoto(ph.id).catch(() => undefined); }); dispatch({ t: 'delProject', id: x.id }); toastOk('Проект удалён: ' + (x.name || 'Без названия')); }} />
+              <ArmButton className="btn danger" label="Удалить" armedLabel="Точно удалить?" onRun={() => { dispatch({ t: 'delProject', id: x.id }); toastUndo('Проект удалён: ' + (x.name || 'Без названия'), () => dispatch({ t: 'undo' })); }} />
             </div>
           );
         })}
@@ -433,7 +433,7 @@ export function ReportSheet({
                 <td className="num sp-q" data-label="Количество">{item.qty}</td>
                 <td className="sp-n" data-label="Примечание">{item.note || '—'}</td>
                 <td className="num sp-p" data-label="Цена, BYN">
-                  <input className="price-in" type="number" inputMode="decimal" min={0} step={0.01} placeholder="цена" aria-label={'Цена: ' + item.name} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
+                  <input className="price-in" type="text" inputMode="decimal" min={0} step={0.01} placeholder="цена" aria-label={'Цена: ' + item.name} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
                 </td>
                 <td className="num sp-s" data-label="Сумма, BYN">{sum === null ? '—' : fmt(sum, 2)}</td>
               </tr>
@@ -457,7 +457,7 @@ export function ReportSheet({
         <p>Допустимые токи медных жил взяты из таблицы 1.3.4 главы 1.3 ПУЭ, на которую ссылается ТКП 339-2022, и умножены на поправку; прокладка по ГОСТ 30331.15. Групповые сети выполняются медными жилами, наименьшее сечение жилы 1,5 мм² (ГОСТ 30331.15-2001, табл. 52J).</p>
         <p>УЗО до 30 мА предусмотрены для розеток и светильников (ТКП 339-2022 с изм. № 1, п. 4.3.18.5) и по практике для мощных приборов, при расчётном токе больше 32 А до 100 мА (СН 4.04.01-2019, п. 16.3.13). Время отключения УЗО в протоколе сравнивается с табл. 4.4.47 и 4.4.48 ТКП 339-2022 в редакции изм. № 1. Потеря напряжения: 3 % для освещения и 5 % для остальных групп, на линиях длиннее 100 м допуск растёт на 0,005 % за метр, но не более чем на 0,5 % (СН 4.04.01-2019, п. 9.14); сопротивление меди 0,0225 Ом·мм²/м. Коэффициенты спроса и одновременности приняты по практике, их сверка с таблицами СН 4.04.01-2019 не выполнена.</p>
         <p>Ввод: до 12 кВт расчётной нагрузки однофазный, больше 12 кВт трёхфазный (СН 4.04.01-2019, п. 9.12). Вводной автомат выбирается на две ступени выше наибольшего группового (п. 10.5). Отключение короткого замыкания проверяется при времени 0,4 с для 230 В (ТКП 339-2022, п. 4.3.5.4, табл. 4.3.1) по сопротивлению петли фаза-нуль питающей сети, которое задаёт пользователь; сопротивление жил считается без учёта индуктивности, расчёт по ГОСТ 28249 не выполнялся.</p>
-        <p>Потеря напряжения не более 4 % от номинального напряжения установки по ГОСТ 30331.15-2001, п. 525: этот предел можно включить в параметрах. Сечение нулевого проводника принято равным фазному до 16 мм² (п. 524.2). Допустимые токи самого ГОСТ 30331.15 не содержит (п. 523 отсылает к другому стандарту), поэтому значения взяты из ПУЭ и не сверены с таблицами МЭК 364-5-523.</p>
+        <p>ГОСТ 30331.15-2001, п. 525 рекомендует потерю напряжения не более 4 % от номинального напряжения установки; в расчёте применяются пределы СН 4.04.01-2019, п. 9.14. Сечение нулевого проводника принято равным фазному до 16 мм² (п. 524.2). Допустимые токи самого ГОСТ 30331.15 не содержит (п. 523 отсылает к другому стандарту), поэтому значения взяты из ПУЭ и не сверены с таблицами МЭК 364-5-523.</p>
         <p>Длины кабеля в спецификации взяты из длин групп с запасом 10 %. Сам ввод, трассу в щиток и расход мелочи уточняйте по месту.</p>
         <p>Нормативная база: ТКП 339-2022 с изменением № 1 (действует с 01.08.2025); СН 4.04.01-2019 «Системы электрооборудования жилых и общественных зданий»; ПУЭ, табл. 1.3.3 и 1.3.4; ГОСТ 30331.15-2001. Изменение № 2 к СН 4.04.01-2019 (постановление Минстройархитектуры от 17.09.2026 № 75, действует с 07.12.2026) учтено: по п. 14.4 водонагреватели и приборы отопления питаются отдельной линией и подключаются без вилки и розетки; остальные пункты изменения касаются общественных зданий, электрощитовых и ссылок на другие нормы. ТКП 339-2022 остаётся основным документом по защитным мерам. Раздел 8 ТКП 339-2022 исключён изменением № 1, требования к жилым зданиям перенесены в СП 4.04.04-2023, сверка с ним не выполнена.</p>
         <p>Результат предварительный. Проект щитка и монтаж согласуйте с аттестованным электриком.</p>

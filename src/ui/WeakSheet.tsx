@@ -1,9 +1,10 @@
 import type { Project } from '../core/types';
 import { UTP_MAX, WEAK_KEYS, WEAK_KINDS, weakCalc, weakSpec } from '../core/weak';
 import type { WeakKind } from '../core/weak';
-import { fmt, plural } from '../core/format';
+import { fmt, plural, pn } from '../core/format';
 import type { HAction } from '../store/history';
 import { Sheet } from './common';
+import { toastUndo } from './toast';
 import { IconAlert, IconInfo } from './Icons';
 
 export function WeakSheet({ open, onClose, p, dispatch }: { open: boolean; onClose: () => void; p: Project; dispatch: (a: HAction) => void }) {
@@ -38,9 +39,9 @@ export function WeakSheet({ open, onClose, p, dispatch }: { open: boolean; onClo
               <select aria-label="Что подключаем" value={x.kind} onChange={e => dispatch({ t: 'weakSet', id: x.id, field: 'kind', value: e.target.value as WeakKind })}>
                 {WEAK_KEYS.map(k => <option key={k} value={k}>{WEAK_KINDS[k].label}</option>)}
               </select>
-              <input aria-label="Количество" type="number" inputMode="numeric" min={1} value={String(x.n)} onChange={e => dispatch({ t: 'weakSet', id: x.id, field: 'n', value: e.target.value })} />
-              <input aria-label="Длина от щитка, м" type="number" inputMode="decimal" min={0} placeholder="м" value={String(x.len)} onChange={e => dispatch({ t: 'weakSet', id: x.id, field: 'len', value: e.target.value })} />
-              <button className="icon-btn" type="button" aria-label="Удалить точку" onClick={() => dispatch({ t: 'weakDel', id: x.id })}>×</button>
+              <input aria-label="Количество" type="text" inputMode="numeric" min={1} value={String(x.n)} onChange={e => dispatch({ t: 'weakSet', id: x.id, field: 'n', value: e.target.value })} onBlur={() => { if (!(pn(x.n, 0) >= 1)) dispatch({ t: 'weakSet', id: x.id, field: 'n', value: '1' }); }} />
+              <input aria-label="Длина от щитка, м" type="text" inputMode="decimal" min={0} placeholder="м" value={String(x.len)} onChange={e => dispatch({ t: 'weakSet', id: x.id, field: 'len', value: e.target.value })} />
+              <button className="icon-btn" type="button" aria-label="Удалить точку" onClick={() => { dispatch({ t: 'weakDel', id: x.id }); toastUndo('Точка удалена: ' + (x.room || WEAK_KINDS[x.kind].short), () => dispatch({ t: 'undo' })); }}>×</button>
             </div>
           ))}
         </div>

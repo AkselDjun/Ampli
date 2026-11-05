@@ -63,7 +63,13 @@ function GroupRow({
         onKeyDown={e => {
           if (e.key === 'Delete') {
             e.preventDefault();
+            const all = Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
+            const at = all.indexOf(e.currentTarget);
             onDelete(x.l.id);
+            requestAnimationFrame(() => {
+              const now = Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
+              (now[Math.min(at, now.length - 1)] ?? document.querySelector<HTMLElement>('.list-head h2'))?.focus();
+            });
           } else if ((e.ctrlKey || e.metaKey) && (e.key === 'd' || e.key === 'в')) {
             e.preventDefault();
             onCopy(x.l.id);

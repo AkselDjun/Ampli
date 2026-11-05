@@ -57,7 +57,7 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
         </p>
         <div className="rail-wrap">
           <div className="rail" data-rc={rl} style={{ ['--rc' as string]: rl }}>
-            {a.devs.map((d, i) => <Fragment key={(d.lid ?? d.kind) + i}>{Array.from({ length: gapBefore[i] }, (_, g) => <div key={'g' + g} className="dev dev-free" data-tip="Резерв" />)}{((): JSX.Element => {
+            {a.devs.map((d, i) => <Fragment key={d.lid ?? d.kind + i}>{Array.from({ length: gapBefore[i] }, (_, g) => <div key={'g' + g} className="dev dev-free" data-tip="Резерв" />)}{((): JSX.Element => {
               const cls = 'dev dev-' + d.kind + (d.arc ? ' arc' : '') + (d.st ? ' st-' + d.st : '') + (d.lid && drag === d.lid ? ' drag' : '') + (d.lid && over === d.lid && drag !== d.lid ? ' over' : '') + (d.lid && d.lid === sel ? ' sel' : '') + (d.lid && d.lid === hot ? ' hot' : '');
               const style = { gridColumn: 'span ' + d.mod, ['--i' as string]: i };
               if (!d.lid) {
@@ -85,6 +85,7 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
                   aria-current={d.lid === sel ? 'true' : undefined}
                   onMouseEnter={() => onHot(lid)}
                   onMouseLeave={() => onHot(null)}
+                  data-lid={lid}
                   draggable={!!onMove}
                   onClick={() => onPick?.(lid)}
                   onDragStart={e => { setDrag(lid); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', lid); }}
@@ -94,10 +95,15 @@ export function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = (
                   onKeyDown={e => {
                     if (!e.altKey || !onMove) return;
                     const t = e.key === 'ArrowLeft' ? lids[idx - 1] : (e.key === 'ArrowRight' ? lids[idx + 1] : undefined);
-                    if (t) { e.preventDefault(); onMove(lid, t); }
+                    if (t) {
+                      e.preventDefault();
+                      onMove(lid, t);
+                      requestAnimationFrame(() => (document.querySelector('.rail [data-lid="' + lid + '"]') as HTMLElement | null)?.focus());
+                    }
                   }}
                 >
                   {d.arc && <span className="dev-arc" aria-hidden="true">ДП</span>}
+                  {d.ph && <span className="dev-ph" aria-hidden="true">{d.ph === '3' ? '3Ф' : d.ph}</span>}
                   <b>{d.label}</b>
                   <i>{d.sub}</i>
                   <em className={'dev-cap' + (d.mod === 1 ? ' sm' : '')}>{d.mod === 1 ? shortName(nameOf[d.sub.split(' ')[0]]) : nameOf[d.sub.split(' ')[0]]}</em>

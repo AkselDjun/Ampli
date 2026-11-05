@@ -3,7 +3,7 @@ import type { Photo, PhotoTag } from '../core/types';
 import { toastBad } from './toast';
 import { PHOTO_LIMIT, PHOTO_TAGS, PHOTO_TAG_LABEL } from '../core/photos';
 import { nid } from '../core/ids';
-import { delPhoto, forgetPhotoUrl, photoUrl, putPhoto } from '../store/photos';
+import { photoUrl, putPhoto } from '../store/photos';
 import { scalePhoto } from './photoScale';
 import { IconCamera, IconTrash } from './Icons';
 import { Seg } from './common';
@@ -55,11 +55,7 @@ export function PhotoStrip({
     }
     setBusy(false);
   };
-  const del = (id: string) => {
-    onDel(id);
-    forgetPhotoUrl(id);
-    delPhoto(id).catch(() => undefined);
-  };
+  const del = (id: string) => onDel(id);
   return (
     <div className="photos">
       <div className="photo-add">

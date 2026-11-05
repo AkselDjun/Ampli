@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Calc, Project } from '../core/types';
-import { dfmt, fmt } from '../core/format';
+import { fmt, plural, ymd } from '../core/format';
 import { CHECK_ITEMS, progress } from '../core/checklist';
 import { VERDICT, protocolRows } from '../core/protocol';
 import type { Action } from '../store/reducer';
@@ -33,12 +33,14 @@ export function WorkSheet({
   const actSum = actsSummary(p.acts);
   const [pack, setPack] = usePack();
   const done = rows.filter(r => r.verdict !== 'none').length;
+  const failed = rows.filter(r => r.verdict === 'bad').length;
+  const empty = !rows.length;
   const docs: { m: PrintMode; name: string; hint: string; one: string }[] = [
     { m: 'report', name: 'Отчёт и спецификация', hint: 'расчёт групп, схема, материалы и смета', one: 'Печать отчёта' },
     { m: 'a3', name: 'Схема щитка А3', hint: 'однолинейная по ГОСТ 21.613 со штампом', one: 'Печать схемы А3' },
     { m: 'proto', name: 'Протокол замеров', hint: rows.length ? 'измерено ' + done + ' из ' + rows.length + ' групп' : 'групп пока нет', one: 'Печать протокола' },
     { m: 'hidden', name: 'Акт скрытых работ', hint: 'подписывают до заделки штроб', one: 'Акт скрытых работ' },
-    { m: 'accept', name: 'Акт сдачи-приёмки', hint: 'работы из сметы, сроки и гарантия', one: 'Акт приёмки' },
+    { m: 'accept', name: 'Акт сдачи-приёмки', hint: failed ? 'в протоколе ' + failed + ' ' + plural(failed, ['группа не соответствует', 'группы не соответствуют', 'групп не соответствуют']) + ', сначала устраните' : 'работы из сметы, сроки и гарантия', one: 'Акт приёмки' },
     { m: 'passport', name: 'Паспорт для владельца', hint: 'оставить у щитка', one: 'Печать паспорта' },
     { m: 'stickers', name: 'Наклейки щитка', hint: 'по рядам, в размер модулей', one: 'Наклейки щитка' },
     { m: 'tags', name: 'Бирки кабелей', hint: 'по две на группу', one: 'Бирки кабелей' },
@@ -67,7 +69,7 @@ export function WorkSheet({
       </TabPanel>
       <TabPanel scope="wk" id="meas" cur={tab}>
       <details className="bd-help proto-d">
-        <summary>Данные протокола{proto.date || proto.by || proto.device ? ': ' + [proto.date ? dfmt(new Date(proto.date).getTime()) : '', proto.by, proto.device].filter(Boolean).join(', ') : ''}</summary>
+        <summary>Данные протокола{proto.date || proto.by || proto.device ? ': ' + [proto.date ? ymd(proto.date) : '', proto.by, proto.device].filter(Boolean).join(', ') : ''}</summary>
       <div className="meta-grid">
         <div className="f"><label className="lbl" htmlFor="pDate">Дата замеров</label><input id="pDate" type="date" value={proto.date} onChange={e => dispatch({ t: 'proto', field: 'date', value: e.target.value })} /></div>
         <div className="f"><label className="lbl" htmlFor="pBy">Измерения выполнил</label><input id="pBy" type="text" maxLength={80} autoComplete="off" value={proto.by} onChange={e => dispatch({ t: 'proto', field: 'by', value: e.target.value })} /></div>
@@ -109,19 +111,20 @@ export function WorkSheet({
               <input type="checkbox" checked={pack.includes(d.m)} onChange={e => setPack(e.target.checked ? [...pack, d.m] : pack.filter(x => x !== d.m))} />
               <span className="pk-t"><b>{d.name}</b><small>{d.hint}</small></span>
             </label>
-            <button className="icon-btn pk-p" type="button" aria-label={d.one} data-tip="Напечатать только этот" onClick={() => onPrint(d.m)}><IconPrint /></button>
+            <button className="icon-btn pk-p" type="button" aria-label={d.one} data-tip="Напечатать только этот" disabled={empty && d.m !== 'old'} onClick={() => onPrint(d.m)}><IconPrint /></button>
           </li>
         ))}
       </ul>
       <div className="copy-row">
-        <button className="btn primary" type="button" disabled={!chosen.length} onClick={() => onPrint(chosen)}>Печать комплекта{chosen.length ? ' · ' + chosen.length : ''}</button>
+        <button className="btn primary" type="button" disabled={!chosen.length || empty} onClick={() => onPrint(chosen)}>Печать комплекта{chosen.length ? ' · ' + chosen.length : ''}</button>
+        {empty && <span className="muted">В проекте нет групп, печатать пока нечего.</span>}
       </div>
       <details className="bd-help proto-d acts-d">
         <summary>Сроки и гарантия для актов{actSum ? ': ' + actSum : ''}</summary>
         <div className="meta-grid">
           <div className="f"><label className="lbl" htmlFor="aStart">Начало работ</label><input id="aStart" type="date" value={acts.start} onChange={e => dispatch({ t: 'acts', field: 'start', value: e.target.value })} /></div>
           <div className="f"><label className="lbl" htmlFor="aEnd">Окончание работ</label><input id="aEnd" type="date" value={acts.end} onChange={e => dispatch({ t: 'acts', field: 'end', value: e.target.value })} /></div>
-          <div className="f"><label className="lbl" htmlFor="aWar">Гарантия, мес.</label><input id="aWar" type="number" inputMode="numeric" min={0} max={120} step={1} value={acts.warranty || ''} placeholder="без гарантии" onChange={e => dispatch({ t: 'acts', field: 'warranty', value: e.target.value })} /></div>
+          <div className="f"><label className="lbl" htmlFor="aWar">Гарантия, мес.</label><input id="aWar" type="text" inputMode="numeric" min={0} max={120} step={1} value={acts.warranty || ''} placeholder="без гарантии" onChange={e => dispatch({ t: 'acts', field: 'warranty', value: e.target.value })} /></div>
         </div>
       </details>
       <h3 className="sec-t">Паспорт для владельца</h3>

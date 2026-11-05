@@ -39,7 +39,11 @@ export function whyRows(l: Line, r: LineResult, c: CfgN): WhyRow[] {
     const iCur = tbl.findIndex(v => v * c.k >= (r.In as number));
     const sCur = iCur < 0 ? 0 : SECTIONS[iCur];
     let cn: string;
-    if ((r.S as number) > Math.max(sCur, mS)) cn = 'Увеличено, чтобы потеря напряжения не превысила ' + fmt(r.limit, 1) + NB + '%.';
+    const sMin = Math.max(sCur, mS);
+    const dropOf = (S: number): number => (r.three ? Math.sqrt(3) * RHO * r.len * r.I / (S * 400) : 2 * RHO * r.len * r.I / (S * 230)) * 100;
+    const sDrop = SECTIONS.find(S => S >= sMin && dropOf(S) <= r.limit) ?? sMin;
+    if ((r.S as number) > Math.max(sMin, sDrop)) cn = 'Увеличено до ' + fs(r.S as number) + NB + 'мм², чтобы автомат отключил короткое замыкание в конце линии за ' + fs(KZ_TIME) + NB + 'с' + (sDrop > sMin ? ' (по потере напряжения хватило бы ' + fs(sDrop) + NB + 'мм²)' : '') + '.';
+    else if ((r.S as number) > sMin) cn = 'Увеличено, чтобы потеря напряжения не превысила ' + fmt(r.limit, 1) + NB + '%.';
     else if (mS > sCur) cn = 'По току хватило бы ' + fs(sCur) + NB + 'мм², но выбран минимум ' + fs(mS) + NB + 'мм² (по ГОСТ 30331.15-2001, табл. 52J, достаточно 1,5 мм²; настройка в параметрах).';
     else cn = 'Наименьшее сечение, у которого допустимый ток с поправкой не меньше номинала автомата.';
     const iz = tbl[SECTIONS.indexOf(r.S as number)] * c.k;
@@ -54,8 +58,8 @@ export function whyRows(l: Line, r: LineResult, c: CfgN): WhyRow[] {
       const zl = loopOhm(r.S as number, r.len);
       rows.push({
         title: 'Короткое замыкание',
-        formula: 'Iк = 230 / (' + fmt(c.zs, 2) + ' + ' + fmt(zl, 2) + ') = ' + fmt(r.ik, 0) + NB + 'А',
-        note: 'Нужно не меньше ' + fmt(r.ikNeed, 0) + NB + 'А (' + (r.curve === 'B' ? 5 : 10) + ' × ' + r.curve + r.In + '), чтобы автомат отключил линию за ' + fs(KZ_TIME) + NB + 'с при 230' + NB + 'В (ТКП 339-2022, п. 4.3.5.4, табл. 4.3.1). Петля фаза-нуль питающей сети ' + fmt(c.zs, 2) + NB + 'Ом задана в параметрах, сопротивление жил фазы и PE взято с коэффициентом ' + fs(RHO_HOT_K) + ' на нагрев (' + fs(RHO) + NB + 'Ом·мм²/м).'
+        formula: r.ikSrc === 'meas' && r.zsMeas !== null ? 'Iк = 230 / ' + fmt(r.zsMeas, 2) + ' (замер петли) = ' + fmt(r.ik, 0) + NB + 'А' : 'Iк = 230 / (' + fmt(c.zs, 2) + ' + ' + fmt(zl, 2) + ') = ' + fmt(r.ik, 0) + NB + 'А',
+        note: 'Нужно не меньше ' + fmt(r.ikNeed, 0) + NB + 'А (' + (r.curve === 'B' ? 5 : 10) + ' × ' + r.curve + r.In + '), чтобы автомат отключил линию за ' + fs(KZ_TIME) + NB + 'с при 230' + NB + 'В (ТКП 339-2022, п. 4.3.5.4, табл. 4.3.1). ' + (r.ikSrc === 'meas' ? 'Ток посчитан по замеренному сопротивлению петли в конце линии, расчётный был бы ' + fmt(230 / (c.zs + zl), 0) + NB + 'А.' : 'Петля фаза-нуль питающей сети ' + fmt(c.zs, 2) + NB + 'Ом задана в параметрах, сопротивление жил фазы и PE взято с коэффициентом ' + fs(RHO_HOT_K) + ' на нагрев (' + fs(RHO) + NB + 'Ом·мм²/м).')
       });
     }
   }

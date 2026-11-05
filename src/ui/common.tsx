@@ -45,7 +45,15 @@ export function Stepper({
   return (
     <div className="step">
       <button type="button" onClick={() => onStep(-d)} aria-label={less}>−</button>
-      <input type="number" inputMode="decimal" min={min} max={max} step={step} aria-label={label} value={String(value)} onChange={e => onChange(e.target.value)} />
+      <input type="text" inputMode="decimal" min={min} max={max} step={step} aria-label={label} value={String(value)} onChange={e => onChange(e.target.value)} onBlur={() => {
+        const raw = String(value).trim().replace(',', '.');
+        const v = Number(raw);
+        if (!raw || !Number.isFinite(v)) return;
+        const lo = min === undefined ? -Infinity : Number(min);
+        const hi = max === undefined ? Infinity : Number(max);
+        const cl = Math.min(hi, Math.max(lo, v));
+        if (cl !== v) onChange(String(cl));
+      }} />
       <button type="button" onClick={() => onStep(d)} aria-label={more}>+</button>
     </div>
   );
@@ -187,6 +195,10 @@ export function TabPanel({ scope, id, cur, children }: { scope: string; id: stri
   );
 }
 
+const STACK: object[] = [];
+const SCROLL = new Map<string, number>();
+const BACK = { on: false };
+
 export function Sheet({
   open, onClose, title, compact, tip, bar, children
 }: {
@@ -231,17 +243,24 @@ export function Sheet({
   };
   useEffect(() => {
     if (!open) return;
+    const me = {};
+    STACK.push(me);
     opener.current = document.activeElement;
-    if (bodyRef.current) bodyRef.current.scrollTop = 0;
+    const body = bodyRef.current;
+    if (body) body.scrollTop = BACK.on ? SCROLL.get(title) ?? 0 : 0;
+    BACK.on = false;
     document.documentElement.style.overflow = 'hidden';
     closeRef.current?.focus();
     const key = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && STACK[STACK.length - 1] === me) onClose();
     };
     document.addEventListener('keydown', key);
     return () => {
+      if (body) SCROLL.set(title, body.scrollTop);
+      const i = STACK.indexOf(me);
+      if (i >= 0) STACK.splice(i, 1);
       document.removeEventListener('keydown', key);
-      document.documentElement.style.overflow = '';
+      if (!STACK.length) document.documentElement.style.overflow = '';
       const o = opener.current;
       if (o instanceof HTMLElement && document.contains(o)) o.focus();
     };
@@ -251,7 +270,7 @@ export function Sheet({
     <div className="sheet" hidden={!open} onClick={e => e.target === e.currentTarget && onClose()}>
       <div className={'sheet-panel' + (compact ? ' compact' : '') + (bar ? '' : ' fit')} role="dialog" aria-modal="true" aria-labelledby={id} onKeyDown={trap} style={dy ? { transform: 'translateY(' + dy + 'px)', transition: 'none' } : undefined}>
         <div className="sheet-head" {...drag}>
-          {nav.back && <button className="sheet-back" type="button" onClick={nav.back} aria-label={'Назад: ' + nav.to} data-tip={'Назад: ' + nav.to}><IconBack /></button>}
+          {nav.back && <button className="sheet-back" type="button" onClick={() => { BACK.on = true; nav.back?.(); }} aria-label={'Назад: ' + nav.to} data-tip={'Назад: ' + nav.to}><IconBack /></button>}
           <h2 id={id}>{title}</h2>
           {tip && <Tip>{tip}</Tip>}
           <button ref={closeRef} className="sheet-close" type="button" onClick={onClose} aria-label="Закрыть">×</button>

@@ -1,3 +1,4 @@
+import { plural } from './format';
 import type { SpecItem } from './types';
 
 export type Kind = 'breaker' | 'rcbo' | 'rcd' | 'spd' | 'relay' | 'box' | 'cable' | 'board' | 'bus' | 'other';
@@ -145,7 +146,7 @@ export function shopQuery(item: SpecItem): string {
   const w = parseAttrs(item.name);
   const name = item.name;
   if (w.kind === 'cable') return 'ВВГнг-LS ' + w.cores + 'х' + String(w.sect).replace('.', ',');
-  if (w.kind === 'board') return 'Щиток встраиваемый ' + w.modules + ' модулей';
+  if (w.kind === 'board') return 'Щиток встраиваемый ' + w.modules + ' ' + plural(w.modules ?? 0, ['модуль', 'модуля', 'модулей']);
   if (w.kind === 'bus') return w.bus === 'pe' ? 'Шина PE заземления на DIN-рейку' : 'Шина N нулевая на DIN-рейку';
   if (w.arc) return (w.kind === 'rcbo' ? 'УЗДП с дифавтоматом ' : 'УЗДП с автоматом ') + w.curve + w.amp + (w.ma ? ' ' + w.ma + ' мА' : '');
   if (w.kind === 'breaker') return 'Автоматический выключатель ' + w.poles + 'P ' + w.curve + w.amp;

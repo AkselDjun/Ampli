@@ -85,7 +85,7 @@ describe('shopQuery and searchUrl', () => {
     expect(shopQuery(it_('Дифавтомат 1P+N C16 30 мА'))).toBe('Дифавтомат 1P C16 30 мА');
     expect(shopQuery(it_('Дифавтомат 2P C25'))).toBe('Дифавтомат 2P C25');
     expect(shopQuery(it_('ВВГнг(А)-LS 3×2,5'))).toBe('ВВГнг-LS 3х2,5');
-    expect(shopQuery(it_('Щиток на 24 модуля'))).toBe('Щиток встраиваемый 24 модулей');
+    expect(shopQuery(it_('Щиток на 24 модуля'))).toBe('Щиток встраиваемый 24 модуля');
     expect(shopQuery(it_('Шина N (нулевая)'))).toContain('Шина N');
     expect(shopQuery(it_('Шина PE (заземления)'))).toContain('Шина PE');
     expect(shopQuery(it_('Что-то ещё'))).toBe('Что-то ещё');

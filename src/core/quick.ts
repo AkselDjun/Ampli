@@ -6,6 +6,7 @@ export interface ParsedApp {
   w: number;
   n: number;
   tag: string;
+  m?: number;
 }
 
 export interface ParseResult {
@@ -14,7 +15,9 @@ export interface ParseResult {
 }
 
 const COUNT_RE = /(?:^|\s)(?:[x×*]\s*(\d{1,2})|(\d{1,2})\s*(?:шт\.?|штук[и]?))(?=\s|$)/i;
-const POWER_RE = /(\d+(?:[.,]\d+)?)\s*(квт|kw|вт|w)?(?![\p{L}\d])/iu;
+const POWER_RE = /(\d+(?:[.,]\d+)?)\s*(квт|kw|вт|w)?(?:\s*\/\s*м)?(?![\p{L}\d])/iu;
+const METER_RE = /(\d+(?:[.,]\d+)?)\s*м(?![\p{L}\d])/iu;
+const STRIP_RE = /лент/i;
 
 export function parseApps(text: string): ParseResult {
   const apps: ParsedApp[] = [];
@@ -23,6 +26,14 @@ export function parseApps(text: string): ParseResult {
     let part = raw.trim();
     if (!part) return;
     let n = 1;
+    let m: number | undefined;
+    if (STRIP_RE.test(part)) {
+      const mm = part.match(METER_RE);
+      if (mm) {
+        m = pn(mm[1], 0);
+        part = (part.slice(0, mm.index) + ' ' + part.slice((mm.index ?? 0) + mm[0].length)).replace(/\s+/g, ' ').trim();
+      }
+    }
     const cm = part.match(COUNT_RE);
     if (cm) {
       n = Math.max(1, Math.min(99, Number(cm[1] || cm[2])));
@@ -53,7 +64,7 @@ export function parseApps(text: string): ParseResult {
     }
     const known = PRESETS.find(p => p[0].toLowerCase() === name.toLowerCase());
     if (known) tag = known[2];
-    apps.push({ name: name.charAt(0).toUpperCase() + name.slice(1), w: Math.round(w), n, tag });
+    apps.push({ name: name.charAt(0).toUpperCase() + name.slice(1), w: m !== undefined ? Math.round(w * 10) / 10 : Math.round(w), n, tag, ...(m !== undefined && m > 0 ? { m } : {}) });
   });
   return { apps, skipped };
 }

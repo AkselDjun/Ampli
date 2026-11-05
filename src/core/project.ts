@@ -9,16 +9,21 @@ import { normWork } from './labor';
 import { normWeak, weakStarted } from './weak';
 import { normFloor } from './floor';
 
+const str = (v: unknown, n: number): string => (typeof v === 'string' ? v.slice(0, n) : typeof v === 'number' ? String(v) : '');
+const numv = (v: unknown, d: number | string = ''): number | string => (typeof v === 'number' && Number.isFinite(v) ? v : typeof v === 'string' ? v.slice(0, 12) : d);
+
 type Loose = Partial<Project> & { cfg?: unknown; lines?: unknown };
 
 export function normProject(o: unknown, keep = false): Project | null {
   const x = o as Loose | null;
-  if (!x || typeof x !== 'object' || !x.cfg || !Array.isArray(x.lines)) return null;
+  if (!x || typeof x !== 'object' || !x.cfg || typeof x.cfg !== 'object' || Array.isArray(x.cfg) || !Array.isArray(x.lines)) return null;
   const src = x.lines as Line[];
+  const seen = new Map<string, string>();
   for (const l of src) {
-    if (!l || !(l.type in TYPES) || !Array.isArray(l.apps)) return null;
+    if (l && typeof l.zone === 'string' && l.zone.trim() && !seen.has(l.zone.trim().toLowerCase())) seen.set(l.zone.trim().toLowerCase(), l.zone.trim());
+    if (!l || typeof l !== 'object' || typeof l.type !== 'string' || !(l.type in TYPES) || !Array.isArray(l.apps)) return null;
   }
-  const lines: Line[] = src.map(l => ({ ...l, ...(typeof l.where === 'string' && l.where.trim() ? { where: l.where.slice(0, 80) } : { where: undefined }), ...(typeof l.zone === 'string' && l.zone.trim() ? { zone: l.zone.slice(0, 60) } : { zone: undefined }), id: keep ? keepId(l.id) : nid(), apps: l.apps.map(a => ({ ...a, id: nid() })) }));
+  const lines: Line[] = src.map(l => ({ ...l, ...(typeof l.where === 'string' && l.where.trim() ? { where: l.where.slice(0, 80) } : { where: undefined }), ...(typeof l.zone === 'string' && l.zone.trim() ? { zone: (seen.get(l.zone.trim().toLowerCase()) === l.zone.trim() ? l.zone : seen.get(l.zone.trim().toLowerCase()) as string).slice(0, 60) } : { zone: undefined }), name: str(l.name, 80), id: keep ? keepId(l.id) : nid(), apps: l.apps.filter(a => a && typeof a === 'object').map(a => ({ ...a, name: str(a.name, 80), w: numv(a.w), n: numv(a.n, 1), ...(a.m !== undefined ? { m: numv(a.m) } : {}), ...(a.br !== undefined ? { br: numv(a.br) } : {}), id: nid() })) }));
   return {
     id: keep && x.id ? String(x.id) : pid(),
     name: String(x.name || 'Без названия').slice(0, 80),
@@ -44,13 +49,15 @@ export function normProject(o: unknown, keep = false): Project | null {
   };
 }
 
+export const SAMPLE_NAME = 'Пример: двухкомнатная квартира';
+
 export function newProject(src: Content | Project, name: string): Project {
   const now = Date.now();
   return normProject({ ...src, id: undefined, name, created: now, updated: now }) as Project;
 }
 
 export function sampleProject(): Project {
-  return newProject(sample(), 'Пример: двухкомнатная квартира');
+  return newProject(sample(), SAMPLE_NAME);
 }
 
 export function uniqName(names: string[], n: string): string {

@@ -72,7 +72,7 @@ describe('weak current actions', () => {
     );
     const w = cur(s).weak;
     expect(w?.pts[0].room).toHaveLength(40);
-    expect(w?.pts[0]).toMatchObject({ len: '12345678', kind: 'cam' });
+    expect(w?.pts[0]).toMatchObject({ len: '500', kind: 'cam' });
     expect(w?.ont).toBe(false);
     s = run(s, { t: 'weakDel', id: a.id });
     expect(cur(s).weak?.pts).toHaveLength(1);

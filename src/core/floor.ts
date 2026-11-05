@@ -35,8 +35,9 @@ export const FILM_WPM = [150, 220];
 export const THERMO_A = 16;
 export const MATS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7, 8, 9, 10, 12, 15];
 export const CABLES = [150, 200, 250, 300, 400, 500, 600, 700, 800, 1000, 1200, 1500, 1800, 2000, 2500, 3000];
-export const UZO_REF = 'СН 4.04.01-2019 п.16.3.3, ТКП 339-2022 п.8.7.4';
-export const BATH_REF = 'ТКП 339-2022 п.8.7.21, ГОСТ 30331.11 п.701.55';
+export const UZO_REF = 'СН 4.04.01-2019 п.16.3.3';
+export const BATH_REF = 'ГОСТ 30331.11 п.701.55';
+export const CONTACTORS = [25, 40, 63];
 
 const isUse = (v: unknown): v is FloorUse => typeof v === 'string' && v in FLOOR_USES;
 const isSys = (v: unknown): v is FloorSys => typeof v === 'string' && v in FLOOR_SYS;
@@ -78,6 +79,8 @@ export interface FloorResult {
   size: string;
   len: number;
   step: number;
+  parts: number[];
+  contactor: number;
   notes: FloorNote[];
 }
 
@@ -96,22 +99,39 @@ export function floorCalc(r: FloorRoom): FloorResult {
   let size = '';
   let len = 0;
   let step = 0;
+  let parts: number[] = [];
   if (area > 0 && wpmIn > 0) {
     if (r.sys === 'mat') {
-      const m = down(MATS, area);
+      let rest = area;
+      while (rest >= MATS[0] - 1e-9 && parts.length < 4) {
+        const m = down(MATS, rest);
+        parts.push(m);
+        rest = Math.round((rest - m) * 100) / 100;
+      }
+      const m = parts.reduce((s, x) => s + x, 0);
       watts = m * MAT_WPM;
       product = 'Нагревательный мат ' + MAT_WPM + ' Вт/м²';
-      size = m ? fs(m) + ' м²' : '';
+      size = parts.map(x => fs(x) + ' м²').join(' + ');
       if (!m) notes.push({ k: 'bad', text: 'Площадь меньше самого маленького мата ' + fs(MATS[0]) + ' м².', ref: '' });
-      else if (m < area - 0.25) notes.push({ k: 'ok', text: 'Мат ' + fs(m) + ' м² на ' + fs(area) + ' м² свободного пола: нагревательную жилу резать нельзя, берётся ближайший меньший размер.', ref: 'практика' });
+      else {
+        if (parts.length > 1) notes.push({ k: 'ok', text: 'Площадь больше самого большого мата, нужно ' + parts.length + ' ' + plural(parts.length, ['мат', 'мата', 'матов']) + ', подключаются параллельно к одному терморегулятору.', ref: 'практика' });
+        if (m < area - 0.25) notes.push({ k: 'ok', text: 'Маты на ' + fs(m) + ' м² из ' + fs(area) + ' м² свободного пола: нагревательную жилу резать нельзя, берётся ближайший меньший размер.', ref: 'практика' });
+      }
     } else if (r.sys === 'cable') {
       const target = area * wpmIn;
-      const p = down(CABLES, target * 1.1) || CABLES[0];
-      watts = p;
-      len = Math.round(p / CABLE_WPM_M);
+      const max = CABLES[CABLES.length - 1];
+      const k = Math.max(1, Math.ceil((target * 1.1) / max));
+      const stepOf = (p: number): number => (area / (k * Math.round(p / CABLE_WPM_M))) * 100;
+      const fit = CABLES.filter(p => stepOf(p) >= 7 && stepOf(p) <= 15 && Math.abs(k * p - target) <= target * 0.35);
+      const p = fit.length ? fit.reduce((b, x) => (Math.abs(k * x - target) < Math.abs(k * b - target) ? x : b)) : down(CABLES, (target * 1.1) / k) || CABLES[0];
+      const one = Math.round(p / CABLE_WPM_M);
+      parts = Array(k).fill(p);
+      watts = k * p;
+      len = k * one;
       step = len > 0 ? Math.round((area / len) * 1000) / 10 : 0;
       product = 'Нагревательный кабель ' + CABLE_WPM_M + ' Вт/м';
-      size = fmt(p, 0) + ' Вт, ' + len + ' м';
+      size = k > 1 ? k + ' × ' + fmt(p, 0) + ' Вт, ' + k + ' × ' + one + ' м' : fmt(p, 0) + ' Вт, ' + one + ' м';
+      if (k > 1) notes.push({ k: 'ok', text: 'Мощность больше самой большой секции ' + fmt(max, 0) + ' Вт, нужно ' + k + ' ' + plural(k, ['секция', 'секции', 'секций']) + '.', ref: 'практика' });
       if (step < 7) notes.push({ k: 'warn', text: 'Шаг укладки ' + fmt(step, 1) + ' см, меньше 7 см: кабель будет перегреваться. Возьмите секцию меньше.', ref: 'практика' });
       else if (step > 15) notes.push({ k: 'warn', text: 'Шаг укладки ' + fmt(step, 1) + ' см, больше 15 см: пол прогреется полосами. Возьмите секцию больше.', ref: 'практика' });
       else notes.push({ k: 'ok', text: 'Шаг укладки ' + fmt(step, 1) + ' см.', ref: 'практика' });
@@ -125,13 +145,14 @@ export function floorCalc(r: FloorRoom): FloorResult {
   }
   const ok = watts > 0;
   const amps = watts / 230;
+  const contactor = amps > THERMO_A ? CONTACTORS.find(x => x >= amps * 1.1) ?? CONTACTORS[CONTACTORS.length - 1] : 0;
   if (ok) {
     notes.push({ k: 'ok', text: 'Защита УЗО обязательна, она уже есть у всех групп щитка.', ref: UZO_REF });
-    notes.push(amps > THERMO_A ? { k: 'bad', text: 'Ток ' + fmt(amps, 1) + ' А больше ' + THERMO_A + ' А терморегулятора: подключайте через контактор или разделите на два регулятора.', ref: 'паспорт терморегулятора' } : { k: 'ok', text: 'Терморегулятор с датчиком пола на ' + THERMO_A + ' А, ток ' + fmt(amps, 1) + ' А.', ref: 'паспорт терморегулятора' });
+    notes.push(amps > THERMO_A ? { k: 'warn', text: 'Ток ' + fmt(amps, 1) + ' А больше ' + THERMO_A + ' А терморегулятора: подключайте через контактор или разделите на два регулятора.', ref: 'паспорт терморегулятора' } : { k: 'ok', text: 'Терморегулятор с датчиком пола на ' + THERMO_A + ' А, ток ' + fmt(amps, 1) + ' А.', ref: 'паспорт терморегулятора' });
     if (r.use === 'bath') notes.push({ k: r.sys === 'film' ? 'bad' : 'warn', text: r.sys === 'film' ? 'Плёнку в ванной не применяют, нужен мат или кабель с экраном.' : 'В полу ванной только кабель или мат с металлическим экраном, экран присоединяется к PE.', ref: BATH_REF });
     if (r.sys === 'film' && r.use !== 'bath') notes.push({ k: 'ok', text: 'Плёнку под мебелью без ножек не укладывают, площадь считайте только свободную.', ref: 'практика' });
   }
-  return { ok, area, wpm: area > 0 && ok ? watts / area : 0, watts, amps, product, size, len, step, notes };
+  return { ok, area, wpm: area > 0 && ok ? watts / area : 0, watts, amps, product, size, len, step, parts, contactor, notes };
 }
 
 export const floorAppName = (r: FloorRoom): string => 'Тёплый пол (' + (r.name.trim() || FLOOR_USES[r.use].name) + ')';
@@ -142,7 +163,12 @@ export function floorSpec(rooms: FloorRoom[]): SpecItem[] {
   res.forEach(({ r, x }) => {
     const where = r.name.trim() || FLOOR_USES[r.use].name;
     if (r.sys === 'film') items.push({ name: x.product, qty: fs(x.len) + ' м', note: where + ', ' + fmt(x.watts, 0) + ' Вт', n: x.len, unit: 'м' });
-    else items.push({ name: x.product + ' ' + x.size, qty: '1 шт', note: where + ', ' + fmt(x.watts, 0) + ' Вт', n: 1, unit: 'шт' });
+    else {
+      const by = new Map<number, number>();
+      x.parts.forEach(v => by.set(v, (by.get(v) ?? 0) + 1));
+      by.forEach((n, v) => items.push({ name: x.product + ' ' + (r.sys === 'mat' ? fs(v) + ' м²' : fmt(v, 0) + ' Вт, ' + Math.round(v / CABLE_WPM_M) + ' м'), qty: n + ' шт', note: where + ', ' + fmt(x.watts, 0) + ' Вт', n, unit: 'шт' }));
+    }
+    if (x.contactor) items.push({ name: 'Контактор модульный 2P ' + x.contactor + ' А', qty: '1 шт', note: where + ': ток ' + fmt(x.amps, 1) + ' А больше ' + THERMO_A + ' А терморегулятора', n: 1, unit: 'шт' });
   });
   if (res.length) {
     items.push({ name: 'Терморегулятор с датчиком температуры пола, ' + THERMO_A + ' А', qty: res.length + ' шт', note: 'по одному на помещение', n: res.length, unit: 'шт' });

@@ -87,9 +87,11 @@ describe('moveLine', () => {
     const s = start();
     const ids = cur(s).lines.map(l => l.id);
     const n = reducer(s, { t: 'moveLine', id: ids[0], to: ids[2] });
-    expect(cur(n).lines.map(l => l.id)).toEqual([ids[1], ids[2], ids[0], ...ids.slice(3)]);
-    const back = reducer(n, { t: 'moveLine', id: ids[0], to: ids[1] });
-    expect(cur(back).lines[0].id).toBe(ids[0]);
+    expect(cur(n).lines.map(l => l.id)).toEqual([ids[2], ids[1], ids[0], ...ids.slice(3)]);
+    const back = reducer(n, { t: 'moveLine', id: ids[0], to: ids[2] });
+    expect(cur(back).lines.map(l => l.id)).toEqual(ids);
+    const across = reducer(s, { t: 'moveLine', id: ids[0], to: ids[1] });
+    expect(cur(across).lines.map(l => l.id)).toEqual([ids[1], ids[0], ...ids.slice(2)]);
   });
   it('ignores unknown ids and moves onto itself', () => {
     const s = start();

@@ -65,8 +65,8 @@ export function OldSheet({ open, onClose, p, a, dispatch, onPrint }: { open: boo
         {seg('net', 'Этажный щит', [['', 'Не знаю'], ['tncs', 'Есть PE'], ['tnc', 'Только PEN']])}
         {seg('panel', 'Щиток квартиры', [['', 'Не знаю'], ['fuse', 'Пробки'], ['old', 'Старые автоматы'], ['mod', 'Модульный']])}
         <div className="ow-nums">
-          <label className="f"><span className="lbl">Наименьшая изоляция, МОм</span><input type="number" inputMode="decimal" min={0} step={0.1} placeholder="по замеру" value={o.ins} onChange={e => set('ins')(e.target.value)} /></label>
-          <label className="f"><span className="lbl">Возраст проводки, лет</span><input type="number" inputMode="numeric" min={0} max={120} step={1} placeholder="примерно" value={o.age} onChange={e => set('age')(e.target.value)} /></label>
+          <label className="f"><span className="lbl">Наименьшая изоляция, МОм</span><input type="text" inputMode="decimal" min={0} step={0.1} placeholder="по замеру" value={o.ins} onChange={e => set('ins')(e.target.value)} /></label>
+          <label className="f"><span className="lbl">Возраст проводки, лет</span><input type="text" inputMode="numeric" min={0} max={120} step={1} placeholder="примерно" value={o.age} onChange={e => set('age')(e.target.value)} /></label>
         </div>
         <fieldset className="ow-signs">
           <legend className="lbl">Что видно при осмотре</legend>

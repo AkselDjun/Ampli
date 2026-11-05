@@ -21,4 +21,9 @@ export const plural = (n: number, f: [string, string, string]): string => {
   return f[2];
 };
 
+export const ymd = (s: string): string => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  return m ? m[3] + '.' + m[2] + '.' + m[1] : s;
+};
+
 export const dfmt = (t: number): string => new Date(t).toLocaleDateString('ru-RU');

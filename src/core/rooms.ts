@@ -65,7 +65,7 @@ function merge(items: { room: Room; apps: RoomApp[] }[], cap: number): Bucket[] 
   }));
 }
 
-const zoned = (l: Line, rooms: string[]): Line => (rooms.length ? { ...l, zone: rooms[0].slice(0, 60) } : l);
+const zoned = (l: Line, rooms: string[]): Line => (rooms.length ? { ...l, zone: (new Set(rooms).size > 1 ? 'Комнаты' : rooms[0]).slice(0, 60) } : l);
 
 const title = (base: string, rooms: string[]): string => {
   const t = base + ': ' + rooms.join(', ');

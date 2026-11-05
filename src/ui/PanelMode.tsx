@@ -133,7 +133,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
               <label key={fd.f} className="f">
                 <span className="lbl">{fd.label}, {fd.unit}</span>
                 <input
-                  type="number"
+                  type="text"
                   inputMode="decimal"
                   min={0}
                   step={fd.step}

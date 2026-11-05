@@ -108,9 +108,9 @@ describe('Editor', () => {
     change(cnt, '1');
     fireEvent.click(btn(ed(), 'Меньше'));
     expect(cnt.value).toBe('1');
-    change(cnt, '99');
+    change(cnt, '999');
     fireEvent.click(btn(ed(), 'Больше'));
-    expect(cnt.value).toBe('99');
+    expect(cnt.value).toBe('999');
     const chip = ed().querySelector('.chips .chip:not(.custom)') as HTMLElement;
     fireEvent.click(chip);
     fireEvent.click(chip);
