@@ -6,6 +6,9 @@ import { App } from './ui/App';
 import { Boundary } from './ui/Boundary';
 import { initPwa, retirePwa } from './ui/pwa';
 import { PWA_ENABLED } from './core/flags';
+import { initTheme } from './ui/theme';
+
+initTheme();
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>

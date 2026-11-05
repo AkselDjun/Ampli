@@ -1581,3 +1581,4 @@ html:has(.sheet:not([hidden])) .toast{top:calc(12px + env(safe-area-inset-top,0p
   .pm-in input{height:44px;font-size:var(--t-xl)}
   .pm-note{font-size:var(--t-sm)}
 }
+:root[data-theme="light"]{color-scheme:light}
