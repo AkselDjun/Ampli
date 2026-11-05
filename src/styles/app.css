@@ -503,6 +503,9 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 
 .share{display:grid;gap:8px}
 .share textarea{width:100%;min-height:72px;border:1px solid var(--line);border-radius:var(--r-m);padding:8px;background:var(--surface);color:var(--ink);font:12px/1.3 ui-monospace,monospace}
+.send{display:grid;gap:6px}
+.share .send-text{min-height:96px;font:inherit;font-size:14px;line-height:1.4}
+.send .data-row a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .btn svg{width:18px;height:18px;vertical-align:-4px}
 
 .photos{display:grid;gap:8px}
