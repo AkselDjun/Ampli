@@ -126,10 +126,10 @@ describe('Client estimate page', () => {
     const ta = v().querySelector('textarea') as HTMLTextAreaElement;
     expect(ta.value).toContain('Согласую смету');
     expect(document.activeElement).toBe(ta);
-    const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
+    const print = vi.fn();
+    window.print = print;
     click(v(), 'Сохранить в PDF');
     expect(print).toHaveBeenCalledTimes(1);
-    print.mockRestore();
     unmount();
   });
 

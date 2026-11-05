@@ -68,13 +68,17 @@ export function Editor({
   const resRef = useRef<HTMLDivElement>(null);
   const [mini, setMini] = useState(false);
   const [brOn, setBrOn] = useState(false);
-  const menu = usePop<HTMLDivElement>();
-  const mk = useMenuKeys(menu.open, () => menu.setOpen(false));
+  const { ref: menuRef, open: menuOpen, setOpen: setMenuOpen } = usePop<HTMLDivElement>();
+  const { listRef: mkListRef, triggerRef: mkTriggerRef, onKeyDown: mkKeyDown, back: mkBack } = useMenuKeys(menuOpen, () => setMenuOpen(false));
   const powRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const lid = l?.id;
-  useEffect(() => {
+  const [lidSeen, setLidSeen] = useState(lid);
+  if (lid !== lidSeen) {
+    setLidSeen(lid);
     setMini(false);
     setBrOn(false);
+  }
+  useEffect(() => {
     const el = resRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') return;
     const io = new IntersectionObserver(([e]) => setMini(!e.isIntersecting && e.boundingClientRect.top < (e.rootBounds ? e.rootBounds.top : 56) + 1), { rootMargin: '-56px 0px 0px 0px' });
@@ -327,14 +331,14 @@ export function Editor({
               <button className="chip more" type="button" aria-expanded={allChips} onClick={() => setAllChips(!allChips)}>{allChips ? 'Свернуть' : 'Ещё ' + (presets.length - CHIP_MAX)}</button>
             )}
           </div>
-          <div className="ed-more" ref={menu.ref}>
-            <button className="link ed-more-b" ref={mk.trigger} type="button" aria-haspopup="menu" aria-expanded={menu.open} onClick={() => menu.setOpen(!menu.open)}>Ещё действия<IconDown /></button>
-            {menu.open && (
-              <div className="ed-menu" role="menu" aria-label="Действия с группой" ref={el => { mk.list.current = el; }} onKeyDown={mk.onKeyDown}>
-                <button type="button" role="menuitem" onClick={() => { mk.back(); setQuick(quick === null ? '' : null); setQuickMsg(''); }}>{quick === null ? 'Вставить список текстом' : 'Скрыть вставку списком'}</button>
-                {(brOn || !showBr) && <button type="button" role="menuitem" onClick={() => { mk.back(); setBrOn(!brOn); }}>{brOn ? 'Скрыть отводы к точкам' : 'Указать отводы к точкам'}</button>}
-                {prevPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[prevPeer].l.id }); toastOk('Группа перемещена на место Г' + (prevPeer + 1)); }}>Переставить раньше, на место Г{prevPeer + 1}</button>}
-                {nextPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mk.back(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[nextPeer].l.id }); toastOk('Группа перемещена на место Г' + (nextPeer + 1)); }}>Переставить позже, на место Г{nextPeer + 1}</button>}
+          <div className="ed-more" ref={menuRef}>
+            <button className="link ed-more-b" ref={mkTriggerRef} type="button" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>Ещё действия<IconDown /></button>
+            {menuOpen && (
+              <div className="ed-menu" role="menu" aria-label="Действия с группой" ref={el => { mkListRef.current = el; }} onKeyDown={mkKeyDown}>
+                <button type="button" role="menuitem" onClick={() => { mkBack(); setQuick(quick === null ? '' : null); setQuickMsg(''); }}>{quick === null ? 'Вставить список текстом' : 'Скрыть вставку списком'}</button>
+                {(brOn || !showBr) && <button type="button" role="menuitem" onClick={() => { mkBack(); setBrOn(!brOn); }}>{brOn ? 'Скрыть отводы к точкам' : 'Указать отводы к точкам'}</button>}
+                {prevPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mkBack(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[prevPeer].l.id }); toastOk('Группа перемещена на место Г' + (prevPeer + 1)); }}>Переставить раньше, на место Г{prevPeer + 1}</button>}
+                {nextPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mkBack(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[nextPeer].l.id }); toastOk('Группа перемещена на место Г' + (nextPeer + 1)); }}>Переставить позже, на место Г{nextPeer + 1}</button>}
               </div>
             )}
           </div>

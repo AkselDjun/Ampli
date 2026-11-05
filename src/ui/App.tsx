@@ -85,7 +85,8 @@ export function App() {
     return h ? unpackProject(h) : null;
   });
   const p = cur(state);
-  const a = useMemo(() => calcAll(p.lines, p.cfg, p), [p.lines, p.cfg, p.weak, p.floor]);
+  const { lines: pLines, cfg: pCfg, weak: pWeak, floor: pFloor } = p;
+  const a = useMemo(() => calcAll(pLines, pCfg, { weak: pWeak, floor: pFloor }), [pLines, pCfg, pWeak, pFloor]);
   const dp = useDeferredValue(p);
   const da = useDeferredValue(a);
   const [hot, setHot] = useState<string | null>(null);
@@ -103,7 +104,7 @@ export function App() {
 
   useEffect(() => {
     if (!viewOnly) onSaved(saveLib(lib));
-  }, [lib]);
+  }, [lib, viewOnly]);
 
   useEffect(() => {
     const t = window.setTimeout(() => { preloadParts().catch(() => undefined); }, 1500);
@@ -124,10 +125,14 @@ export function App() {
 
   useEffect(() => {
     if (!viewOnly) onSaved(saveStore({ cur: state.cur, list: state.list }));
-  }, [state.cur, state.list]);
+  }, [state.cur, state.list, viewOnly]);
 
-  useEffect(() => {
+  const [viewOf, setViewOf] = useState(state.cur);
+  if (viewOf !== state.cur) {
+    setViewOf(state.cur);
     setView('groups');
+  }
+  useEffect(() => {
     window.scrollTo(0, 0);
   }, [state.cur]);
 
@@ -197,7 +202,7 @@ export function App() {
     declineIncoming();
   };
 
-  const closeSheet = useCallback(() => setSheet(null), []);
+  const closeSheet = useCallback(() => setSheet(null), [setSheet]);
   const goEdit = () => {
     if (isWide()) return;
     scrollPos.current = window.scrollY;

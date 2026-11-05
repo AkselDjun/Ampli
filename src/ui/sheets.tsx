@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import type { Calc, Project } from '../core/types';
 import type { TplKey } from '../core/templates';
@@ -131,9 +132,11 @@ export function ProjectsSheet({
   const [elec, setElec] = useState(true);
   const file = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) setTplOpen(false);
-  }, [open]);
+  }
   const note = (t: string, bad = false) => (bad ? toastBad(t) : toastOk(t));
   const create = (k: TplKey) => {
     const nm = k === 'blank' ? 'Проект ' + (state.list.length + 1) : TPL_NAME[k];
@@ -336,10 +339,12 @@ export function ReportSheet({
   const three = a.c.supply === 3;
   const { lib, dispatch: libDispatch } = useLib();
   const est = estimate(buildSpec(a), lib.prices);
-  const [tab, setTab] = useState('groups');
-  useEffect(() => {
+  const [tab, setTab] = useState(want ? want.tab : 'groups');
+  const [wantSeen, setWantSeen] = useState(want);
+  if (want !== wantSeen) {
+    setWantSeen(want);
     if (want) setTab(want.tab);
-  }, [want]);
+  }
   return (
     <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Допущения' }]} />}>
       <TabPanel scope="rep" id="groups" cur={tab}>

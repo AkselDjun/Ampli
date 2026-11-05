@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import { App } from '../../ui/App';

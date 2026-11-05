@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 
 const LAYERS: { close: () => void }[] = [];
 const HIST = { pushed: false, skip: false, ready: false };
@@ -28,7 +28,9 @@ const onPop = (): void => {
 
 export function useBackClose(open: boolean, onClose: () => void): void {
   const ref = useRef(onClose);
-  ref.current = onClose;
+  useLayoutEffect(() => {
+    ref.current = onClose;
+  });
   useEffect(() => {
     if (!open) return;
     const me = { close: () => ref.current() };

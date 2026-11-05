@@ -63,7 +63,6 @@ export function Palette({ open, onClose, cmds }: { open: boolean; onClose: () =>
       onClose();
     }
   };
-  let last = '';
   return (
     <dialog ref={ref} className="pal" aria-labelledby="pal-t" onClose={onClose}>
       <h2 id="pal-t" className="sr">Быстрые действия</h2>
@@ -88,8 +87,7 @@ export function Palette({ open, onClose, cmds }: { open: boolean; onClose: () =>
       </div>
       <ul id="pal-list" role="listbox" aria-label="Результаты" className="pal-list">
         {list.map((c, i) => {
-          const head = c.group !== last ? c.group : '';
-          last = c.group;
+          const head = i === 0 || list[i - 1].group !== c.group ? c.group : '';
           return (
             <li key={c.id} role="presentation">
               {head && <div className="pal-g" role="presentation">{head}</div>}

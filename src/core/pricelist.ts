@@ -14,7 +14,7 @@ export interface ParsedList {
 
 export function decodeText(buf: ArrayBuffer): string {
   try {
-    return new TextDecoder('utf-8', { fatal: true }).decode(buf).replace(/^﻿/, '');
+    return new TextDecoder('utf-8', { fatal: true }).decode(buf).replace(/^\uFEFF/, '');
   } catch (e) {
     void e;
     return new TextDecoder('windows-1251').decode(buf);
@@ -100,7 +100,7 @@ export function parseXlsx(buf: ArrayBuffer): Grid | null {
 }
 
 export function parsePrice(raw: string): number | null {
-  const s = String(raw).replace(/\s| /g, '').replace(/[^\d.,]/g, '');
+  const s = String(raw).replace(/[\s\u00A0]/g, '').replace(/[^\d.,]/g, '');
   if (!s) return null;
   let t = s;
   if (t.includes(',') && t.includes('.')) t = t.lastIndexOf(',') > t.lastIndexOf('.') ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');

@@ -4,17 +4,17 @@ import type { KeyboardEvent } from 'react';
 const items = (list: HTMLElement | null): HTMLElement[] => (list ? Array.from(list.querySelectorAll<HTMLElement>('[role="menuitem"]:not([disabled])')) : []);
 
 export function useMenuKeys(open: boolean, close: () => void) {
-  const list = useRef<HTMLElement | null>(null);
-  const trigger = useRef<HTMLButtonElement | null>(null);
+  const listRef = useRef<HTMLElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
-    if (open) items(list.current)[0]?.focus();
+    if (open) items(listRef.current)[0]?.focus();
   }, [open]);
   const back = () => {
     close();
-    trigger.current?.focus();
+    triggerRef.current?.focus();
   };
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    const all = items(list.current);
+    const all = items(listRef.current);
     const i = all.indexOf(document.activeElement as HTMLElement);
     const go = (k: number) => {
       e.preventDefault();
@@ -30,5 +30,5 @@ export function useMenuKeys(open: boolean, close: () => void) {
       back();
     } else if (e.key === 'Tab') close();
   };
-  return { list, trigger, onKeyDown, back };
+  return { listRef, triggerRef, onKeyDown, back };
 }
