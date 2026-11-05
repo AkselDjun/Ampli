@@ -3,12 +3,14 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import babel from '@rolldown/plugin-babel';
 import { VitePWA } from 'vite-plugin-pwa';
 import { PWA_ENABLED } from './src/core/flags';
+import pkg from './package.json' with { type: 'json' };
 
 const preset = reactCompilerPreset();
 const compiler = { ...preset, rolldown: { ...preset.rolldown, applyToEnvironmentHook: undefined } };
 
 export default defineConfig({
   base: './',
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
     react(),
     babel({ presets: [compiler] }),

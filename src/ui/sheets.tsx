@@ -27,6 +27,7 @@ import { estimate } from '../core/spec';
 import { DrawingA3 } from './parts';
 import type { PrintMode } from './WorkSheet';
 import { Button, Field } from './kit';
+import { APP_VERSION, NORMS_EDITION } from '../core/version';
 
 export function NetSheet({
   open, onClose, p, dispatch, onOld, oldLabel
@@ -151,7 +152,7 @@ export function ProjectsSheet({
   };
   const exportFile = () => {
     try {
-      const text = JSON.stringify({ app: 'ampli', version: 1, ...p }, null, 2);
+      const text = JSON.stringify({ app: 'ampli', version: 1, appVersion: APP_VERSION, norms: NORMS_EDITION, ...p }, null, 2);
       const u = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
       const a = document.createElement('a');
       a.href = u;
