@@ -11,6 +11,13 @@ const compiler = { ...preset, rolldown: { ...preset.rolldown, applyToEnvironment
 export default defineConfig({
   base: './',
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: { groups: [{ name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ }] }
+      }
+    }
+  },
   plugins: [
     react(),
     babel({ presets: [compiler] }),
