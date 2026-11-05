@@ -6,7 +6,7 @@
 
 ## Стек
 
-Vite, TypeScript, React, vite-plugin-pwa (service worker на Workbox). Расчёт вынесен в чистые модули `src/core`, состояние проектов хранится в `localStorage`, фото в IndexedDB.
+Vite 8, TypeScript, React 19 с React Compiler, vite-plugin-pwa (service worker на Workbox). Проверки: ESLint с правилами React Hooks, модульные тесты на Vitest и сценарии в настоящем браузере на Playwright (ширина телефона и компьютера). Расчёт вынесен в чистые модули `src/core`, состояние проектов хранится в `localStorage`, фото в IndexedDB.
 
 ## Возможности
 
@@ -91,6 +91,8 @@ Vite, TypeScript, React, vite-plugin-pwa (service worker на Workbox). Расч
 npm install
 npm run dev
 npm test
+npm run lint
+npm run test:e2e
 npm run build
 ```
 
