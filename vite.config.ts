@@ -46,7 +46,10 @@ export default defineConfig({
   ],
   test: {
     environment: 'happy-dom',
-    include: ['src/**/*.test.{ts,tsx}'],
+    projects: [
+      { extends: true, test: { name: 'shared', include: ['src/**/*.test.{ts,tsx}'], exclude: ['src/test/isolated/**'], isolate: false } },
+      { extends: true, test: { name: 'isolated', include: ['src/test/isolated/**/*.test.{ts,tsx}'] } }
+    ],
     pool: 'threads',
     setupFiles: ['./src/test/setup.ts'],
     css: false,

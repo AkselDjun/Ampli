@@ -7,7 +7,7 @@ import { LIB_KEY } from '../../store/lib';
 import { sampleProject } from '../../core/project';
 import { packEstimate, packProject } from '../../core/share';
 import type { EstimateShare } from '../../core/share';
-import { byLabel, change, click, dlg, toastText, wide } from './util';
+import { byLabel, change, click, dlg, toastText, wide } from '../ui/util';
 
 vi.mock('../../ui/download', () => ({ download: vi.fn() }));
 
