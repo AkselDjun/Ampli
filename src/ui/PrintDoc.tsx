@@ -431,7 +431,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
         <div><span>Дата: </span>{now}</div>
       </div>
       <p>
-        <span style={{ color: '#555' }}>Питание: </span>{three ? '3 фазы, 400 В' : '1 фаза, 230 В'}; <span style={{ color: '#555' }}>прокладка: </span>{c.method === 'wall' ? 'скрытая' : 'открытая'}; <span style={{ color: '#555' }}>потеря напряжения </span>{dropText(c.drop, c.feeder)}; <span style={{ color: '#555' }}>Ко </span>{fs(c.ko)}; <span style={{ color: '#555' }}>поправка </span>{fs(c.k)}
+        <span className="pd-k">Питание: </span>{three ? '3 фазы, 400 В' : '1 фаза, 230 В'}; <span className="pd-k">прокладка: </span>{c.method === 'wall' ? 'скрытая' : 'открытая'}; <span className="pd-k">потеря напряжения </span>{dropText(c.drop, c.feeder)}; <span className="pd-k">Ко </span>{fs(c.ko)}; <span className="pd-k">поправка </span>{fs(c.k)}
       </p>
       <h2>Группы линий</h2>
       <table>

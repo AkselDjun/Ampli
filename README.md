@@ -6,7 +6,7 @@
 
 ## Стек
 
-Vite 8, TypeScript, React 19 с React Compiler, vite-plugin-pwa (service worker на Workbox). Проверки: ESLint с правилами React Hooks, модульные тесты на Vitest и сценарии в настоящем браузере на Playwright (ширина телефона и компьютера). Расчёт вынесен в чистые модули `src/core`, состояние проектов хранится в `localStorage`, фото в IndexedDB.
+Vite 8, TypeScript, React 19 с React Compiler, vite-plugin-pwa (service worker на Workbox). Проверки: ESLint с правилами React Hooks, Stylelint для стилей, модульные тесты на Vitest и сценарии в настоящем браузере на Playwright (ширина телефона и компьютера). Расчёт вынесен в чистые модули `src/core`, состояние проектов хранится в `localStorage`, фото в IndexedDB.
 
 ## Возможности
 
@@ -84,6 +84,10 @@ Vite 8, TypeScript, React 19 с React Compiler, vite-plugin-pwa (service worker 
 - Работает без интернета: после первого открытия всё нужное хранится на устройстве. Без сети недоступен только поиск по магазинам
 - Сообщает о новой версии и обновляется по кнопке «Обновить»
 - После установки браузер получает запрос не удалять данные проектов при нехватке места
+
+## Дизайн-система
+
+Цвета, шрифты, отступы, скругления, тени, слои и длительности анимаций заданы токенами в `src/styles/tokens.css`, светлая и тёмная тема переключаются только через токены. Правила и полный список токенов: [docs/design-system.md](docs/design-system.md).
 
 ## Команды
 
