@@ -17,6 +17,8 @@ import { Brand, IconBack, IconCheck, IconDoc, IconList, IconPanel } from './Icon
 import { Palette } from './Palette';
 import type { Cmd } from './Palette';
 import { setTheme } from './theme';
+import { updatedFrom } from './release';
+import { APP_VERSION } from '../core/version';
 import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
@@ -103,6 +105,7 @@ export function App() {
 
   useEffect(() => {
     const t = window.setTimeout(() => { preloadParts().catch(() => undefined); }, 1500);
+    if (updatedFrom()) toastOk('Ampli обновлён до версии ' + APP_VERSION + '. Что нового: Мои данные, Оформление');
     const before = () => flushSync(() => setPrinting(true));
     const after = () => setPrinting(false);
     window.addEventListener('beforeprint', before);
