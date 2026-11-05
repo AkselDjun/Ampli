@@ -125,7 +125,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
           <div className="pm-prot">
             <b className="mono">{r.prot}</b>
             <span className="mono">{x.r.In ? cableName(x.r) : ''}</span>
-            {x.l.where && <span>{x.l.where}</span>}
+            {x.l.where && <span className="pm-where">{x.l.where}</span>}
           </div>
           <div className="pm-in">
             {FIELDS.filter(fd => fd.f !== 'rcd' || x.r.rcd).map(fd => (

@@ -1572,3 +1572,12 @@ html:has(.sheet:not([hidden])) .toast{top:calc(12px + env(safe-area-inset-top,0p
   .tabbar-b{flex:1 1 auto;padding:0 8px;font-size:var(--t-sm)}
 }
 #rep-tp-estimate>.tot{max-width:none}
+.pm-nav .btn{flex-basis:120px}
+@media (max-width:760px) and (max-height:760px){
+  .pm{gap:6px;padding-top:10px}
+  .pm-where{display:none}
+  .pm-in{gap:6px 10px}
+  .pm-in .lbl{font-size:var(--t-xs)}
+  .pm-in input{height:44px;font-size:var(--t-xl)}
+  .pm-note{font-size:var(--t-sm)}
+}
