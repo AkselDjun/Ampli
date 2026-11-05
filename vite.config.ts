@@ -1,12 +1,17 @@
 import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
+import react, { reactCompilerPreset } from '@vitejs/plugin-react';
+import babel from '@rolldown/plugin-babel';
 import { VitePWA } from 'vite-plugin-pwa';
 import { PWA_ENABLED } from './src/core/flags';
+
+const preset = reactCompilerPreset();
+const compiler = { ...preset, rolldown: { ...preset.rolldown, applyToEnvironmentHook: undefined } };
 
 export default defineConfig({
   base: './',
   plugins: [
     react(),
+    babel({ presets: [compiler] }),
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,

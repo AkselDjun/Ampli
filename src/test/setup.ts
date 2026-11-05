@@ -8,12 +8,35 @@ import { preloadParts } from '../ui/parts';
 
 let seq = 0;
 
+class MemStorage implements Storage {
+  private m = new Map<string, string>();
+  get length(): number {
+    return this.m.size;
+  }
+  clear(): void {
+    this.m.clear();
+  }
+  getItem(k: string): string | null {
+    return this.m.has(k) ? (this.m.get(k) as string) : null;
+  }
+  key(i: number): string | null {
+    return [...this.m.keys()][i] ?? null;
+  }
+  removeItem(k: string): void {
+    this.m.delete(k);
+  }
+  setItem(k: string, v: string): void {
+    this.m.set(k, String(v));
+  }
+}
+
 beforeAll(async () => {
   await preloadParts();
 });
 
 beforeEach(() => {
-  localStorage.clear();
+  Object.defineProperty(window, 'localStorage', { value: new MemStorage(), configurable: true, writable: true });
+  Object.defineProperty(globalThis, 'localStorage', { value: window.localStorage, configurable: true, writable: true });
   localStorage.setItem('ampli-listby', 'no');
   resetPhotoCache();
   (globalThis as { indexedDB: IDBFactory }).indexedDB = new IDBFactory();

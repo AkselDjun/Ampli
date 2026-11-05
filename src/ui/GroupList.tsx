@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { Fragment, memo, useEffect, useRef, useState } from 'react';
 import type { Calc, CfgN, LineType, Project, Row } from '../core/types';
 import { NB, fmt, fs, plural } from '../core/format';

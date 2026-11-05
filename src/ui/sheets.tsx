@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import type { Calc, Project } from '../core/types';
 import type { TplKey } from '../core/templates';

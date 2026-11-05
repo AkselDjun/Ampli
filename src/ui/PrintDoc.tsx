@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import type { Calc, Project } from '../core/types';
 import { dfmt, fmt, fs, plural, pn, ymd } from '../core/format';
 import { ROWLEN, STATUS } from '../core/norms';
