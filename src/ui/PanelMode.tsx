@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import type { Calc } from '../core/types';
 import { fmt } from '../core/format';
 import { ROWLEN } from '../core/norms';
-import { layout } from '../core/calc';
+import { railCells, useFitCols } from './railfit';
 import { VERDICT, protocolRows } from '../core/protocol';
 import type { ProtoRow } from '../core/protocol';
 import { cableName } from '../core/protection';
@@ -34,9 +34,8 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
   const cur = pick && order.includes(pick) ? pick : (firstOpen ?? null);
   const done = rows.filter(r => r.verdict !== 'none').length;
   const rl = ROWLEN[a.size];
-  const slots = layout(a.devs, rl);
-  const gapBefore = slots.map((sl, i) => (i > 0 && sl.row > slots[i - 1].row ? sl.row * rl - (slots[i - 1].row * rl + slots[i - 1].col + a.devs[i - 1].mod) : 0));
-  const free = Math.max(0, Math.max(a.size, Math.ceil(a.placed / rl) * rl) - a.placed);
+  const [railRef, cols] = useFitCols<HTMLDivElement>(rl, 42, 2);
+  const { gapBefore, free } = railCells(a.devs, cols, rl, a.size);
   const x = cur ? a.rows.find(y => y.l.id === cur) : undefined;
   const r = cur ? byNo.get(noOf(cur)) : undefined;
   const at = cur ? order.indexOf(cur) : -1;
@@ -65,7 +64,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
             <span className="pmb-leg"><i className="v-ok" />соответствует <i className="v-bad" />нет <i className="v-none" />не измерено</span>
           </div>
           <div className="pmb-box">
-            <div className="pmb-rail" data-rc={rl} style={{ ['--rc' as string]: rl }}>
+            <div className="pmb-rail" ref={railRef} data-rc={cols} style={{ ['--rc' as string]: cols }}>
               {a.devs.map((d, i) => {
                 const gaps = Array.from({ length: gapBefore[i] }, (_, g) => plate('g' + i + '-' + g));
                 const style = { gridColumn: 'span ' + d.mod };
@@ -126,7 +125,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
           <div className="pm-prot">
             <b className="mono">{r.prot}</b>
             <span className="mono">{x.r.In ? cableName(x.r) : ''}</span>
-            {x.l.where && <span>{x.l.where}</span>}
+            {x.l.where && <span className="pm-where">{x.l.where}</span>}
           </div>
           <div className="pm-in">
             {FIELDS.filter(fd => fd.f !== 'rcd' || x.r.rcd).map(fd => (
