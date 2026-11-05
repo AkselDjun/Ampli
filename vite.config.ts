@@ -38,6 +38,19 @@ const csp = (): Plugin => ({
   }
 });
 
+const preloadFont = (match: RegExp): Plugin => ({
+  name: 'ampli-preload-font',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler(html, ctx) {
+      const font = Object.keys(ctx.bundle ?? {}).find(f => match.test(f));
+      if (!font) return html;
+      return html.replace('</title>', '</title>\n<link rel="preload" href="./' + font + '" as="font" type="font/woff2" crossorigin>');
+    }
+  }
+});
+
 export default defineConfig({
   base: './',
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
@@ -51,6 +64,7 @@ export default defineConfig({
   plugins: [
     csp(),
     react(),
+    preloadFont(/golos-text-cyrillic-wght-normal-[^/]*\.woff2$/),
     babel({ presets: [compiler] }),
     VitePWA({
       registerType: 'prompt',
