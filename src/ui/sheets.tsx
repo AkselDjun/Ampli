@@ -419,6 +419,12 @@ export function ReportSheet({
         <button className="btn" type="button" onClick={() => saveFile('csv')} data-tip="Смета в CSV"><IconDownload /> CSV</button>
         <button className="btn" type="button" onClick={onShop}>Где купить</button>
       </div>
+      {est.rows.length > 0 && est.rows.every(r => r.sum === null) && (
+        <div className="sample est-hint">
+          Цены пока не заданы, поэтому материалы в итоге не посчитаны. Впишите цену в строке позиции, она запомнится для следующих смет, или{' '}
+          <button className="link" type="button" onClick={onShop}>загрузите прайс магазина</button>.
+        </div>
+      )}
       <h3 className="sec-t">Спецификация</h3>
       <div className="tablewrap" role="region" aria-label="Спецификация" tabIndex={0}>
         <table className="t2 spec-t">
