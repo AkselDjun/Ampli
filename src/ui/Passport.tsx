@@ -4,6 +4,7 @@ import { calcAll } from '../core/calc';
 import { dfmt, fmt } from '../core/format';
 import { SCOPE_NOTE, TEST_NOTE, TRIP_STEPS, passportInput, passportRows, watts } from '../core/passport';
 import { useNow } from './now';
+import { Button } from './kit';
 
 export function PassportBody({ p, a }: { p: Project; a: Calc }) {
   const now = useNow();
@@ -59,7 +60,7 @@ export function OwnerView({ project, onAdd }: { project: Project; onAdd: () => v
     <main className="owner">
       <PassportBody p={project} a={a} />
       <div className="owner-act">
-        <button className="btn ghost" type="button" onClick={onAdd}>Открыть проект в Ampli</button>
+        <Button variant="ghost" onClick={onAdd}>Открыть проект в Ampli</Button>
       </div>
     </main>
   );

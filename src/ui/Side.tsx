@@ -5,6 +5,7 @@ import { railCells, useFitCols } from './railfit';
 import { Fragment, memo, useState } from 'react';
 import { Fold, Tip } from './common';
 import { same } from './hold';
+import { Button } from './kit';
 
 export const Summary = memo(function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: () => void; solo?: boolean }) {
   const mx = a.phases ? Math.max(a.phases.L1, a.phases.L2, a.phases.L3, 0.001) : 1;
@@ -13,7 +14,7 @@ export const Summary = memo(function Summary({ a, onBalance, solo = false }: { a
     <div className="pane-sum">
       {a.phases && (
         <Fold title="Нагрузка по фазам" className="c-phase" open={solo || a.imb > 25} badge={<span className={'pill ' + (a.imb > 25 ? 'warn' : 'ok')}>{a.imb > 25 ? 'Перекос ' + fmt(a.imb, 0) + ' %' : 'Ровно'}</span>}>
-          <button className="btn sm" type="button" onClick={onBalance}>Выровнять</button>
+          <Button size="sm" onClick={onBalance}>Выровнять</Button>
           {(['L1', 'L2', 'L3'] as const).map(k => (
             <div className="phase" key={k}>
               <span className="n">{k}</span>

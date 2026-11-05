@@ -7,6 +7,7 @@ import { dfmt, fmt, plural } from '../core/format';
 import { Toaster } from './common';
 import { Totals } from './Labor';
 import { toast, toastOk } from './toast';
+import { Button } from './kit';
 
 export function approveText(e: EstimateShare, materials: number, works: number, url: string): string {
   const p = e.p;
@@ -64,8 +65,8 @@ export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: 
         </p>
         <Totals materials={est.total} works={le.total} total={grandTotal(est.total, le.total)} />
         <div className="owner-act ev-act">
-          <button className="btn primary" type="button" onClick={approve}>Согласовать</button>
-          <button className="btn ghost" type="button" onClick={() => window.print()}>Сохранить в PDF</button>
+          <Button variant="primary" onClick={approve}>Согласовать</Button>
+          <Button variant="ghost" onClick={() => window.print()}>Сохранить в PDF</Button>
         </div>
         {fallback !== null && <textarea className="ev-fallback" ref={ta} readOnly value={fallback} aria-label="Текст согласования" />}
         {works.length > 0 && (
@@ -111,7 +112,7 @@ export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: 
         {est.missing > 0 && <p className="pp-note">Для {est.missing} поз. не задана цена или количество, они не входят в итог.</p>}
         <p className="pp-note">Смета составлена в Ampli по расчёту щитка. Количество кабеля дано с запасом 10 %, точный расход уточняется по месту.</p>
         <div className="owner-act">
-          <button className="btn ghost" type="button" onClick={onClose}>Открыть Ampli</button>
+          <Button variant="ghost" onClick={onClose}>Открыть Ampli</Button>
         </div>
       </div>
       <Toaster />

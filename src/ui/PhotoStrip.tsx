@@ -7,6 +7,7 @@ import { photoUrl, putPhoto } from '../store/photos';
 import { scalePhoto } from './photoScale';
 import { IconCamera, IconTrash } from './Icons';
 import { Seg } from './common';
+import { Button, IconButton } from './kit';
 
 export function usePhotoUrls(ids: string[]): Record<string, string> {
   const [map, setMap] = useState<Record<string, string>>({});
@@ -60,9 +61,9 @@ export function PhotoStrip({
     <div className="photos">
       <div className="photo-add">
         <Seg name={'ptag-' + name} value={tag} items={PHOTO_TAGS.filter(t => tags.includes(t[0]))} onChange={setTag} />
-        <button className="btn ghost" type="button" disabled={busy || full} onClick={() => input.current?.click()}>
+        <Button variant="ghost" disabled={busy || full} onClick={() => input.current?.click()}>
           <IconCamera /> Фото
-        </button>
+        </Button>
         {full && <span className="muted">В проекте уже {PHOTO_LIMIT} фото, это предел. Удалите лишние, чтобы добавить новые.</span>}
         <input
           ref={input}
@@ -87,7 +88,7 @@ export function PhotoStrip({
               <div className="ph-img">
                 {urls[ph.id] ? <img src={urls[ph.id]} alt={PHOTO_TAG_LABEL[ph.tag]} /> : <span className="muted">…</span>}
                 <span className="ph-tag">{PHOTO_TAG_LABEL[ph.tag]}</span>
-                <button className="icon-btn ph-del" type="button" aria-label="Удалить фото" data-tip="Удалить фото" onClick={() => del(ph.id)}><IconTrash /></button>
+                <IconButton className="ph-del" label="Удалить фото" tip="Удалить фото" onClick={() => del(ph.id)}><IconTrash /></IconButton>
               </div>
               <input type="text" maxLength={120} aria-label="Подпись к фото" placeholder="Подпись" value={ph.note} onChange={e => onNote(ph.id, e.target.value)} />
             </li>

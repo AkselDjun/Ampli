@@ -4,6 +4,7 @@ import type { LineType } from '../core/types';
 import { TYPES } from '../core/norms';
 import { IconBolt, IconBulb, IconRooms, IconSocket } from './Icons';
 import { useMenuKeys } from './menu';
+import { Button } from './kit';
 
 export function AddMenu({ onAdd, onRooms, fab, down }: { onAdd: (t: LineType) => void; onRooms: () => void; fab?: boolean; down?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -69,7 +70,7 @@ export function AddMenu({ onAdd, onRooms, fab, down }: { onAdd: (t: LineType) =>
       {fab ? (
         <button className="fab-b" ref={triggerRef} type="button" aria-haspopup="menu" aria-expanded={open} aria-label="Добавить группу" onClick={() => setOpen(v => !v)}>+</button>
       ) : (
-        <button className="btn primary add-b" ref={triggerRef} type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(v => !v)}>+ Добавить группу</button>
+        <Button variant="primary" className="add-b" ref={triggerRef} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(v => !v)}>+ Добавить группу</Button>
       )}
     </div>
   );

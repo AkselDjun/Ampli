@@ -10,6 +10,7 @@ import type { PriceList } from '../store/pricelists';
 import { useLib } from '../store/LibContext';
 import { Sheet, TabPanel, Tabs, Tip } from './common';
 import { toastBad, toastOk, toastUndo } from './toast';
+import { Button } from './kit';
 
 const BYN = ' BYN';
 
@@ -83,7 +84,7 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
       <TabPanel scope="shop" id="lists" cur={tab}>
       <h3 className="sec-t">Прайсы поставщиков</h3>
       <div className="data-row">
-        <button className="btn" type="button" onClick={() => file.current?.click()}>Загрузить прайс</button>
+        <Button onClick={() => file.current?.click()}>Загрузить прайс</Button>
         <Tip>CSV или Excel (.xlsx) с колонками «Наименование» и «Цена»: за штуку, кабель за метр. До {MAX_LISTS} прайсов, из них выбирается самая низкая цена. Хранятся только на этом устройстве.</Tip>
         <input
           ref={file}
@@ -102,7 +103,7 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
           {lists.map(l => (
             <li key={l.id}>
               <span><b>{l.name}</b> <small>{l.offers.length} поз.</small></span>
-              <button className="btn ghost sm" type="button" aria-label={'Удалить прайс ' + l.name} onClick={() => removeList(l.id)}>Удалить</button>
+              <Button variant="ghost" size="sm" aria-label={'Удалить прайс ' + l.name} onClick={() => removeList(l.id)}>Удалить</Button>
             </li>
           ))}
         </ul>
@@ -151,7 +152,7 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
       {offers.length > 0 && (
         <div className="shop-foot">
           <span>Найдено цен: <b>{matched}</b> из {rows.length}. Итого по найденным: <b>{fmt(total, 2)}{BYN}</b></span>
-          <button className="btn primary" type="button" onClick={apply} disabled={!matched}>Подставить в смету</button>
+          <Button variant="primary" onClick={apply} disabled={!matched}>Подставить в смету</Button>
         </div>
       )}
       </TabPanel>

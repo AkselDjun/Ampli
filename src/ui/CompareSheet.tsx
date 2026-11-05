@@ -3,6 +3,7 @@ import type { Calc, Project } from '../core/types';
 import { ADDONS, compareRows, variantCalc } from '../core/compare';
 import { fmt } from '../core/format';
 import { Sheet } from './common';
+import { Button } from './kit';
 
 export function CompareSheet({ open, onClose, p, a }: { open: boolean; onClose: () => void; p: Project; a: Calc }) {
   const [excluded, setExcluded] = useState<string[]>([]);
@@ -55,7 +56,7 @@ export function CompareSheet({ open, onClose, p, a }: { open: boolean; onClose: 
       </div>
       {changed && alt.hint3 && <p className="muted">В варианте расчётная нагрузка {fmt(alt.P / 1000, 1)} кВт больше 12 кВт: по СН 4.04.01-2019, п. 9.12 нужен трёхфазный ввод.</p>}
       <div className="data-row">
-        <button className="btn ghost" type="button" disabled={!changed} onClick={() => { setExcluded([]); setAddons([]); }}>Сбросить</button>
+        <Button variant="ghost" disabled={!changed} onClick={() => { setExcluded([]); setAddons([]); }}>Сбросить</Button>
       </div>
     </Sheet>
   );

@@ -41,6 +41,7 @@ import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
+import { Button } from './kit';
 
 type View = 'groups' | 'edit' | 'panel';
 type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | 'old' | 'floor' | 'weak' | null;
@@ -346,7 +347,7 @@ export function App() {
                 <h1 className="ab-title">{selected ? 'Г' + (idx + 1) + ' ' + (selected.name || 'Без названия') : ''}</h1>
                 <div id="ab-sub" className="ab-sub" />
               </div>
-              <button className="btn primary sm" type="button" onClick={goBack}>Готово</button>
+              <Button variant="primary" size="sm" onClick={goBack}>Готово</Button>
             </div>
             <div className="ab-main">
               <h1 className="brand"><Brand /><span>Ampli</span></h1>

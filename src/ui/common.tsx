@@ -5,6 +5,8 @@ import { IconAlert, IconBack, IconClose, IconDone, IconDown, IconInfo } from './
 import { useSheetNav } from './sheetnav';
 import { currentToast, dismissToast, subscribeToast, toastLife } from './toast';
 import { haptic } from './haptic';
+import { buttonClass } from './kit';
+import type { ButtonSize, ButtonVariant } from './kit';
 import type { CfgN } from '../core/types';
 import { BASIS_LABEL, assumptions } from '../core/assumptions';
 
@@ -61,9 +63,12 @@ export function Stepper({
 }
 
 export function ArmButton({
-  className, label, armedLabel = 'Нажмите ещё раз', onRun, disabled
+  className, variant, size, link, label, armedLabel = 'Нажмите ещё раз', onRun, disabled
 }: {
-  className: string;
+  className?: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  link?: boolean;
   label: string;
   armedLabel?: string;
   onRun: () => void;
@@ -84,7 +89,7 @@ export function ArmButton({
     t.current = window.setTimeout(() => setArmed(false), 3000);
   };
   return (
-    <button className={className} type="button" onClick={click} disabled={disabled}>
+    <button className={link ? ['link', className].filter(Boolean).join(' ') : buttonClass(variant, size, className)} type="button" onClick={click} disabled={disabled}>
       {armed ? armedLabel : label}
     </button>
   );

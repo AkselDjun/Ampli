@@ -8,6 +8,7 @@ import { IconShare } from './Icons';
 import { Tip } from './common';
 import { toast, toastOk } from './toast';
 import { shareText, telegramUrl, viberUrl } from '../core/message';
+import { Button } from './kit';
 
 type Kind = 'project' | 'owner' | 'estimate';
 
@@ -81,8 +82,8 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
   return (
     <div className="share">
       <div className="data-row">
-        <button className="btn ghost" type="button" onClick={copy}><IconShare /> {t.btn}</button>
-        <button className="btn ghost" type="button" aria-expanded={send !== null} onClick={toggle}>Отправить в Viber или Telegram</button>
+        <Button variant="ghost" onClick={copy}><IconShare /> {t.btn}</Button>
+        <Button variant="ghost" aria-expanded={send !== null} onClick={toggle}>Отправить в Viber или Telegram</Button>
         <Tip>{t.tip}</Tip>
       </div>
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label={t.btn} />}
@@ -93,8 +94,8 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
           <div className="data-row">
             <a className="btn ghost send-viber" href={viberUrl(send.text)}>Viber</a>
             <a className="btn ghost send-tg" href={telegramUrl(send.text, send.url)} target="_blank" rel="noopener noreferrer">Telegram</a>
-            {canShare && <button className="btn ghost" type="button" onClick={() => void other(send.text)}>Другое приложение</button>}
-            <button className="btn ghost" type="button" onClick={() => void copyText(send.text)}>Копировать текст</button>
+            {canShare && <Button variant="ghost" onClick={() => void other(send.text)}>Другое приложение</Button>}
+            <Button variant="ghost" onClick={() => void copyText(send.text)}>Копировать текст</Button>
           </div>
         </div>
       )}

@@ -6,6 +6,7 @@ import { scaleLogo } from './logo';
 import { toastBad } from './toast';
 import { THEME_LABEL, useTheme } from './theme';
 import type { Theme } from './theme';
+import { Button, Field } from './kit';
 
 export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lib, dispatch } = useLib();
@@ -19,14 +20,14 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
       <TabPanel scope="lib" id="brand" cur={tab}>
       <h3 className="sec-t">Реквизиты для отчёта</h3>
       <div className="meta-grid">
-        <div className="f wide"><label className="lbl" htmlFor="bCo">Организация или ФИО</label><input id="bCo" type="text" maxLength={80} autoComplete="off" value={b.company} onChange={e => dispatch({ t: 'brand', field: 'company', value: e.target.value })} /></div>
-        <div className="f wide"><label className="lbl" htmlFor="bCt">Контакты</label><input id="bCt" type="text" maxLength={160} autoComplete="off" value={b.contacts} onChange={e => dispatch({ t: 'brand', field: 'contacts', value: e.target.value })} /></div>
-        <div className="f wide"><label className="lbl" htmlFor="bSg">Подписант (ФИО, должность)</label><input id="bSg" type="text" maxLength={80} autoComplete="off" value={b.signer} onChange={e => dispatch({ t: 'brand', field: 'signer', value: e.target.value })} /></div>
+        <Field id="bCo" label="Организация или ФИО" wide><input id="bCo" type="text" maxLength={80} autoComplete="off" value={b.company} onChange={e => dispatch({ t: 'brand', field: 'company', value: e.target.value })} /></Field>
+        <Field id="bCt" label="Контакты" wide><input id="bCt" type="text" maxLength={160} autoComplete="off" value={b.contacts} onChange={e => dispatch({ t: 'brand', field: 'contacts', value: e.target.value })} /></Field>
+        <Field id="bSg" label="Подписант (ФИО, должность)" wide><input id="bSg" type="text" maxLength={80} autoComplete="off" value={b.signer} onChange={e => dispatch({ t: 'brand', field: 'signer', value: e.target.value })} /></Field>
       </div>
       <div className="logo-row">
         {b.logo ? <img className="logo-img" src={b.logo} alt="Логотип" /> : <span className="muted">Логотип не загружен</span>}
-        <button className="btn" type="button" onClick={() => file.current?.click()}>{b.logo ? 'Заменить логотип' : 'Загрузить логотип'}</button>
-        {b.logo && <button className="btn ghost" type="button" onClick={() => dispatch({ t: 'logo', value: '' })}>Убрать логотип</button>}
+        <Button onClick={() => file.current?.click()}>{b.logo ? 'Заменить логотип' : 'Загрузить логотип'}</Button>
+        {b.logo && <Button variant="ghost" onClick={() => dispatch({ t: 'logo', value: '' })}>Убрать логотип</Button>}
         <input
           ref={file}
           className="pj-file"
@@ -59,7 +60,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
           <div className="lib-r" key={t.id}>
             <span className="lib-n">{t.name}</span>
             <span className="muted">{t.lines.length} {plural(t.lines.length, ['группа', 'группы', 'групп'])}</span>
-            <ArmButton className="btn danger" label="Удалить" armedLabel="Точно?" onRun={() => dispatch({ t: 'delTpl', id: t.id })} />
+            <ArmButton variant="danger" label="Удалить" armedLabel="Точно?" onRun={() => dispatch({ t: 'delTpl', id: t.id })} />
           </div>
         ))}
       </div>
@@ -69,7 +70,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
         <span className="muted">{nPrices} {plural(nPrices, ['позиция', 'позиции', 'позиций'])}</span>
       </div>
       <div className="data-row">
-        <ArmButton className="btn ghost" label="Очистить все цены" armedLabel="Точно очистить?" disabled={nPrices === 0} onRun={() => dispatch({ t: 'clearPrices' })} />
+        <ArmButton variant="ghost" label="Очистить все цены" armedLabel="Точно очистить?" disabled={nPrices === 0} onRun={() => dispatch({ t: 'clearPrices' })} />
       </div>
       </TabPanel>
       <TabPanel scope="lib" id="view" cur={tab}>

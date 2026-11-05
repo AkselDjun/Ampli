@@ -3,6 +3,7 @@ import type { Calc } from '../core/types';
 import { fmt, plural } from '../core/format';
 import { IconAlert, IconDone } from './Icons';
 import { usePop } from './pop';
+import { Button } from './kit';
 
 export type CheckFix = 'phase3' | 'phase1' | 'net';
 
@@ -74,7 +75,7 @@ export const Checks = memo(function Checks({ a, onGroup, onFix }: { a: Calc; onG
                     {x.groups?.map(id => (
                       <button key={id} type="button" className="chk-g" aria-label={'Открыть группу ' + noOf(id)} onClick={() => { setOpen(false); onGroup(id); }}>{noOf(id)}</button>
                     ))}
-                    {x.fix && <button type="button" className="btn sm" onClick={() => { setOpen(false); onFix(x.fix as CheckFix); }}>{FIX_LABEL[x.fix]}</button>}
+                    {x.fix && <Button size="sm" onClick={() => { setOpen(false); onFix(x.fix as CheckFix); }}>{FIX_LABEL[x.fix]}</Button>}
                   </span>
                 )}
               </li>

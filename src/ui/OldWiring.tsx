@@ -6,6 +6,7 @@ import { plural } from '../core/format';
 import { ArmButton, Seg, Sheet } from './common';
 import { IconAlert, IconDone } from './Icons';
 import type { PrintMode } from './WorkSheet';
+import { Button } from './kit';
 
 const pillK = (k: string): string => (k === 'none' ? 'warn' : k);
 
@@ -83,8 +84,8 @@ export function OldSheet({ open, onClose, p, a, dispatch, onPrint }: { open: boo
           <h3 className="sec-t">Вывод</h3>
           <Findings o={p.old} a={a} />
           <div className="copy-row">
-            <button className="btn primary" type="button" onClick={() => onPrint('old')}>Печать заключения</button>
-            <ArmButton className="btn" label="Очистить ответы" onRun={() => dispatch({ t: 'oldReset' })} />
+            <Button variant="primary" onClick={() => onPrint('old')}>Печать заключения</Button>
+            <ArmButton label="Очистить ответы" onRun={() => dispatch({ t: 'oldReset' })} />
           </div>
         </>
       )}
