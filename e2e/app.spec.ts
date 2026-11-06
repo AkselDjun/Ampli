@@ -49,6 +49,22 @@ test('first-run tour explains the workflow and can be reopened', async ({ page }
   await tour.getByRole('button', { name: 'Пропустить' }).click();
 });
 
+test('first-run tour supports keyboard navigation and stays dismissed after reload', async ({ page }) => {
+  await page.goto('/');
+  const tour = page.locator('.tour-card');
+  await expect(tour).toContainText('Познакомимся с Ampli');
+  await expect(tour.getByRole('button', { name: 'Далее' })).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(tour).toContainText('Проект и параметры сети');
+  await page.keyboard.press('ArrowLeft');
+  await expect(tour).toContainText('Познакомимся с Ampli');
+  await page.keyboard.press('Escape');
+  await expect(tour).toBeHidden();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('ampli-onboarding-v1'))).toBe('done');
+  await page.reload();
+  await expect(tour).toBeHidden();
+});
+
 test('opens the sample apartment with groups and totals', async ({ page }) => {
   const errs = errors(page);
   await page.goto('/');
