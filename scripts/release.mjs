@@ -1,16 +1,14 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
-const bump = process.argv[2] ?? 'minor';
-if (!['patch', 'minor', 'major'].includes(bump)) {
-  console.error('Usage: node scripts/release.mjs patch|minor|major');
+const LIMIT = 2000;
+const arg = process.argv[2] ?? 'minor';
+if (!['patch', 'minor', 'major', 'auto'].includes(arg)) {
+  console.error('Usage: node scripts/release.mjs patch|minor|major|auto');
   process.exit(1);
 }
 
 const git = (...a) => execFileSync('git', a, { encoding: 'utf8' }).trim();
-const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
-const [ma, mi, pa] = pkg.version.split('.').map(Number);
-const next = bump === 'major' ? `${ma + 1}.0.0` : bump === 'minor' ? `${ma}.${mi + 1}.0` : `${ma}.${mi}.${pa + 1}`;
 
 let since = '';
 try {
@@ -18,6 +16,31 @@ try {
 } catch {
   since = existsSync('CHANGELOG.md') ? git('log', '-1', '--format=%H', '--', 'CHANGELOG.md') : '';
 }
+
+const changed = () =>
+  git('diff', '--numstat', since || git('rev-list', '--max-parents=0', 'HEAD').split('\n')[0], 'HEAD', '--', '.', ':(exclude)package-lock.json', ':(exclude)CHANGELOG.md')
+    .split('\n')
+    .filter(Boolean)
+    .reduce((n, l) => {
+      const [a, d] = l.split('\t');
+      return n + (Number(a) || 0) + (Number(d) || 0);
+    }, 0);
+
+let bump = arg;
+if (arg === 'auto') {
+  if (since && git('rev-list', '--count', `${since}..HEAD`) === '0') {
+    console.log('skip');
+    process.exit(0);
+  }
+  const lines = changed();
+  bump = lines > LIMIT ? 'minor' : 'patch';
+  console.error(`Changed lines since ${since || 'start'}: ${lines}, bump: ${bump}`);
+}
+
+const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+const [ma, mi, pa] = pkg.version.split('.').map(Number);
+const next = bump === 'major' ? `${ma + 1}.0.0` : bump === 'minor' ? `${ma}.${mi + 1}.0` : `${ma}.${mi}.${pa + 1}`;
+
 const range = since ? [`${since}..HEAD`] : [];
 const merges = git('log', ...range, '--merges', '--first-parent', '--format=%s%x1f%b%x1e')
   .split('\x1e')

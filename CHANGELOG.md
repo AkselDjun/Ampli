@@ -1,12 +1,19 @@
 # Журнал изменений
 
-## 2.1.0 (2026-11-06)
+## 0.2.1 (2026-11-06)
+
+- Нумерация версий переведена на 0.x: продукт ещё не достиг MVP, прежние 2.0.0 и 2.1.0 стали 0.1.0 и 0.2.0
+- Store projects in IndexedDB, one record per project (#29)
+- Protect stored projects with persistent storage and weekly backups (#30)
+- Redesign README (#31)
+
+## 0.2.0 (2026-11-06)
 
 - perf/e2e-budgets-lighthouse (#28)
 - Use one font family, preload the Cyrillic file and speed up browser install in CI (#27)
 - Norm reference tests, accessibility scan, code splitting, CSP and releases (#26)
 
-## 2.0.0 (2026-11-05)
+## 0.1.0 (2026-11-05)
 
 - Эталонные тесты расчёта по нормам РБ и проверка свойств расчёта на случайных проектах
 - Версия приложения и редакция норм в каждом отчёте и файле проекта
