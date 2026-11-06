@@ -64,7 +64,7 @@ export function Palette({ open, onClose, cmds }: { open: boolean; onClose: () =>
     }
   };
   return (
-    <dialog ref={ref} className="pal" aria-labelledby="pal-t" onClose={onClose}>
+    <dialog ref={ref} className="pal" aria-labelledby="pal-t" onClose={() => { if (!ref.current?.open) onClose(); }}>
       <h2 id="pal-t" className="sr">Быстрые действия</h2>
       <div className="pal-in">
         <IconSearch />

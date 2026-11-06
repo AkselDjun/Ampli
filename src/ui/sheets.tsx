@@ -11,7 +11,7 @@ import { buildSpec } from '../core/spec';
 import { cableName, protName } from '../core/protection';
 import { reportText } from '../core/report';
 import { buildXlsx, exportName, exportTables, toCsv } from '../core/export';
-import { download } from './download';
+import { download, exportBackup } from './download';
 import { IconChev, IconDownload, IconWire } from './Icons';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
@@ -28,6 +28,7 @@ import { DrawingA3 } from './parts';
 import type { PrintMode } from './WorkSheet';
 import { Button, Field } from './kit';
 import { APP_VERSION, NORMS_EDITION } from '../core/version';
+import { lastBackup } from '../store/backup';
 
 export function NetSheet({
   open, onClose, p, dispatch, onOld, oldLabel
@@ -134,10 +135,14 @@ export function ProjectsSheet({
   const [elec, setElec] = useState(true);
   const file = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
+  const [last, setLast] = useState(lastBackup);
   const [wasOpen, setWasOpen] = useState(open);
   if (open !== wasOpen) {
     setWasOpen(open);
-    if (open) setTplOpen(false);
+    if (open) {
+      setTplOpen(false);
+      setLast(lastBackup());
+    }
   }
   const note = (t: string, bad = false) => (bad ? toastBad(t) : toastOk(t));
   const create = (k: TplKey) => {
@@ -177,14 +182,21 @@ export function ProjectsSheet({
       return;
     }
     const list = (o as { list?: unknown }).list;
+    const restore = (o as { kind?: unknown } | null)?.kind === 'backup';
     const arr: unknown[] = Array.isArray(o) ? o : (Array.isArray(list) ? list : [o]);
-    const added = arr.map(x => { try { return normProject(x); } catch (e) { void e; return null; } }).filter((x): x is Project => !!x);
-    if (!added.length) {
+    const parsed = arr.map(x => { try { return normProject(x, restore); } catch (e) { void e; return null; } }).filter((x): x is Project => !!x);
+    const have = new Set(state.list.map(x => x.id));
+    const added = restore ? parsed.filter(x => !have.has(x.id)) : parsed;
+    if (!parsed.length) {
       note('В файле нет проекта Ampli', true);
       return;
     }
+    if (!added.length) {
+      note('Все проекты из копии уже есть на этом устройстве');
+      return;
+    }
     dispatch({ t: 'importProjects', projects: added });
-    note('Добавлено проектов: ' + added.length);
+    note((restore ? 'Восстановлено проектов: ' : 'Добавлено проектов: ') + added.length);
   };
   const n = state.list.length;
   return (
@@ -282,6 +294,16 @@ export function ProjectsSheet({
             rd.readAsText(f);
           }}
         />
+      </div>
+      <h3 className="sec-t">Резервная копия</h3>
+      <p className="muted">Все проекты в одном файле. Сохраняйте его раз в неделю: если браузер очистит данные или телефон сломается, проекты можно вернуть кнопкой «Открыть из файла». {last ? 'Последняя копия: ' + dfmt(last) + '.' : 'Копия ещё не сохранялась.'}</p>
+      <div className="data-row">
+        <Button variant="ghost" onClick={() => {
+          if (exportBackup(state.list)) {
+            setLast(lastBackup());
+            note('Резервная копия сохранена');
+          } else note('Не удалось сохранить файл на этом устройстве', true);
+        }}>Сохранить резервную копию</Button>
       </div>
       <h3 className="sec-t">Шаблон</h3>
       <p className="muted">Группы и параметры этого проекта станут заготовкой для новых проектов.</p>

@@ -7,6 +7,8 @@ import { cur, init, reducer } from '../store/reducer';
 import { TYPES } from '../core/norms';
 import { HoverTips, Toaster } from './common';
 import { toast, toastBad, toastOk } from './toast';
+import { backupDue, keepData, snoozeBackup } from '../store/backup';
+import { exportBackup } from './download';
 import { changes, dropLegacy, loadBoot, mergeLists, readProjects, saveBoot, saveStore, writeProjects } from '../store/storage';
 import { libReducer, loadLib, saveLib } from '../store/lib';
 import { LibContext } from '../store/LibContext';
@@ -146,6 +148,26 @@ export function App() {
   }, [boot]);
 
   const { cur: curId, list } = state;
+
+  const asked = useRef(false);
+  useEffect(() => {
+    if (viewOnly || asked.current || !list.some(x => !x.sample)) return;
+    asked.current = true;
+    keepData().catch(() => undefined);
+  }, [list, viewOnly]);
+
+  useEffect(() => {
+    if (viewOnly) return;
+    const t = window.setTimeout(() => {
+      if (!backupDue(latest.current)) return;
+      snoozeBackup();
+      toast('Резервная копия проектов не сохранялась больше недели', {
+        label: 'Сохранить',
+        run: () => (exportBackup(latest.current) ? toastOk('Резервная копия сохранена') : toastBad('Не удалось сохранить файл на этом устройстве'))
+      });
+    }, 6000);
+    return () => window.clearTimeout(t);
+  }, [viewOnly]);
   useEffect(() => {
     if (viewOnly) return;
     const d = disk.current;
