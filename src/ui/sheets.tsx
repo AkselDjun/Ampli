@@ -28,8 +28,7 @@ import { DrawingA3 } from './parts';
 import type { PrintMode } from './WorkSheet';
 import { Button, Field } from './kit';
 import { APP_VERSION, NORMS_EDITION } from '../core/version';
-import { lastBackup } from '../store/backup';
-import { restorePhotos } from '../store/backup';
+import { MAX_IMPORT_BYTES, lastBackup, restorePhotos, validateBackup } from '../store/backup';
 
 export function NetSheet({
   open, onClose, p, dispatch, onOld, oldLabel
@@ -174,6 +173,10 @@ export function ProjectsSheet({
     }
   };
   const importText = async (text: string) => {
+    if (new Blob([text]).size > MAX_IMPORT_BYTES) {
+      note('Файл больше 32 МБ. Импорт отменён', true);
+      return;
+    }
     let o: unknown;
     try {
       o = JSON.parse(text);
@@ -184,6 +187,12 @@ export function ProjectsSheet({
     }
     const list = (o as { list?: unknown }).list;
     const restore = (o as { kind?: unknown } | null)?.kind === 'backup';
+    if (restore) {
+      try { validateBackup(o); } catch {
+        note('Резервная копия повреждена или создана несовместимой версией', true);
+        return;
+      }
+    }
     const arr: unknown[] = Array.isArray(o) ? o : (Array.isArray(list) ? list : [o]);
     const parsed = arr.map(x => { try { return normProject(x, restore); } catch (e) { void e; return null; } }).filter((x): x is Project => !!x);
     const have = new Set(state.list.map(x => x.id));
@@ -293,6 +302,11 @@ export function ProjectsSheet({
             const f = e.target.files && e.target.files[0];
             const input = e.target;
             if (!f) return;
+            if (f.size > MAX_IMPORT_BYTES) {
+              note('Файл больше 32 МБ. Импорт отменён', true);
+              input.value = '';
+              return;
+            }
             const rd = new FileReader();
             rd.onload = () => {
               void importText(String(rd.result));

@@ -209,6 +209,20 @@ describe('ProjectsSheet', () => {
     expect(stored().order.length).toBeGreaterThan(3);
   });
 
+  it('rejects oversized and damaged backup files before changing projects', async () => {
+    render(<App />);
+    const d = open('Проекты');
+    const input = d.querySelector('input[type="file"]') as HTMLInputElement;
+    const before = stored().list.length;
+    const huge = new File(['{}'], 'huge.json', { type: 'application/json' });
+    Object.defineProperty(huge, 'size', { value: 33 * 1024 * 1024 });
+    fireEvent.change(input, { target: { files: [huge] } });
+    expect(toastText()).toContain('больше 32 МБ');
+    await importFile(d, JSON.stringify({ app: 'ampli', kind: 'backup', version: 2, list: [{ name: 'X', cfg: {}, lines: [] }], photos: { bad: { type: 'image/jpeg', data: '!' } } }));
+    expect(toastText()).toContain('повреждена');
+    expect(stored().list).toHaveLength(before);
+  });
+
   it('reports a file read error', () => {
     class BadReader {
       onload: (() => void) | null = null;

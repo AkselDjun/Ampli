@@ -1,8 +1,11 @@
 import type { Project } from '../core/types';
 import { APP_VERSION, NORMS_EDITION } from '../core/version';
 import { SCHEMA } from './storage';
-import { getPhoto, putPhoto } from './photos';
+import { getPhoto, putPhotos } from './photos';
 import { referencedPhotoIds } from '../core/photos';
+import { normProject } from '../core/project';
+
+export const MAX_IMPORT_BYTES = 32 * 1024 * 1024;
 
 export const BACKUP_AT = 'ampli-backup-at';
 export const BACKUP_SNOOZE = 'ampli-backup-snooze';
@@ -59,18 +62,37 @@ export async function backupArchive(list: Project[], now = Date.now()): Promise<
   return { ...base, text: JSON.stringify({ ...JSON.parse(base.text), version: 2, photos }) };
 }
 
-export async function restorePhotos(data: unknown): Promise<void> {
-  if (!data || typeof data !== 'object' || !('photos' in data)) return;
-  const photos = (data as { photos: unknown }).photos;
+export function validateBackup(data: unknown): Map<string, Blob> {
+  if (!data || typeof data !== 'object') throw new Error('invalid backup');
+  const archive = data as { app?: unknown; kind?: unknown; version?: unknown; schema?: unknown; list?: unknown; photos?: unknown };
+  if (archive.app !== 'ampli' || archive.kind !== 'backup' || !Array.isArray(archive.list) || !archive.list.length || archive.list.some(p => !normProject(p, true))) throw new Error('invalid projects');
+  if (archive.version !== undefined && archive.version !== 1 && archive.version !== 2) throw new Error('unsupported backup version');
+  if (archive.schema !== undefined && (typeof archive.schema !== 'number' || archive.schema > SCHEMA)) throw new Error('unsupported project schema');
+  const ids = archive.list.map(p => (p as Project).id);
+  if (new Set(ids).size !== ids.length) throw new Error('duplicate project');
+  const needed = referencedPhotoIds(archive.list as Project[]);
+  if (archive.version !== 2) {
+    if (needed.size) throw new Error('legacy backup has no photo data');
+    return new Map();
+  }
+  const photos = archive.photos;
   if (!photos || typeof photos !== 'object' || Array.isArray(photos)) throw new Error('invalid photos');
-  for (const [id, value] of Object.entries(photos)) {
+  if (Object.keys(photos).length !== needed.size) throw new Error('photo count mismatch');
+  const decoded = new Map<string, Blob>();
+  for (const id of needed) {
+    const value = (photos as Record<string, unknown>)[id];
     if (!value || typeof value !== 'object') throw new Error('invalid photo');
     const { type, data: encoded } = value as { type: unknown; data: unknown };
-    if (typeof type !== 'string' || typeof encoded !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) throw new Error('invalid photo');
+    if (typeof type !== 'string' || !type.startsWith('image/') || typeof encoded !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) throw new Error('invalid photo');
     const binary = atob(encoded);
     const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
-    await putPhoto(id, new Blob([bytes], { type }));
+    decoded.set(id, new Blob([bytes], { type }));
   }
+  return decoded;
+}
+
+export async function restorePhotos(data: unknown): Promise<void> {
+  await putPhotos(validateBackup(data));
 }
 
 export async function keepData(): Promise<boolean> {

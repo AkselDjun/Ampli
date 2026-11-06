@@ -38,6 +38,6 @@ describe('water heaters and heating (СН 4.04.01-2019, п. 14.4)', () => {
   it('lists the rule in the assumptions', () => {
     const a = assumptions(cfgN(defaultCfg())).find(x => x.name === 'Водонагреватель и отопление');
     expect(a?.source).toContain('17.09.2026 № 75');
-    expect(a?.source).toContain('мощнее 5 кВт');
+    expect(a?.value).toContain('свыше 5 кВт');
   });
 });

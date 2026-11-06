@@ -17,6 +17,7 @@ svg{display:block;flex:none}
 .appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:var(--z-bar);height:var(--bar);background:var(--surface);border-bottom:1px solid var(--line)}
 .appbar .in{height:100%;display:flex;align-items:center;width:100%;max-width:1560px;margin:0 auto;padding-left:max(var(--s-4),env(safe-area-inset-left,0px));padding-right:max(var(--s-4),env(safe-area-inset-right,0px))}
 .ab-main{display:flex;align-items:center;gap:var(--s-4);width:100%;min-width:0}
+.save-indicator{font-size:var(--t-sm);color:var(--ink-2);white-space:nowrap}
 .ab-edit{display:none;align-items:center;gap:var(--s-2);width:100%;min-width:0}
 .ab-title{flex:1;min-width:0;font-weight:700;font-size:var(--t-xl);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ab-back{width:44px;height:44px;margin-left:-12px;border:0;background:transparent;border-radius:var(--r-m);cursor:pointer;display:grid;place-items:center;color:var(--ink)}
