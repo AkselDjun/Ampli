@@ -96,6 +96,10 @@ export function App() {
   const idx = selected ? p.lines.indexOf(selected) : -1;
 
   const saveFail = useRef(false);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | 'conflict'>('saved');
+  const saveSeq = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
   const onSaved = (ok: boolean) => {
     if (!ok && !saveFail.current) toastBad('Не удалось сохранить изменения: в браузере закончилось место. Удалите лишние проекты или фото и сохраните проект в файл.');
     saveFail.current = !ok;
@@ -176,11 +180,17 @@ export function App() {
     if (viewOnly) return;
     const d = disk.current;
     if (conflict.current) return;
+    const seq = ++saveSeq.current;
+    setSaveStatus('saving');
     const ids = list.map(x => x.id);
     const gone = new Set(d.prev.map(x => x.id).filter(id => !ids.includes(id)));
     d.order = d.full ? ids : [...d.order.filter(id => !gone.has(id)), ...ids.filter(id => !d.order.includes(id))];
     const bootOk = saveBoot(list.find(x => x.id === curId) as Project, d.order);
-    const fallback = () => onSaved(d.full ? saveStore({ cur: curId, list }) : bootOk);
+    const fallback = () => {
+      const ok = d.full ? saveStore({ cur: curId, list }) : bootOk;
+      onSaved(ok);
+      if (mounted.current && seq === saveSeq.current) setSaveStatus(ok ? 'saved' : 'error');
+    };
     if (!d.idb) {
       fallback();
       return;
@@ -198,10 +208,12 @@ export function App() {
       .then(() => {
         if (clear) dropLegacy();
         onSaved(true);
+        if (mounted.current && seq === saveSeq.current) setSaveStatus('saved');
       })
       .catch((error: unknown) => {
         if (error instanceof ProjectConflictError) {
           conflict.current = true;
+          if (mounted.current) setSaveStatus('conflict');
           try { localStorage.removeItem(BOOT_KEY); } catch { /* storage may be unavailable */ }
           toastBad('Проект изменён в другой вкладке. Обновите страницу перед продолжением работы.');
           return;
@@ -438,6 +450,7 @@ export function App() {
             </div>
             <div className="ab-main">
               <h1 className="brand"><Brand /><span>Ampli</span></h1>
+              <span className="save-indicator" aria-live="polite">{saveStatus === 'saving' ? 'Проекты: сохранение…' : saveStatus === 'saved' ? 'Проекты: сохранено' : saveStatus === 'conflict' ? 'Конфликт вкладок' : 'Ошибка сохранения проектов'}</span>
               <div className="hud">
                 <Totals a={da} onNet={openNet} />
                 <Checks a={da} onGroup={pick} onFix={onCheckFix} />

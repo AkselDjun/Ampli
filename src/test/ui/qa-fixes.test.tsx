@@ -98,6 +98,7 @@ describe('storage and links', () => {
     fireEvent.click(document.querySelector('.col-list .row') as HTMLElement);
     change(byLabel(document, 'Название группы'), 'А');
     await waitFor(() => expect(toastText()).toContain('закончилось место'));
+    expect(document.querySelector('.save-indicator')).toHaveTextContent('Ошибка сохранения');
     set.mockRestore();
   });
 

@@ -41,6 +41,20 @@ export async function putPhoto(id: string, blob: Blob): Promise<void> {
   await run('readwrite', s => s.put(rec, id));
 }
 
+export async function putPhotos(items: Map<string, Blob>): Promise<void> {
+  if (!items.size) return;
+  const records = await Promise.all([...items].map(async ([id, blob]) => [id, { type: blob.type || 'image/jpeg', data: await blob.arrayBuffer() }] as const));
+  const d = await db();
+  await new Promise<void>((resolve, reject) => {
+    const tx = d.transaction(STORE, 'readwrite');
+    const store = tx.objectStore(STORE);
+    records.forEach(([id, rec]) => store.put(rec, id));
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error ?? new Error('photo restore aborted'));
+  });
+}
+
 export async function getPhoto(id: string): Promise<Blob | null> {
   const rec = await run<Rec | undefined>('readonly', s => s.get(id));
   return rec ? new Blob([rec.data], { type: rec.type }) : null;

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { newProject, sampleProject } from '../../core/project';
 import { blank } from '../../core/templates';
-import { BACKUP_AT, BACKUP_SNOOZE, DAY, WEEK, backupArchive, backupDue, backupFile, keepData, lastBackup, markBackup, restorePhotos, snoozeBackup } from '../../store/backup';
+import { BACKUP_AT, BACKUP_SNOOZE, DAY, WEEK, backupArchive, backupDue, backupFile, keepData, lastBackup, markBackup, restorePhotos, snoozeBackup, validateBackup } from '../../store/backup';
 import { getPhoto, putPhoto } from '../../store/photos';
 import { REVISION_KEY, SCHEMA, ProjectConflictError, writeProjectsChecked } from '../../store/storage';
 
@@ -62,6 +62,19 @@ describe('backup file', () => {
     await putPhoto('archive-photo', new Blob(['overwritten']));
     await restorePhotos(data);
     expect(await (await getPhoto('archive-photo'))?.text()).toBe('photo bytes');
+  });
+  it('rejects a damaged archive before replacing any photo', async () => {
+    const p = { ...project(now), photos: [{ id: 'archive-photo', line: 'x', note: '', tag: 'before' as const, at: now }] };
+    await putPhoto('archive-photo', new Blob(['original']));
+    const archive = JSON.parse((await backupArchive([p])).text);
+    archive.photos['archive-photo'].data = 'broken!';
+    expect(() => validateBackup(archive)).toThrow('invalid photo');
+    await expect(restorePhotos(archive)).rejects.toThrow();
+    expect(await (await getPhoto('archive-photo'))?.text()).toBe('original');
+    archive.photos = {};
+    expect(() => validateBackup(archive)).toThrow('photo count mismatch');
+    archive.version = 999;
+    expect(() => validateBackup(archive)).toThrow('unsupported backup version');
   });
 });
 
