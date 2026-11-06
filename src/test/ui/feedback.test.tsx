@@ -11,9 +11,9 @@ import { WorkSheet } from '../../ui/WorkSheet';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
-import { KEY } from '../../store/storage';
 import type { Cfg, Line, Project } from '../../core/types';
 import { byLabel, change, click, wide } from './util';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -24,7 +24,6 @@ const lines = (): Line[] => [
   zl(mkLine('Стиралка', 'power', 8, null, null, [['Стиральная машина', 2200, 1]]), 'Ванная', { wet: true })
 ];
 const proj = (ls: Line[], cfg: Partial<Cfg> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), prot: 'rcbo', ...cfg }, lines: ls, sample: false }, 'Тест'), lines: ls });
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const rows = () => Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
 

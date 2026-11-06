@@ -7,10 +7,10 @@ import { cur, init, reducer } from '../store/reducer';
 import { TYPES } from '../core/norms';
 import { HoverTips, Toaster } from './common';
 import { toast, toastBad, toastOk } from './toast';
-import { loadStore, saveStore } from '../store/storage';
+import { changes, dropLegacy, loadBoot, mergeLists, readProjects, saveBoot, saveStore, writeProjects } from '../store/storage';
 import { libReducer, loadLib, saveLib } from '../store/lib';
 import { LibContext } from '../store/LibContext';
-import { gcPhotos } from '../store/photos';
+import { gcPhotos, photoKeys } from '../store/photos';
 import { referencedPhotoIds } from '../core/photos';
 import { useBackClose } from './back';
 import { Brand, IconBack, IconCheck, IconDoc, IconList, IconPanel } from './Icons';
@@ -55,7 +55,8 @@ const waitPhotos = async (n: number): Promise<void> => {
 const isWide = () => window.matchMedia('(min-width:1000px)').matches;
 
 export function App() {
-  const [state, dispatch] = useReducer(reducer, undefined, () => init(loadStore()));
+  const [boot] = useState(loadBoot);
+  const [state, dispatch] = useReducer(reducer, boot, init);
   const [lib, libDispatch] = useReducer(libReducer, undefined, loadLib);
   const [view, setView] = useState<View>('groups');
   const [stack, setStack] = useState<NonNullable<SheetId>[]>([]);
@@ -117,13 +118,61 @@ export function App() {
     };
   }, []);
 
+  const disk = useRef({ full: boot.source === 'legacy', idb: true, clear: boot.source === 'legacy', order: boot.order, prev: boot.source === 'boot' ? boot.list : ([] as Project[]) });
+
+  const latest = useRef(state.list);
   useEffect(() => {
-    gcPhotos(referencedPhotoIds(loadStore().list)).catch(() => undefined);
-  }, []);
+    latest.current = state.list;
+  }, [state.list]);
 
   useEffect(() => {
-    if (!viewOnly) onSaved(saveStore({ cur: state.cur, list: state.list }));
-  }, [state.cur, state.list, viewOnly]);
+    const d = disk.current;
+    if (boot.source === 'legacy') {
+      gcPhotos(referencedPhotoIds(boot.list)).catch(() => undefined);
+      return;
+    }
+    const before = photoKeys();
+    before.catch(() => undefined);
+    readProjects()
+      .then(stored => {
+        d.full = true;
+        d.prev = mergeLists(d.prev, stored, []);
+        gcPhotos(referencedPhotoIds(mergeLists(latest.current, stored, [])), before).catch(() => undefined);
+        dispatch({ t: 'hydrate', projects: stored, order: d.order, replace: boot.source === 'empty' });
+      })
+      .catch(() => {
+        d.idb = false;
+      });
+  }, [boot]);
+
+  const { cur: curId, list } = state;
+  useEffect(() => {
+    if (viewOnly) return;
+    const d = disk.current;
+    const ids = list.map(x => x.id);
+    const gone = new Set(d.prev.map(x => x.id).filter(id => !ids.includes(id)));
+    d.order = d.full ? ids : [...d.order.filter(id => !gone.has(id)), ...ids.filter(id => !d.order.includes(id))];
+    const bootOk = saveBoot(list.find(x => x.id === curId) as Project, d.order);
+    const fallback = () => onSaved(d.full ? saveStore({ cur: curId, list }) : bootOk);
+    if (!d.idb) {
+      fallback();
+      return;
+    }
+    const { put, del } = changes(d.prev, list);
+    const clear = d.clear;
+    d.prev = list;
+    d.clear = false;
+    writeProjects(put, del, clear)
+      .then(() => {
+        if (clear) dropLegacy();
+        onSaved(true);
+      })
+      .catch(() => {
+        d.prev = [];
+        d.clear = clear;
+        fallback();
+      });
+  }, [curId, list, viewOnly]);
 
   const [viewOf, setViewOf] = useState(state.cur);
   if (viewOf !== state.cur) {

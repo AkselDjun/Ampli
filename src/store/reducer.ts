@@ -14,6 +14,7 @@ import { normOld } from '../core/oldwire';
 import type { OldKey } from '../core/oldwire';
 import type { OldSign } from '../core/types';
 import type { Store } from './storage';
+import { mergeLists } from './storage';
 import { WEAK_EMPTY, newWeakPt } from '../core/weak';
 import { MAT_WPM, defaultWpm, floorAppName, floorCalc, newFloorRoom } from '../core/floor';
 import type { FloorRoom, FloorUse } from '../core/floor';
@@ -76,7 +77,8 @@ export type Action =
   | { t: 'addProject'; content: Content; name: string }
   | { t: 'dupProject'; id: string }
   | { t: 'delProject'; id: string }
-  | { t: 'importProjects'; projects: Project[] };
+  | { t: 'importProjects'; projects: Project[] }
+  | { t: 'hydrate'; projects: Project[]; order: string[]; replace: boolean };
 
 export const cur = (s: State): Project => s.list.find(x => x.id === s.cur) as Project;
 
@@ -392,6 +394,18 @@ export function reducer(s: State, a: Action): State {
       });
       const last = add[add.length - 1];
       return { ...s, list: [...s.list, ...add], cur: last.id, sel: firstId(last) };
+    }
+    case 'hydrate': {
+      if (!a.projects.length) return s;
+      const swap = a.replace && s.list.length === 1 && s.list[0].sample;
+      const stored = new Map(a.projects.map(x => [x.id, x]));
+      const mem = swap ? [] : s.list.map(x => {
+        const d = stored.get(x.id);
+        return d && d.updated > x.updated ? d : x;
+      });
+      const list = mergeLists(mem, a.projects, a.order);
+      const at = list.find(x => x.id === s.cur) ?? list.find(x => x.id === a.order[0]) ?? list[0];
+      return { ...s, list, cur: at.id, sel: at.id === s.cur ? s.sel : firstId(at) };
     }
     default:
       return s;

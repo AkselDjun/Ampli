@@ -6,10 +6,10 @@ import { PrintDoc } from '../../ui/PrintDoc';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
-import { KEY } from '../../store/storage';
 import { normLib } from '../../store/lib';
 import { LibContext } from '../../store/LibContext';
 import type { Cfg, Line, Project } from '../../core/types';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -20,7 +20,6 @@ const lines = (): Line[] => [
 const proj = (cfg: Partial<Cfg> = {}, o: Partial<Project> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), ...cfg }, lines: lines(), sample: false }, 'Тест'), ...o });
 const doc = () => (document.querySelector('.printdoc.act') as HTMLElement).textContent ?? '';
 const withLib = (o: unknown, el: JSX.Element) => <LibContext.Provider value={{ lib: normLib(o), dispatch: () => undefined }}>{el}</LibContext.Provider>;
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 
 describe('hidden works act', () => {
   it('lists cables, materials, dates and the next works', () => {

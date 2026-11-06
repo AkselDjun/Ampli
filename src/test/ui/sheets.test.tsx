@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, act } from '@testing-library/react';
 import { App } from '../../ui/App';
-import { KEY } from '../../store/storage';
 import { LIB_KEY } from '../../store/lib';
 import { btn, byLabel, change, click, dlg, isOpen, wide, toastText } from './util';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -19,7 +19,6 @@ const open = (title: string) => {
   else click(document.querySelector('nav.tabs') as HTMLElement, title === 'Монтаж и приёмка' ? /Приёмка/ : /Отчёт/);
   return dlg(title);
 };
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 
 describe('NetSheet', () => {
   it('changes every config field via segments and steppers', () => {
@@ -123,17 +122,17 @@ describe('ProjectsSheet', () => {
     expect(tpls.length).toBeGreaterThan(2);
     fireEvent.click(tpls[0]);
     act(() => { vi.advanceTimersByTime(10); });
-    expect(stored().list.length).toBe(2);
+    expect(stored().order.length).toBe(2);
     click(d, '+ Новый проект');
     fireEvent.click(tpls[tpls.length - 1]);
-    expect(stored().list.length).toBe(3);
-    expect(stored().list[2].name).toContain('Проект 3');
+    expect(stored().order.length).toBe(3);
+    expect(stored().list[0].name).toContain('Проект 3');
     click(d, 'Сохранить как шаблон');
     expect(JSON.parse(localStorage.getItem(LIB_KEY) as string).templates.length).toBe(1);
     click(d, '+ Новый проект');
     const mine = d.querySelectorAll<HTMLElement>('.tpl-grid')[1].querySelector('.tpl-b') as HTMLElement;
     fireEvent.click(mine);
-    expect(stored().list.length).toBe(4);
+    expect(stored().order.length).toBe(4);
     act(() => { vi.advanceTimersByTime(6000); });
     expect(toastText()).toBe('');
   });
@@ -144,16 +143,16 @@ describe('ProjectsSheet', () => {
     click(d, '+ Новый проект');
     fireEvent.click(d.querySelector('.tpl-b') as HTMLElement);
     click(d, 'Копировать');
-    expect(stored().list.length).toBe(3);
+    expect(stored().order.length).toBe(3);
     const opens = d.querySelectorAll<HTMLElement>('.pj-open');
     fireEvent.click(opens[0]);
     expect(isOpen('Проекты')).toBe(false);
-    expect(stored().cur).toBe(stored().list[0].id);
+    expect(stored().cur).toBe(stored().order[0]);
     d = open('Проекты');
     const del = d.querySelectorAll<HTMLElement>('.pj .btn.danger')[2];
     fireEvent.click(del);
     fireEvent.click(del);
-    expect(stored().list.length).toBe(2);
+    expect(stored().order.length).toBe(2);
   });
 
   it('exports to file', () => {
@@ -207,7 +206,7 @@ describe('ProjectsSheet', () => {
     await importFile(d, JSON.stringify(5));
     expect(status()).toContain('нет проекта');
     fireEvent.change(d.querySelector('input[type="file"]') as HTMLElement, { target: { files: [] } });
-    expect(stored().list.length).toBeGreaterThan(3);
+    expect(stored().order.length).toBeGreaterThan(3);
   });
 
   it('reports a file read error', () => {

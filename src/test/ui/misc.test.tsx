@@ -1,17 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, act } from '@testing-library/react';
 import { App } from '../../ui/App';
-import { KEY } from '../../store/storage';
 import { LIB_KEY } from '../../store/lib';
 import { byLabel, change, click, dlg, isOpen, wide, toastText } from './util';
 import { fitSize, scaleLogo, LOGO_MAX_H, LOGO_MAX_W } from '../../ui/logo';
 import { Brand, IconBack } from '../../ui/Icons';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
 const list = () => document.querySelector('.col-list') as HTMLElement;
 const nav = () => document.querySelector('nav.tabs') as HTMLElement;
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const lib = () => JSON.parse(localStorage.getItem(LIB_KEY) as string);
 
 describe('WorkSheet', () => {

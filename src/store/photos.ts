@@ -55,8 +55,8 @@ export async function photoKeys(): Promise<string[]> {
   return k.map(String);
 }
 
-export async function gcPhotos(keep: Set<string>): Promise<number> {
-  const keys = await photoKeys();
+export async function gcPhotos(keep: Set<string>, from?: Promise<string[]>): Promise<number> {
+  const keys = await (from ?? photoKeys());
   const drop = keys.filter(k => !keep.has(k));
   await Promise.all(drop.map(delPhoto));
   return drop.length;

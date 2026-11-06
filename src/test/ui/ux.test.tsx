@@ -10,10 +10,10 @@ import { defaultCfg, mkLine } from '../../core/templates';
 import { KEY } from '../../store/storage';
 import type { Cfg, Line } from '../../core/types';
 import { byLabel, change, click, dlg, wide } from './util';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const rows = () => Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
 const calc = (ls: Line[], cfg: Partial<Cfg> = {}) => calcAll(ls, { ...defaultCfg(), ...cfg });

@@ -9,13 +9,13 @@ import type { Photo, Project } from '../../core/types';
 import { download } from '../../ui/download';
 import { scalePhoto } from '../../ui/photoScale';
 import { byLabel, change, click, dlg, wide, toastText } from '../ui/util';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
 vi.mock('../../ui/download', () => ({ download: vi.fn() }));
 vi.mock('../../ui/photoScale', () => ({ scalePhoto: vi.fn() }));
 
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const nav = () => document.querySelector('nav.tabs') as HTMLElement;
 const blob = () => new Blob([new Uint8Array([1, 2, 3])], { type: 'image/jpeg' });

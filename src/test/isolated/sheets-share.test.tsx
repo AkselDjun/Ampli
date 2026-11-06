@@ -12,10 +12,10 @@ import { newProject, sampleProject } from '../../core/project';
 import { packProject, SHARE_PREFIX } from '../../core/share';
 import type { Project } from '../../core/types';
 import { byLabel, change, click, dlg, isOpen, wide, toastText } from '../ui/util';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const lib = () => JSON.parse(localStorage.getItem(LIB_KEY) as string);
 const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const list = () => document.querySelector('.col-list') as HTMLElement;
@@ -115,8 +115,9 @@ describe('incoming project flow', () => {
     expect(isOpen('Присланный проект')).toBe(false);
     expect(window.location.hash).toBe('');
     const s = stored();
-    expect(s.list.map((x: Project) => x.name)).toEqual(['Пример: двухкомнатная квартира', 'Пример: двухкомнатная квартира 2']);
-    expect(s.cur).toBe(s.list[1].id);
+    expect(s.order).toHaveLength(2);
+    expect(s.list[0].name).toBe('Пример: двухкомнатная квартира 2');
+    expect(s.cur).toBe(s.order[1]);
   });
   it('declines without adding', () => {
     window.location.hash = SHARE_PREFIX + hashFor('Чужой');
