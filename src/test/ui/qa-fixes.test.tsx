@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { Boundary } from '../../ui/Boundary';
 import { Sheet, Stepper } from '../../ui/common';
@@ -7,13 +7,13 @@ import { PanelPane } from '../../ui/Side';
 import { calcAll } from '../../core/calc';
 import { newProject, sampleProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
-import { KEY } from '../../store/storage';
+import { KEY, resetProjectDb } from '../../store/storage';
 import { currentToast } from '../../ui/toast';
 import { btn, byLabel, change, click, dlg, toastText, wide } from './util';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const rows = () => Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
 
@@ -74,7 +74,7 @@ describe('measurements of zero', () => {
 });
 
 describe('crash screen', () => {
-  it('shows recovery actions instead of a blank page', () => {
+  it('shows recovery actions instead of a blank page', async () => {
     const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const Bad = () => { throw new Error('x'); };
     render(<Boundary><Bad /></Boundary>);
@@ -83,20 +83,32 @@ describe('crash screen', () => {
     localStorage.setItem(KEY, '{"cur":"a"}');
     localStorage.setItem('ampli-lib-v1', 'not json');
     fireEvent.click(screen.getByRole('button', { name: 'Скачать резервную копию' }));
-    expect(create).toHaveBeenCalled();
+    await waitFor(() => expect(create).toHaveBeenCalled());
     create.mockRestore();
     err.mockRestore();
   });
 });
 
 describe('storage and links', () => {
-  it('warns once when changes cannot be saved', () => {
+  it('warns once when changes cannot be saved', async () => {
+    (globalThis as { indexedDB?: unknown }).indexedDB = undefined;
+    resetProjectDb();
     render(<App />);
     const set = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('quota'); });
     fireEvent.click(document.querySelector('.col-list .row') as HTMLElement);
     change(byLabel(document, 'Название группы'), 'А');
-    expect(toastText()).toContain('закончилось место');
+    await waitFor(() => expect(toastText()).toContain('закончилось место'));
     set.mockRestore();
+  });
+
+  it('keeps saving the current project when the browser has no IndexedDB', async () => {
+    (globalThis as { indexedDB?: unknown }).indexedDB = undefined;
+    resetProjectDb();
+    render(<App />);
+    fireEvent.click(document.querySelector('.col-list .row') as HTMLElement);
+    change(byLabel(document, 'Название группы'), 'Без базы');
+    await waitFor(() => expect(stored().list[0].lines[0].name).toBe('Без базы'));
+    expect(toastText()).not.toContain('закончилось место');
   });
 
   it('reports a broken shared link and clears it', () => {

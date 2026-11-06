@@ -2,16 +2,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { EstimateView, approveText } from '../../ui/EstimateView';
-import { KEY } from '../../store/storage';
 import { LIB_KEY } from '../../store/lib';
 import { sampleProject } from '../../core/project';
 import { packEstimate, packProject } from '../../core/share';
 import type { EstimateShare } from '../../core/share';
 import { byLabel, change, click, dlg, toastText, wide } from '../ui/util';
+import { stored } from '../stored';
 
 vi.mock('../../ui/download', () => ({ download: vi.fn() }));
 
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const lib = () => JSON.parse(localStorage.getItem(LIB_KEY) as string);
 const nav = () => document.querySelector('nav.tabs') as HTMLElement;
 const openEstimate = () => {

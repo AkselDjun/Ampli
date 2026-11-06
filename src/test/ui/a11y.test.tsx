@@ -3,14 +3,13 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { AddMenu } from '../../ui/AddMenu';
 import { Sheet } from '../../ui/common';
-import { KEY } from '../../store/storage';
 import { byLabel, change, click, wide } from './util';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
 const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const rows = () => Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const visible = () => {
   const orig = HTMLElement.prototype.getClientRects;
   HTMLElement.prototype.getClientRects = function () { return [{}] as unknown as DOMRectList; };

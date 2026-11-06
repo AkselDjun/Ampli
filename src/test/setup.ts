@@ -3,6 +3,7 @@ import { afterEach, beforeAll, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { IDBFactory } from 'fake-indexeddb';
 import { resetPhotoCache } from '../store/photos';
+import { resetProjectDb } from '../store/storage';
 import { dismissToast } from '../ui/toast';
 import { preloadParts } from '../ui/parts';
 
@@ -39,6 +40,7 @@ beforeEach(() => {
   Object.defineProperty(globalThis, 'localStorage', { value: window.localStorage, configurable: true, writable: true });
   localStorage.setItem('ampli-listby', 'no');
   resetPhotoCache();
+  resetProjectDb();
   (globalThis as { indexedDB: IDBFactory }).indexedDB = new IDBFactory();
   URL.createObjectURL = (() => 'blob:test/' + ++seq) as typeof URL.createObjectURL;
   URL.revokeObjectURL = vi.fn();

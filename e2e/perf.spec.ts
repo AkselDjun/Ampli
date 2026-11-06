@@ -14,7 +14,7 @@ const BUDGET = {
   typingEvent: 250,
   reportClick: 1200,
   reportDom: 20000,
-  saveMs: 60
+  saveMs: 15
 };
 
 type Probe = { long: number[]; events: [string, number][]; saves: number[] };
@@ -46,7 +46,7 @@ const open = async (page: Page, store: string) => {
     Storage.prototype.setItem = function (k: string, v: string) {
       const t = performance.now();
       set.call(this, k, v);
-      if (k === 'ampli-v1') probe.saves.push(performance.now() - t);
+      if (k === 'ampli-boot') probe.saves.push(performance.now() - t);
     };
   }, store);
   await page.goto('/');

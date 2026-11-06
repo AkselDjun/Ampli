@@ -12,7 +12,7 @@ import { SWIPE_MAX, SWIPE_TRIGGER, useSwipe } from '../../ui/swipe';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
-import { KEY } from '../../store/storage';
+import { BOOT_KEY, KEY } from '../../store/storage';
 import type { Cfg, Line, Project } from '../../core/types';
 import { wide } from './util';
 
@@ -626,7 +626,7 @@ describe('App flows', () => {
     const L = Number(/(\d+) м/.exec(b.textContent as string)?.[1]);
     await user.click(b);
     expect(screen.getByRole('status')).toHaveTextContent('Исправлено');
-    const stored = JSON.parse(localStorage.getItem(KEY) as string).list[0].lines[0];
+    const stored = JSON.parse(localStorage.getItem(BOOT_KEY) as string).project.lines[0];
     expect(Number(stored.len)).toBe(L);
     expect(document.querySelector('.row-wrap .fixbar')).toBeNull();
     expect(within(screen.getByRole('status')).queryByRole('button', { name: 'Отменить' })).toBeNull();

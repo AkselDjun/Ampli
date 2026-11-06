@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '../../ui/App';
-import { KEY } from '../../store/storage';
+import { stored } from '../stored';
 import { click, dlg, isOpen, wide, toastText } from './util';
 
 vi.setConfig({ testTimeout: 60000 });
@@ -14,7 +14,7 @@ describe('App', () => {
     render(<App />);
     expect(rowsOf().length).toBeGreaterThan(3);
     expect(document.querySelector('.kpis')?.textContent).toContain('кВт');
-    expect(JSON.parse(localStorage.getItem(KEY) as string).list.length).toBe(1);
+    expect(stored().order).toHaveLength(1);
     expect(screen.getByText(/Пример двухкомнатной/)).toBeInTheDocument();
   });
 

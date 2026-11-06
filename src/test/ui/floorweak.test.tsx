@@ -8,10 +8,10 @@ import { defaultCfg, mkLine } from '../../core/templates';
 import { newFloorRoom } from '../../core/floor';
 import { KEY } from '../../store/storage';
 import { byLabel, change, click, dlg, toastText, wide } from './util';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const box = () => document.querySelector('.proj-box') as HTMLElement;
 
 describe('floor heating sheet', () => {

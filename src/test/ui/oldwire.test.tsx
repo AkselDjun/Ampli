@@ -5,12 +5,11 @@ import { PrintDoc } from '../../ui/PrintDoc';
 import { calcAll } from '../../core/calc';
 import { sampleProject } from '../../core/project';
 import { OLD_EMPTY } from '../../core/oldwire';
-import { KEY } from '../../store/storage';
 import { click, dlg } from './util';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const pick = (name: string, value: string) => fireEvent.click(document.querySelector(`input[name="${name}"][value="${value}"]`) as HTMLInputElement);
 
 describe('old wiring survey', () => {

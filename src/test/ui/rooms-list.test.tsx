@@ -7,10 +7,10 @@ import { defaultCfg, mkLine } from '../../core/templates';
 import { KEY } from '../../store/storage';
 import type { Line } from '../../core/types';
 import { byLabel, change, click, wide } from './util';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 const heads = () => Array.from(document.querySelectorAll('.rows .zone-h')).map(h => h.querySelector('b')?.textContent);
 const toggle = () => screen.getByRole('button', { name: 'По помещениям' });
 

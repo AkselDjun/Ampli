@@ -11,6 +11,7 @@ import { defaultCfg, mkLine } from '../../core/templates';
 import { KEY } from '../../store/storage';
 import type { Cfg, Line, Project } from '../../core/types';
 import { dlg, wide } from './util';
+import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -19,7 +20,6 @@ const lines = (): Line[] => [
   { ...mkLine('Стиралка', 'power', 8, null, null, [['Стиральная машина', 2200, 1]]), zone: 'Ванная' }
 ];
 const proj = (cfg: Partial<Cfg> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), prot: 'rcbo', ...cfg }, lines: lines(), sample: false }, 'Тест') });
-const stored = () => JSON.parse(localStorage.getItem(KEY) as string);
 
 describe('panel protection switches', () => {
   it('turns the relay and the surge protector on from the network sheet', () => {
