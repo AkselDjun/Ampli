@@ -185,7 +185,7 @@ export const GroupList = memo(function GroupList({
           </span>
           <span className="pb-more">Проекты</span>
         </button>
-        <div className="netchips">
+        <div className="netchips" data-tour="network">
           <button className="netfold" type="button" onClick={onOpenNet}>
             <IconNet />
             <span className="nf-main">Параметры сети<span className="vh">: </span><small>{net.map(t => t[1]).join(', ')}</small></span>

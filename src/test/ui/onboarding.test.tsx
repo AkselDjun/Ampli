@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '../../ui/App';
 import { ONBOARDING_KEY } from '../../ui/Onboarding';
@@ -12,7 +12,7 @@ describe('first-run onboarding', () => {
     const user = userEvent.setup();
     render(<App />);
     const dialog = await screen.findByRole('dialog', { name: 'Познакомимся с Ampli' });
-    expect(dialog).toHaveTextContent('Шаг 1 из 6');
+    expect(dialog).toHaveTextContent('шаг 1 из 6');
 
     const titles = [
       'Проект и параметры сети',
@@ -25,14 +25,23 @@ describe('first-run onboarding', () => {
       await user.click(screen.getByRole('button', { name: 'Далее' }));
       expect(screen.getByRole('dialog', { name: title })).toBeInTheDocument();
     }
-    await user.click(screen.getByRole('button', { name: 'Начать работу' }));
+    await user.click(screen.getByRole('button', { name: 'Все возможности' }));
+    expect(screen.getByRole('dialog', { name: 'Сеть и специальные системы' })).toHaveTextContent('шаг 1 из 7');
+    const advanced = ['Подробности каждой линии', 'Комнаты и быстрый старт', 'Сборка щитка', 'Монтаж и приёмка', 'Схема, материалы и смета', 'Проекты и обмен данными'];
+    for (const title of advanced) {
+      await user.click(screen.getByRole('button', { name: 'Далее' }));
+      expect(screen.getByRole('dialog', { name: title })).toBeInTheDocument();
+    }
+    await user.click(within(screen.getByRole('dialog', { name: 'Проекты и обмен данными' })).getByRole('button', { name: 'Готово' }));
     expect(localStorage.getItem(ONBOARDING_KEY)).toBe('done');
-    expect(screen.queryByRole('dialog', { name: /Ampli|Проект|Группы|Добавление|Итоги|Щиток/ })).toBeNull();
+    expect(screen.queryByRole('dialog')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Открыть обучение' }));
+    expect(screen.getByRole('dialog', { name: 'Обучение Ampli' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Быстрый старт/ }));
     expect(screen.getByRole('dialog', { name: 'Познакомимся с Ampli' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Пропустить' }));
-    expect(screen.queryByRole('dialog', { name: 'Познакомимся с Ampli' })).toBeNull();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('does not interrupt a returning user with stored projects', () => {

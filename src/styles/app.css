@@ -34,7 +34,14 @@ svg{display:block;flex:none}
 .tour-actions{display:flex;align-items:center;gap:var(--s-2)}
 .tour-actions>span{flex:1}
 .tour-actions .link{white-space:nowrap}
-@media (max-width:600px){.tour-card{padding:var(--s-5)}.tour-help{display:flex}.save-indicator{display:none}}
+.tour-home{width:min(440px,calc(100vw - 32px))}
+.tour-menu{display:grid;gap:var(--s-3);margin:var(--s-5) 0}
+.tour-choice{display:grid;gap:var(--s-1);min-height:76px;padding:var(--s-4);border:1px solid var(--line);border-radius:var(--r-m);background:var(--field);text-align:left;cursor:pointer}
+.tour-choice:hover{border-color:var(--accent);background:var(--accent-soft)}
+.tour-choice:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tour-choice b{font-size:var(--t-l)}
+.tour-choice span{color:var(--ink-2);font-size:var(--t-sm)}
+@media (max-width:600px){.tour-card{padding:var(--s-5)}.tour-help{display:flex}.save-indicator{display:none}.tour-actions{flex-wrap:wrap}.tour-actions>span{display:none}.tour-actions .link{margin-right:auto}}
 .ab-edit{display:none;align-items:center;gap:var(--s-2);width:100%;min-width:0}
 .ab-title{flex:1;min-width:0;font-weight:700;font-size:var(--t-xl);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ab-back{width:44px;height:44px;margin-left:-12px;border:0;background:transparent;border-radius:var(--r-m);cursor:pointer;display:grid;place-items:center;color:var(--ink)}
