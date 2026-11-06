@@ -32,6 +32,7 @@ function rowSub(x: Row, three: boolean): string[] {
 }
 
 type RowProps = {
+  tour?: boolean;
   hot: boolean;
   onHot: (id: string | null) => void;
   x: Row;
@@ -46,15 +47,15 @@ type RowProps = {
 };
 
 const sameRow = (a: RowProps, b: RowProps): boolean =>
-  a.i === b.i && a.three === b.three && a.sel === b.sel && a.hot === b.hot && a.onHot === b.onHot && a.onSelect === b.onSelect && a.onCopy === b.onCopy && a.onDelete === b.onDelete && a.onFix === b.onFix && a.x.l === b.x.l && same(a.x.r, b.x.r) && same(a.c, b.c);
+  a.i === b.i && a.three === b.three && a.sel === b.sel && a.hot === b.hot && a.tour === b.tour && a.onHot === b.onHot && a.onSelect === b.onSelect && a.onCopy === b.onCopy && a.onDelete === b.onDelete && a.onFix === b.onFix && a.x.l === b.x.l && same(a.x.r, b.x.r) && same(a.c, b.c);
 
 const GroupRow = memo(function GroupRow({
-  x, i, c, three, sel, hot, onHot, onSelect, onCopy, onDelete, onFix
+  x, i, c, three, sel, hot, tour, onHot, onSelect, onCopy, onDelete, onFix
 }: RowProps) {
   const { dx, handlers } = useSwipe(() => onDelete(x.l.id), () => onCopy(x.l.id));
   const fix = fixFor(x.l, x.r, c);
   return (
-    <div className={'row-wrap' + (dx > 0 ? ' sw-r' : (dx < 0 ? ' sw-l' : ''))}>
+    <div className={'row-wrap' + (dx > 0 ? ' sw-r' : (dx < 0 ? ' sw-l' : ''))} data-tour={tour ? 'group' : undefined}>
       <div className="swipe-bg" aria-hidden="true">
         <span className="sw-copy">Копия</span>
         <span className="sw-del">Удалить</span>
@@ -175,7 +176,7 @@ export const GroupList = memo(function GroupList({
   return (
     <section className="col col-list" id="groups" tabIndex={-1} aria-label="Группы линий">
       <div className="proj-box">
-        <button className="projbar" type="button" onClick={onOpenProj}>
+        <button className="projbar" type="button" onClick={onOpenProj} data-tour="projects">
           <span className="vh">Проекты: </span>
           <IconFolder />
           <span className="pb-main">
@@ -184,7 +185,7 @@ export const GroupList = memo(function GroupList({
           </span>
           <span className="pb-more">Проекты</span>
         </button>
-        <div className="netchips">
+        <div className="netchips" data-tour="network">
           <button className="netfold" type="button" onClick={onOpenNet}>
             <IconNet />
             <span className="nf-main">Параметры сети<span className="vh">: </span><small>{net.map(t => t[1]).join(', ')}</small></span>
@@ -252,7 +253,7 @@ export const GroupList = memo(function GroupList({
                     <div className="zone-b" id={bid} hidden={closed}>
                       {g.items.map(i => {
                         const x = a.rows[i];
-                        return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />;
+                        return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />;
                       })}
                     </div>
                   </>
@@ -260,7 +261,7 @@ export const GroupList = memo(function GroupList({
               })()}
               {g.zone === null && g.items.map(i => {
                 const x = a.rows[i];
-                return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />;
+                return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />;
               })}
             </Fragment>
           ))

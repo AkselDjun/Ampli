@@ -48,7 +48,7 @@ export function AddMenu({ onAdd, onRooms, fab, down }: { onAdd: (t: LineType) =>
     ['power', TYPES.power.label, 'Плита, бойлер, стиральная машина', <IconBolt key="i" />]
   ];
   return (
-    <div className={'addmenu' + (fab ? ' fab' : '') + (down ? ' down' : '') + (hide && !open ? ' hide' : '')} ref={ref}>
+    <div className={'addmenu' + (fab ? ' fab' : '') + (down ? ' down' : '') + (hide && !open ? ' hide' : '')} ref={ref} data-tour="add">
       {open && (
         <ul className="am-list" role="menu" aria-label="Тип новой группы" ref={el => { listRef.current = el; }} onKeyDown={onKeyDown}>
           {types.map(([t, label, hint, icon]) => (

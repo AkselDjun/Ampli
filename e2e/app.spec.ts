@@ -17,14 +17,36 @@ const noSideScroll = async (page: Page) => {
 
 const rows = (page: Page) => page.locator('.rows .row');
 
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
+test.beforeEach(async ({ page }, testInfo) => {
+  await page.addInitScript((showTour: boolean) => {
     const w = window as unknown as { printed: number };
     w.printed = 0;
+    if (!showTour) localStorage.setItem('ampli-onboarding-v1', 'done');
     window.print = () => {
       w.printed += 1;
     };
-  });
+  }, testInfo.title.includes('first-run tour'));
+});
+
+test('first-run tour explains the workflow and can be reopened', async ({ page }) => {
+  await page.goto('/');
+  const tour = page.locator('.tour-card');
+  await expect(tour).toBeVisible();
+  await expect(tour).toContainText('шаг 1 из 6');
+  for (let i = 0; i < 5; i += 1) await tour.getByRole('button', { name: 'Далее' }).click();
+  await expect(tour).toContainText('Щиток, приёмка и отчёт');
+  await tour.getByRole('button', { name: 'Все возможности' }).click();
+  await expect(tour).toContainText('шаг 1 из 7');
+  for (let i = 0; i < 6; i += 1) await tour.getByRole('button', { name: 'Далее' }).click();
+  await expect(tour).toContainText('Проекты и обмен данными');
+  await tour.getByRole('button', { name: 'Готово' }).click();
+  await expect(tour).toBeHidden();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('ampli-onboarding-v1'))).toBe('done');
+  await page.getByRole('button', { name: 'Открыть обучение' }).click();
+  await expect(tour).toBeVisible();
+  await expect(tour).toContainText('Обучение Ampli');
+  await tour.getByRole('button', { name: /Быстрый старт/ }).click();
+  await tour.getByRole('button', { name: 'Пропустить' }).click();
 });
 
 test('opens the sample apartment with groups and totals', async ({ page }) => {

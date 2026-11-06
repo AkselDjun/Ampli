@@ -39,6 +39,8 @@ import type { PrintMode } from './WorkSheet';
 import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
 import { Button } from './kit';
+import { Onboarding, onboardingPending } from './Onboarding';
+import type { OnboardingStart } from './Onboarding';
 
 type View = 'groups' | 'edit' | 'panel';
 type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | 'old' | 'floor' | 'weak' | null;
@@ -84,6 +86,7 @@ export function App() {
     const h = readOwnerHash(window.location.hash);
     return h ? unpackProject(h) : null;
   });
+  const [tourStart, setTourStart] = useState<OnboardingStart | null>(() => boot.source === 'empty' && !incoming && !shared && !owner && onboardingPending() ? 'basics' : null);
   const p = cur(state);
   const { lines: pLines, cfg: pCfg, weak: pWeak, floor: pFloor } = p;
   const a = useMemo(() => calcAll(pLines, pCfg, { weak: pWeak, floor: pFloor }), [pLines, pCfg, pWeak, pFloor]);
@@ -451,19 +454,20 @@ export function App() {
             <div className="ab-main">
               <h1 className="brand"><Brand /><span>Ampli</span></h1>
               <span className="save-indicator" aria-live="polite">{saveStatus === 'saving' ? 'Проекты: сохранение…' : saveStatus === 'saved' ? 'Проекты: сохранено' : saveStatus === 'conflict' ? 'Конфликт вкладок' : 'Ошибка сохранения проектов'}</span>
-              <div className="hud">
+              <div className="hud" data-tour="summary">
                 <Totals a={da} onNet={openNet} />
                 <Checks a={da} onGroup={pick} onFix={onCheckFix} />
               </div>
-              <button className="ab-btn" type="button" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
+              <button className="ab-btn tour-help" type="button" data-tip="Обучение" aria-label="Открыть обучение" onClick={() => { setSheet(null); setTourStart('menu'); }}>?</button>
+              <button className="ab-btn" type="button" data-tour="panel" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
                 <IconPanel />
                 <span className="ab-txt">На щитке</span>
               </button>
-              <button className="ab-btn desk" type="button" data-tip="Монтаж и приёмка" onClick={() => setSheet('work')}>
+              <button className="ab-btn desk" type="button" data-tour="work" data-tip="Монтаж и приёмка" onClick={() => setSheet('work')}>
                 <IconCheck />
                 <span className="ab-txt">Приёмка</span>
               </button>
-              <button className="ab-btn desk" type="button" data-tip="Отчёт и спецификация" onClick={() => setSheet('rep')}>
+              <button className="ab-btn desk" type="button" data-tour="report" data-tip="Отчёт и спецификация" onClick={() => setSheet('rep')}>
                 <IconDoc />
                 <span className="ab-txt">Отчёт</span>
               </button>
@@ -511,21 +515,21 @@ export function App() {
           </div>
         </main>
 
-        <nav className="tabs" aria-label="Разделы">
+        <nav className="tabs" aria-label="Разделы" data-tour="reports">
           <button type="button" onClick={() => tab('groups')} aria-current={view === 'groups' || view === 'edit' ? 'page' : undefined}>
             <IconList />
             <span>Группы</span>
             {da.issues > 0 && <em className="badge">{da.issues}</em>}
           </button>
-          <button type="button" onClick={() => tab('panel')} aria-current={view === 'panel' ? 'page' : undefined}>
+          <button type="button" data-tour="panel" onClick={() => tab('panel')} aria-current={view === 'panel' ? 'page' : undefined}>
             <IconPanel />
             <span>Щиток</span>
           </button>
-          <button type="button" onClick={() => setSheet('work')}>
+          <button type="button" data-tour="work" onClick={() => setSheet('work')}>
             <IconCheck />
             <span>Приёмка</span>
           </button>
-          <button type="button" onClick={() => setSheet('rep')}>
+          <button type="button" data-tour="report" onClick={() => setSheet('rep')}>
             <IconDoc />
             <span>Отчёт</span>
           </button>
@@ -549,6 +553,7 @@ export function App() {
         <Hold open={sheet === 'work'}><WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => pushSheet('panel')} /></Hold>
         </SheetNavContext.Provider>
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
+        {tourStart && <Onboarding key={tourStart} start={tourStart} onClose={() => setTourStart(null)} />}
       </div>
       <Hold open={printing}>{printModes.map(m => <PrintDoc key={m} p={p} a={a} mode={m} />)}</Hold>
     </LibContext.Provider>

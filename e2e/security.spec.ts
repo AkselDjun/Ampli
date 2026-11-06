@@ -6,6 +6,7 @@ type Win = { cspHits: string[]; printed: number };
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     const w = window as unknown as Win;
+    localStorage.setItem('ampli-onboarding-v1', 'done');
     w.cspHits = [];
     w.printed = 0;
     document.addEventListener('securitypolicyviolation', e => w.cspHits.push(e.violatedDirective + ' ' + e.blockedURI));
