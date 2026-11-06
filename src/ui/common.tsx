@@ -206,7 +206,7 @@ const SCROLL = new Map<string, number>();
 const BACK = { on: false };
 
 export function Sheet({
-  open, onClose, title, compact, tip, bar, children
+  open, onClose, title, compact, tip, bar, historyLayer = true, children
 }: {
  
   compact?: boolean;
@@ -215,10 +215,11 @@ export function Sheet({
   onClose: () => void;
   title: string;
   tip?: ReactNode;
+  historyLayer?: boolean;
   children: ReactNode;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
-  useBackClose(open, onClose);
+  useBackClose(open && historyLayer, onClose);
   const bodyRef = useRef<HTMLDivElement>(null);
   const opener = useRef<Element | null>(null);
   const nav = useSheetNav();
