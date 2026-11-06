@@ -12,8 +12,9 @@ export default defineConfig({
     launchOptions: process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {}
   },
   projects: [
-    { name: 'phone', use: { ...devices['Pixel 7'] } },
-    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 860 } } }
+    { name: 'phone', testIgnore: /perf\.spec/, use: { ...devices['Pixel 7'] } },
+    { name: 'desktop', testIgnore: /perf\.spec/, use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 860 } } },
+    { name: 'perf', testMatch: /perf\.spec/, fullyParallel: false, use: { ...devices['Pixel 7'] } }
   ],
   webServer: {
     command: 'npm run build && npx vite preview --port 4173 --strictPort',
