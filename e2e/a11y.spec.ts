@@ -18,6 +18,7 @@ for (const scheme of ['light', 'dark'] as const) {
     test.use({ colorScheme: scheme, reducedMotion: 'reduce' });
 
     test.beforeEach(async ({ page }) => {
+      await page.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
       await page.goto('/');
       await expect(page.locator('.rows .row').first()).toBeVisible();
     });
