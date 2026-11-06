@@ -24,6 +24,16 @@ describe('filterCmds', () => {
 });
 
 describe('Command palette', () => {
+  it('ignores a late close event from the previous run once reopened', () => {
+    const onClose = vi.fn();
+    const { rerender } = render(<Palette open cmds={[]} onClose={onClose} />);
+    fireEvent(pal(), new Event('close'));
+    expect(onClose).not.toHaveBeenCalled();
+    rerender(<Palette open={false} cmds={[]} onClose={onClose} />);
+    expect(pal().open).toBe(false);
+    fireEvent(pal(), new Event('close'));
+    expect(onClose).toHaveBeenCalled();
+  });
   it('opens with Ctrl+K, filters and runs the estimate command', () => {
     wide(true);
     render(<App />);
