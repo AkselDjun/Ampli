@@ -58,6 +58,28 @@ jobs:
           path: dist
           retention-days: 7
 
+  lighthouse:
+    name: Lighthouse
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+      - run: npx --yes @lhci/cli@0.15.1 autorun
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse
+          path: lighthouse
+          retention-days: 7
+
   e2e:
     name: Browser tests
     runs-on: ubuntu-latest

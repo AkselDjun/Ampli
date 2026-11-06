@@ -4,3 +4,5 @@ coverage
 test-results
 playwright-report
 release-notes.md
+lighthouse
+.lighthouseci
