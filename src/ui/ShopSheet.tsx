@@ -60,7 +60,10 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
   const removeList = (id: string) => {
     const gone = lists.find(l => l.id === id);
     const next = lists.filter(l => l.id !== id);
-    saveLists(next);
+    if (!saveLists(next)) {
+      note('Не удалось удалить прайс: изменения не сохранились', true);
+      return;
+    }
     setLists(next);
     setPick({});
     if (gone) toastOk('Прайс удалён: ' + gone.name);

@@ -158,6 +158,37 @@ export async function writeProjects(put: Project[], del: string[], clear = false
   await done(t);
 }
 
+export class ProjectConflictError extends Error {
+  constructor() { super('project changed in another tab'); }
+}
+
+export const REVISION_KEY = 'ampli-project-revision';
+const TAB_KEY = 'ampli-tab-id';
+export function tabId(): string {
+  let id = sessionStorage.getItem(TAB_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    sessionStorage.setItem(TAB_KEY, id);
+  }
+  return id;
+}
+
+export async function writeProjectsChecked(put: Project[], del: string[], expected: string | null, owner: string, clear = false): Promise<string | null> {
+  const perform = async () => {
+    const current = localStorage.getItem(REVISION_KEY);
+    if (!clear && current !== expected && !current?.startsWith(owner + ':')) throw new ProjectConflictError();
+    await writeProjects(put, del, clear);
+    if (!put.length && !del.length && !clear) return expected;
+    const revision = owner + ':' + crypto.randomUUID();
+    localStorage.setItem(REVISION_KEY, revision);
+    return revision;
+  };
+  if (typeof navigator !== 'undefined' && navigator.locks?.request) {
+    return navigator.locks.request('ampli-project-write', perform);
+  }
+  return perform();
+}
+
 export async function clearProjects(): Promise<void> {
   const d = await db();
   const t = d.transaction(STORE, 'readwrite');
