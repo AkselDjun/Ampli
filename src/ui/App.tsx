@@ -9,7 +9,7 @@ import { HoverTips, Toaster } from './common';
 import { toast, toastBad, toastOk } from './toast';
 import { backupDue, keepData, snoozeBackup } from '../store/backup';
 import { exportBackup } from './download';
-import { changes, dropLegacy, loadBoot, mergeLists, readProjects, saveBoot, saveStore, writeProjects } from '../store/storage';
+import { BOOT_KEY, REVISION_KEY, changes, dropLegacy, loadBoot, mergeLists, ProjectConflictError, readProjects, saveBoot, saveStore, tabId, writeProjectsChecked } from '../store/storage';
 import { libReducer, loadLib, saveLib } from '../store/lib';
 import { LibContext } from '../store/LibContext';
 import { gcPhotos, photoKeys } from '../store/photos';
@@ -121,6 +121,10 @@ export function App() {
   }, []);
 
   const disk = useRef({ full: boot.source === 'legacy', idb: true, clear: boot.source === 'legacy', order: boot.order, prev: boot.source === 'boot' ? boot.list : ([] as Project[]) });
+  const conflict = useRef(false);
+  const revision = useRef<string | null>(localStorage.getItem(REVISION_KEY));
+  const tabOwner = useRef(tabId());
+  const pendingWrite = useRef<Promise<void>>(Promise.resolve());
 
   const latest = useRef(state.list);
   useEffect(() => {
@@ -163,7 +167,7 @@ export function App() {
       snoozeBackup();
       toast('Резервная копия проектов не сохранялась больше недели', {
         label: 'Сохранить',
-        run: () => (exportBackup(latest.current) ? toastOk('Резервная копия сохранена') : toastBad('Не удалось сохранить файл на этом устройстве'))
+        run: () => { void exportBackup(latest.current).then(ok => ok ? toastOk('Резервная копия подготовлена') : toastBad('Не удалось подготовить резервную копию')); }
       });
     }, 6000);
     return () => window.clearTimeout(t);
@@ -171,6 +175,7 @@ export function App() {
   useEffect(() => {
     if (viewOnly) return;
     const d = disk.current;
+    if (conflict.current) return;
     const ids = list.map(x => x.id);
     const gone = new Set(d.prev.map(x => x.id).filter(id => !ids.includes(id)));
     d.order = d.full ? ids : [...d.order.filter(id => !gone.has(id)), ...ids.filter(id => !d.order.includes(id))];
@@ -184,12 +189,23 @@ export function App() {
     const clear = d.clear;
     d.prev = list;
     d.clear = false;
-    writeProjects(put, del, clear)
+    const write = pendingWrite.current.then(() => {
+      if (conflict.current) return;
+      return writeProjectsChecked(put, del, revision.current, tabOwner.current, clear).then(next => { revision.current = next; });
+    });
+    pendingWrite.current = write.catch(() => undefined);
+    write
       .then(() => {
         if (clear) dropLegacy();
         onSaved(true);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        if (error instanceof ProjectConflictError) {
+          conflict.current = true;
+          try { localStorage.removeItem(BOOT_KEY); } catch { /* storage may be unavailable */ }
+          toastBad('Проект изменён в другой вкладке. Обновите страницу перед продолжением работы.');
+          return;
+        }
         d.prev = [];
         d.clear = clear;
         fallback();

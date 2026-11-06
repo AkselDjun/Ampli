@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { newProject } from '../../core/project';
 import { sample } from '../../core/templates';
@@ -40,7 +40,7 @@ describe('backup of all projects', () => {
     const d = openShare();
     expect(d.textContent).toContain('Копия ещё не сохранялась');
     click(d, 'Сохранить резервную копию');
-    expect(toastText()).toContain('Резервная копия сохранена');
+    await waitFor(() => expect(toastText()).toContain('Резервная копия подготовлена'));
     expect(Number(localStorage.getItem(BACKUP_AT))).toBeGreaterThan(0);
     expect(d.textContent).toContain('Последняя копия');
     const data = JSON.parse(await (create.mock.calls[0][0] as Blob).text());
@@ -55,7 +55,7 @@ describe('backup of all projects', () => {
     render(<App />);
     await settle();
     click(openShare(), 'Сохранить резервную копию');
-    expect(toastText()).toContain('Не удалось сохранить');
+    await waitFor(() => expect(toastText()).toContain('Не удалось сохранить'));
     expect(localStorage.getItem(BACKUP_AT)).toBeNull();
     create.mockRestore();
   });
@@ -87,7 +87,7 @@ describe('weekly reminder and persistent storage', () => {
     expect(toastText()).toContain('не сохранялась больше недели');
     expect(Number(localStorage.getItem(BACKUP_SNOOZE))).toBeGreaterThan(Date.now());
     act(() => currentToast()?.run?.());
-    expect(toastText()).toContain('Резервная копия сохранена');
+    await waitFor(() => expect(toastText()).toContain('Резервная копия подготовлена'));
     create.mockRestore();
   });
 

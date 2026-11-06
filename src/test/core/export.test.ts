@@ -66,6 +66,7 @@ describe('csv', () => {
   });
   it('quotes line breaks', () => {
     expect(toCsv({ name: 'x', head: ['a'], rows: [['1\n2']], widths: [1] })).toContain('"1\n2"');
+    expect(toCsv({ name: 'x', head: ['a'], rows: [['=HYPERLINK("https://example.com")']], widths: [1] })).toContain("'=HYPERLINK");
   });
 });
 

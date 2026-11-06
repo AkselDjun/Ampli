@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { newProject, sampleProject } from '../../core/project';
 import { blank } from '../../core/templates';
-import { BACKUP_AT, BACKUP_SNOOZE, DAY, WEEK, backupDue, backupFile, keepData, lastBackup, markBackup, snoozeBackup } from '../../store/backup';
-import { SCHEMA } from '../../store/storage';
+import { BACKUP_AT, BACKUP_SNOOZE, DAY, WEEK, backupArchive, backupDue, backupFile, keepData, lastBackup, markBackup, restorePhotos, snoozeBackup } from '../../store/backup';
+import { getPhoto, putPhoto } from '../../store/photos';
+import { REVISION_KEY, SCHEMA, ProjectConflictError, writeProjectsChecked } from '../../store/storage';
 
 const now = Date.UTC(2026, 10, 6);
 const project = (created: number, updated = created) => ({ ...newProject(blank(), 'Объект'), created, updated });
@@ -51,6 +52,25 @@ describe('backup file', () => {
     const o = JSON.parse(f.text);
     expect(o).toMatchObject({ app: 'ampli', kind: 'backup', schema: SCHEMA, created: now });
     expect(o.list.map((x: { id: string }) => x.id)).toEqual([a.id]);
+  });
+  it('round trips photo bytes with the project archive', async () => {
+    const p = { ...project(now), photos: [{ id: 'archive-photo', line: 'x', note: '', tag: 'before' as const, at: now }] };
+    await putPhoto('archive-photo', new Blob(['photo bytes'], { type: 'image/jpeg' }));
+    const archive = await backupArchive([p]);
+    const data = JSON.parse(archive.text);
+    expect(data.photos['archive-photo'].type).toBe('image/jpeg');
+    await putPhoto('archive-photo', new Blob(['overwritten']));
+    await restorePhotos(data);
+    expect(await (await getPhoto('archive-photo'))?.text()).toBe('photo bytes');
+  });
+});
+
+describe('parallel tabs', () => {
+  it('rejects a write after another tab has saved', async () => {
+    localStorage.removeItem(REVISION_KEY);
+    const a = project(now);
+    await writeProjectsChecked([a], [], null, 'tab-a');
+    await expect(writeProjectsChecked([{ ...a, name: 'old copy' }], [], null, 'tab-b')).rejects.toBeInstanceOf(ProjectConflictError);
   });
 });
 

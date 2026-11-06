@@ -1,5 +1,5 @@
 import type { Project } from '../core/types';
-import { backupFile, markBackup } from '../store/backup';
+import { backupArchive, markBackup } from '../store/backup';
 
 export function download(name: string, data: string | Uint8Array, type: string): void {
   const url = URL.createObjectURL(new Blob([data as BlobPart], { type }));
@@ -12,9 +12,9 @@ export function download(name: string, data: string | Uint8Array, type: string):
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function exportBackup(list: Project[], now = Date.now()): boolean {
+export async function exportBackup(list: Project[], now = Date.now()): Promise<boolean> {
   try {
-    const f = backupFile(list, now);
+    const f = await backupArchive(list, now);
     download(f.name, f.text, 'application/json');
     markBackup(now);
     return true;

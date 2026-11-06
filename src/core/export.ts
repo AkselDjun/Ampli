@@ -79,7 +79,7 @@ export function exportTables(a: Calc, prices: Record<string, number>, labor: Wor
 
 const csvCell = (v: Cell): string => {
   if (v === null) return '';
-  const s = typeof v === 'number' ? String(v).replace('.', ',') : v;
+  const s = typeof v === 'number' ? String(v).replace('.', ',') : /^[\s]*[=+\-@]/.test(v) ? "'" + v : v;
   return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 };
 

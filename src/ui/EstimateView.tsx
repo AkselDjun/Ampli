@@ -65,7 +65,7 @@ export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: 
         </p>
         <Totals materials={est.total} works={le.total} total={grandTotal(est.total, le.total)} />
         <div className="owner-act ev-act">
-          <Button variant="primary" onClick={approve}>Согласовать</Button>
+          <Button variant="primary" onClick={approve}>Отправить согласование мастеру</Button>
           <Button variant="ghost" onClick={() => window.print()}>Сохранить в PDF</Button>
         </div>
         {fallback !== null && <textarea className="ev-fallback" ref={ta} readOnly value={fallback} aria-label="Текст согласования" />}

@@ -29,6 +29,7 @@ import type { PrintMode } from './WorkSheet';
 import { Button, Field } from './kit';
 import { APP_VERSION, NORMS_EDITION } from '../core/version';
 import { lastBackup } from '../store/backup';
+import { restorePhotos } from '../store/backup';
 
 export function NetSheet({
   open, onClose, p, dispatch, onOld, oldLabel
@@ -172,7 +173,7 @@ export function ProjectsSheet({
       note('Не удалось сохранить файл на этом устройстве', true);
     }
   };
-  const importText = (text: string) => {
+  const importText = async (text: string) => {
     let o: unknown;
     try {
       o = JSON.parse(text);
@@ -193,6 +194,13 @@ export function ProjectsSheet({
     }
     if (!added.length) {
       note('Все проекты из копии уже есть на этом устройстве');
+      return;
+    }
+    try {
+      if (restore) await restorePhotos(o);
+    } catch (e) {
+      void e;
+      note('Фотографии из архива не удалось восстановить. Проекты не добавлены', true);
       return;
     }
     dispatch({ t: 'importProjects', projects: added });
@@ -287,7 +295,7 @@ export function ProjectsSheet({
             if (!f) return;
             const rd = new FileReader();
             rd.onload = () => {
-              importText(String(rd.result));
+              void importText(String(rd.result));
               input.value = '';
             };
             rd.onerror = () => note('Не удалось прочитать файл', true);
@@ -298,12 +306,12 @@ export function ProjectsSheet({
       <h3 className="sec-t">Резервная копия</h3>
       <p className="muted">Все проекты в одном файле. Сохраняйте его раз в неделю: если браузер очистит данные или телефон сломается, проекты можно вернуть кнопкой «Открыть из файла». {last ? 'Последняя копия: ' + dfmt(last) + '.' : 'Копия ещё не сохранялась.'}</p>
       <div className="data-row">
-        <Button variant="ghost" onClick={() => {
-          if (exportBackup(state.list)) {
+        <Button variant="ghost" onClick={() => { void exportBackup(state.list).then(ok => {
+          if (ok) {
             setLast(lastBackup());
-            note('Резервная копия сохранена');
+            note('Резервная копия подготовлена');
           } else note('Не удалось сохранить файл на этом устройстве', true);
-        }}>Сохранить резервную копию</Button>
+        }); }}>Сохранить резервную копию</Button>
       </div>
       <h3 className="sec-t">Шаблон</h3>
       <p className="muted">Группы и параметры этого проекта станут заготовкой для новых проектов.</p>
