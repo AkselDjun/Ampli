@@ -1,5 +1,11 @@
 # Журнал изменений
 
+## 2.1.0 (2026-11-06)
+
+- perf/e2e-budgets-lighthouse (#28)
+- Use one font family, preload the Cyrillic file and speed up browser install in CI (#27)
+- Norm reference tests, accessibility scan, code splitting, CSP and releases (#26)
+
 ## 2.0.0 (2026-11-05)
 
 - Эталонные тесты расчёта по нормам РБ и проверка свойств расчёта на случайных проектах
