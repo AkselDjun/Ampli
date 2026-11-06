@@ -5,6 +5,7 @@ export const KEY = 'ampli-v1';
 export const OLDKEY = 'raschet-shchitka-v3';
 export const BOOT_KEY = 'ampli-boot';
 export const DB_NAME = 'ampli-projects';
+export const SCHEMA = 1;
 const STORE = 'p';
 
 export interface Store {
@@ -20,6 +21,7 @@ export interface Boot extends Store {
 }
 
 interface BootRecord {
+  schema: number;
   cur: string;
   order: string[];
   project: unknown;
@@ -96,7 +98,7 @@ export function saveStore(s: Store): boolean {
 
 export function saveBoot(cur: Project, order: string[]): boolean {
   try {
-    const rec: BootRecord = { cur: cur.id, order, project: cur };
+    const rec: BootRecord = { schema: SCHEMA, cur: cur.id, order, project: cur };
     localStorage.setItem(BOOT_KEY, JSON.stringify(rec));
     return true;
   } catch (e) {
@@ -114,7 +116,7 @@ function db(): Promise<IDBDatabase> {
         reject(new Error('no indexedDB'));
         return;
       }
-      const r = indexedDB.open(DB_NAME, 1);
+      const r = indexedDB.open(DB_NAME, SCHEMA);
       r.onupgradeneeded = () => r.result.createObjectStore(STORE);
       r.onsuccess = () => resolve(r.result);
       r.onerror = () => reject(r.error);
