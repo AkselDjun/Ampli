@@ -40,7 +40,7 @@ import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
 import { Button } from './kit';
 import { Onboarding, onboardingPending } from './Onboarding';
-import type { OnboardingStart } from './Onboarding';
+import type { TourScene } from './Onboarding';
 
 type View = 'groups' | 'edit' | 'panel';
 type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | 'old' | 'floor' | 'weak' | null;
@@ -86,7 +86,7 @@ export function App() {
     const h = readOwnerHash(window.location.hash);
     return h ? unpackProject(h) : null;
   });
-  const [tourStart, setTourStart] = useState<OnboardingStart | null>(() => boot.source === 'empty' && !incoming && !shared && !owner && onboardingPending() ? 'basics' : null);
+  const [tourOpen, setTourOpen] = useState(() => boot.source === 'empty' && !incoming && !shared && !owner && onboardingPending());
   const p = cur(state);
   const { lines: pLines, cfg: pCfg, weak: pWeak, floor: pFloor } = p;
   const a = useMemo(() => calcAll(pLines, pCfg, { weak: pWeak, floor: pFloor }), [pLines, pCfg, pWeak, pFloor]);
@@ -97,6 +97,25 @@ export function App() {
   const dOldLabel = oldStarted(dp.old) ? oldVerdict(dp.old, da).label : '';
   const selected = p.lines.find(l => l.id === state.sel) || null;
   const idx = selected ? p.lines.indexOf(selected) : -1;
+  const onTourScene = useCallback((scene: TourScene) => {
+    setPal(false);
+    if (scene === 'home') {
+      setSheet(null);
+      setView('groups');
+    } else if (scene === 'editor') {
+      setSheet(null);
+      if (p.lines[0]) dispatch({ t: 'select', id: p.lines[0].id });
+      setView(isWide() ? 'groups' : 'edit');
+    } else {
+      setView('groups');
+      setSheet(scene === 'network' ? 'net' : scene === 'projects' ? 'proj' : scene === 'report' ? 'rep' : scene);
+    }
+  }, [p.lines, setSheet]);
+  const closeTour = useCallback(() => {
+    setTourOpen(false);
+    setSheet(null);
+    setView('groups');
+  }, [setSheet]);
 
   const saveFail = useRef(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | 'conflict'>('saved');
@@ -458,7 +477,7 @@ export function App() {
                 <Totals a={da} onNet={openNet} />
                 <Checks a={da} onGroup={pick} onFix={onCheckFix} />
               </div>
-              <button className="ab-btn tour-help" type="button" data-tip="Обучение" aria-label="Открыть обучение" onClick={() => { setSheet(null); setTourStart('menu'); }}>?</button>
+              <button className="ab-btn tour-help" type="button" data-tip="Обучение" aria-label="Открыть обучение" onClick={() => { setSheet(null); setTourOpen(true); }}>?</button>
               <button className="ab-btn" type="button" data-tour="panel" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
                 <IconPanel />
                 <span className="ab-txt">На щитке</span>
@@ -553,7 +572,7 @@ export function App() {
         <Hold open={sheet === 'work'}><WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => pushSheet('panel')} /></Hold>
         </SheetNavContext.Provider>
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
-        {tourStart && <Onboarding key={tourStart} start={tourStart} onClose={() => setTourStart(null)} />}
+        {tourOpen && <Onboarding onScene={onTourScene} onClose={closeTour} />}
       </div>
       <Hold open={printing}>{printModes.map(m => <PrintDoc key={m} p={p} a={a} mode={m} />)}</Hold>
     </LibContext.Provider>

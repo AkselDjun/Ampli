@@ -60,5 +60,15 @@ for (const scheme of ['light', 'dark'] as const) {
         expect(await scan(page), t).toEqual([]);
       }
     });
+
+    test('guided onboarding with an opened modal', async ({ page }) => {
+      await page.getByRole('button', { name: 'Открыть обучение' }).click();
+      const tour = page.locator('.tour-card');
+      await expect(tour).toContainText('Познакомимся с Ampli');
+      expect(await scan(page), 'intro').toEqual([]);
+      await tour.getByRole('button', { name: 'Далее' }).click();
+      await expect(page.locator('[data-tour-view="network"]')).toBeVisible();
+      expect(await scan(page), 'network modal').toEqual([]);
+    });
   });
 }

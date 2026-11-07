@@ -21,7 +21,7 @@ export function RoomsSheet({
   const planned = useMemo(() => assemble(p.rooms ?? []).length, [p.rooms]);
   const addApp = (rid: string, app: RoomApp) => dispatch({ t: 'roomAppAdd', rid, app });
   return (
-    <Sheet open={open} onClose={onClose} title="Комнаты" tip="Опишите комнаты и приборы, группы соберутся сами: свет и розетки по комнатам, мощные приборы отдельными линиями. Потом группы можно поправить вручную.">
+    <Sheet open={open} onClose={onClose} title="Комнаты" tourId="rooms" tip="Опишите комнаты и приборы, группы соберутся сами: свет и розетки по комнатам, мощные приборы отдельными линиями. Потом группы можно поправить вручную.">
       <div className="chips room-add">
         {ROOM_PRESETS.map(r => (
           <button key={r.key} className="chip" type="button" onClick={() => dispatch({ t: 'roomAdd', room: makeRoom(r) })}>+ {r.title}</button>
