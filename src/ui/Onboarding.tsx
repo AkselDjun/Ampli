@@ -12,25 +12,63 @@ export function markOnboardingDone(): void {
   try { localStorage.setItem(ONBOARDING_KEY, 'done'); } catch { /* The tour still closes. */ }
 }
 
-interface Step { title: string; text: string; targets?: string[] }
+export type TourScene = 'home' | 'network' | 'editor' | 'rooms' | 'panel' | 'work' | 'report' | 'projects';
 
-const BASICS: Step[] = [
-  { title: 'Познакомимся с Ampli', text: 'За пару минут покажем путь от групп электропроводки до готовой схемы, сметы и приёмки.' },
-  { title: 'Проект и параметры сети', text: 'Здесь находятся ваши проекты. Ниже задаются фазы, выделенная мощность, способ прокладки и защита — от них зависит весь расчёт.', targets: ['[data-tour="projects"]'] },
-  { title: 'Группы линий', text: 'Каждая строка — отдельная линия щитка. Откройте группу, чтобы изменить приборы, длину кабеля, помещение и увидеть подробный расчёт.', targets: ['[data-tour="group"]'] },
-  { title: 'Добавление групп', text: 'Добавляйте свет, розетки и мощные приборы вручную или соберите группы сразу из списка комнат.', targets: ['[data-tour="add"]'] },
-  { title: 'Итоги и проверки', text: 'Верхняя панель показывает общую мощность, ввод и замечания. Нажмите на показатель или проверку, чтобы увидеть причину и способ исправления.', targets: ['[data-tour="summary"]'] },
-  { title: 'Щиток, приёмка и отчёт', text: 'В навигации открываются раскладка щитка, замеры, чек-лист, схема, спецификация и смета. Этого достаточно, чтобы начать работу.', targets: ['[data-tour="reports"]'] }
-];
+interface Step {
+  scene: TourScene;
+  title: string;
+  text: string;
+  targets?: string[];
+}
 
-const ADVANCED: Step[] = [
-  { title: 'Сеть и специальные системы', text: 'Настройте ввод, защиту и способ прокладки. Рядом находятся расчёты старой проводки, тёплого пола и слаботочных сетей: интернета, ТВ и камер.', targets: ['[data-tour="network"]'] },
-  { title: 'Подробности каждой линии', text: 'В карточке группы задаются приборы, кабель, длина, помещение и условия монтажа. Ampli пересчитает ток, сечение, автомат и падение напряжения.', targets: ['[data-tour="group"]'] },
-  { title: 'Комнаты и быстрый старт', text: 'Создайте типовой набор линий по комнатам или добавляйте свет, розетки и отдельные приборы вручную. Список можно группировать по помещениям.', targets: ['[data-tour="add"]'] },
-  { title: 'Сборка щитка', text: 'Проверьте раскладку по рядам и модулям, перетаскивайте аппараты и подготовьте понятную маркировку для сборки.', targets: ['.tabs [data-tour="panel"]', '.appbar [data-tour="panel"]'] },
-  { title: 'Монтаж и приёмка', text: 'Ведите чек-лист работ, заносите измерения и формируйте документы приёмки. Здесь же собраны данные, которые нужны перед сдачей объекта.', targets: ['.tabs [data-tour="work"]', '.appbar [data-tour="work"]'] },
-  { title: 'Схема, материалы и смета', text: 'Отчёт объединяет расчёт групп, однолинейную схему, спецификацию и смету. Цены можно уточнить, а документы — распечатать или сохранить в PDF.', targets: ['.tabs [data-tour="report"]', '.appbar [data-tour="report"]'] },
-  { title: 'Проекты и обмен данными', text: 'Создавайте варианты, делайте резервные копии, переносите проекты файлами и делитесь расчётом по ссылке. Собственные марки и шаблоны сохраняются в «Моих данных».', targets: ['[data-tour="projects"]'] }
+const STEPS: Step[] = [
+  {
+    scene: 'home',
+    title: 'Познакомимся с Ampli',
+    text: 'Покажем весь путь на реальном интерфейсе: от параметров сети и групп до щитка, приёмки, документов и обмена проектом.'
+  },
+  {
+    scene: 'network',
+    title: 'Сеть и специальные системы',
+    text: 'В этом окне задаются ввод, выделенная мощность, фазы, защита и способ прокладки. От этих параметров зависит расчёт всех линий. Отсюда же открываются старая проводка, тёплый пол и слаботочные системы.',
+    targets: ['[data-tour-view="network"]']
+  },
+  {
+    scene: 'editor',
+    title: 'Подробности каждой линии',
+    text: 'В карточке группы задаются приборы, кабель, длина, помещение и условия монтажа. Ampli сразу пересчитывает ток, сечение, автомат, УЗО и падение напряжения.',
+    targets: ['[aria-label="Редактор группы"]']
+  },
+  {
+    scene: 'rooms',
+    title: 'Комнаты и быстрый старт',
+    text: 'Опишите помещения и основные приборы — Ampli соберёт типовые линии автоматически. После создания любую группу можно настроить вручную.',
+    targets: ['[data-tour-view="rooms"]']
+  },
+  {
+    scene: 'panel',
+    title: 'Сборка щитка и замеры',
+    text: 'Режим щитка показывает аппараты по рядам и модулям. Здесь проверяют компоновку, меняют порядок и заносят фактические измерения по каждой линии.',
+    targets: ['[data-tour-view="panel"]']
+  },
+  {
+    scene: 'work',
+    title: 'Монтаж и приёмка',
+    text: 'Чек-лист помогает пройти монтаж без пропусков. Во вкладках собраны замеры, протокол, паспорт щитка и акты для сдачи объекта.',
+    targets: ['[data-tour-view="work"]']
+  },
+  {
+    scene: 'report',
+    title: 'Схема, материалы и смета',
+    text: 'Отчёт объединяет расчёт групп, однолинейную схему, спецификацию и смету. Цены можно уточнить, а готовые документы распечатать или сохранить в PDF.',
+    targets: ['[data-tour-view="report"]']
+  },
+  {
+    scene: 'projects',
+    title: 'Проекты и обмен данными',
+    text: 'Создавайте варианты, сохраняйте резервные копии, переносите проекты файлами и отправляйте ссылки. Обучение всегда можно запустить снова кнопкой «?».',
+    targets: ['[data-tour-view="projects"]']
+  }
 ];
 
 const visibleTarget = (selectors?: string[]): HTMLElement | null => {
@@ -43,49 +81,78 @@ const visibleTarget = (selectors?: string[]): HTMLElement | null => {
   return null;
 };
 
-export type OnboardingStart = 'basics' | 'menu';
-
-export function Onboarding({ start, onClose }: { start: OnboardingStart; onClose: () => void }) {
-  const [track, setTrack] = useState<'menu' | 'basics' | 'advanced'>(start);
+export function Onboarding({ onScene, onClose }: { onScene: (scene: TourScene) => void; onClose: () => void }) {
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
+  const root = useRef<HTMLDivElement>(null);
   const primary = useRef<HTMLButtonElement>(null);
-  const steps = track === 'advanced' ? ADVANCED : BASICS;
-  const current = steps[step];
+  const current = STEPS[step];
 
-  const close = () => { markOnboardingDone(); onClose(); };
-  const choose = (next: 'basics' | 'advanced') => { setTrack(next); setStep(0); };
+  const close = () => {
+    markOnboardingDone();
+    onClose();
+  };
 
   useEffect(() => {
     const before = document.documentElement.style.overflow;
     document.documentElement.style.overflow = 'hidden';
     primary.current?.focus();
-    return () => { document.documentElement.style.overflow = before; };
+    const keepFocus = (e: FocusEvent) => {
+      if (root.current && !root.current.contains(e.target as Node)) primary.current?.focus();
+    };
+    document.addEventListener('focusin', keepFocus);
+    return () => {
+      document.documentElement.style.overflow = before;
+      document.removeEventListener('focusin', keepFocus);
+    };
   }, []);
 
+  useEffect(() => {
+    onScene(current.scene);
+  }, [current.scene, onScene]);
+
   useLayoutEffect(() => {
-    if (track === 'menu') return;
-    const place = () => setRect(visibleTarget(current.targets)?.getBoundingClientRect() ?? null);
+    let frame = 0;
+    const place = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const next = visibleTarget(current.targets)?.getBoundingClientRect() ?? null;
+        setRect(prev => {
+          if (!prev || !next) return next;
+          return prev.x === next.x && prev.y === next.y && prev.width === next.width && prev.height === next.height ? prev : next;
+        });
+      });
+    };
     place();
+    const observer = new MutationObserver(place);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden'] });
     window.addEventListener('resize', place);
     document.addEventListener('scroll', place, true);
     return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
       window.removeEventListener('resize', place);
       document.removeEventListener('scroll', place, true);
     };
-  }, [current, track]);
+  }, [current]);
 
   const spot = rect ? {
-    left: Math.max(6, rect.left - 6), top: Math.max(6, rect.top - 6),
-    width: Math.min(window.innerWidth - 12, rect.width + 12), height: Math.min(window.innerHeight - 12, rect.height + 12)
+    left: Math.max(6, rect.left - 6),
+    top: Math.max(6, rect.top - 6),
+    width: Math.min(window.innerWidth - 12, rect.width + 12),
+    height: Math.min(window.innerHeight - 12, rect.height + 12)
   } : undefined;
   const cardStyle: CSSProperties | undefined = rect
-    ? (rect.top + rect.height / 2 > window.innerHeight / 2 ? { top: 16 } : { bottom: 16 }) : undefined;
-  const next = () => { if (step === steps.length - 1) close(); else setStep(step + 1); };
+    ? (rect.top + rect.height / 2 > window.innerHeight / 2 ? { top: 16 } : { bottom: 16 })
+    : undefined;
+  const next = () => {
+    if (step === STEPS.length - 1) close();
+    else setStep(step + 1);
+  };
   const trap = (e: ReactKeyEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') close();
-    if (track !== 'menu' && e.key === 'ArrowRight') next();
-    if (track !== 'menu' && e.key === 'ArrowLeft' && step > 0) setStep(step - 1);
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'ArrowLeft' && step > 0) setStep(step - 1);
     if (e.key !== 'Tab') return;
     const controls = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not([disabled])'));
     const first = controls[0];
@@ -94,38 +161,19 @@ export function Onboarding({ start, onClose }: { start: OnboardingStart; onClose
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
   };
 
-  if (track === 'menu') {
-    return (
-      <div className="tour intro" onKeyDown={trap}>
-        <div className="tour-shade" aria-hidden="true" />
-        <section className="tour-card tour-home" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-text">
-          <div className="tour-count">Справка по интерфейсу</div>
-          <h2 id="tour-title">Обучение Ampli</h2>
-          <p id="tour-text">Выберите маршрут. Прогресс проекта не изменится, а обучение можно закрыть в любой момент.</p>
-          <div className="tour-menu">
-            <button ref={primary} type="button" className="tour-choice" onClick={() => choose('basics')}><b>Быстрый старт</b><span>6 шагов · основной сценарий работы</span></button>
-            <button type="button" className="tour-choice" onClick={() => choose('advanced')}><b>Все возможности</b><span>7 шагов · расширенные инструменты</span></button>
-          </div>
-          <div className="tour-actions"><span /><Button onClick={close}>Закрыть</Button></div>
-        </section>
-      </div>
-    );
-  }
-
   return (
-    <div className={'tour' + (rect ? ' targeted' : ' intro')} onKeyDown={trap}>
+    <div ref={root} className={'tour' + (rect ? ' targeted' : ' intro')} onKeyDown={trap}>
       {spot ? <div className="tour-spot" style={spot} aria-hidden="true" /> : <div className="tour-shade" aria-hidden="true" />}
       <section className="tour-card" style={cardStyle} role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-text">
-        <div className="tour-count">{track === 'advanced' ? 'Все возможности' : 'Быстрый старт'} · шаг {step + 1} из {steps.length}</div>
+        <div className="tour-count">Полное обучение · шаг {step + 1} из {STEPS.length}</div>
         <h2 id="tour-title">{current.title}</h2>
         <p id="tour-text">{current.text}</p>
-        <div className="tour-dots" aria-hidden="true">{steps.map((_, i) => <i key={i} className={i === step ? 'on' : ''} />)}</div>
+        <div className="tour-dots" aria-hidden="true">{STEPS.map((_, i) => <i key={i} className={i === step ? 'on' : ''} />)}</div>
         <div className="tour-actions">
-          <button className="link" type="button" onClick={close}>{step === steps.length - 1 ? 'Закрыть' : 'Пропустить'}</button>
+          <button className="link" type="button" onClick={close}>{step === STEPS.length - 1 ? 'Закрыть' : 'Пропустить'}</button>
           <span />
           {step > 0 && <Button onClick={() => setStep(step - 1)}>Назад</Button>}
-          {track === 'basics' && step === steps.length - 1 && <Button onClick={() => choose('advanced')}>Все возможности</Button>}
-          <Button ref={primary} variant="primary" onClick={next}>{step === steps.length - 1 ? 'Готово' : 'Далее'}</Button>
+          <Button ref={primary} variant="primary" onClick={next}>{step === STEPS.length - 1 ? 'Готово' : 'Далее'}</Button>
         </div>
       </section>
     </div>

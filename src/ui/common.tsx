@@ -206,7 +206,7 @@ const SCROLL = new Map<string, number>();
 const BACK = { on: false };
 
 export function Sheet({
-  open, onClose, title, compact, tip, bar, historyLayer = true, children
+  open, onClose, title, compact, tip, bar, historyLayer = true, tourId, children
 }: {
  
   compact?: boolean;
@@ -216,6 +216,7 @@ export function Sheet({
   title: string;
   tip?: ReactNode;
   historyLayer?: boolean;
+  tourId?: string;
   children: ReactNode;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -281,7 +282,7 @@ export function Sheet({
   const id = 'ttl-' + title.length + title.charCodeAt(0);
   return (
     <div className="sheet" hidden={!open} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className={'sheet-panel' + (compact ? ' compact' : '') + (bar ? '' : ' fit')} role="dialog" aria-modal="true" aria-labelledby={id} onKeyDown={trap} style={dy ? { transform: 'translateY(' + dy + 'px)', transition: 'none' } : undefined}>
+      <div className={'sheet-panel' + (compact ? ' compact' : '') + (bar ? '' : ' fit')} role="dialog" aria-modal="true" aria-labelledby={id} data-tour-view={tourId} onKeyDown={trap} style={dy ? { transform: 'translateY(' + dy + 'px)', transition: 'none' } : undefined}>
         <div className="sheet-head" {...drag}>
           {nav.back && <button className="sheet-back" type="button" onClick={() => { BACK.on = true; nav.back?.(); }} aria-label={'Назад: ' + nav.to} data-tip={'Назад: ' + nav.to}><IconBack /></button>}
           <h2 id={id}>{title}</h2>

@@ -42,7 +42,7 @@ export function NetSheet({
 }) {
   const c = cfgN(p.cfg);
   return (
-    <Sheet open={open} onClose={onClose} title="Параметры сети">
+    <Sheet open={open} onClose={onClose} title="Параметры сети" tourId="network">
       <div className="f">
         <span className="lbl" id="l-sup">Питание</span>
         <Seg<number> name="sup" labelledBy="l-sup" value={c.supply} items={[[1, '1 фаза · 230 В'], [3, '3 фазы · 400 В']]} onChange={v => dispatch({ t: 'cfg', field: 'supply', value: v })} />
@@ -217,7 +217,7 @@ export function ProjectsSheet({
   };
   const n = state.list.length;
   return (
-    <Sheet open={open} onClose={onClose} title="Проекты" bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся только в этом браузере. Чтобы перенести проект на другое устройство, сохраните его в файл или отправьте ссылкой.">
+    <Sheet open={open} onClose={onClose} title="Проекты" tourId="projects" bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся только в этом браузере. Чтобы перенести проект на другое устройство, сохраните его в файл или отправьте ссылкой.">
       <TabPanel scope="pj" id="main" cur={tab}>
       <h3 className="sec-t">Текущий проект</h3>
       <div className="meta-grid">
@@ -392,7 +392,7 @@ export function ReportSheet({
     if (want) setTab(want.tab);
   }
   return (
-    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Допущения' }]} />}>
+    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Допущения' }]} />}>
       <TabPanel scope="rep" id="groups" cur={tab}>
       <div className="copy-row">
         <Button variant="primary" onClick={() => onPrint('report')}>Печать / PDF</Button>

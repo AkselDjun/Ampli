@@ -58,7 +58,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
   };
   const plate = (key: string) => <div key={key} className="pmb-dev pmb-free" aria-hidden="true"><span className="pmb-strip" /><span className="pmb-blank" /></div>;
   return (
-    <Sheet open={open} onClose={onClose} title="На щитке" tip="Щиток показан так же, как он собран: нажмите на автомат и введите замеры. Цвет рычажка: зелёный соответствует, красный не соответствует, серый ещё не измерено.">
+    <Sheet open={open} onClose={onClose} title="На щитке" tourId="panel" tip="Щиток показан так же, как он собран: нажмите на автомат и введите замеры. Цвет рычажка: зелёный соответствует, красный не соответствует, серый ещё не измерено.">
       {rows.length === 0 && <p className="muted">Добавьте группы с приборами, они появятся здесь.</p>}
       {rows.length > 0 && (
         <>

@@ -32,20 +32,31 @@ test('first-run tour explains the workflow and can be reopened', async ({ page }
   await page.goto('/');
   const tour = page.locator('.tour-card');
   await expect(tour).toBeVisible();
-  await expect(tour).toContainText('шаг 1 из 6');
-  for (let i = 0; i < 5; i += 1) await tour.getByRole('button', { name: 'Далее' }).click();
-  await expect(tour).toContainText('Щиток, приёмка и отчёт');
-  await tour.getByRole('button', { name: 'Все возможности' }).click();
-  await expect(tour).toContainText('шаг 1 из 7');
-  for (let i = 0; i < 6; i += 1) await tour.getByRole('button', { name: 'Далее' }).click();
-  await expect(tour).toContainText('Проекты и обмен данными');
+  await expect(tour).toContainText('шаг 1 из 8');
+  const scenes = [
+    ['Сеть и специальные системы', 'network'],
+    ['Подробности каждой линии', null],
+    ['Комнаты и быстрый старт', 'rooms'],
+    ['Сборка щитка и замеры', 'panel'],
+    ['Монтаж и приёмка', 'work'],
+    ['Схема, материалы и смета', 'report'],
+    ['Проекты и обмен данными', 'projects']
+  ] as const;
+  for (const [title, target] of scenes) {
+    await tour.getByRole('button', { name: 'Далее' }).click();
+    await expect(tour).toContainText(title);
+    if (target) await expect(page.locator(`[data-tour-view="${target}"]`)).toBeVisible();
+    else await expect(page.locator('[aria-label="Редактор группы"]')).toBeVisible();
+    await expect(page.locator('.tour-spot')).toBeVisible();
+  }
   await tour.getByRole('button', { name: 'Готово' }).click();
   await expect(tour).toBeHidden();
+  await expect(page.locator('[data-tour-view="projects"]')).toBeHidden();
+  await expect(rows(page).first()).toBeVisible();
   await expect.poll(() => page.evaluate(() => localStorage.getItem('ampli-onboarding-v1'))).toBe('done');
   await page.getByRole('button', { name: 'Открыть обучение' }).click();
   await expect(tour).toBeVisible();
-  await expect(tour).toContainText('Обучение Ampli');
-  await tour.getByRole('button', { name: /Быстрый старт/ }).click();
+  await expect(tour).toContainText('Полное обучение · шаг 1 из 8');
   await tour.getByRole('button', { name: 'Пропустить' }).click();
 });
 
@@ -55,9 +66,12 @@ test('first-run tour supports keyboard navigation and stays dismissed after relo
   await expect(tour).toContainText('Познакомимся с Ampli');
   await expect(tour.getByRole('button', { name: 'Далее' })).toBeFocused();
   await page.keyboard.press('ArrowRight');
-  await expect(tour).toContainText('Проект и параметры сети');
+  await expect(tour).toContainText('Сеть и специальные системы');
+  await expect(page.locator('[data-tour-view="network"]')).toBeVisible();
+  await expect(tour.getByRole('button', { name: 'Далее' })).toBeFocused();
   await page.keyboard.press('ArrowLeft');
   await expect(tour).toContainText('Познакомимся с Ampli');
+  await expect(page.locator('[data-tour-view="network"]')).toBeHidden();
   await page.keyboard.press('Escape');
   await expect(tour).toBeHidden();
   await expect.poll(() => page.evaluate(() => localStorage.getItem('ampli-onboarding-v1'))).toBe('done');
