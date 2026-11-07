@@ -15,7 +15,6 @@ import { LibContext } from '../store/LibContext';
 import { gcPhotos, photoKeys } from '../store/photos';
 import { referencedPhotoIds } from '../core/photos';
 import { useBackClose } from './back';
-import { Brand, IconBack, IconCheck, IconDoc, IconList, IconPanel } from './Icons';
 import { Palette } from './Palette';
 import type { Cmd } from './Palette';
 import { setTheme } from './theme';
@@ -24,8 +23,6 @@ import { APP_VERSION } from '../core/version';
 import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
-import { Totals } from './Totals';
-import { Checks } from './Checks';
 import { SheetNavContext } from './sheetnav';
 import { CompareSheet, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, PanelMode, PrintDoc, ProjectsSheet, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
 import { Hold, useStable } from './hold';
@@ -38,14 +35,15 @@ import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
-import { Button } from './kit';
 import { Onboarding, onboardingPending } from './Onboarding';
-import type { TourScene } from './Onboarding';
-
-type View = 'groups' | 'edit' | 'panel';
-type SheetId = 'net' | 'proj' | 'rep' | 'work' | 'lib' | 'cmp' | 'rooms' | 'panel' | 'shop' | 'old' | 'floor' | 'weak' | null;
-
-const SHEET_TITLE: Record<NonNullable<SheetId>, string> = { net: 'Параметры сети', proj: 'Проекты', rep: 'Отчёт и спецификация', work: 'Монтаж и приёмка', lib: 'Мои данные', cmp: 'Сравнение', rooms: 'Комнаты', panel: 'На щитке', shop: 'Где купить', old: 'Старая проводка', floor: 'Тёплый пол', weak: 'Слаботочка' };
+import { APP_SHEET, APP_VIEW } from '../app/types';
+import type { AppView, ReportRequest, SaveStatus } from '../app/types';
+import { useSheetStack } from '../app/useSheetStack';
+import { AppHeader } from '../app/AppHeader';
+import { AppTabs } from '../app/AppTabs';
+import { sheetForTourScene } from '../app/navigation';
+import { TOUR_SCENE } from '../features/onboarding/model';
+import type { TourScene } from '../features/onboarding/model';
 
 const waitPhotos = async (n: number): Promise<void> => {
   const deadline = Date.now() + 2500;
@@ -62,17 +60,13 @@ export function App() {
   const [boot] = useState(loadBoot);
   const [state, dispatch] = useReducer(reducer, boot, init);
   const [lib, libDispatch] = useReducer(libReducer, undefined, loadLib);
-  const [view, setView] = useState<View>('groups');
-  const [stack, setStack] = useState<NonNullable<SheetId>[]>([]);
-  const sheet: SheetId = stack.length ? stack[stack.length - 1] : null;
-  const setSheet = useCallback((id: SheetId) => setStack(id ? [id] : []), []);
-  const pushSheet = (id: NonNullable<SheetId>) => setStack(s => [...s.filter(x => x !== id), id]);
-  const nav = { back: stack.length > 1 ? () => setStack(s => s.slice(0, -1)) : undefined, to: stack.length > 1 ? SHEET_TITLE[stack[stack.length - 2]] : undefined };
+  const [view, setView] = useState<AppView>(APP_VIEW.GROUPS);
+  const { sheet, setSheet, pushSheet, nav } = useSheetStack();
   const [whyOpen, setWhyOpen] = useState(false);
   const [printModes, setPrintModes] = useState<PrintMode[]>(['report']);
   const [printing, setPrinting] = useState(false);
   const [pal, setPal] = useState(false);
-  const [repWant, setRepWant] = useState<{ tab: string; n: number } | undefined>(undefined);
+  const [repWant, setRepWant] = useState<ReportRequest | undefined>(undefined);
   const scrollPos = useRef(0);
   const [incoming, setIncoming] = useState<Project | null>(() => {
     const h = readShareHash(window.location.hash);
@@ -99,26 +93,26 @@ export function App() {
   const idx = selected ? p.lines.indexOf(selected) : -1;
   const onTourScene = useCallback((scene: TourScene) => {
     setPal(false);
-    if (scene === 'home') {
+    if (scene === TOUR_SCENE.HOME) {
       setSheet(null);
-      setView('groups');
-    } else if (scene === 'editor') {
+      setView(APP_VIEW.GROUPS);
+    } else if (scene === TOUR_SCENE.EDITOR) {
       setSheet(null);
       if (p.lines[0]) dispatch({ t: 'select', id: p.lines[0].id });
-      setView(isWide() ? 'groups' : 'edit');
+      setView(isWide() ? APP_VIEW.GROUPS : APP_VIEW.EDITOR);
     } else {
-      setView('groups');
-      setSheet(scene === 'network' ? 'net' : scene === 'projects' ? 'proj' : scene === 'report' ? 'rep' : scene);
+      setView(APP_VIEW.GROUPS);
+      setSheet(sheetForTourScene(scene));
     }
   }, [p.lines, setSheet]);
   const closeTour = useCallback(() => {
     setTourOpen(false);
     setSheet(null);
-    setView('groups');
+    setView(APP_VIEW.GROUPS);
   }, [setSheet]);
 
   const saveFail = useRef(false);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | 'conflict'>('saved');
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const saveSeq = useRef(0);
   const mounted = useRef(true);
   useEffect(() => () => { mounted.current = false; }, []);
@@ -249,7 +243,7 @@ export function App() {
   const [viewOf, setViewOf] = useState(state.cur);
   if (viewOf !== state.cur) {
     setViewOf(state.cur);
-    setView('groups');
+    setView(APP_VIEW.GROUPS);
   }
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -325,14 +319,14 @@ export function App() {
   const goEdit = () => {
     if (isWide()) return;
     scrollPos.current = window.scrollY;
-    setView('edit');
+    setView(APP_VIEW.EDITOR);
     window.scrollTo(0, 0);
   };
   const goBack = () => {
-    setView('groups');
+    setView(APP_VIEW.GROUPS);
     window.setTimeout(() => window.scrollTo(0, scrollPos.current), 0);
   };
-  useBackClose(view !== 'groups', goBack);
+  useBackClose(view !== APP_VIEW.GROUPS, goBack);
   const addGroup = useStable((t: LineType) => {
     dispatch({ t: 'addLine', type: t });
     toast('Добавлена группа: ' + TYPES[t].label, isWide() ? {} : { label: 'Открыть', run: goEdit });
@@ -356,50 +350,50 @@ export function App() {
   });
   const moveLine = useStable((id: string, to: string) => { dispatch({ t: 'moveLine', id, to }); toastOk('Порядок групп изменён'); });
   const balance = useStable(() => { dispatch({ t: 'balance' }); toastOk('Фазы выровнены'); });
-  const openProj = useStable(() => setSheet('proj'));
-  const openNet = useStable(() => setSheet('net'));
-  const openOld = useStable(() => setSheet('old'));
-  const openFloor = useStable(() => setSheet('floor'));
-  const openWeak = useStable(() => setSheet('weak'));
-  const openRooms = useStable(() => setSheet('rooms'));
+  const openProj = useStable(() => setSheet(APP_SHEET.PROJECTS));
+  const openNet = useStable(() => setSheet(APP_SHEET.NETWORK));
+  const openOld = useStable(() => setSheet(APP_SHEET.OLD_WIRING));
+  const openFloor = useStable(() => setSheet(APP_SHEET.FLOOR));
+  const openWeak = useStable(() => setSheet(APP_SHEET.WEAK));
+  const openRooms = useStable(() => setSheet(APP_SHEET.ROOMS));
   const onBlank = useStable(() => { dispatch({ t: 'replace', content: blank() }); toastOk('Проект очищен'); });
   const onSample = useStable(() => { dispatch({ t: 'replace', content: sample() }); toastOk('Загружен пример'); });
-  const onCheckFix = useStable((f: CheckFix) => (f === 'net' ? setSheet('net') : dispatch({ t: 'cfg', field: 'supply', value: f === 'phase3' ? 3 : 1 })));
+  const onCheckFix = useStable((f: CheckFix) => (f === 'net' ? setSheet(APP_SHEET.NETWORK) : dispatch({ t: 'cfg', field: 'supply', value: f === 'phase3' ? 3 : 1 })));
   const openRep = (t: string) => {
     setRepWant({ tab: t, n: Date.now() });
-    setSheet('rep');
+    setSheet(APP_SHEET.REPORT);
   };
   const cmds: Cmd[] = [
     ...p.lines.map((l, i) => ({ id: 'g' + l.id, group: 'Группы', label: 'Г' + (i + 1) + ' ' + (l.name || 'Без названия'), hint: l.where || TYPES[l.type].short, words: 'группа', run: () => { setSheet(null); dispatch({ t: 'select', id: l.id }); goEdit(); } })),
     { id: 'add-l', group: 'Добавить', label: 'Добавить группу освещения', words: 'свет новая', run: () => addGroup('light') },
     { id: 'add-s', group: 'Добавить', label: 'Добавить розеточную группу', words: 'розетки новая', run: () => addGroup('socket') },
     { id: 'add-p', group: 'Добавить', label: 'Добавить мощный прибор', words: 'плита бойлер новая группа', run: () => addGroup('power') },
-    { id: 'rooms', group: 'Добавить', label: 'Собрать группы из комнат', words: 'комнаты', run: () => setSheet('rooms') },
-    { id: 'floor', group: 'Добавить', label: 'Тёплый пол', words: 'нагревательный мат кабель плёнка терморегулятор обогрев', run: () => setSheet('floor') },
-    { id: 'weak', group: 'Добавить', label: 'Слаботочка: интернет, ТВ, камеры', words: 'utp rj45 lan телевидение домофон коаксиальный роутер коммутатор', run: () => setSheet('weak') },
+    { id: 'rooms', group: 'Добавить', label: 'Собрать группы из комнат', words: 'комнаты', run: () => setSheet(APP_SHEET.ROOMS) },
+    { id: 'floor', group: 'Добавить', label: 'Тёплый пол', words: 'нагревательный мат кабель плёнка терморегулятор обогрев', run: () => setSheet(APP_SHEET.FLOOR) },
+    { id: 'weak', group: 'Добавить', label: 'Слаботочка: интернет, ТВ, камеры', words: 'utp rj45 lan телевидение домофон коаксиальный роутер коммутатор', run: () => setSheet(APP_SHEET.WEAK) },
     { id: 'rep', group: 'Документы', label: 'Отчёт и спецификация', words: 'отчет', run: () => openRep('groups') },
     { id: 'est', group: 'Документы', label: 'Смета: работы и материалы', words: 'цены стоимость клиент', run: () => openRep('estimate') },
     { id: 'scheme', group: 'Документы', label: 'Однолинейная схема', words: 'схема', run: () => openRep('scheme') },
     { id: 'print', group: 'Документы', label: 'Печать отчёта в PDF', words: 'pdf распечатать', run: () => doPrint('report') },
-    { id: 'shop', group: 'Документы', label: 'Где купить', words: 'магазин прайс закупка', run: () => setSheet('shop') },
-    { id: 'cmp', group: 'Документы', label: 'Сравнить варианты', words: 'что если', run: () => setSheet('cmp') },
-    { id: 'work', group: 'Монтаж', label: 'Монтаж и приёмка', words: 'чек-лист протокол паспорт', run: () => setSheet('work') },
-    { id: 'panel', group: 'Монтаж', label: 'Режим «На щитке»', words: 'замеры', run: () => setSheet('panel') },
+    { id: 'shop', group: 'Документы', label: 'Где купить', words: 'магазин прайс закупка', run: () => setSheet(APP_SHEET.SHOP) },
+    { id: 'cmp', group: 'Документы', label: 'Сравнить варианты', words: 'что если', run: () => setSheet(APP_SHEET.COMPARE) },
+    { id: 'work', group: 'Монтаж', label: 'Монтаж и приёмка', words: 'чек-лист протокол паспорт', run: () => setSheet(APP_SHEET.WORK) },
+    { id: 'panel', group: 'Монтаж', label: 'Режим «На щитке»', words: 'замеры', run: () => setSheet(APP_SHEET.PANEL) },
     { id: 'proto', group: 'Монтаж', label: 'Печать протокола замеров', words: 'pdf', run: () => doPrint('proto') },
     { id: 'pass', group: 'Монтаж', label: 'Печать паспорта для владельца', words: 'pdf', run: () => doPrint('passport') },
     { id: 'hidden', group: 'Монтаж', label: 'Печать акта скрытых работ', words: 'pdf освидетельствование штробы', run: () => doPrint('hidden') },
     { id: 'accept', group: 'Монтаж', label: 'Печать акта приёмки работ', words: 'pdf сдача гарантия', run: () => doPrint('accept') },
     { id: 'a3', group: 'Документы', label: 'Печать схемы A3 по ГОСТ', words: 'pdf чертёж однолинейная штамп', run: () => doPrint('a3') },
-    { id: 'net', group: 'Проект', label: 'Параметры сети', words: 'фазы ввод мощность прокладка', run: () => setSheet('net') },
-    { id: 'old', group: 'Проект', label: 'Старая проводка', words: 'алюминий обследование заземление зануление pe tn-c', run: () => setSheet('old') },
-    { id: 'proj', group: 'Проект', label: 'Проекты', words: 'открыть новый файл ссылка', run: () => setSheet('proj') },
-    { id: 'lib', group: 'Проект', label: 'Мои данные', words: 'реквизиты шаблоны цены логотип тема оформление', run: () => setSheet('lib') },
+    { id: 'net', group: 'Проект', label: 'Параметры сети', words: 'фазы ввод мощность прокладка', run: () => setSheet(APP_SHEET.NETWORK) },
+    { id: 'old', group: 'Проект', label: 'Старая проводка', words: 'алюминий обследование заземление зануление pe tn-c', run: () => setSheet(APP_SHEET.OLD_WIRING) },
+    { id: 'proj', group: 'Проект', label: 'Проекты', words: 'открыть новый файл ссылка', run: () => setSheet(APP_SHEET.PROJECTS) },
+    { id: 'lib', group: 'Проект', label: 'Мои данные', words: 'реквизиты шаблоны цены логотип тема оформление', run: () => setSheet(APP_SHEET.LIBRARY) },
     { id: 'th-dark', group: 'Вид', label: 'Тёмная тема', words: 'тема оформление ночь', run: () => setTheme('dark') },
     { id: 'th-light', group: 'Вид', label: 'Светлая тема', words: 'тема оформление день', run: () => setTheme('light') },
     { id: 'th-auto', group: 'Вид', label: 'Тема как в системе', words: 'тема оформление авто', run: () => setTheme('auto') },
     ...(a.phases ? [{ id: 'bal', group: 'Проект', label: 'Выровнять нагрузку по фазам', words: 'фазы', run: () => { dispatch({ t: 'balance' }); toastOk('Фазы выровнены'); } }] : [])
   ];
-  const tab = (v: View) => {
+  const tab = (v: AppView) => {
     setView(v);
     window.scrollTo(0, 0);
   };
@@ -460,39 +454,20 @@ export function App() {
           <a href="#groups">К списку групп</a>
           <a href="#editor" className="skip-ed">К карточке группы</a>
         </nav>
-        <header className="appbar">
-          <div className="in">
-            <div className="ab-edit">
-              <button className="ab-back" type="button" onClick={goBack} aria-label="Назад к группам"><IconBack /></button>
-              <div className="ab-tw">
-                <h1 className="ab-title">{selected ? 'Г' + (idx + 1) + ' ' + (selected.name || 'Без названия') : ''}</h1>
-                <div id="ab-sub" className="ab-sub" />
-              </div>
-              <Button variant="primary" size="sm" onClick={goBack}>Готово</Button>
-            </div>
-            <div className="ab-main">
-              <h1 className="brand"><Brand /><span>Ampli</span></h1>
-              <span className="save-indicator" aria-live="polite">{saveStatus === 'saving' ? 'Проекты: сохранение…' : saveStatus === 'saved' ? 'Проекты: сохранено' : saveStatus === 'conflict' ? 'Конфликт вкладок' : 'Ошибка сохранения проектов'}</span>
-              <div className="hud" data-tour="summary">
-                <Totals a={da} onNet={openNet} />
-                <Checks a={da} onGroup={pick} onFix={onCheckFix} />
-              </div>
-              <button className="ab-btn tour-help" type="button" data-tip="Обучение" aria-label="Открыть обучение" onClick={() => { setSheet(null); setTourOpen(true); }}>?</button>
-              <button className="ab-btn" type="button" data-tour="panel" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={() => setSheet('panel')}>
-                <IconPanel />
-                <span className="ab-txt">На щитке</span>
-              </button>
-              <button className="ab-btn desk" type="button" data-tour="work" data-tip="Монтаж и приёмка" onClick={() => setSheet('work')}>
-                <IconCheck />
-                <span className="ab-txt">Приёмка</span>
-              </button>
-              <button className="ab-btn desk" type="button" data-tour="report" data-tip="Отчёт и спецификация" onClick={() => setSheet('rep')}>
-                <IconDoc />
-                <span className="ab-txt">Отчёт</span>
-              </button>
-            </div>
-          </div>
-        </header>
+        <AppHeader
+          selected={selected}
+          selectedIndex={idx}
+          saveStatus={saveStatus}
+          calc={da}
+          onBack={goBack}
+          onNetwork={openNet}
+          onGroup={pick}
+          onCheckFix={onCheckFix}
+          onTour={() => { setSheet(null); setTourOpen(true); }}
+          onPanel={() => setSheet(APP_SHEET.PANEL)}
+          onWork={() => setSheet(APP_SHEET.WORK)}
+          onReport={() => setSheet(APP_SHEET.REPORT)}
+        />
 
         <main className="workspace">
           <GroupList
@@ -529,47 +504,36 @@ export function App() {
             />
             <aside className="col col-res" aria-label="Итоги расчёта">
               <PanelPane a={da} sel={state.sel} hot={hot} onHot={setHot} onPick={pick} onMove={moveLine} />
-              <Summary key={'s' + (view === 'panel')} a={da} solo={view === 'panel'} onBalance={balance} />
+              <Summary key={'s' + (view === APP_VIEW.PANEL)} a={da} solo={view === APP_VIEW.PANEL} onBalance={balance} />
             </aside>
           </div>
         </main>
 
-        <nav className="tabs" aria-label="Разделы" data-tour="reports">
-          <button type="button" onClick={() => tab('groups')} aria-current={view === 'groups' || view === 'edit' ? 'page' : undefined}>
-            <IconList />
-            <span>Группы</span>
-            {da.issues > 0 && <em className="badge">{da.issues}</em>}
-          </button>
-          <button type="button" data-tour="panel" onClick={() => tab('panel')} aria-current={view === 'panel' ? 'page' : undefined}>
-            <IconPanel />
-            <span>Щиток</span>
-          </button>
-          <button type="button" data-tour="work" onClick={() => setSheet('work')}>
-            <IconCheck />
-            <span>Приёмка</span>
-          </button>
-          <button type="button" data-tour="report" onClick={() => setSheet('rep')}>
-            <IconDoc />
-            <span>Отчёт</span>
-          </button>
-        </nav>
+        <AppTabs
+          calc={da}
+          view={view}
+          onGroups={() => tab(APP_VIEW.GROUPS)}
+          onPanel={() => tab(APP_VIEW.PANEL)}
+          onWork={() => setSheet(APP_SHEET.WORK)}
+          onReport={() => setSheet(APP_SHEET.REPORT)}
+        />
 
         <SheetNavContext.Provider value={nav}>
-        <Hold open={sheet === 'net'}><NetSheet open={sheet === 'net'} onClose={closeSheet} p={p} dispatch={dispatch} onOld={() => pushSheet('old')} oldLabel={oldLabel} /></Hold>
-        <Hold open={sheet === 'floor'}><FloorSheet open={sheet === 'floor'} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
-        <Hold open={sheet === 'weak'}><WeakSheet open={sheet === 'weak'} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
-        <Hold open={sheet === 'old'}><OldSheet open={sheet === 'old'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} /></Hold>
-        <Hold open={sheet === 'proj'}><ProjectsSheet open={sheet === 'proj'} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet('lib')} /></Hold>
-        <Hold open={sheet === 'lib'}><LibSheet open={sheet === 'lib'} onClose={closeSheet} /></Hold>
-        <Hold open={sheet === 'cmp'}><CompareSheet open={sheet === 'cmp'} onClose={closeSheet} p={p} a={a} /></Hold>
-        <Hold open={sheet === 'rooms'}><RoomsSheet open={sheet === 'rooms'} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
-        <Hold open={sheet === 'rep'}><ReportSheet open={sheet === 'rep'} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onCompare={() => pushSheet('cmp')} onShop={() => pushSheet('shop')} dispatch={dispatch} want={repWant} /></Hold>
+        <Hold open={sheet === APP_SHEET.NETWORK}><NetSheet open={sheet === APP_SHEET.NETWORK} onClose={closeSheet} p={p} dispatch={dispatch} onOld={() => pushSheet(APP_SHEET.OLD_WIRING)} oldLabel={oldLabel} /></Hold>
+        <Hold open={sheet === APP_SHEET.FLOOR}><FloorSheet open={sheet === APP_SHEET.FLOOR} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
+        <Hold open={sheet === APP_SHEET.WEAK}><WeakSheet open={sheet === APP_SHEET.WEAK} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
+        <Hold open={sheet === APP_SHEET.OLD_WIRING}><OldSheet open={sheet === APP_SHEET.OLD_WIRING} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} /></Hold>
+        <Hold open={sheet === APP_SHEET.PROJECTS}><ProjectsSheet open={sheet === APP_SHEET.PROJECTS} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet(APP_SHEET.LIBRARY)} /></Hold>
+        <Hold open={sheet === APP_SHEET.LIBRARY}><LibSheet open={sheet === APP_SHEET.LIBRARY} onClose={closeSheet} /></Hold>
+        <Hold open={sheet === APP_SHEET.COMPARE}><CompareSheet open={sheet === APP_SHEET.COMPARE} onClose={closeSheet} p={p} a={a} /></Hold>
+        <Hold open={sheet === APP_SHEET.ROOMS}><RoomsSheet open={sheet === APP_SHEET.ROOMS} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
+        <Hold open={sheet === APP_SHEET.REPORT}><ReportSheet open={sheet === APP_SHEET.REPORT} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onCompare={() => pushSheet(APP_SHEET.COMPARE)} onShop={() => pushSheet(APP_SHEET.SHOP)} dispatch={dispatch} want={repWant} /></Hold>
         <Hold open={pal} eager><Palette open={pal} onClose={() => setPal(false)} cmds={cmds} /></Hold>
-        <Hold open={sheet === 'shop'}><ShopSheet open={sheet === 'shop'} onClose={closeSheet} a={a} /></Hold>
+        <Hold open={sheet === APP_SHEET.SHOP}><ShopSheet open={sheet === APP_SHEET.SHOP} onClose={closeSheet} a={a} /></Hold>
         <Toaster />
         <HoverTips />
-        <Hold open={sheet === 'panel'}><PanelMode open={sheet === 'panel'} onClose={closeSheet} a={a} dispatch={dispatch} /></Hold>
-        <Hold open={sheet === 'work'}><WorkSheet open={sheet === 'work'} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => pushSheet('panel')} /></Hold>
+        <Hold open={sheet === APP_SHEET.PANEL}><PanelMode open={sheet === APP_SHEET.PANEL} onClose={closeSheet} a={a} dispatch={dispatch} /></Hold>
+        <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => pushSheet(APP_SHEET.PANEL)} /></Hold>
         </SheetNavContext.Provider>
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
         {tourOpen && <Onboarding onScene={onTourScene} onClose={closeTour} />}

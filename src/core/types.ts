@@ -10,7 +10,7 @@ export type BoxType = 'brick' | 'gkl' | 'surface';
 export type InCable = 'vvg' | 'frls' | 'nym';
 export type AfddMode = 'off' | 'sock' | 'all';
 
-export interface App {
+export interface Appliance {
   id: string;
   name: string;
   w: Num;
@@ -90,7 +90,7 @@ export interface Line {
   len: Num;
   kc: Num;
   cos: Num;
-  apps: App[];
+  apps: Appliance[];
 }
 
 export interface Cfg {

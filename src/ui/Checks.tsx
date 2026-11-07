@@ -4,8 +4,9 @@ import { fmt, plural } from '../core/format';
 import { IconAlert, IconDone } from './Icons';
 import { usePop } from './pop';
 import { Button } from './kit';
+import type { HeaderCheckFix } from '../app/types';
 
-export type CheckFix = 'phase3' | 'phase1' | 'net';
+export type CheckFix = HeaderCheckFix;
 
 export interface Check {
   k: 'ok' | 'warn' | 'bad';

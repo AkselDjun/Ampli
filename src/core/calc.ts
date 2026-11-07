@@ -1,4 +1,4 @@
-import type { App, BoxType, Calc, Cfg, CfgN, Device, InCable, Line, LineResult, Phase, Row, Uzo } from './types';
+import type { Appliance, BoxType, Calc, Cfg, CfgN, Device, InCable, Line, LineResult, Phase, Row, Uzo } from './types';
 import { ALL_STEPS, HEAT_RX, TYPE_A_RX, VR_STD, HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, RCD_STD, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs, pn } from './format';
 import type { Weak } from './weak';
@@ -36,8 +36,8 @@ const measOf = (v: unknown): number | null => {
   return Number.isFinite(x) ? x : null;
 };
 
-export const appW = (a: App): number => Math.max(0, pn(a.w, 0)) * (a.m !== undefined ? Math.max(0, pn(a.m, 0)) : 1) * Math.max(0, pn(a.n, 0));
-export const appBr = (a: App): number => Math.max(0, pn(a.br, 0));
+export const appW = (a: Appliance): number => Math.max(0, pn(a.w, 0)) * (a.m !== undefined ? Math.max(0, pn(a.m, 0)) : 1) * Math.max(0, pn(a.n, 0));
+export const appBr = (a: Appliance): number => Math.max(0, pn(a.br, 0));
 export const zoneOf = (l: Line): string => (l.zone ?? '').trim() || 'Без помещения';
 
 export function loopOhm(S: number, len: number): number {
