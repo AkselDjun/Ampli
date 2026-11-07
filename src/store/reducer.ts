@@ -1,4 +1,4 @@
-import type { App, Cfg, Content, Line, LineType, Phase, Photo, Project, Room, RoomApp } from '../core/types';
+import type { Appliance, Cfg, Content, Line, LineType, Phase, Photo, Project, Room, RoomApp } from '../core/types';
 import { PHOTO_LIMIT } from '../core/photos';
 import { splitApps } from '../core/fixes';
 import { assemble } from '../core/rooms';
@@ -336,7 +336,7 @@ export function reducer(s: State, a: Action): State {
         if (a.name === undefined) return { ...l, apps: [...l.apps, { id: nid(), name: '', w: '', n: 1 }] };
         const ex = a.m === undefined ? l.apps.find(x => x.name === a.name && pn(x.w, 0) === a.w && x.m === undefined) : undefined;
         if (ex) return { ...l, apps: l.apps.map(x => (x === ex ? { ...x, n: pn(x.n, 0) + 1 } : x)) };
-        const app: App = { id: nid(), name: a.name, w: a.w ?? '', n: 1, ...(a.m !== undefined ? { m: a.m } : {}) };
+        const app: Appliance = { id: nid(), name: a.name, w: a.w ?? '', n: 1, ...(a.m !== undefined ? { m: a.m } : {}) };
         return { ...l, apps: [...l.apps, app] };
       });
     case 'delApp':

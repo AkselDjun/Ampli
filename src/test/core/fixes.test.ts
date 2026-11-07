@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { appPower, canSplit, fixFor, maxLenFor, splitApps } from '../../core/fixes';
 import { calcLine, cfgN } from '../../core/calc';
 import { defaultCfg, mkLine } from '../../core/templates';
-import type { App, Cfg, Line, LineType, Num } from '../../core/types';
+import type { Appliance, Cfg, Line, LineType, Num } from '../../core/types';
 
 const cfg = (o: Partial<Cfg> = {}) => cfgN({ ...defaultCfg(), ...o });
-const ap = (id: string, w: Num, n: Num, name = id): App => ({ id, name, w, n });
-const line = (type: LineType, len: Num, apps: App[], o: Partial<Line> = {}): Line => ({
+const ap = (id: string, w: Num, n: Num, name = id): Appliance => ({ id, name, w, n });
+const line = (type: LineType, len: Num, apps: Appliance[], o: Partial<Line> = {}): Line => ({
   ...mkLine('Линия', type, 10, 1, 1, []),
   type,
   len,
@@ -164,7 +164,7 @@ describe('splitApps', () => {
   it('half balances several appliances and keeps dead ones on the line', () => {
     const l = line('power', 5, [ap('a', 1000, 1), ap('d', 0, 1), ap('b', 900, 1), ap('c', 200, 1), ap('e', 100, 1)]);
     const r = splitApps(l, 'half');
-    const sum = (xs: App[]) => xs.reduce((s, x) => s + appPower(x), 0);
+    const sum = (xs: Appliance[]) => xs.reduce((s, x) => s + appPower(x), 0);
     expect(r?.keep.map(x => x.id)).toEqual(['a', 'e', 'd']);
     expect(r?.move.map(x => x.id)).toEqual(['b', 'c']);
     expect(sum(r?.keep ?? [])).toBe(1100);

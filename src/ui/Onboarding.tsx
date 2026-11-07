@@ -1,77 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyEvent } from 'react';
 import { Button } from './kit';
+import { ONBOARDING_STEPS } from '../features/onboarding/model';
+import type { TourScene } from '../features/onboarding/model';
+import { markOnboardingDone } from '../features/onboarding/storage';
 
-export const ONBOARDING_KEY = 'ampli-onboarding-v1';
+export { ONBOARDING_KEY, onboardingPending } from '../features/onboarding/storage';
+export type { TourScene } from '../features/onboarding/model';
 
-export function onboardingPending(): boolean {
-  try { return localStorage.getItem(ONBOARDING_KEY) !== 'done'; } catch { return true; }
-}
-
-export function markOnboardingDone(): void {
-  try { localStorage.setItem(ONBOARDING_KEY, 'done'); } catch { /* The tour still closes. */ }
-}
-
-export type TourScene = 'home' | 'network' | 'editor' | 'rooms' | 'panel' | 'work' | 'report' | 'projects';
-
-interface Step {
-  scene: TourScene;
-  title: string;
-  text: string;
-  targets?: string[];
-}
-
-const STEPS: Step[] = [
-  {
-    scene: 'home',
-    title: 'Познакомимся с Ampli',
-    text: 'Покажем весь путь на реальном интерфейсе: от параметров сети и групп до щитка, приёмки, документов и обмена проектом.'
-  },
-  {
-    scene: 'network',
-    title: 'Сеть и специальные системы',
-    text: 'В этом окне задаются ввод, выделенная мощность, фазы, защита и способ прокладки. От этих параметров зависит расчёт всех линий. Отсюда же открываются старая проводка, тёплый пол и слаботочные системы.',
-    targets: ['[data-tour-view="network"]']
-  },
-  {
-    scene: 'editor',
-    title: 'Подробности каждой линии',
-    text: 'В карточке группы задаются приборы, кабель, длина, помещение и условия монтажа. Ampli сразу пересчитывает ток, сечение, автомат, УЗО и падение напряжения.',
-    targets: ['[aria-label="Редактор группы"]']
-  },
-  {
-    scene: 'rooms',
-    title: 'Комнаты и быстрый старт',
-    text: 'Опишите помещения и основные приборы — Ampli соберёт типовые линии автоматически. После создания любую группу можно настроить вручную.',
-    targets: ['[data-tour-view="rooms"]']
-  },
-  {
-    scene: 'panel',
-    title: 'Сборка щитка и замеры',
-    text: 'Режим щитка показывает аппараты по рядам и модулям. Здесь проверяют компоновку, меняют порядок и заносят фактические измерения по каждой линии.',
-    targets: ['[data-tour-view="panel"]']
-  },
-  {
-    scene: 'work',
-    title: 'Монтаж и приёмка',
-    text: 'Чек-лист помогает пройти монтаж без пропусков. Во вкладках собраны замеры, протокол, паспорт щитка и акты для сдачи объекта.',
-    targets: ['[data-tour-view="work"]']
-  },
-  {
-    scene: 'report',
-    title: 'Схема, материалы и смета',
-    text: 'Отчёт объединяет расчёт групп, однолинейную схему, спецификацию и смету. Цены можно уточнить, а готовые документы распечатать или сохранить в PDF.',
-    targets: ['[data-tour-view="report"]']
-  },
-  {
-    scene: 'projects',
-    title: 'Проекты и обмен данными',
-    text: 'Создавайте варианты, сохраняйте резервные копии, переносите проекты файлами и отправляйте ссылки. Обучение всегда можно запустить снова кнопкой «?».',
-    targets: ['[data-tour-view="projects"]']
-  }
-];
-
-const visibleTarget = (selectors?: string[]): HTMLElement | null => {
+const visibleTarget = (selectors?: readonly string[]): HTMLElement | null => {
   for (const selector of selectors ?? []) {
     for (const el of document.querySelectorAll<HTMLElement>(selector)) {
       const r = el.getBoundingClientRect();
@@ -86,7 +23,7 @@ export function Onboarding({ onScene, onClose }: { onScene: (scene: TourScene) =
   const [rect, setRect] = useState<DOMRect | null>(null);
   const root = useRef<HTMLDivElement>(null);
   const primary = useRef<HTMLButtonElement>(null);
-  const current = STEPS[step];
+  const current = ONBOARDING_STEPS[step];
 
   const close = () => {
     markOnboardingDone();
@@ -146,7 +83,7 @@ export function Onboarding({ onScene, onClose }: { onScene: (scene: TourScene) =
     ? (rect.top + rect.height / 2 > window.innerHeight / 2 ? { top: 16 } : { bottom: 16 })
     : undefined;
   const next = () => {
-    if (step === STEPS.length - 1) close();
+    if (step === ONBOARDING_STEPS.length - 1) close();
     else setStep(step + 1);
   };
   const trap = (e: ReactKeyEvent<HTMLDivElement>) => {
@@ -165,15 +102,15 @@ export function Onboarding({ onScene, onClose }: { onScene: (scene: TourScene) =
     <div ref={root} className={'tour' + (rect ? ' targeted' : ' intro')} onKeyDown={trap}>
       {spot ? <div className="tour-spot" style={spot} aria-hidden="true" /> : <div className="tour-shade" aria-hidden="true" />}
       <section className="tour-card" style={cardStyle} role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-text">
-        <div className="tour-count">Полное обучение · шаг {step + 1} из {STEPS.length}</div>
+        <div className="tour-count">Полное обучение · шаг {step + 1} из {ONBOARDING_STEPS.length}</div>
         <h2 id="tour-title">{current.title}</h2>
         <p id="tour-text">{current.text}</p>
-        <div className="tour-dots" aria-hidden="true">{STEPS.map((_, i) => <i key={i} className={i === step ? 'on' : ''} />)}</div>
+        <div className="tour-dots" aria-hidden="true">{ONBOARDING_STEPS.map((_, i) => <i key={i} className={i === step ? 'on' : ''} />)}</div>
         <div className="tour-actions">
-          <button className="link" type="button" onClick={close}>{step === STEPS.length - 1 ? 'Закрыть' : 'Пропустить'}</button>
+          <button className="link" type="button" onClick={close}>{step === ONBOARDING_STEPS.length - 1 ? 'Закрыть' : 'Пропустить'}</button>
           <span />
           {step > 0 && <Button onClick={() => setStep(step - 1)}>Назад</Button>}
-          <Button ref={primary} variant="primary" onClick={next}>{step === STEPS.length - 1 ? 'Готово' : 'Далее'}</Button>
+          <Button ref={primary} variant="primary" onClick={next}>{step === ONBOARDING_STEPS.length - 1 ? 'Готово' : 'Далее'}</Button>
         </div>
       </section>
     </div>

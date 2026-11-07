@@ -1,9 +1,5 @@
 import { createContext, useContext } from 'react';
-
-export interface SheetNav {
-  back?: () => void;
-  to?: string;
-}
+import type { SheetNav } from '../app/types';
 
 export const SheetNavContext = createContext<SheetNav>({});
 export const useSheetNav = (): SheetNav => useContext(SheetNavContext);
