@@ -1,5 +1,14 @@
 # Журнал изменений
 
+## 0.2.3 (2026-11-09)
+
+- refactor: establish typed application boundaries (#38)
+- feat: guide onboarding through live application views (#37)
+- test: cover browser data integrity workflows (#36)
+- feat: add progressive first-run onboarding (#35)
+- Проверять архив до восстановления и уточнить расчётные основания (#34)
+- Защитить проекты от потери данных и исправить экспорт и состояния UI (#33)
+
 ## 0.2.2 (2026-11-06)
 
 - Set version to 0.2.1 and release every Monday (#32)
