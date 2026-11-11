@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 const files = import.meta.glob<string>(['../../**/*.{ts,tsx,css}', '!../../test/**'], { query: '?raw', import: 'default', eager: true });
 const tokens = files['../../styles/tokens.css'];
-const app = files['../../styles/app.css'];
+const core = new Set(['../../styles/app.css', '../../styles/print.css', ...[...files['../../styles/app.css'].matchAll(/@import '\.\/([\w-]+\.css)'/g)].map(m => '../../styles/' + m[1])]);
+const app = [...core].filter(f => !f.endsWith('/tokens.css')).map(f => files[f]).join('\n');
 const runtime = new Set(['--rc', '--i', '--cols', '--arrow']);
 
 const decls = (css: string): Map<string, string> => {
@@ -54,7 +55,7 @@ describe('design tokens', () => {
   });
 
   it('keeps raw colors and own tokens out of every feature stylesheet', () => {
-    const sheets = Object.entries(files).filter(([f]) => f.endsWith('.css') && !f.endsWith('/tokens.css') && !f.endsWith('/app.css'));
+    const sheets = Object.entries(files).filter(([f]) => f.endsWith('.css') && !core.has(f));
     expect(sheets.map(([f]) => f)).toContain('../../styles/onboarding.css');
     for (const [f, css] of sheets) {
       expect(css.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/g) ?? [], f).toEqual([]);

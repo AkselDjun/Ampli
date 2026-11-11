@@ -1,0 +1,17 @@
+@custom-media --upto-359 (max-width:359px);
+@custom-media --upto-380 (max-width:380px);
+@custom-media --upto-420 (max-width:420px);
+@custom-media --upto-440 (max-width:440px);
+@custom-media --upto-480 (max-width:480px);
+@custom-media --upto-520 (max-width:520px);
+@custom-media --phone (max-width:560px);
+@custom-media --upto-600 (max-width:600px);
+@custom-media --upto-639 (max-width:639px);
+@custom-media --upto-640 (max-width:640px);
+@custom-media --tablet (max-width:760px);
+@custom-media --above-tablet (min-width:761px);
+@custom-media --narrow (max-width:999px);
+@custom-media --desktop (min-width:1000px);
+@custom-media --wide (min-width:1200px);
+@custom-media --wide-l (min-width:1300px);
+@custom-media --wide-xl (min-width:1600px);

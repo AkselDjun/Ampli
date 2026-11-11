@@ -59,12 +59,13 @@ describe('ids and norms', () => {
     expect(pid()).not.toBe(pid());
   });
   it('keepId keeps string ids and reserves the counter', () => {
-    expect(keepId('i99999')).toBe('i99999');
-    expect(nid()).toBe('i100000');
+    const top = Number(nid().slice(1)) + 1000;
+    expect(keepId('i' + top)).toBe('i' + top);
+    expect(nid()).toBe('i' + (top + 1));
     expect(keepId('i5')).toBe('i5');
-    expect(nid()).toBe('i100001');
+    expect(nid()).toBe('i' + (top + 2));
     expect(keepId('custom')).toBe('custom');
-    expect(nid()).toBe('i100002');
+    expect(nid()).toBe('i' + (top + 3));
   });
   it('keepId falls back to nid for empty or non-string ids', () => {
     for (const bad of ['', undefined, null, 5, {}]) expect(keepId(bad)).toMatch(/^i\d+$/);
