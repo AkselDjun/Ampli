@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import type { Project, RoomApp } from '../core/types';
 import { PRESETS } from '../core/norms';
 import { ROOM_PRESETS, assemble, makeRoom } from '../core/rooms';
@@ -9,6 +9,8 @@ import { toastOk } from './toast';
 import { ArmButton, Err, Sheet, errAttrs } from './common';
 import { asLabel, fieldErr } from '../core/limits';
 import { Button, IconButton } from './kit';
+import { Mic } from './parts';
+import { parseRooms } from '../core/roomtext';
 
 export function RoomsSheet({
   open, onClose, p, dispatch
@@ -21,12 +23,34 @@ export function RoomsSheet({
   const rooms = p.rooms ?? [];
   const planned = useMemo(() => assemble(p.rooms ?? []).length, [p.rooms]);
   const addApp = (rid: string, app: RoomApp) => dispatch({ t: 'roomAppAdd', rid, app });
+  const [text, setText] = useState<string | null>(null);
+  const [msg, setMsg] = useState('');
+  const fromText = () => {
+    const r = parseRooms(text ?? '');
+    r.rooms.forEach(room => dispatch({ t: 'roomAdd', room }));
+    const apps = r.rooms.reduce((s, x) => s + x.apps.length, 0);
+    setMsg((r.rooms.length ? 'Добавлено: ' + r.rooms.length + ' ' + plural(r.rooms.length, ['комната', 'комнаты', 'комнат']) + ', ' + apps + ' ' + plural(apps, ['прибор', 'прибора', 'приборов']) : 'Ничего не добавлено') + (r.skipped.length ? '. Не разобрано: ' + r.skipped.join('; ') : ''));
+    if (r.rooms.length) setText(r.skipped.join('\n'));
+  };
   return (
     <Sheet open={open} onClose={onClose} title="Комнаты" tourId="rooms" tip="Опишите комнаты и приборы, группы соберутся сами: свет и розетки по комнатам, мощные приборы отдельными линиями. Потом группы можно поправить вручную.">
       <div className="chips room-add">
         {ROOM_PRESETS.map(r => (
           <button key={r.key} className="chip" type="button" onClick={() => dispatch({ t: 'roomAdd', room: makeRoom(r) })}>+ {r.title}</button>
         ))}
+      </div>
+      <div className="room-text">
+        <Button size="sm" variant="ghost" aria-expanded={text !== null} onClick={() => { setText(text === null ? '' : null); setMsg(''); }}>{text === null ? 'Из сообщения клиента или голосом' : 'Скрыть ввод текстом'}</Button>
+        {text !== null && (
+          <div className="quick">
+            <textarea aria-label="Комнаты и приборы текстом" rows={4} placeholder={'Кухня: плита 7 кВт, духовка 3,5 кВт, посудомойка\nВанная: бойлер 2 кВт, стиральная машина'} value={text} onChange={e => setText(e.target.value)} />
+            <div className="copy-row">
+              <Button variant="primary" onClick={fromText}>Добавить комнаты</Button>
+              <Suspense fallback={null}><Mic rooms label="Диктовать комнаты и приборы" onText={t => setText(q => (q && q.trim() ? q.replace(/\s*$/, '') + '\n' : '') + t)} /></Suspense>
+              <span role="status" className="muted">{msg}</span>
+            </div>
+          </div>
+        )}
       </div>
       {rooms.length === 0 && <div className="empty">Комнат пока нет. Добавьте первую кнопкой выше.</div>}
       {rooms.map(r => (

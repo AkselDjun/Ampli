@@ -10,8 +10,8 @@ import { USAGE_LIMIT, normName } from '../core/catalog';
 import type { Usage } from '../core/catalog';
 import { isWorkKey } from '../core/labor';
 import type { WorkKey, WorkPrices } from '../core/labor';
-import { TIER_MARKUP_MAX, normMarkup } from '../core/share';
-import type { Markup } from '../core/share';
+import { TIER_MARKUP_MAX, normMarkup } from '../core/links';
+import type { Markup } from '../core/links';
 
 export const LIB_KEY = 'ampli-lib-v1';
 

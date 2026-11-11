@@ -107,6 +107,7 @@ describe('sheets use tabs and one panel at a time', () => {
     seed();
     render(<App />);
     click(nav(), /Отчёт/);
+    fireEvent.click(within(dlg('Отчёт и спецификация')).getByRole('tab', { name: 'Смета' }));
     click(dlg('Отчёт и спецификация'), 'Где купить');
     const d = dlg('Где купить');
     fireEvent.click(within(d).getByRole('tab', { name: 'Прайсы' }));

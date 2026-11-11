@@ -15,6 +15,7 @@ export function PowerFitBlock({ p, dispatch }: { p: Project; dispatch: (a: Actio
   const hasPrio = names.p.length > 0 || names.s.length > 0;
   if (!fit.over && !hasPrio) return null;
   const apply = (o: FitOption) => {
+    if (o.ev) dispatch({ t: 'appPower', line: o.ev.line, app: o.ev.app, w: o.ev.w });
     if (o.set) dispatch({ t: 'prio', set: o.set });
     if (o.supply) dispatch({ t: 'cfg', field: 'supply', value: o.supply });
     if (o.alloc) dispatch({ t: 'cfg', field: 'alloc', value: o.alloc });

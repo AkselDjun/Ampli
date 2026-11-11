@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { KEY } from '../../store/storage';
 import { sampleProject } from '../../core/project';
@@ -16,6 +16,7 @@ describe('estimate without prices', () => {
     render(<App />);
     click(document.querySelector('nav.tabs') as HTMLElement, /Отчёт/);
     const rep = dlg('Отчёт и спецификация');
+    fireEvent.click(within(rep).getByRole('tab', { name: 'Смета' }));
     const hint = () => rep.querySelector('.est-hint');
     expect(hint()?.textContent).toContain('Цены пока не заданы');
     const price = rep.querySelector('input.price-in') as HTMLInputElement;

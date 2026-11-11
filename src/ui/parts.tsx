@@ -41,3 +41,5 @@ export const EstimateView = part(() => import('./EstimateView').then(m => m.Esti
 export const OwnerView = part(() => import('./Passport').then(m => m.OwnerView));
 export const Onboarding = part(() => import('./Onboarding').then(m => m.Onboarding));
 export const TraceSheet = part(() => import('./Traces').then(m => m.TraceSheet));
+export const Palette = part(() => import('./Palette').then(m => m.Palette));
+export const Mic = part(() => import('./Mic').then(m => m.Mic));

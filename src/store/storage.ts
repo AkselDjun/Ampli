@@ -1,11 +1,15 @@
 import type { Project } from '../core/types';
 import { normProject, sampleProject } from '../core/project';
+import { SCHEMA, needsMigration } from '../core/migrate';
+
+export { SCHEMA };
 
 export const KEY = 'ampli-v1';
 export const OLDKEY = 'raschet-shchitka-v3';
 export const BOOT_KEY = 'ampli-boot';
 export const DB_NAME = 'ampli-projects';
-export const SCHEMA = 1;
+const DB_VERSION = 1;
+export const PREMIGRATE_KEY = 'ampli-premigrate-' + SCHEMA;
 const STORE = 'p';
 
 export interface Store {
@@ -27,11 +31,23 @@ interface BootRecord {
   project: unknown;
 }
 
+export function keepPremigration(raw: unknown[]): void {
+  const old = raw.filter(needsMigration);
+  if (!old.length) return;
+  try {
+    if (localStorage.getItem(PREMIGRATE_KEY)) return;
+    localStorage.setItem(PREMIGRATE_KEY, JSON.stringify({ at: Date.now(), schema: SCHEMA, list: old }));
+  } catch (e) {
+    void e;
+  }
+}
+
 const fromLegacy = (): Store | null => {
   const r = localStorage.getItem(KEY);
   if (r) {
     const o = JSON.parse(r);
     if (o && Array.isArray(o.list)) {
+      keepPremigration(o.list as unknown[]);
       const list = (o.list as unknown[]).map(x => normProject(x, true)).filter((x): x is Project => !!x);
       if (list.length) return { list, cur: list.some(x => x.id === o.cur) ? o.cur : list[0].id };
     }
@@ -52,6 +68,7 @@ const fromBoot = (): Boot | null => {
   const r = localStorage.getItem(BOOT_KEY);
   if (!r) return null;
   const o = JSON.parse(r) as Partial<BootRecord> | null;
+  if (o) keepPremigration([o.project]);
   const pr = o ? normProject(o.project, true) : null;
   if (!o || !pr) return null;
   const order = Array.isArray(o.order) ? o.order.filter((x): x is string => typeof x === 'string') : [];
@@ -116,7 +133,7 @@ function db(): Promise<IDBDatabase> {
         reject(new Error('no indexedDB'));
         return;
       }
-      const r = indexedDB.open(DB_NAME, SCHEMA);
+      const r = indexedDB.open(DB_NAME, DB_VERSION);
       r.onupgradeneeded = () => r.result.createObjectStore(STORE);
       r.onsuccess = () => resolve(r.result);
       r.onerror = () => reject(r.error);
@@ -144,6 +161,7 @@ export async function readProjects(): Promise<Project[]> {
   const t = d.transaction(STORE, 'readonly');
   const all = t.objectStore(STORE).getAll();
   await done(t);
+  keepPremigration(all.result as unknown[]);
   return (all.result as unknown[]).map(x => normProject(x, true)).filter((x): x is Project => !!x);
 }
 

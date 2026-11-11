@@ -7,9 +7,7 @@ import { currentToast, dismissToast, subscribeToast, toastLife } from './toast';
 import { haptic } from './haptic';
 import { buttonClass } from './kit';
 import type { ButtonSize, ButtonVariant } from './kit';
-import type { CfgN } from '../core/types';
 import type { FieldErr } from '../core/limits';
-import { BASIS_LABEL, assumptions } from '../core/assumptions';
 
 export function Seg<T extends string | number>({
   name, value, items, onChange, labelledBy
@@ -202,10 +200,11 @@ export function Tabs({ scope, items, cur, onChange, label }: { scope: string; it
   );
 }
 
-export function TabPanel({ scope, id, cur, children }: { scope: string; id: string; cur: string; children: ReactNode }) {
+export function TabPanel({ scope, id, cur, lazy = false, children }: { scope: string; id: string; cur: string; lazy?: boolean; children: ReactNode }) {
+  const on = cur === id;
   return (
-    <div className="tabpanel" role="tabpanel" id={scope + '-tp-' + id} aria-labelledby={scope + '-tab-' + id} hidden={cur !== id}>
-      {children}
+    <div className="tabpanel" role="tabpanel" id={scope + '-tp-' + id} aria-labelledby={scope + '-tab-' + id} hidden={!on}>
+      {on || !lazy ? children : null}
     </div>
   );
 }
@@ -301,27 +300,6 @@ export function Sheet({
         {bar}
         <div className="sheet-body" ref={bodyRef}>{children}</div>
       </div>
-    </div>
-  );
-}
-
-export function Assumptions({ cfg }: { cfg: CfgN }) {
-  return (
-    <div className="tablewrap" role="region" aria-label="Допущения и источники" tabIndex={0}>
-      <table className="t2 assum">
-        <thead>
-          <tr><th>Параметр</th><th>Значение</th><th>Основание</th></tr>
-        </thead>
-        <tbody>
-          {assumptions(cfg).map(a => (
-            <tr key={a.name}>
-              <td>{a.name}</td>
-              <td>{a.value}</td>
-              <td><span className={'basis ' + a.basis}>{BASIS_LABEL[a.basis]}</span> {a.source}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

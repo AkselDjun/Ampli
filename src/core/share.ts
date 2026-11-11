@@ -1,23 +1,13 @@
 import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
 import type { Project } from './types';
 import { normWork } from './labor';
-import type { WorkPrices } from './labor';
 import { normProject } from './project';
+import { ESTIMATE_PREFIX, OWNER_PREFIX, SHARE_PREFIX, normMarkup } from './links';
+import type { EstimateShare } from './links';
 
-export const SHARE_PREFIX = '#p=';
-export const OWNER_PREFIX = '#o=';
-export const ESTIMATE_PREFIX = '#e=';
+export * from './links';
+
 export const SHARE_VERSION = 'v1.';
-
-export const TIER_MARKUP_MAX = 300;
-
-export type Markup = [number, number, number];
-
-export function normMarkup(o: unknown): Markup | null {
-  if (!Array.isArray(o) || o.length !== 3) return null;
-  const out = o.map(v => (typeof v === 'number' && isFinite(v) ? Math.min(TIER_MARKUP_MAX, Math.max(0, Math.round(v))) : NaN));
-  return out.some(v => isNaN(v)) ? null : (out as Markup);
-}
 
 const INFLATE_LIMIT = 2_000_000;
 export const LINK_LIMIT = 1_000_000;
@@ -84,28 +74,6 @@ export function ownerUrl(p: Project, base: string): string {
   return base.split('#')[0] + OWNER_PREFIX + packProject(p);
 }
 
-export function readOwnerHash(hash: string): string | null {
-  if (!hash.startsWith(OWNER_PREFIX)) return null;
-  const v = hash.slice(OWNER_PREFIX.length);
-  return v.length > 0 ? v : null;
-}
-
-export function readShareHash(hash: string): string | null {
-  if (!hash.startsWith(SHARE_PREFIX)) return null;
-  const v = hash.slice(SHARE_PREFIX.length);
-  return v.length > 0 ? v : null;
-}
-
-export interface EstimateShare {
-  p: Project;
-  prices: Record<string, number>;
-  labor: WorkPrices;
-  company: string;
-  contacts: string;
-  at: number;
-  tiers?: Markup;
-}
-
 const priceMap = (o: unknown): Record<string, number> => {
   const out: Record<string, number> = {};
   if (!o || typeof o !== 'object') return out;
@@ -142,10 +110,4 @@ export function unpackEstimate(text: string): EstimateShare | null {
 
 export function estimateUrl(e: EstimateShare, base: string): string {
   return base.split('#')[0] + ESTIMATE_PREFIX + packEstimate(e);
-}
-
-export function readEstimateHash(hash: string): string | null {
-  if (!hash.startsWith(ESTIMATE_PREFIX)) return null;
-  const v = hash.slice(ESTIMATE_PREFIX.length);
-  return v.length > 0 ? v : null;
 }

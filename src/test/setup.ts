@@ -6,6 +6,7 @@ import { resetPhotoCache } from '../store/photos';
 import { resetProjectDb } from '../store/storage';
 import { dismissToast } from '../ui/toast';
 import { preloadParts } from '../ui/parts';
+import { loadCodec } from '../ui/linkCodec';
 
 let seq = 0;
 
@@ -33,6 +34,7 @@ class MemStorage implements Storage {
 
 beforeAll(async () => {
   await preloadParts();
+  await loadCodec();
 });
 
 beforeEach(() => {

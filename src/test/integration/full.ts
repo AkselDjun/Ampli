@@ -5,7 +5,7 @@ import { normProject, sampleProject } from '../../core/project';
 import { mkLine } from '../../core/templates';
 
 export const PROJECT_KEYS = {
-  id: 1, name: 1, address: 1, client: 1, author: 1, created: 1, updated: 1, sample: 1, cfg: 1, lines: 1,
+  schema: 1, id: 1, name: 1, address: 1, client: 1, author: 1, created: 1, updated: 1, sample: 1, cfg: 1, lines: 1,
   checks: 1, proto: 1, rooms: 1, photos: 1, work: 1, acts: 1, old: 1, weak: 1, floor: 1
 } satisfies Record<keyof Project, 1>;
 

@@ -10,6 +10,7 @@ import { normPhotos } from './photos';
 import { normWork } from './labor';
 import { normWeak, weakStarted } from './weak';
 import { normFloor } from './floor';
+import { SCHEMA, migrate } from './migrate';
 
 const str = (v: unknown, n: number): string => (typeof v === 'string' ? v.slice(0, n) : typeof v === 'number' ? String(v) : '');
 const PHASES: readonly string[] = ['L1', 'L2', 'L3', '3'];
@@ -121,11 +122,10 @@ const stamp = (v: unknown): number => {
 };
 
 export function normProject(o: unknown, keep = false): Project | null {
-  const x = obj(o);
+  const x = obj(migrate(o));
   const cfg = x ? obj(x.cfg) : null;
   if (!x || !cfg || !Array.isArray(x.lines)) return null;
   const src = (x.lines as unknown[]).slice(0, MAX_LINES);
-  const rcd = cfg.prot === 'rcd';
   const seen = new Map<string, string>();
   for (const v of src) {
     const l = obj(v);
@@ -138,14 +138,13 @@ export function normProject(o: unknown, keep = false): Project | null {
     let id = keep ? keepId(typeof l.id === 'string' ? l.id.slice(0, 64) : undefined) : nid();
     if (ids.has(id)) id = nid();
     ids.add(id);
-    const own = typeof l.zone === 'string' && l.zone.trim() ? l.zone : '';
-    const where = typeof l.where === 'string' ? l.where.trim() : '';
-    const raw = own || (!rcd && where ? where.slice(0, 60) : '');
+    const raw = typeof l.zone === 'string' && l.zone.trim() ? l.zone : '';
     const z = raw.trim();
     const zone = z ? (seen.get(z.toLowerCase()) === undefined || seen.get(z.toLowerCase()) === z ? raw : (seen.get(z.toLowerCase()) as string)).slice(0, 60) : undefined;
     return normLine(l, id, zone);
   });
   return {
+    schema: SCHEMA,
     id: keep && (typeof x.id === 'string' || typeof x.id === 'number') && String(x.id) ? String(x.id).slice(0, 64) : pid(),
     name: str(x.name, 80) || 'Без названия',
     address: str(x.address, 120),

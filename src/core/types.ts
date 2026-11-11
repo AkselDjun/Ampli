@@ -125,6 +125,7 @@ export interface Cfg {
 }
 
 export interface Project {
+  schema?: number;
   id: string;
   name: string;
   address: string;

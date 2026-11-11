@@ -15,7 +15,6 @@ import { LibContext } from '../store/LibContext';
 import { gcPhotos, photoKeys } from '../store/photos';
 import { referencedPhotoIds } from '../core/photos';
 import { useBackClose } from './back';
-import { Palette } from './Palette';
 import type { Cmd } from './Palette';
 import { setTheme } from './theme';
 import { updatedFrom } from './release';
@@ -24,12 +23,13 @@ import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
 import { SheetNavContext } from './sheetnav';
-import { CompareSheet, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, PanelMode, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
+import { CompareSheet, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PanelMode, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { IncomingSheet } from './IncomingSheet';
-import { readEstimateHash, readOwnerHash, readShareHash, unpackEstimate, unpackProject } from '../core/share';
-import type { EstimateShare } from '../core/share';
+import { hasLink, readEstimateHash, readOwnerHash, readShareHash } from '../core/links';
+import type { EstimateShare } from '../core/links';
+import { getCodec, loadCodec } from './linkCodec';
 import { uniqName } from '../core/project';
 import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
@@ -71,17 +71,20 @@ export function App() {
   const scrollPos = useRef(0);
   const [incoming, setIncoming] = useState<Project | null>(() => {
     const h = readShareHash(window.location.hash);
-    return h ? unpackProject(h) : null;
+    const c = getCodec();
+    return h && c ? c.unpackProject(h) : null;
   });
   const [shared, setShared] = useState<EstimateShare | null>(() => {
     const h = readEstimateHash(window.location.hash);
-    return h ? unpackEstimate(h) : null;
+    const c = getCodec();
+    return h && c ? c.unpackEstimate(h) : null;
   });
   const [owner, setOwner] = useState<Project | null>(() => {
     const h = readOwnerHash(window.location.hash);
-    return h ? unpackProject(h) : null;
+    const c = getCodec();
+    return h && c ? c.unpackProject(h) : null;
   });
-  const [tourOpen, setTourOpen] = useState(() => boot.source === 'empty' && !incoming && !shared && !owner && onboardingPending());
+  const [tourOpen, setTourOpen] = useState(() => boot.source === 'empty' && !hasLink(window.location.hash) && onboardingPending());
   const p = cur(state);
   const { lines: pLines, cfg: pCfg, weak: pWeak, floor: pFloor } = p;
   const a = useMemo(() => calcAll(pLines, pCfg, { weak: pWeak, floor: pFloor }), [pLines, pCfg, pWeak, pFloor]);
@@ -297,20 +300,21 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    const onHash = () => {
-      const h = readShareHash(window.location.hash);
-      if (h) setIncoming(unpackProject(h));
-      const o = readOwnerHash(window.location.hash);
-      setOwner(o ? unpackProject(o) : null);
-      const e = readEstimateHash(window.location.hash);
-      setShared(e ? unpackEstimate(e) : null);
-    };
-    const bad = () => {
+    let live = true;
+    const apply = (c: NonNullable<ReturnType<typeof getCodec>>, full: boolean) => {
       const hs = window.location.hash;
-      const r = readShareHash(hs) ?? readOwnerHash(hs) ?? readEstimateHash(hs);
-      if (!r) return;
-      const okp = readShareHash(hs) ? unpackProject(r) : readOwnerHash(hs) ? unpackProject(r) : unpackEstimate(r);
-      if (okp) return;
+      const sh = readShareHash(hs);
+      const ow = readOwnerHash(hs);
+      const es = readEstimateHash(hs);
+      const inc = sh ? c.unpackProject(sh) : null;
+      const own = ow ? c.unpackProject(ow) : null;
+      const est = es ? c.unpackEstimate(es) : null;
+      if (full) {
+        if (sh) setIncoming(inc);
+        setOwner(own);
+        setShared(est);
+      }
+      if (!(sh || ow || es) || inc || own || est) return;
       toastBad('Ссылка повреждена или обрезана, её не удалось открыть. Попросите отправить её ещё раз.');
       try {
         window.history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -318,10 +322,28 @@ export function App() {
         void e;
       }
     };
-    bad();
-    const onHash2 = () => { onHash(); bad(); };
-    window.addEventListener('hashchange', onHash2);
-    return () => window.removeEventListener('hashchange', onHash2);
+    const handle = (full: boolean) => {
+      const c = getCodec();
+      if (c) {
+        apply(c, full);
+        return;
+      }
+      if (hasLink(window.location.hash)) {
+        void loadCodec().then(m => { if (live) apply(m, true); });
+        return;
+      }
+      if (full) {
+        setOwner(null);
+        setShared(null);
+      }
+    };
+    handle(false);
+    const onHash = () => handle(true);
+    window.addEventListener('hashchange', onHash);
+    return () => {
+      live = false;
+      window.removeEventListener('hashchange', onHash);
+    };
   }, []);
 
   const clearHash = () => {

@@ -3,6 +3,7 @@ import type { CfgN } from './types';
 import { HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, KZ_TIME, LEAK_PER_A_MA, LONG_MIN_IN, MOTOR_COS, RCD10_MAX_IN, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, SINGLE_INPUT_KW, TRIP_MULT, TYPES, IN_CABLE } from './norms';
 import { fmt, fs } from './format';
 import { JUMPER_M } from './supplies';
+import { EV_MIN_A } from './ev';
 
 export type Basis = 'norm' | 'practice' | 'user';
 
@@ -19,7 +20,7 @@ export const BASIS_LABEL: Record<Basis, string> = {
   user: 'Задано вами'
 };
 
-export function assumptions(c: CfgN): Assumption[] {
+export function assumptions(c: CfgN, ex: { ev?: boolean } = {}): Assumption[] {
   return [
     { name: 'Допустимые токи жил', value: 'медь, поправка ' + fs(c.k), basis: 'norm', source: 'ПУЭ, табл. 1.3.4 (значения сверены); поправка на группировку кабелей задаётся в параметрах' },
     { name: 'Прокладка', value: c.method === 'open' ? 'открытая' : 'скрытая, в трубе', basis: 'user', source: 'Параметры сети' },
@@ -53,6 +54,7 @@ export function assumptions(c: CfgN): Assumption[] {
       { name: 'Разделение PEN', value: 'в щите на вводе в дом, с повторным заземлением', basis: 'norm' as const, source: 'ТКП 339-2022: система TN-C-S, после точки разделения N и PE не объединяются' },
       { name: 'Повторное заземление', value: 'не более ' + RZ_MAX + ' Ом, контур из ' + GROUND_RODS + ' электродов по ' + GROUND_ROD_M + ' м', basis: 'norm' as const, source: 'ТКП 339-2022, сопротивление повторного заземления PEN при 400/230 В; число электродов уточняется замером' }
     ] : []),
+    ...(ex.ev ? [{ name: 'Зарядка электромобиля', value: 'отдельная группа на каждую станцию, нагрузка без снижения на одновременность; до 7,4 кВт однофазно, 11 и 22 кВт на три фазы; УЗО типа A с контролем постоянного тока утечки 6 мА в станции или УЗО типа B; ток зарядки от ' + EV_MIN_A + ' А', basis: 'practice' as const, source: 'Нормы РБ требований к зарядке в квартирах и домах прямо не задают; принято по практике и ГОСТ IEC 60364-7-722 как расчётному основанию, ток от 6 А по режиму зарядки станций' }] : []),
     ...(c.afdd !== 'off' ? [{ name: 'УЗДП', value: (c.afdd === 'sock' ? 'на розеточные группы' : 'на все однофазные группы') + ', совмещённое с автоматом или дифавтоматом, 1P+N', basis: 'practice' as const, source: 'Нормы Беларуси для квартир УЗДП не требуют, ставится по желанию заказчика; требования к самим устройствам по ГОСТ IEC 62606' }] : []),
     { name: 'Расходники щитка и трассы', value: 'гребёнка под каждым УЗО от двух автоматов, перемычки ПуГВ по ' + fs(JUMPER_M) + ' м, сечение по вводному автомату (до 25 А 4 мм², до 40 А 6 мм², до 63 А 10 мм²), НШВИ на каждую жилу с запасом 20 %, гофра или короб на всю длину кабеля', basis: 'practice', source: 'Диаметр гофры и размер короба подобраны по наружному диаметру кабеля ВВГнг(А)-LS, по одному кабелю в трубе' },
     ...(c.rcdMode ? [{ name: 'УЗО', value: 'одно на помещение, номинал не меньше наибольшего автомата под ним и не меньше суммы автоматов или вводного, если он меньше суммы; ближайший стандартный номинал', basis: 'practice' as const, source: 'Своя шина N на каждое УЗО' }] : [])

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, fireEvent, act } from '@testing-library/react';
+import { render, fireEvent, act, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { LIB_KEY } from '../../store/lib';
 import { btn, byLabel, change, click, dlg, isOpen, wide, toastText } from './util';
@@ -253,12 +253,17 @@ describe('ReportSheet', () => {
     render(<App />);
     const d = open('Отчёт и спецификация');
     expect(d.querySelectorAll('tbody tr').length).toBeGreaterThan(5);
+    expect(d.querySelector('svg.schem')).toBeNull();
+    fireEvent.click(within(d).getByRole('tab', { name: 'Схема' }));
     expect(d.querySelector('svg.schem')).toBeTruthy();
+    expect(d.querySelectorAll('#rep-tp-groups tbody tr')).toHaveLength(0);
+    fireEvent.click(within(d).getByRole('tab', { name: 'Смета' }));
     const price = d.querySelector('.price-in') as HTMLInputElement;
     change(price, '12.5');
     expect(JSON.parse(localStorage.getItem(LIB_KEY) as string).prices).toBeTruthy();
     expect(d.textContent).toContain('цена или количество не заданы');
     change(price, '');
+    fireEvent.click(within(d).getByRole('tab', { name: 'Группы' }));
     click(d, 'Скопировать отчёт');
     await act(async () => { await Promise.resolve(); });
     expect(write).toHaveBeenCalled();

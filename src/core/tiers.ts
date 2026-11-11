@@ -3,7 +3,7 @@ import { calcAll } from './calc';
 import { buildSpec, estimate } from './spec';
 import { grandTotal, laborEstimate } from './labor';
 import type { LaborEstimate, WorkPrices } from './labor';
-import type { Markup } from './share';
+import type { Markup } from './links';
 
 export type TierId = 'base' | 'safe' | 'max';
 

@@ -18,6 +18,7 @@ const csv = (text: string, name = 'opt.csv') => {
 };
 const openShop = () => {
   click(nav(), /Отчёт/);
+  fireEvent.click(within(dlg('Отчёт и спецификация')).getByRole('tab', { name: 'Смета' }));
   click(dlg('Отчёт и спецификация'), 'Где купить');
   return dlg('Где купить');
 };
@@ -118,6 +119,8 @@ describe('Where to buy', () => {
     render(<App />);
     expect(isOpen('Где купить')).toBe(false);
     fireEvent.click(within(screen.getByRole('navigation', { name: 'Разделы' })).getByRole('button', { name: /Отчёт/ }));
-    expect(within(dlg('Отчёт и спецификация')).getByRole('button', { name: 'Где купить', hidden: true })).toBeTruthy();
+    expect(within(dlg('Отчёт и спецификация')).queryByRole('button', { name: 'Где купить', hidden: true })).toBeNull();
+    fireEvent.click(within(dlg('Отчёт и спецификация')).getByRole('tab', { name: 'Смета' }));
+    expect(within(dlg('Отчёт и спецификация')).getByRole('button', { name: 'Где купить' })).toBeTruthy();
   });
 });
