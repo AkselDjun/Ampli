@@ -119,11 +119,11 @@ describe('templates', () => {
     expect(b.lines).toEqual([]);
     expect(blank().sample).toBe(false);
   });
-  it('mkLine uses type defaults, explicit values and phase', () => {
-    const a = mkLine('a', 'socket', 5, null, null, []);
-    expect([a.kc, a.cos, a.phase]).toEqual([0.7, 0.95, 'L1']);
-    const b = mkLine('b', 'power', 5, 0.5, 0.8, [['x', 1, 2]], '3');
-    expect([b.kc, b.cos, b.phase, b.apps[0].n]).toEqual([0.5, 0.8, '3', 2]);
+  it('mkLine builds lines with phase', () => {
+    const a = mkLine('a', 'socket', 5, []);
+    expect([a.phase, 'kc' in a, 'cos' in a]).toEqual(['L1', false, false]);
+    const b = mkLine('b', 'power', 5, [['x', 1, 2]], '3');
+    expect([b.phase, b.apps[0].n]).toEqual(['3', 2]);
   });
   it('all templates calculate without unfit lines', () => {
     (['studio', 'k1', 'k2', 'k3'] as TplKey[]).forEach(k => {
@@ -207,12 +207,12 @@ describe('rooms', () => {
 
 describe('spec and estimate', () => {
   const lines: Line[] = [
-    mkLine('a', 'socket', 10, null, null, [['x', 1000, 1]]),
-    mkLine('b', 'socket', 5, null, null, [['x', 1000, 1]]),
-    mkLine('c', 'socket', 0, null, null, [['x', 1000, 1]]),
-    mkLine('d', 'socket', 0, null, null, [['x', 1000, 1]]),
-    mkLine('e', 'light', 7, null, null, [['x', 100, 1]]),
-    mkLine('empty', 'light', 7, null, null, [])
+    mkLine('a', 'socket', 10, [['x', 1000, 1]]),
+    mkLine('b', 'socket', 5, [['x', 1000, 1]]),
+    mkLine('c', 'socket', 0, [['x', 1000, 1]]),
+    mkLine('d', 'socket', 0, [['x', 1000, 1]]),
+    mkLine('e', 'light', 7, [['x', 100, 1]]),
+    mkLine('empty', 'light', 7, [])
   ];
   const a = calcAll(lines, { ...defaultCfg(), prot: 'rcbo' });
   const spec = buildSpec(a);
@@ -231,7 +231,7 @@ describe('spec and estimate', () => {
     expect(spec[spec.length - 1].name).toMatch(/^Труба гофрированная ПВХ/);
   });
   it('skips lines without breaker and has no input breaker on overload', () => {
-    const o = buildSpec(calcAll([mkLine('big', 'power', 7, null, null, [['x', 30000, 1]])], defaultCfg()));
+    const o = buildSpec(calcAll([mkLine('big', 'power', 7, [['x', 30000, 1]])], defaultCfg()));
     expect(o.map(s => s.name)).toEqual(['Щиток на 12 модулей', 'Вводной автомат 2P C100', 'ВВГнг(А)-LS 3×25', 'Шина N (нулевая)', 'Шина PE (заземления)']);
   });
   it('handles zero length cable and no input', () => {
@@ -243,7 +243,7 @@ describe('spec and estimate', () => {
     expect(none.map(s => s.name)).toEqual(['Щиток на 12 модулей', 'Шина N (нулевая)', 'Шина PE (заземления)']);
   });
   it('uses 4P and 5 core in three phase', () => {
-    const s3 = buildSpec(calcAll([mkLine('p', 'power', 10, null, null, [['x', 9000, 1]], '3')], cfg({ supply: 3 })));
+    const s3 = buildSpec(calcAll([mkLine('p', 'power', 10, [['x', 9000, 1]], '3')], cfg({ supply: 3 })));
     expect(s3.some(s => s.name.startsWith('Вводной автомат 4P'))).toBe(true);
     expect(s3.some(s => s.name.includes('5×'))).toBe(true);
   });
@@ -272,7 +272,7 @@ describe('why', () => {
     return whyRows(l, calcLine(l, cn), cn);
   };
   it('has load, current, breaker, cable, drop and KZ rows', () => {
-    const rows = w(mkLine('a', 'socket', 10, null, null, [['x', 2000, 1]]));
+    const rows = w(mkLine('a', 'socket', 10, [['x', 2000, 1]]));
     expect(rows.map(r => r.title)).toEqual(['Нагрузка', 'Ток', 'Автомат', 'Кабель', 'Потеря напряжения', 'Короткое замыкание']);
     expect(rows[0].formula).toMatch(/^2\s000\sВт$/);
     expect(rows[1].formula).toContain('/ 230');
@@ -283,39 +283,40 @@ describe('why', () => {
     expect(rows[5].note).toContain('10 × C16');
   });
   it('omits Кс for kc 1, KZ for zero length and explains B curve', () => {
-    const rows = w(mkLine('a', 'light', 0, 1, null, [['x', 2000, 1]]));
+    const rows = w(mkLine('a', 'light', 0, [['x', 2000, 1]]));
     expect(rows[0].formula).not.toContain('Кс');
     expect(rows.find(r => r.title === 'Короткое замыкание')).toBeUndefined();
     expect(rows[2].note).toContain('Кривая B');
     expect(rows[2].note).toContain('берём номинал не меньше 10');
-    const near = w(mkLine('a', 'light', 5, 1, null, [['x', 3000, 1]]));
+    const near = w(mkLine('a', 'light', 5, [['x', 3000, 1]]));
     expect(near[2].note).toContain('Ближайший номинал');
   });
-  it('explains 10 and 100 mA', () => {
-    const wet = w({ ...mkLine('a', 'socket', 5, null, null, [['x', 2000, 1]]), wet: true });
+  it('explains 10 mA and keeps 30 mA for big loads', () => {
+    const wet = w({ ...mkLine('a', 'socket', 5, [['x', 2000, 1]]), wet: true });
     expect(wet[2].note).toContain('до 10 мА');
-    const big = w(mkLine('a', 'power', 5, null, null, [['x', 8000, 1]]));
-    expect(big[2].note).toContain('до 100 мА');
+    const big = w(mkLine('a', 'power', 5, [['x', 8000, 1]]));
+    expect(big[2].note).toContain('30 мА');
+    expect(big[2].note).not.toContain('100 мА');
   });
   it('explains cable notes for three phase and open method', () => {
-    const rows = w(mkLine('a', 'power', 10, null, null, [['x', 9000, 1]], '3'), { supply: 3, method: 'open', feeder: 1 });
+    const rows = w(mkLine('a', 'power', 10, [['x', 9000, 1]], '3'), { supply: 3, method: 'open', feeder: 1 });
     expect(rows[1].formula).toContain('√3 · 400');
     expect(rows[3].note).toContain('открытая прокладка');
     expect(rows[4].formula).toContain('√3');
     expect(rows[4].note).toContain('на стояк');
   });
   it('explains minimum section and drop upsizing', () => {
-    const norm = w(mkLine('a', 'socket', 5, null, null, [['x', 2000, 1]]), { minS: 'norm' });
+    const norm = w(mkLine('a', 'socket', 5, [['x', 2000, 1]]), { minS: 'norm' });
     expect(norm[3].note).toContain('Наименьшее сечение');
-    const minS = w(mkLine('a', 'socket', 5, null, null, [['x', 500, 1]]));
+    const minS = w(mkLine('a', 'socket', 5, [['x', 500, 1]]));
     expect(minS[3].note).toContain('выбран минимум 2,5');
-    const drop = w(mkLine('a', 'light', 80, 1, 1, [['x', 3000, 1]]));
+    const drop = w(mkLine('a', 'light', 80, [['x', 3000, 1]]));
     expect(drop[3].note).toContain('Увеличено');
   });
   it('handles lines without breaker or cable fit', () => {
-    const none = w(mkLine('a', 'power', 5, null, null, [['x', 30000, 1]]));
+    const none = w(mkLine('a', 'power', 5, [['x', 30000, 1]]));
     expect(none.map(r => r.title)).toEqual(['Нагрузка', 'Ток']);
-    const l = mkLine('a', 'power', 5, null, null, [['x', 35000, 1]], '3');
+    const l = mkLine('a', 'power', 5, [['x', 35000, 1]], '3');
     const cn = c({ supply: 3, k: 0.5 });
     const r = calcLine(l, cn);
     expect(whyRows(l, { ...r, In: 63, S: 35 }, cn).length).toBe(6);
@@ -325,10 +326,10 @@ describe('why', () => {
 
 describe('report', () => {
   const lines: Line[] = [
-    mkLine('Свет', 'light', 10, null, null, [['x', 100, 1]]),
-    mkLine('Пусто', 'socket', 10, null, null, []),
-    mkLine('Огромная', 'power', 10, null, null, [['x', 30000, 1]]),
-    mkLine('Без длины', 'socket', 0, null, null, [['x', 500, 1]])
+    mkLine('Свет', 'light', 10, [['x', 100, 1]]),
+    mkLine('Пусто', 'socket', 10, []),
+    mkLine('Огромная', 'power', 10, [['x', 30000, 1]]),
+    mkLine('Без длины', 'socket', 0, [['x', 500, 1]])
   ];
   const p = (o: Partial<Project> = {}): Project => ({
     id: 'p', name: 'Квартира', address: 'Минск', client: 'Иванов', author: 'Петров', created: 1, updated: 1, sample: false, cfg: defaultCfg(), lines, ...o
@@ -367,7 +368,7 @@ describe('report', () => {
     expect(t).toContain('Итого по смете: 5,00 BYN (цена не задана для');
   });
   it('shows phases, open method and full pricing', () => {
-    const l3 = [mkLine('P', 'power', 0, null, null, [['x', 9000, 1]], '3'), mkLine('S', 'socket', 10, null, null, [['x', 500, 1]], 'L2')];
+    const l3 = [mkLine('P', 'power', 0, [['x', 9000, 1]], '3'), mkLine('S', 'socket', 10, [['x', 500, 1]], 'L2')];
     const a = calcAll(l3, cfg({ supply: 3, method: 'open', drop: 4 }));
     const spec = buildSpec(a);
     const prices: Record<string, number> = {};

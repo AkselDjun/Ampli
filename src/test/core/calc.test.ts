@@ -6,13 +6,13 @@ import type { Cfg, Device, Line } from '../../core/types';
 const cfg = (o: Partial<Cfg> = {}): Cfg => ({ ...defaultCfg(), prot: 'rcbo', ...o });
 const run = (l: Line, o: Partial<Cfg> = {}) => calcLine(l, cfgN(cfg(o)));
 const pw = (w: number, len = 10, type: 'light' | 'socket' | 'power' = 'power', extra: Partial<Line> = {}): Line => ({
-  ...mkLine('x', type, len, null, null, [['a', w, 1]]),
+  ...mkLine('x', type, len, [['a', w, 1]]),
   ...extra
 });
 
 describe('cfgN', () => {
   it('normalizes defaults', () => {
-    expect(cfgN(defaultCfg())).toEqual({ supply: 1, method: 'wall', drop: 0, ko: 0.75, k: 0.9, alloc: 15, safe: true, zs: 0.3, feeder: 0, rcdMode: true, box: 'brick', boxAuto: true, inCable: 'vvg', spd: false, vr: false, afdd: 'off', house: false, sip: 0, rz: null });
+    expect(cfgN(defaultCfg())).toEqual({ supply: 1, method: 'wall', drop: 0, ko: 0.75, k: 0.9, alloc: 15, safe: true, zs: 0.3, feeder: 0, rcdMode: true, box: 'brick', boxAuto: true, inCable: 'vvg', spd: false, vr: false, afdd: 'off', margin: 1, grpCable: 'vvg', house: false, sip: 0, rz: null });
   });
   it('accepts three phase, open method and norm minS', () => {
     const c = cfgN(cfg({ supply: '3', method: 'open', minS: 'norm' }));
@@ -45,13 +45,13 @@ describe('loop and short circuit', () => {
 
 describe('calcLine basics', () => {
   it('flags empty lines', () => {
-    const r = run(mkLine('e', 'socket', 10, null, null, []));
+    const r = run(mkLine('e', 'socket', 10, []));
     expect(r.empty).toBe(true);
     expect([r.I, r.pd, r.In, r.S]).toEqual([0, 0, null, null]);
     expect(r.status).toBe('ok');
   });
   it('treats negative and garbage power as zero', () => {
-    const l = mkLine('e', 'socket', 10, null, null, [['a', -5, 1], ['b', 100, -2]]);
+    const l = mkLine('e', 'socket', 10, [['a', -5, 1], ['b', 100, -2]]);
     l.apps.push({ id: 'z', name: 'z', w: 'abc', n: 'x' });
     expect(run(l).empty).toBe(true);
   });
@@ -63,7 +63,7 @@ describe('calcLine basics', () => {
     expect(r.I).toBeCloseTo(2000 / 230, 6);
     expect(r.ikNeed).toBe(160);
     expect(r.leakLim).toBeCloseTo(10, 6);
-    expect(r.leakEst).toBeCloseTo(0.1, 6);
+    expect(r.leakEst).toBeCloseTo(0.1 + 2000 / 230 * 0.4, 6);
     expect(r.ikSrc).toBe('calc');
   });
   it('uses light limits and curve B', () => {
@@ -77,14 +77,14 @@ describe('calcLine basics', () => {
     expect(run(pw(100, 10, 'light'), { feeder: 3 }).limit).toBe(0.5);
     expect(run(pw(100, 10, 'light'), { drop: 2 }).limit).toBe(3);
   });
-  it('uses 100 mA rcd above 32 A and 10 mA for wet rooms', () => {
-    expect(run(pw(8000, 5)).ma).toBe(100);
+  it('keeps 30 mA rcd above 32 A and uses 10 mA for wet rooms', () => {
+    expect(run(pw(8000, 5)).ma).toBe(30);
     expect(run(pw(8000, 5, 'power', { wet: true })).ma).toBe(10);
     expect(run(pw(8000, 5, 'power', { wet: true })).leakLim).toBeCloseTo(10 / 3, 6);
   });
-  it('ignores stored kc and cos', () => {
-    const r = run(pw(1000, 10, 'power', { kc: 0.2, cos: 0.5 }));
-    expect([r.kc, r.cos, r.pd]).toEqual([1, 1, 1000]);
+  it('uses appliance cos and ignores legacy group fields', () => {
+    const r = run(pw(1000, 10, 'power', { kc: 0.2, cos: 0.5 } as Partial<Line>));
+    expect([r.cos, r.pd]).toEqual([1, 1000]);
     expect(r.I).toBeCloseTo(1000 / 230, 6);
     expect(run(pw(1000, 'bad' as unknown as number)).len).toBe(0);
   });
@@ -92,7 +92,7 @@ describe('calcLine basics', () => {
 
 describe('three phase and method', () => {
   it('computes three phase current and modules', () => {
-    const r = run(pw(9000, 10, 'power', { phase: '3', cos: 1 }), { supply: 3 });
+    const r = run(pw(9000, 10, 'power', { phase: '3' }), { supply: 3 });
     expect(r.three).toBe(true);
     expect(r.I).toBeCloseTo(9000 / (Math.sqrt(3) * 400), 6);
     expect(r.mod).toBe(4);
@@ -113,7 +113,7 @@ describe('three phase and method', () => {
     expect(r.In).toBe(16);
   });
   it('cannot fit a cable when derating is too strong', () => {
-    const r = run(pw(35000, 5, 'power', { phase: '3', cos: 1 }), { supply: 3, k: 0.5 });
+    const r = run(pw(35000, 5, 'power', { phase: '3' }), { supply: 3, k: 0.5 });
     expect(r.status).toBe('bad');
     expect(r.In).toBeNull();
     expect(r.S).toBeNull();
@@ -129,19 +129,19 @@ describe('three phase and method', () => {
 
 describe('voltage drop', () => {
   it('upsizes cable for voltage drop and warns', () => {
-    const r = run(pw(3000, 60, 'light', { kc: 1, cos: 1 }));
+    const r = run(pw(3000, 60, 'light', {}));
     expect(r.S).toBeGreaterThan(1.5);
     expect(r.status).toBe('warn');
     expect(r.notes.some(n => n.includes('падения напряжения'))).toBe(true);
     expect(r.drop).toBeLessThanOrEqual(r.limit);
   });
   it('upsizes three phase on drop', () => {
-    const r = run(pw(20000, 120, 'power', { phase: '3', cos: 1 }), { supply: 3 });
+    const r = run(pw(20000, 120, 'power', { phase: '3' }), { supply: 3 });
     expect(r.three).toBe(true);
     expect(r.S).toBeGreaterThan(2.5);
   });
   it('is bad when even 35 mm2 drops too much', () => {
-    const r = run(pw(8000, 2000, 'power', { cos: 1 }), { zs: 0.05 });
+    const r = run(pw(8000, 2000, 'power', {}), { zs: 0.05 });
     expect(r.S).toBe(35);
     expect(r.status).toBe('bad');
     expect(r.notes.some(n => n.includes('35 мм²'))).toBe(true);
@@ -150,13 +150,13 @@ describe('voltage drop', () => {
 
 describe('short circuit checks', () => {
   it('upsizes cable for KZ', () => {
-    const r = run(pw(500, 70, 'power', { cos: 1 }), { zs: 0.5 });
+    const r = run(pw(500, 70, 'power', {}), { zs: 0.5 });
     expect(r.notes.some(n => n.includes('короткое замыкание'))).toBe(true);
     expect(r.status).toBe('warn');
     expect(r.ik).toBeGreaterThanOrEqual(r.ikNeed);
   });
   it('flags a line that cannot be protected', () => {
-    const r = run(pw(500, 400, 'power', { cos: 1 }), { zs: 2 });
+    const r = run(pw(500, 400, 'power', {}), { zs: 2 });
     expect(r.status).toBe('bad');
     expect(r.ik).toBeLessThan(r.ikNeed);
     expect(r.notes.some(n => n.includes('Сократите линию'))).toBe(true);
@@ -194,10 +194,11 @@ describe('leakage and insulation', () => {
     expect(r.leakMeas).toBe(1);
     expect(r.notes.some(n => n.includes('Утечка самой линии'))).toBe(false);
   });
-  it('warns on estimated leakage', () => {
+  it('shows estimated leakage as a tip without changing the status', () => {
     const r = run(pw(2000, 400, 'socket', { wet: true }));
-    expect(r.leakEst).toBeCloseTo(4, 6);
-    expect(r.notes.some(n => n.includes('Утечка самой линии'))).toBe(true);
+    expect(r.leakEst).toBeCloseTo(4 + 2000 / 230 * 0.4, 6);
+    expect(r.tips.some(n => n.includes('Оценка утечки линии'))).toBe(true);
+    expect(r.notes.some(n => n.includes('утечк'))).toBe(false);
     expect(['warn', 'bad']).toContain(r.status);
   });
   it('keeps bad status on estimated leakage', () => {
@@ -242,7 +243,7 @@ describe('calcAll', () => {
     expect(a.phases).toBeNull();
   });
   it('handles only empty lines', () => {
-    const a = calcAll([mkLine('e', 'socket', 10, null, null, [])], cfg());
+    const a = calcAll([mkLine('e', 'socket', 10, [])], cfg());
     expect(a.inIn).toBeNull();
     expect(a.devs).toEqual([]);
     expect(a.issues).toBe(0);
@@ -254,8 +255,9 @@ describe('calcAll', () => {
     expect(a.devs[0].kind).toBe('in');
     expect(a.devs[0].mod).toBe(2);
     expect(a.devs[1].kind).toBe('uzo');
-    expect(a.uzos.map(u => u.zone)).toEqual(['Комнаты', 'Кухня', 'Ванная']);
-    expect(a.uzos.every(u => u.typeA)).toBe(true);
+    expect(a.uzos.map(u => u.zone)).toEqual(['Комнаты', 'Кухня', 'Ванная · 1', 'Ванная · 2']);
+    expect(a.uzos.slice(2).map(u => u.In)).toEqual([40, 40]);
+    expect(a.uzos.map(u => u.typeA)).toEqual([true, true, true, false]);
     expect(a.uzos[2].ma).toBe(10);
     expect(a.inStep).toBeGreaterThan(0);
     expect(a.hint3).toBe(false);
@@ -265,7 +267,7 @@ describe('calcAll', () => {
   });
   it('computes three phase totals, imbalance and fallback phase', () => {
     const lines = [
-      pw(9000, 10, 'power', { phase: '3', cos: 1 }),
+      pw(9000, 10, 'power', { phase: '3' }),
       pw(2000, 10, 'socket', { phase: 'L2' }),
       pw(1000, 10, 'socket', { phase: 'L3' }),
       pw(1000, 10, 'socket', { phase: '3' }),
@@ -294,7 +296,7 @@ describe('calcAll', () => {
     expect(calcAll(lines, cfg({ ko: 1, supply: 3 })).hint3).toBe(false);
   });
   it('gives null input breaker for overload', () => {
-    const lines = Array.from({ length: 12 }, () => pw(12000, 10, 'power', { cos: 1 }));
+    const lines = Array.from({ length: 12 }, () => pw(12000, 10, 'power', {}));
     const a = calcAll(lines, cfg({ ko: 1 }));
     expect(a.inIn).toBeNull();
     expect(a.inS).toBeNull();
@@ -302,7 +304,7 @@ describe('calcAll', () => {
     expect(a.inStep).toBe(0);
   });
   it('gives null input cable when derating is strong', () => {
-    const a = calcAll([pw(12000, 10, 'power', { cos: 1 })], cfg({ k: 0.5 }));
+    const a = calcAll([pw(12000, 10, 'power', {})], cfg({ k: 0.5 }));
     expect(a.inIn).toBe(100);
     expect(a.inS).toBeNull();
   });
@@ -335,7 +337,7 @@ describe('balanceLines', () => {
       pw(3000, 10, 'socket'),
       pw(2000, 10, 'socket'),
       pw(1000, 10, 'socket'),
-      pw(9000, 10, 'power', { phase: '3', cos: 1 })
+      pw(9000, 10, 'power', { phase: '3' })
     ];
     const out = balanceLines(lines, cfg({ supply: 3 }));
     expect(out[3]).toBe(lines[3]);

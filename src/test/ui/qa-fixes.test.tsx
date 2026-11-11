@@ -144,7 +144,7 @@ describe('keyboard on the list and the board', () => {
   });
 
   it('keeps focus on a module after moving it with Alt and an arrow', async () => {
-    const p = newProject({ sample: false, cfg: { ...defaultCfg(), prot: 'rcbo' }, lines: [mkLine('А', 'light', 5, 1, 1, [['x', 100, 1]]), mkLine('Б', 'light', 5, 1, 1, [['x', 100, 1]])] }, 'Т');
+    const p = newProject({ sample: false, cfg: { ...defaultCfg(), prot: 'rcbo' }, lines: [mkLine('А', 'light', 5, [['x', 100, 1]]), mkLine('Б', 'light', 5, [['x', 100, 1]])] }, 'Т');
     const onMove = vi.fn();
     render(<PanelPane a={calcAll(p.lines, p.cfg)} onMove={onMove} />);
     const mod = document.querySelector('.rail [data-lid="' + p.lines[0].id + '"]') as HTMLElement;

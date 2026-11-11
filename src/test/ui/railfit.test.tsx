@@ -45,7 +45,7 @@ describe('rail in a narrow container', () => {
       disconnect() { return undefined; }
     } as unknown as typeof ResizeObserver;
     const w = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(290);
-    const ls = Array.from({ length: 14 }, (_, i) => mkLine('Группа ' + i, 'light', 5, null, null, [['x', 100, 1]]));
+    const ls = Array.from({ length: 14 }, (_, i) => mkLine('Группа ' + i, 'light', 5, [['x', 100, 1]]));
     const p = { ...newProject({ cfg: { ...defaultCfg(), prot: 'rcbo' }, lines: ls, sample: false }, 'Тест'), lines: ls };
     const a = calcAll(p.lines, p.cfg);
     const { unmount } = render(<PanelPane a={a} />);

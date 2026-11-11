@@ -42,7 +42,7 @@ describe('private house in the app', () => {
 
   it('marks a lighting group as outdoor in a house', () => {
     wide(true);
-    const ls = [mkLine('Фонари', 'light', 30, null, null, [['Фонарь', 60, 2]])];
+    const ls = [mkLine('Фонари', 'light', 30, [['Фонарь', 60, 2]])];
     const p = newProject({ cfg: { ...defaultCfg(), obj: 'house', spd: 'on', sip: 20 }, lines: ls, sample: false }, 'Дом');
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
     render(<App />);

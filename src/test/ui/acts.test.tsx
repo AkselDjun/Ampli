@@ -14,8 +14,8 @@ import { stored } from '../stored';
 vi.setConfig({ testTimeout: 60000 });
 
 const lines = (): Line[] => [
-  mkLine('Свет', 'light', 10, null, null, [['Люстра', 200, 2]]),
-  mkLine('Розетки', 'socket', 12, null, null, [['ТВ', 1500, 1]])
+  mkLine('Свет', 'light', 10, [['Люстра', 200, 2]]),
+  mkLine('Розетки', 'socket', 12, [['ТВ', 1500, 1]])
 ];
 const proj = (cfg: Partial<Cfg> = {}, o: Partial<Project> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), ...cfg }, lines: lines(), sample: false }, 'Тест'), ...o });
 const doc = () => (document.querySelector('.printdoc.act') as HTMLElement).textContent ?? '';

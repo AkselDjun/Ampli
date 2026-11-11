@@ -39,9 +39,11 @@ describe('NetSheet', () => {
     seg('box', 'auto');
     seg('inc', 'frls');
     expect(stored().list[0].cfg.inCable).toBe('frls');
+    seg('gc', 'nym');
+    expect(stored().list[0].cfg.grpCable).toBe('nym');
     seg('mins', 'norm');
     seg('mins', 'safe');
-    for (const l of ['Потеря напряжения от ВРУ до щитка квартиры, %', 'Сопротивление петли фаза-нуль питающей сети, Ом', 'Выделенная мощность, кВт', 'Коэффициент одновременности', 'Поправка на группировку кабелей']) {
+    for (const l of ['Потеря напряжения от ВРУ до щитка квартиры, %', 'Сопротивление петли фаза-нуль питающей сети, Ом', 'Выделенная мощность, кВт', 'Коэффициент одновременности', 'Поправка на группировку кабелей', 'Запас по номиналу группового автомата']) {
       const inp = byLabel(d, l);
       const row = inp.parentElement as HTMLElement;
       const before = inp.value;
@@ -68,6 +70,10 @@ describe('NetSheet', () => {
     fireEvent.click(d.querySelector('input[name="box"][value="gkl"]') as HTMLElement);
     fireEvent.click(d.querySelector('input[name="mins"][value="norm"]') as HTMLElement);
     expect(more.querySelector('summary small')?.textContent).toContain('коробки для гипсокартона');
+    fireEvent.click(d.querySelector('input[name="gc"][value="frls"]') as HTMLElement);
+    change(byLabel(d, 'Запас по номиналу группового автомата'), '1.2');
+    expect(more.querySelector('summary small')?.textContent).toContain('группы ВВГнг(А)-FRLS');
+    expect(more.querySelector('summary small')?.textContent).toContain('запас по автомату 1,2');
     expect(more.querySelector('summary small')?.textContent).toContain('сечение по норме');
     expect(more.querySelector('summary small')?.textContent).toContain('потеря до щитка 1 %');
     expect(d.querySelectorAll('.lbl-row .tip').length).toBeGreaterThan(6);

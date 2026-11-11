@@ -10,7 +10,7 @@ import { newProject } from '../../core/project';
 import type { Cfg, Line } from '../../core/types';
 
 const house = (o: Partial<Cfg> = {}): Cfg => ({ ...defaultCfg(), prot: 'rcbo', obj: 'house', spd: 'on', sip: 20, rz: 12, zs: 0.8, ...o });
-const lamp = (o: Partial<Line> = {}): Line => ({ ...mkLine('Свет', 'light', 10, null, null, [['Лампа', 200, 1]]), ...o });
+const lamp = (o: Partial<Line> = {}): Line => ({ ...mkLine('Свет', 'light', 10, [['Лампа', 200, 1]]), ...o });
 const kinds = (cfg: Cfg, lines: Line[]) => houseChecks(calcAll(lines, cfg));
 
 describe('private house mode', () => {
@@ -48,7 +48,7 @@ describe('private house mode', () => {
     const huge = houseChecks({ ...a, Itot: 250, inIn: 250, house: { ...a.house!, sip: { ...a.house!.sip, S: null } } });
     expect(huge[0].k).toBe('bad');
     expect(huge[0].t).toContain('250 А');
-    const far = kinds(house({ sip: 500 }), [mkLine('Печь', 'power', 5, null, null, [['Печь', 7000, 1]])]);
+    const far = kinds(house({ sip: 500 }), [mkLine('Печь', 'power', 5, [['Печь', 7000, 1]])]);
     expect(far[0].k).toBe('warn');
     expect(far[0].fix).toBe('net');
   });
@@ -56,7 +56,7 @@ describe('private house mode', () => {
   it('marks outdoor groups and a boiler sharing a group', () => {
     const lines = [
       lamp({ out: true, name: 'Двор' }),
-      mkLine('Котёл', 'power', 8, null, null, [['Газовый котёл', 200, 1], ['Чайник', 2000, 1]])
+      mkLine('Котёл', 'power', 8, [['Газовый котёл', 200, 1], ['Чайник', 2000, 1]])
     ];
     const a = calcAll(lines, house());
     expect(a.house?.outdoor).toEqual(['Г1']);

@@ -7,7 +7,7 @@ describe('sample apartment', () => {
   const s = sample();
   const a = calcAll(s.lines, s.cfg);
   it('picks breakers and cables', () => {
-    expect(a.rows.map(x => [x.r.In, x.r.S])).toEqual([[10, 1.5], [10, 1.5], [16, 2.5], [16, 2.5], [16, 2.5], [16, 2.5], [32, 4], [16, 2.5], [10, 2.5], [10, 2.5], [16, 2.5], [10, 2.5], [10, 2.5], [10, 2.5]]);
+    expect(a.rows.map(x => [x.r.In, x.r.S])).toEqual([[10, 1.5], [10, 1.5], [16, 2.5], [16, 2.5], [16, 2.5], [16, 2.5], [32, 4], [16, 2.5], [16, 2.5], [16, 2.5], [16, 2.5], [16, 2.5], [10, 2.5], [10, 2.5]]);
     expect([a.inIn, a.inS, a.size]).toEqual([50, 10, 36]);
     expect(a.rows.every(x => x.r.In !== null && x.r.S !== null)).toBe(true);
   });
@@ -67,17 +67,17 @@ import { mkLine, defaultCfg } from '../core/templates';
 describe('norm checks', () => {
   const cfg = cfgN(defaultCfg());
   it('uses 10 mA RCD for wet rooms', () => {
-    const l = { ...mkLine('Ванная', 'socket', 10, null, null, [['Фен', 1800, 1]]), wet: true };
+    const l = { ...mkLine('Ванная', 'socket', 10, [['Фен', 1800, 1]]), wet: true };
     expect(calcLine(l, cfg).ma).toBe(10);
   });
   it('grows the section when the short-circuit current is too low', () => {
-    const l = mkLine('Длинная', 'socket', 60, null, null, [['Чайник', 2200, 1]]);
+    const l = mkLine('Длинная', 'socket', 60, [['Чайник', 2200, 1]]);
     const r = calcLine(l, cfg);
     expect(r.ik).toBeGreaterThanOrEqual(r.ikNeed);
     expect(r.S as number).toBeGreaterThan(2.5);
   });
   it('flags a line that cannot trip even at 35 mm2', () => {
-    const l = mkLine('Очень длинная', 'power', 500, null, null, [['Плита', 7000, 1]]);
+    const l = mkLine('Очень длинная', 'power', 500, [['Плита', 7000, 1]]);
     const r = calcLine(l, cfg);
     expect(r.status).toBe('bad');
   });
@@ -85,12 +85,12 @@ describe('norm checks', () => {
     expect(shortCircuit(2.5, 20, 1)).toBeLessThan(shortCircuit(2.5, 20, 0.2));
   });
   it('keeps the input two steps above the largest group', () => {
-    const lines = [mkLine('Свет', 'light', 10, null, null, [['Лампа', 60, 1]])];
+    const lines = [mkLine('Свет', 'light', 10, [['Лампа', 60, 1]])];
     const a = calcAll2(lines, defaultCfg());
     expect(a.inStep).toBeGreaterThanOrEqual(2);
   });
   it('suggests a three-phase input above 12 kW', () => {
-    const lines = [mkLine('Мощная', 'power', 5, 1, 1, [['Печь', 9000, 1], ['Бойлер', 5000, 1]])];
+    const lines = [mkLine('Мощная', 'power', 5, [['Печь', 9000, 1], ['Бойлер', 5000, 1]])];
     const a = calcAll2(lines, { ...defaultCfg(), ko: 1 });
     expect(a.hint3).toBe(true);
     const b = calcAll2(lines, { ...defaultCfg(), ko: 1, supply: 3 });
@@ -99,7 +99,7 @@ describe('norm checks', () => {
 });
 
 describe('voltage drop limits', () => {
-  const l = mkLine('Свет', 'light', 20, null, null, [['Лампа', 100, 1]]);
+  const l = mkLine('Свет', 'light', 20, [['Лампа', 100, 1]]);
   it('subtracts the riser drop from the limit', () => {
     const a = calcLine(l, cfgN(defaultCfg()));
     const b = calcLine(l, cfgN({ ...defaultCfg(), feeder: 1 }));
@@ -107,7 +107,7 @@ describe('voltage drop limits', () => {
     expect(b.limit).toBe(2);
   });
   it('uses only the СН limits even if an old drop setting is stored', () => {
-    const p = mkLine('Печь', 'power', 20, null, null, [['Печь', 3000, 1]]);
+    const p = mkLine('Печь', 'power', 20, [['Печь', 3000, 1]]);
     expect(calcLine(p, cfgN(defaultCfg())).limit).toBe(5);
     expect(calcLine(p, cfgN({ ...defaultCfg(), drop: 4 })).limit).toBe(5);
   });

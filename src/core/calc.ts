@@ -1,5 +1,5 @@
 import type { Appliance, BoxType, Calc, Cfg, CfgN, Device, InCable, Line, LineResult, Phase, Row, Uzo } from './types';
-import { ALL_STEPS, HEAT_RX, TYPE_A_RX, VR_STD, HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_LOAD_ABOVE_A, LEAK_PER_A_MA, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, RCD_STD, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
+import { ALL_STEPS, HEAT_RX, TYPE_A_RX, VR_STD, HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_PER_A_MA, LOAD_WARN, LONG_MIN_IN, LONG_RX, MARGIN_MAX, MOTOR_COS, MOTOR_RX, RCD10_MAX_IN, IN_CABLE, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, RCD_STD, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs, pn } from './format';
 import type { Weak } from './weak';
 import { weakCalc, weakStarted } from './weak';
@@ -25,6 +25,8 @@ export function cfgN(c: Cfg): CfgN {
     spd: c.spd === 'on',
     vr: c.vr === 'on',
     afdd: c.afdd === 'sock' || c.afdd === 'all' ? c.afdd : 'off',
+    margin: Math.min(MARGIN_MAX, Math.max(1, pn(c.margin, 1))),
+    grpCable: c.grpCable === 'frls' || c.grpCable === 'nym' ? (c.grpCable as InCable) : 'vvg',
     house: c.obj === 'house',
     sip: Math.min(500, Math.max(0, pn(c.sip, 0))),
     rz: measOf(c.rz)
@@ -41,6 +43,23 @@ const measOf = (v: unknown): number | null => {
 };
 
 export const appW = (a: Appliance): number => Math.max(0, pn(a.w, 0)) * (a.m !== undefined ? Math.max(0, pn(a.m, 0)) : 1) * Math.max(0, pn(a.n, 0));
+export const appCos = (a: Appliance): number => {
+  const v = pn(a.cos, 0);
+  if (v >= 0.3 && v <= 1) return v;
+  return MOTOR_RX.test(a.name) ? MOTOR_COS : 1;
+};
+export const appVA = (a: Appliance): number => appW(a) / appCos(a);
+
+export function demand(apps: Appliance[]): { w: number; va: number } {
+  const live = apps.filter(a => appW(a) > 0);
+  const base = live.filter(a => !a.alt);
+  const alt = live.filter(a => a.alt);
+  const top = alt.reduce<Appliance | null>((m, a) => (!m || appVA(a) > appVA(m) ? a : m), null);
+  const w = base.reduce((s, a) => s + appW(a), 0) + (top ? appW(top) : 0);
+  const va = base.reduce((s, a) => s + appVA(a), 0) + (top ? appVA(top) : 0);
+  return { w, va };
+}
+
 export const appBr = (a: Appliance): number => Math.max(0, pn(a.br, 0));
 export const zoneOf = (l: Line): string => (l.zone ?? '').trim() || 'Без помещения';
 
@@ -58,26 +77,28 @@ export const vrRating = (inIn: number): number | null => VR_STD.find(x => x >= i
 export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
   const t = TYPES[l.type];
   const nSock = l.type === 'socket' ? Math.max(0, Math.round(pn(l.sockets, 0))) : 0;
-  const pInst = l.apps.reduce((s, a) => s + appW(a), 0) + nSock * Math.max(0, pn(l.perSocket, 0));
-  const kc = 1;
-  const cos = 1;
+  const sockW = nSock * Math.max(0, pn(l.perSocket, 0));
+  const pInst = l.apps.reduce((s, a) => s + appW(a), 0) + sockW;
+  const dm = demand(l.apps);
   const main = Math.max(0, pn(l.len, 0));
   const live = l.apps.filter(a => appW(a) > 0);
   const len = main + live.reduce((m, a) => Math.max(m, appBr(a)), 0);
   const cable = main + live.reduce((s, a) => s + appBr(a) * Math.max(1, Math.round(pn(a.n, 1))), 0);
   const three = c.supply === 3 && l.type === 'power' && l.phase === '3';
-  const pd = pInst;
-  const I = three ? pd / (Math.sqrt(3) * 400) : pd / 230;
+  const pd = dm.w + sockW;
+  const va = dm.va + sockW;
+  const cos = va > 0 ? pd / va : 1;
+  const I = three ? va / (Math.sqrt(3) * 400) : va / 230;
   const lim0 = (l.type === 'light' ? 3 : 5) + Math.min(0.5, Math.max(0, len - 100) * 0.005);
   const lim = Math.max(0.5, lim0 - c.feeder);
   const rcbo = t.rcd && !c.rcdMode;
-  const ma = !t.rcd ? 0 : (zoneMa ?? (l.wet ? 10 : (I > 32 && l.type !== 'socket' ? 100 : 30)));
+  const ma = !t.rcd ? 0 : (zoneMa ?? (l.wet ? 10 : 30));
   const aApps = live.filter(a => TYPE_A_RX.test(a.name));
   const rcdA = t.rcd && aApps.length > 0;
   const arc = !three && (c.afdd === 'all' || (c.afdd === 'sock' && l.type === 'socket'));
   const arcSkip = three && c.afdd === 'all';
   const r: LineResult = {
-    limit: lim, pInst, pd, I, three, len, cos, kc, notes: [], tips: [], status: 'ok', rcd: t.rcd, rcbo, rcdA, arc, zone: c.rcdMode ? zoneOf(l) : '', uzo: null, cable, sockets: nSock,
+    limit: lim, pInst, pd, I, three, len, cos, load: 0, cab: IN_CABLE[c.grpCable], notes: [], tips: [], status: 'ok', rcd: t.rcd, rcbo, rcdA, arc, zone: c.rcdMode ? zoneOf(l) : '', uzo: null, cable, sockets: nSock,
     ma, curve: t.curve, In: null, S: null, drop: 0, empty: false,
     mod: three ? (rcbo ? 4 : 3) : (rcbo || arc ? 2 : 1), ik: 0, ikNeed: 0, ikSrc: 'calc',
     zsMeas: null, insMeas: null, leakMeas: null, leakLim: 0, leakEst: 0, rcdMeas: null, rcdLim: 0
@@ -88,8 +109,10 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
     r.pd = 0;
     return r;
   }
-  const need = Math.max(I, t.minIn);
+  const longMin = l.type === 'power' && live.some(a => LONG_RX.test(a.name)) ? LONG_MIN_IN : 0;
+  const need = Math.max(I * c.margin, t.minIn, longMin);
   r.In = STD.find(x => x >= need) ?? null;
+  if (!r.In && I <= STD[STD.length - 1]) r.In = STD.find(x => x >= Math.max(I, t.minIn, longMin)) ?? null;
   if (!r.In) {
     r.status = 'bad';
     r.notes.push('Ток линии больше 63 А. Разделите нагрузку на несколько групп.');
@@ -137,15 +160,14 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
   }
   if (r.rcd) {
     r.leakLim = r.ma * LEAK_FRACTION;
-    r.leakEst = cable * LEAK_PER_M_MA + (I > LEAK_LOAD_ABOVE_A ? I * LEAK_PER_A_MA : 0);
+    r.leakEst = cable * LEAK_PER_M_MA + I * LEAK_PER_A_MA;
     const lm = measOf(l.meas?.leak);
     if (lm !== null && lm >= 0) r.leakMeas = lm;
     if (r.leakMeas !== null && r.leakMeas > r.leakLim) {
       r.status = 'bad';
       r.notes.push('Ток утечки ' + fmt(r.leakMeas, 1) + ' мА больше трети уставки УЗО (' + fmt(r.leakLim, 1) + ' мА): возможны ложные отключения (СН 4.04.01-2019, п. 16.3.7).');
     } else if (!c.rcdMode && r.leakMeas === null && r.leakEst > r.leakLim) {
-      r.status = r.status === 'bad' ? 'bad' : 'warn';
-      r.notes.push('Утечка самой линии около ' + fmt(r.leakEst, 1) + ' мА больше трети уставки УЗО (' + fmt(r.leakLim, 1) + ' мА, СН 4.04.01-2019, п. 16.3.7).');
+      r.tips.push('Оценка утечки линии с приборами около ' + fmt(r.leakEst, 1) + ' мА больше трети уставки УЗО (' + fmt(r.leakLim, 1) + ' мА, СН 4.04.01-2019, п. 16.3.7). Оценка по 0,4 мА на 1 А нагрузки без данных изготовителя: замерьте утечку при приёмке.');
     }
     r.rcdLim = rcdTripMs(r.ma);
     const tm = pn(l.meas?.rcd, 0);
@@ -169,6 +191,10 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
     r.status = 'bad';
     r.notes.push('Падение напряжения выше допустимого даже на сечении 35 мм². Сократите линию.');
   }
+  r.load = r.In ? I / r.In : 0;
+  if (r.load > LOAD_WARN) r.tips.push('Автомат загружен на ' + fmt(r.load * 100, 0) + ' %. В плотно собранном щитке автоматы нагреваются и могут отключаться раньше номинала: задайте запас по автомату в параметрах сети.');
+  const plain = STD.find(x => x >= Math.max(I * c.margin, t.minIn));
+  if (longMin && plain !== undefined && plain < LONG_MIN_IN) r.tips.push('Автомат не меньше ' + LONG_MIN_IN + ' А для стиральной, сушильной и посудомоечной машины, водонагревателя: длительная нагрузка с нагревателем.');
   if (l.type === 'socket' && r.In > 16) {
     r.status = r.status === 'bad' ? 'bad' : 'warn';
     r.notes.push('Для розеточной группы это много. Вынесите мощные приборы в отдельные линии.');
@@ -227,11 +253,7 @@ export function pack(devs: Device[], rl: number): number {
 
 export const WET_SFX = ' (10 мА)';
 
-const zoneMa = (rs: LineResult[], ls: Line[]): number => {
-  if (ls.some((l, i) => l.wet && rs[i].rcd)) return 10;
-  if (rs.length && rs.every(r => r.I > 32) && ls.every(l => l.type !== 'socket')) return 100;
-  return 30;
-};
+const zoneMa = (rs: LineResult[], ls: Line[]): number => (ls.some((l, i) => l.wet && rs[i].rcd) ? 10 : 30);
 
 function planUzos(lines: Line[], c: CfgN): { rows: Row[]; uzos: Uzo[] } {
   const first = lines.map(l => calcLine(l, c));
@@ -256,15 +278,48 @@ function planUzos(lines: Line[], c: CfgN): { rows: Row[]; uzos: Uzo[] } {
     const idx = by.get(z) as number[];
     maOf.set(z, zoneMa(idx.map(i => first[i]), idx.map(i => lines[i])));
   });
+  const keyAt = new Map<number, string>();
+  const order2: string[] = [];
+  const by2 = new Map<string, number[]>();
+  const put = (z: string, i: number): void => {
+    if (!by2.has(z)) {
+      by2.set(z, []);
+      order2.push(z);
+    }
+    (by2.get(z) as number[]).push(i);
+    keyAt.set(i, z);
+  };
+  order.forEach(z => {
+    const idx = by.get(z) as number[];
+    const ma = maOf.get(z) as number;
+    const sum = idx.reduce((s, i) => s + (first[i].In as number), 0);
+    if (ma !== 10 || sum <= RCD10_MAX_IN) {
+      idx.forEach(i => put(z, i));
+      return;
+    }
+    const parts: number[][] = [];
+    idx.forEach(i => {
+      const In = first[i].In as number;
+      const last = parts[parts.length - 1];
+      const have = last ? last.reduce((s, j) => s + (first[j].In as number), 0) : 0;
+      if (last && have + In <= RCD10_MAX_IN) last.push(i);
+      else parts.push([i]);
+    });
+    parts.forEach((g, k) => {
+      const zk = parts.length > 1 ? z + ' · ' + (k + 1) : z;
+      maOf.set(zk, ma);
+      g.forEach(i => put(zk, i));
+    });
+  });
   const rows: Row[] = lines.map((l, i) => {
-    const z = keyOf(l);
-    if (!maOf.has(z) || !first[i].rcd) return { l, r: first[i] };
+    const z = keyAt.get(i);
+    if (z === undefined || !first[i].rcd) return { l, r: first[i] };
     const r = calcLine(l, c, maOf.get(z));
     r.zone = z;
     return { l, r };
   });
-  const uzos: Uzo[] = order.map((z, k) => {
-    const idx = by.get(z) as number[];
+  const uzos: Uzo[] = order2.map((z, k) => {
+    const idx = by2.get(z) as number[];
     const rs = idx.map(i => rows[i].r);
     const sumIn = rs.reduce((s, r) => s + (r.In as number), 0);
     const maxIn = rs.reduce((m, r) => Math.max(m, r.In as number), 0);
@@ -274,7 +329,8 @@ function planUzos(lines: Line[], c: CfgN): { rows: Row[]; uzos: Uzo[] } {
     const need = Math.max(maxIn, sumIn);
     const In = RCD_STD.find(x => x >= need) ?? RCD_STD[RCD_STD.length - 1];
     const ma = maOf.get(z) as number;
-    const leak = rs.reduce((s, r) => s + (r.leakMeas ?? r.leakEst), 0);
+    const est = rs.filter(r => r.leakMeas === null);
+    const leak = rs.reduce((s, r) => s + (r.leakMeas ?? 0), 0) + est.reduce((s, r) => s + r.cable * LEAK_PER_M_MA + r.I * LEAK_PER_A_MA * c.ko, 0);
     idx.forEach(i => {
       const r = rows[i].r;
       r.uzo = k;
@@ -282,8 +338,12 @@ function planUzos(lines: Line[], c: CfgN): { rows: Row[]; uzos: Uzo[] } {
     if (leak > ma * LEAK_FRACTION) {
       idx.forEach(i => {
         const r = rows[i].r;
-        r.status = r.status === 'bad' ? 'bad' : 'warn';
-        r.notes.push('Суммарная утечка групп на УЗО «' + z + '» около ' + fmt(leak, 1) + ' мА больше трети уставки ' + ma + ' мА (СН 4.04.01-2019, п. 16.3.7). Разделите помещение на два УЗО.');
+        if (est.length) {
+          r.tips.push('Оценка суммарной утечки групп на УЗО «' + z + '» около ' + fmt(leak, 1) + ' мА больше трети уставки ' + ma + ' мА (СН 4.04.01-2019, п. 16.3.7). Оценка по 0,4 мА на 1 А нагрузки с коэффициентом одновременности: замерьте утечку или разделите помещение на два УЗО.');
+        } else {
+          r.status = r.status === 'bad' ? 'bad' : 'warn';
+          r.notes.push('Суммарная утечка групп на УЗО «' + z + '» по замерам ' + fmt(leak, 1) + ' мА больше трети уставки ' + ma + ' мА (СН 4.04.01-2019, п. 16.3.7). Разделите помещение на два УЗО.');
+        }
       });
     }
     return { zone: z, In, ma, four, typeA, groups: idx, leak, sumIn };

@@ -41,30 +41,29 @@ describe('appliance helpers', () => {
     expect(appBr({ id: 'a', name: 'x', w: 1, n: 1 })).toBe(0);
   });
   it('falls back to a default zone', () => {
-    expect(zoneOf(mkLine('a', 'light', 1, null, null, []))).toBe('Без помещения');
-    expect(zoneOf({ ...mkLine('a', 'light', 1, null, null, []), zone: '  Кухня ' })).toBe('Кухня');
+    expect(zoneOf(mkLine('a', 'light', 1, []))).toBe('Без помещения');
+    expect(zoneOf({ ...mkLine('a', 'light', 1, []), zone: '  Кухня ' })).toBe('Кухня');
   });
 });
 
 describe('group load without demand factor', () => {
   it('sums all appliances and sockets with no Кс or cos', () => {
-    const l = { ...mkLine('Р', 'socket', 10, 0.5, 0.8, [['Чайник', 2000, 1]]), sockets: 4, perSocket: 100 };
+    const l = { ...mkLine('Р', 'socket', 10, [['Чайник', 2000, 1]]), sockets: 4, perSocket: 100 };
     const r = calcAll([l], cfg()).rows[0].r;
     expect(r.pInst).toBe(2400);
     expect(r.pd).toBe(2400);
-    expect(r.kc).toBe(1);
     expect(r.cos).toBe(1);
     expect(r.I).toBeCloseTo(2400 / 230, 5);
     expect(r.sockets).toBe(4);
   });
   it('counts sockets only for socket groups', () => {
-    const l = { ...mkLine('С', 'light', 10, null, null, [['Лампа', 100, 1]]), sockets: 4, perSocket: 100 };
+    const l = { ...mkLine('С', 'light', 10, [['Лампа', 100, 1]]), sockets: 4, perSocket: 100 };
     const r = calcAll([l], cfg()).rows[0].r;
     expect(r.pInst).toBe(100);
     expect(r.sockets).toBe(0);
   });
   it('treats sockets alone as load', () => {
-    const l = { ...mkLine('Р', 'socket', 10, null, null, []), sockets: 5, perSocket: 300 };
+    const l = { ...mkLine('Р', 'socket', 10, []), sockets: 5, perSocket: 300 };
     const r = calcAll([l], cfg()).rows[0].r;
     expect(r.empty).toBe(false);
     expect(r.pInst).toBe(1500);
@@ -73,7 +72,7 @@ describe('group load without demand factor', () => {
 
 describe('junction boxes and branches', () => {
   const branched = (): Line => {
-    const l = mkLine('Свет', 'light', 12, null, null, [['Люстра', 100, 1], ['Бра', 40, 2]]);
+    const l = mkLine('Свет', 'light', 12, [['Люстра', 100, 1], ['Бра', 40, 2]]);
     l.apps[0].br = 3;
     l.apps[1].br = 5;
     return l;
@@ -91,7 +90,7 @@ describe('junction boxes and branches', () => {
     expect(r.cable).toBe(15);
   });
   it('lists boxes of the chosen type in the bill of materials', () => {
-    const a = calcAll([branched(), mkLine('Б', 'power', 5, null, null, [['Бойлер', 2000, 1]])], cfg({ box: 'gkl' }));
+    const a = calcAll([branched(), mkLine('Б', 'power', 5, [['Бойлер', 2000, 1]])], cfg({ box: 'gkl' }));
     expect(a.boxes).toBe(1);
     const box = buildSpec(a).find(i => i.name.startsWith('Коробка'));
     expect(box?.name).toBe('Коробка распределительная для гипсокартона');
@@ -109,11 +108,11 @@ describe('junction boxes and branches', () => {
 
 describe('residual-current devices per room', () => {
   const lines = (): Line[] => [
-    z(mkLine('Свет', 'light', 10, null, null, [['Люстра', 200, 1]]), 'Комнаты'),
-    z(mkLine('Розетки', 'socket', 10, null, null, [['ТВ', 1500, 1]]), 'Комнаты'),
-    z({ ...mkLine('Стиралка', 'power', 8, null, null, [['Стиральная машина', 2200, 1]]), wet: true }, 'Ванная'),
-    mkLine('Без зоны', 'power', 8, null, null, [['Бойлер', 2000, 1]]),
-    mkLine('Пустая', 'socket', 8, null, null, [])
+    z(mkLine('Свет', 'light', 10, [['Люстра', 200, 1]]), 'Комнаты'),
+    z(mkLine('Розетки', 'socket', 10, [['ТВ', 1500, 1]]), 'Комнаты'),
+    z({ ...mkLine('Стиралка', 'power', 8, [['Стиральная машина', 2200, 1]]), wet: true }, 'Ванная'),
+    mkLine('Без зоны', 'power', 8, [['Бойлер', 2000, 1]]),
+    mkLine('Пустая', 'socket', 8, [])
   ];
   it('keeps one RCBO per group by default', () => {
     const a = calcAll(lines(), cfg());
@@ -152,21 +151,21 @@ describe('residual-current devices per room', () => {
   });
   it('caps the RCD rating by the input breaker but not below the largest group', () => {
     const big = [
-      z(mkLine('A', 'power', 5, null, null, [['a', 7000, 1]]), 'Кухня'),
-      z(mkLine('B', 'power', 5, null, null, [['b', 7000, 1]]), 'Кухня'),
-      z(mkLine('C', 'power', 5, null, null, [['c', 7000, 1]]), 'Кухня')
+      z(mkLine('A', 'power', 5, [['a', 7000, 1]]), 'Кухня'),
+      z(mkLine('B', 'power', 5, [['b', 7000, 1]]), 'Кухня'),
+      z(mkLine('C', 'power', 5, [['c', 7000, 1]]), 'Кухня')
     ];
     const a = calcAll(big, cfg({ prot: 'rcd' }));
     const u = a.uzos[0];
     expect(u.sumIn).toBe(96);
     expect(u.In).toBe([16, 25, 40, 63, 80, 100].find(x => x >= Math.max(32, Math.min(96, a.inIn as number))));
   });
-  it('uses 100 mA when every group in the room is above 32 A', () => {
-    const a = calcAll([z(mkLine('A', 'power', 5, null, null, [['a', 9000, 1]]), 'Кухня')], cfg({ prot: 'rcd' }));
-    expect(a.uzos[0].ma).toBe(100);
+  it('keeps 30 mA when every group in the room is above 32 A', () => {
+    const a = calcAll([z(mkLine('A', 'power', 5, [['a', 9000, 1]]), 'Кухня')], cfg({ prot: 'rcd' }));
+    expect(a.uzos[0].ma).toBe(30);
   });
   it('uses four-pole RCDs for three-phase rooms', () => {
-    const ls = [z({ ...mkLine('A', 'power', 5, null, null, [['a', 9000, 1]]), phase: '3' as const }, 'Кухня'), z({ ...mkLine('B', 'light', 5, null, null, [['b', 100, 1]]), phase: 'L2' as const }, 'Зал'), z({ ...mkLine('C', 'socket', 5, null, null, [['c', 100, 1]]), phase: 'L2' as const }, 'Зал')];
+    const ls = [z({ ...mkLine('A', 'power', 5, [['a', 9000, 1]]), phase: '3' as const }, 'Кухня'), z({ ...mkLine('B', 'light', 5, [['b', 100, 1]]), phase: 'L2' as const }, 'Зал'), z({ ...mkLine('C', 'socket', 5, [['c', 100, 1]]), phase: 'L2' as const }, 'Зал')];
     const a = calcAll(ls, cfg({ prot: 'rcd', supply: 3 }));
     expect(a.uzos[0].four).toBe(true);
     expect(a.uzos[1].four).toBe(false);
@@ -174,11 +173,16 @@ describe('residual-current devices per room', () => {
     expect(uzoName(a.uzos[0])).toMatch(/^УЗО 4P \d+ А \d+ мА$/);
   });
   it('warns when the summed leakage of a room is too high', () => {
-    const ls = [1, 2, 3, 4].map(i => z(mkLine('Г' + i, 'light', 300, null, null, [['a', 100, 1]]), 'Дом'));
+    const ls = [1, 2, 3, 4].map(i => z(mkLine('Г' + i, 'light', 300, [['a', 100, 1]]), 'Дом'));
     const a = calcAll(ls, cfg({ prot: 'rcd' }));
-    expect(a.uzos[0].leak).toBeCloseTo(12, 5);
-    expect(a.rows[0].r.notes.join(' ')).toContain('Суммарная утечка групп на УЗО «Дом»');
-    expect(a.rows[0].r.status).not.toBe('ok');
+    const I = a.rows.reduce((s, x) => s + x.r.I, 0);
+    expect(a.uzos[0].leak).toBeCloseTo(12 + I * 0.4 * a.c.ko, 5);
+    expect(a.rows[0].r.tips.join(' ')).toContain('Оценка суммарной утечки групп на УЗО «Дом»');
+    expect(a.rows[0].r.notes.join(' ')).not.toContain('Суммарная утечка');
+    const m = calcAll(ls.map(l => ({ ...l, meas: { leak: 3 } })), cfg({ prot: 'rcd' }));
+    expect(m.uzos[0].leak).toBeCloseTo(12, 5);
+    expect(m.rows[0].r.notes.join(' ')).toContain('Суммарная утечка групп на УЗО «Дом» по замерам');
+    expect(m.rows[0].r.status).not.toBe('ok');
   });
   it('lists RCDs and separate neutral buses in the bill of materials', () => {
     const a = calcAll(lines(), cfg({ prot: 'rcd' }));
@@ -211,9 +215,9 @@ describe('input cable', () => {
 
 describe('labour quantities', () => {
   it('takes socket points from the socket count when set', () => {
-    const l = { ...mkLine('Р', 'socket', 10, null, null, [['ТВ', 100, 1]]), sockets: 7 };
+    const l = { ...mkLine('Р', 'socket', 10, [['ТВ', 100, 1]]), sockets: 7 };
     expect(autoQty(calcAll([l], cfg())).socket).toBe(7);
-    const m = { ...mkLine('Р', 'socket', 10, null, null, [['ТВ', 100, 2]]) };
+    const m = { ...mkLine('Р', 'socket', 10, [['ТВ', 100, 2]]) };
     expect(autoQty(calcAll([m], cfg())).socket).toBe(2);
   });
 });

@@ -108,12 +108,12 @@ describe('protection names', () => {
 describe('protocol', () => {
   const rows = (lines: Line[]) => protocolRows(calcAll(lines, cfg()));
   it('skips empty and overloaded lines', () => {
-    const a = calcAll([mkLine('e', 'socket', 5, null, null, []), mkLine('big', 'power', 5, null, null, [['a', 30000, 1]])], cfg());
+    const a = calcAll([mkLine('e', 'socket', 5, []), mkLine('big', 'power', 5, [['a', 30000, 1]])], cfg());
     expect(protocolRows(a)).toEqual([]);
     expect(hasMeasurements(a)).toBe(false);
   });
   it('marks unmeasured lines', () => {
-    const r = rows([mkLine('', 'socket', 5, null, null, [['a', 1000, 1]])]);
+    const r = rows([mkLine('', 'socket', 5, [['a', 1000, 1]])]);
     expect(r[0].verdict).toBe('none');
     expect(r[0].name).toBe('Без названия');
     expect(r[0].no).toBe('Г1');
@@ -121,7 +121,7 @@ describe('protocol', () => {
     expect([r[0].zs, r[0].ik, r[0].leak, r[0].ins]).toEqual([null, null, null, null]);
   });
   it('judges measurements', () => {
-    const mk = (meas: Line['meas']): Line => ({ ...mkLine('a', 'socket', 5, null, null, [['a', 1000, 1]]), meas });
+    const mk = (meas: Line['meas']): Line => ({ ...mkLine('a', 'socket', 5, [['a', 1000, 1]]), meas });
     expect(rows([mk({ zs: 0.5 })])[0]).toMatchObject({ verdict: 'ok', zs: 0.5 });
     expect(rows([mk({ zs: 0.5 })])[0].ik).toBeCloseTo(460, 6);
     expect(rows([mk({ zs: 9 })])[0].verdict).toBe('bad');
@@ -134,7 +134,7 @@ describe('protocol', () => {
     expect(VERDICT.bad).toBe('Не соответствует');
   });
   it('omits rcd suffix for lines without rcd', () => {
-    const a = calcAll([mkLine('a', 'socket', 5, null, null, [['a', 1000, 1]])], cfg());
+    const a = calcAll([mkLine('a', 'socket', 5, [['a', 1000, 1]])], cfg());
     const r = a.rows[0].r;
     const fake = { ...a, rows: [{ l: a.rows[0].l, r: { ...r, rcd: false } }] } as Calc;
     expect(protocolRows(fake)[0].prot).toBe('C16');
@@ -241,7 +241,7 @@ describe('compare', () => {
     expect(r[2].worse).toBe(true);
     expect(r[3].now).toBe('трёхфазный');
     expect(r[4].worse).toBe(true);
-    const bad = variantCalc(proj([mkLine('x', 'socket', 0, null, null, [['a', 100, 1]])]), [], []);
+    const bad = variantCalc(proj([mkLine('x', 'socket', 0, [['a', 100, 1]])]), [], []);
     const rr = compareRows(full, bad);
     expect(rr[5].worse).toBe(true);
     expect(compareRows(bad, full)[5].worse).toBe(false);

@@ -118,7 +118,7 @@ describe('floor specification and summary', () => {
 
 describe('floor heating in the calculation', () => {
   it('adds products to the specification and area to the works', () => {
-    const lines = [mkLine('Свет', 'light', 10, 1, 1, [['Лампа', 100, 1]])];
+    const lines = [mkLine('Свет', 'light', 10, [['Лампа', 100, 1]])];
     const a = calcAll(lines, defaultCfg(), { floor: [room({ sys: 'mat', area: 3 }), room({ area: '' })] });
     expect(a.floor).toHaveLength(1);
     expect(buildSpec(a).some(i => i.name.startsWith('Нагревательный мат'))).toBe(true);

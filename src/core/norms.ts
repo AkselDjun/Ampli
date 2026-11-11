@@ -21,7 +21,6 @@ export const LEAK_FRACTION = 1 / 3;
 export const rcdTripMs = (ma: number): number => (ma > 30 ? 2000 : (ma > 10 ? 500 : 5000));
 export const LEAK_PER_M_MA = 0.01;
 export const LEAK_PER_A_MA = 0.4;
-export const LEAK_LOAD_ABOVE_A = 32;
 export const SIZES = [12, 18, 24, 36, 48, 72];
 export const HEAT_RX = /водонагрев|бойлер|кот[её]л|т[её]плый пол|конвектор|электроотоп|полотенцесуш|проточн/i;
 export const HEAT_PLUG_KW = 5;
@@ -29,6 +28,13 @@ export const TYPE_A_RX = /стиральн|сушильн|посудомо|ин�
 export const VR_STD = [40, 50, 63];
 export const SN_CH2_DATE = '07.12.2026';
 export const RCD_STD = [16, 25, 40, 63, 80, 100];
+export const RCD10_MAX_IN = 40;
+export const MOTOR_RX = /кондицион|тепловой насос|насос|компрессор/i;
+export const MOTOR_COS = 0.8;
+export const LONG_RX = /стиральн|сушильн|посудомо|водонагрев|бойлер/i;
+export const LONG_MIN_IN = 16;
+export const LOAD_WARN = 0.9;
+export const MARGIN_MAX = 1.5;
 export const BOX_NAME: Record<'brick' | 'gkl' | 'surface', string> = { brick: 'для бетона и кирпича', gkl: 'для гипсокартона', surface: 'накладная IP54' };
 export const IN_CABLE: Record<'vvg' | 'frls' | 'nym', string> = { vvg: 'ВВГнг(А)-LS', frls: 'ВВГнг(А)-FRLS', nym: 'NYM' };
 export const ROWLEN: Record<number, number> = { 12: 12, 18: 18, 24: 12, 36: 18, 48: 12, 72: 18 };
@@ -36,8 +42,6 @@ export const ROWLEN: Record<number, number> = { 12: 12, 18: 18, 24: 12, 36: 18, 
 export interface TypeDef {
   label: string;
   short: string;
-  kc: number;
-  cos: number;
   minS: number;
   minIn: number;
   curve: string;
@@ -46,9 +50,9 @@ export interface TypeDef {
 }
 
 export const TYPES: Record<LineType, TypeDef> = {
-  light: { label: 'Освещение', short: 'Свет', kc: 1, cos: 0.95, minS: 1.5, minIn: 10, curve: 'B', rcd: true, tag: 'l' },
-  socket: { label: 'Розетки', short: 'Розетки', kc: 0.7, cos: 0.95, minS: 2.5, minIn: 16, curve: 'C', rcd: true, tag: 's' },
-  power: { label: 'Мощный прибор', short: 'Мощный', kc: 1, cos: 1, minS: 2.5, minIn: 10, curve: 'C', rcd: true, tag: 'p' }
+  light: { label: 'Освещение', short: 'Свет', minS: 1.5, minIn: 10, curve: 'B', rcd: true, tag: 'l' },
+  socket: { label: 'Розетки', short: 'Розетки', minS: 2.5, minIn: 16, curve: 'C', rcd: true, tag: 's' },
+  power: { label: 'Мощный прибор', short: 'Мощный', minS: 2.5, minIn: 10, curve: 'C', rcd: true, tag: 'p' }
 };
 
 export const TYPE_KEYS = Object.keys(TYPES) as LineType[];
@@ -64,4 +68,4 @@ export const PRESETS: [string, number, string][] = [
 
 export const STATUS = { ok: 'Норма', warn: 'Проверьте', bad: 'Не подходит' } as const;
 
-export const CLIMITS: Record<string, [number, number]> = { ko: [0.3, 1], k: [0.5, 1], alloc: [1, 500], zs: [0.05, 2], feeder: [0, 3], sip: [0, 500], rz: [0, 500] };
+export const CLIMITS: Record<string, [number, number]> = { ko: [0.3, 1], k: [0.5, 1], alloc: [1, 500], zs: [0.05, 2], feeder: [0, 3], margin: [1, 1.5], sip: [0, 500], rz: [0, 500] };

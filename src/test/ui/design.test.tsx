@@ -56,7 +56,7 @@ describe('sheet height', () => {
 
 describe('board colours by group type', () => {
   it('marks modules with the group type and lists the types in the legend', () => {
-    const a = calcAll([mkLine('Свет', 'light', 5, 1, 1, [['Лампа', 100, 1]]), mkLine('Плита', 'power', 5, 1, 1, [['Плита', 5000, 1]])], { ...defaultCfg(), prot: 'rcbo' });
+    const a = calcAll([mkLine('Свет', 'light', 5, [['Лампа', 100, 1]]), mkLine('Плита', 'power', 5, [['Плита', 5000, 1]])], { ...defaultCfg(), prot: 'rcbo' });
     render(<PanelPane a={a} />);
     const types = Array.from(document.querySelectorAll('.rail button.dev')).map(d => d.getAttribute('data-t'));
     expect(types).toEqual(['light', 'power']);

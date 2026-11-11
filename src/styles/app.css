@@ -843,6 +843,10 @@ dialog.pal::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(4px);b
 
 .app{grid-template-columns:minmax(0,1fr) 120px 140px 110px 44px}
 .a-br{display:flex;flex-direction:column;gap:var(--s-1);min-width:0}
+.a-ext{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2) var(--s-4)}
+.a-alt{display:inline-flex;align-items:center;gap:var(--s-2);font-size:var(--t-sm);color:var(--ink-2)}
+.a-cos{display:inline-flex;align-items:center;gap:var(--s-2)}
+.a-cos input{width:80px}
 .sock{grid-template-columns:repeat(2,minmax(0,1fr))}
 .len-note{grid-column:1/-1;margin:-4px 0 0;font-size:var(--t-sm)}
 @media (max-width:760px){
