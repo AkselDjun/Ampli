@@ -2,7 +2,7 @@ import type { Calc, SpecItem } from './types';
 import { fmt, plural } from './format';
 import { cableName, inCableName, protFull, uzoName } from './protection';
 import { BOX_NAME } from './norms';
-import { vrRating } from './calc';
+import { contactorIn, vrRating } from './calc';
 import { weakSpec } from './weak';
 import { floorSpec } from './floor';
 import { supplySpec } from './supplies';
@@ -19,6 +19,21 @@ export function buildSpec(a: Calc): SpecItem[] {
     items.push({ name: 'Реле контроля напряжения ' + (vr ? vr + ' А' : '63 А с контактором'), qty: n + ' шт', note: (n > 1 ? 'по одному на фазу; ' : '') + (vr ? 'номинал не меньше вводного автомата' : 'ток ввода больше 63 А, реле управляет контактором'), n, unit: 'шт' });
   }
   if (a.inIn && c.spd) items.push({ name: 'УЗИП тип ' + (c.house ? '1+2 ' : '2 ') + (c.supply === 3 ? '3P+N' : '1P+N'), qty: '1 шт', note: 'после вводного автомата; защиту УЗИП выполнить по паспорту изготовителя', n: 1, unit: 'шт' });
+  if (a.prio) {
+    const pr = a.prio;
+    const g = (i: number) => 'Г' + (i + 1);
+    items.push({ name: 'Реле приоритета нагрузки', qty: '1 шт', note: 'при работе ' + pr.p.map(g).join(', ') + ' отключает ' + pr.s.map(g).join(', '), n: 1, unit: 'шт' });
+    const ctr = new Map<string, { n: number; g: string[] }>();
+    pr.s.forEach(i => {
+      const r = a.rows[i].r;
+      const k = 'Контактор модульный ' + (r.three ? '4P ' : '2P ') + contactorIn(r.In ?? 0) + ' А';
+      if (!ctr.has(k)) ctr.set(k, { n: 0, g: [] });
+      const d = ctr.get(k)!;
+      d.n++;
+      d.g.push(g(i));
+    });
+    ctr.forEach((d, name) => items.push({ name, qty: d.n + ' шт', note: 'управляет реле приоритета: ' + d.g.join(', '), n: d.n, unit: 'шт' }));
+  }
   const dev = new Map<string, { name: string; n: number; g: string[] }>();
   a.uzos.forEach(u => {
     const k = uzoName(u);

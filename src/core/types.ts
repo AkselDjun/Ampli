@@ -98,6 +98,7 @@ export interface Line {
   perSocket?: Num;
   len: Num;
   apps: Appliance[];
+  prio?: 'p' | 's';
 }
 
 export interface Cfg {
@@ -218,7 +219,7 @@ export interface LineResult {
 }
 
 export interface Device {
-  kind: 'in' | 'rcd' | 'uzo' | 'mcb' | 'spd' | 'vr';
+  kind: 'in' | 'rcd' | 'uzo' | 'mcb' | 'spd' | 'vr' | 'prio';
   mod: number;
   label: string;
   sub: string;
@@ -276,6 +277,7 @@ export interface Calc {
   weak?: WeakCalc;
   floor?: FloorRoom[];
   house?: House;
+  prio?: { p: number[]; s: number[] };
 }
 
 export interface SpecItem {

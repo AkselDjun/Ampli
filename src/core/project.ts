@@ -76,6 +76,7 @@ function normLine(l: Loose, id: string, z: string | undefined): Line {
     phase: (PHASES.includes(l.phase as string) ? l.phase : 'L1') as Phase,
     ...(l.wet === true ? { wet: true } : {}),
     ...(l.out === true ? { out: true } : {}),
+    ...(l.prio === 'p' || l.prio === 's' ? { prio: l.prio } : {}),
     ...(meas ? { meas } : {}),
     zone: z,
     ...(sockets !== undefined ? { sockets } : {}),

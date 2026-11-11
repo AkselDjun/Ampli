@@ -23,6 +23,7 @@ import { IOS_STEPS, install, usePwa } from './pwa';
 import { PWA_ENABLED } from '../core/flags';
 import { ShareBlock } from './ShareBlock';
 import { LaborTable, Totals, totals } from './Labor';
+import { PowerFitBlock } from './PowerFit';
 import { TierSettings } from './Tiers';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
@@ -69,6 +70,7 @@ export function NetSheet({
         <span className="lbl-row"><span className="lbl">Выделенная мощность, кВт</span><Tip label="О выделенной мощности">{'Из технических условий на ' + (c.house ? 'дом' : 'квартиру') + '. С ней сравнивается расчётная мощность в табло вверху.'}</Tip></span>
         <Stepper value={p.cfg.alloc} d={1} min={1} step={0.5} label="Выделенная мощность, кВт" onChange={v => dispatch({ t: 'cfg', field: 'alloc', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'alloc', d })} />
       </div>
+      <PowerFitBlock p={p} dispatch={dispatch} />
       <div className="f">
         <span className="lbl-row"><span className="lbl" id="l-met">Прокладка кабеля</span><Tip label="О прокладке">Скрытая: кабель в трубе в стене или кладке (способы 2 и 5A, табл. 52Н ГОСТ 30331.15). Открытая: в коробе или по поверхности (способы 4A и 11).</Tip></span>
         <Seg<string> name="met" labelledBy="l-met" value={c.method} items={[['wall', 'Скрытая'], ['open', 'Открытая']]} onChange={v => dispatch({ t: 'cfg', field: 'method', value: v })} />

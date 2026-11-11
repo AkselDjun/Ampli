@@ -333,3 +333,11 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
 .proto-d,.acts-d{min-width:0;max-width:100%}
 .a3-wrap svg.a3+svg.a3{margin-top:var(--s-3);border-top:1px dashed var(--line)}
 @media (--tablet){.gtab td.g-st:has(.pill.ok){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
+.pfit{margin:var(--s-2) 0 var(--s-4);padding:var(--s-3);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
+.pfit .sec-t{margin-top:0}
+.pfit-lead{margin:0 0 var(--s-2);color:var(--ink-2)}
+.pfit-list{margin:0;padding:0;list-style:none;display:grid;gap:var(--s-2)}
+.pfit-o{display:grid;gap:var(--s-1);justify-items:start;padding:var(--s-2) var(--s-3);border-radius:var(--r-m);background:var(--surface-2)}
+.pfit-o.ok small{color:var(--ok)}
+.pfit-now{display:grid;gap:var(--s-2);justify-items:start;margin-top:var(--s-3)}
+.pfit-now p{margin:0}

@@ -84,7 +84,7 @@
   .printdoc .act-sig div{display:grid;grid-template-columns:62mm 1fr;gap:var(--s-2);align-items:end}
   .printdoc table+p{margin-top:var(--s-2)}
   .printdoc+.printdoc{break-before:page}
-  .printdoc .k-vr .stk-top,.printdoc .stk-k.k-vr{background:var(--print-ink-4);color:var(--print-paper)}
+  .printdoc .k-vr .stk-top,.printdoc .stk-k.k-vr,.printdoc .k-prio .stk-top,.printdoc .stk-k.k-prio{background:var(--print-ink-4);color:var(--print-paper)}
   .printdoc .k-spd .stk-top,.printdoc .stk-k.k-spd{background:var(--print-spd);color:var(--print-ink)}
   .printdoc .k-socket .stk-top,.printdoc .stk-k.k-socket{background:var(--print-socket);color:var(--print-paper)}
   .printdoc .stk-nm{overflow-wrap:break-word;hyphens:auto;text-align:center}
