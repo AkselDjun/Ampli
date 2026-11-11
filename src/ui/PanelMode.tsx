@@ -165,6 +165,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
                     dispatch({ t: 'lineMeasAt', id: x.l.id, field: fd.f, value: e.target.value });
                   }}
                 />
+                <small className="muted pm-norm">норма {hint(fd.f)}</small>
               </label>
             ))}
           </div>
@@ -180,7 +181,7 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
           {nextOpen && nextOpen !== order[at + 1] && (
             <Button size="sm" className="pm-skip" onClick={() => go(order.indexOf(nextOpen), true)}>К неизмеренной: {noOf(nextOpen)}</Button>
           )}
-          <p className="pm-kb muted">Enter переходит к следующему полю, после последнего к следующей группе.</p>
+          {done < 3 && <p className="pm-kb muted">Кнопка «Далее» на клавиатуре или Enter переходит к следующему полю, после последнего к следующей группе.</p>}
         </section>
       )}
     </Sheet>
