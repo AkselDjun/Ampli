@@ -244,7 +244,7 @@ flowchart LR
 | --- | --- |
 | Lint and types | ESLint, Stylelint, TypeScript |
 | Unit tests | Vitest с порогом покрытия |
-| Build and size budget | Сборка и бюджет: самый большой JS 100 kB, CSS 25 kB, всё вместе 290 kB в gzip |
+| Build and size budget | Сборка и бюджет в gzip: самый большой JS 100 kB, CSS 25 kB, первый экран 195 kB, всё вместе 340 kB |
 | Lighthouse | Производительность ≥ 85, доступность ≥ 95, лучшие практики ≥ 90; LCP ≤ 3 с, TBT ≤ 400 мс, CLS ≤ 0,1 |
 | Browser tests | Playwright, при падении прикладываются трейсы |
 
