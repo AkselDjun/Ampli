@@ -22,6 +22,7 @@ import { IOS_STEPS, install, usePwa } from './pwa';
 import { PWA_ENABLED } from '../core/flags';
 import { ShareBlock } from './ShareBlock';
 import { LaborTable, Totals, totals } from './Labor';
+import { TierSettings } from './Tiers';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
 import { DrawingA3 } from './parts';
@@ -527,6 +528,7 @@ export function ReportSheet({
       {est.missing > 0 && Object.keys(lib.prices).length > 0 && <p className="muted">Для {est.missing} поз. цена или количество не заданы, они не входят в итог.</p>}
       <LaborTable p={p} a={a} dispatch={dispatch} />
       <Totals {...totals(a, p, lib.prices, lib.labor)} />
+      <TierSettings p={p} dispatch={dispatch} />
       <ShareBlock p={p} kind="estimate" />
       </TabPanel>
       <TabPanel scope="rep" id="notes" cur={tab}>

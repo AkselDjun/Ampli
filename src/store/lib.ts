@@ -10,6 +10,8 @@ import { USAGE_LIMIT, normName } from '../core/catalog';
 import type { Usage } from '../core/catalog';
 import { isWorkKey } from '../core/labor';
 import type { WorkKey, WorkPrices } from '../core/labor';
+import { TIER_MARKUP_MAX, normMarkup } from '../core/share';
+import type { Markup } from '../core/share';
 
 export const LIB_KEY = 'ampli-lib-v1';
 
@@ -35,10 +37,11 @@ export interface Lib {
   brand: Brand;
   usage: Record<string, Usage>;
   labor: WorkPrices;
+  tiers: { on: boolean; markup: Markup };
 }
 
 export const emptyBrand = (): Brand => ({ company: '', contacts: '', signer: '', logo: '' });
-export const emptyLib = (): Lib => ({ templates: [], prices: {}, brand: emptyBrand(), usage: {}, labor: {} });
+export const emptyLib = (): Lib => ({ templates: [], prices: {}, brand: emptyBrand(), usage: {}, labor: {}, tiers: { on: false, markup: [0, 0, 0] } });
 
 export function normLib(o: unknown): Lib {
   const lib = emptyLib();
@@ -68,6 +71,10 @@ export function normLib(o: unknown): Lib {
       const n = Number(u?.n);
       if (u && n > 0 && isFinite(n)) lib.usage[k] = { n: Math.floor(n), at: Number(u.at) || 0 };
     }
+  }
+  if (x.tiers && typeof x.tiers === 'object') {
+    const t = x.tiers as { on?: unknown; markup?: unknown };
+    lib.tiers = { on: t.on === true, markup: normMarkup(t.markup) ?? [0, 0, 0] };
   }
   if (x.brand && typeof x.brand === 'object') {
     const b = x.brand as Partial<Brand>;
@@ -110,7 +117,9 @@ export type LibAction =
   | { t: 'use'; name: string; at?: number }
   | { t: 'clearUsage' }
   | { t: 'brand'; field: 'company' | 'contacts' | 'signer'; value: string }
-  | { t: 'logo'; value: string };
+  | { t: 'logo'; value: string }
+  | { t: 'tiersOn'; on: boolean }
+  | { t: 'tierMarkup'; i: 0 | 1 | 2; value: string };
 
 export function libReducer(l: Lib, a: LibAction): Lib {
   switch (a.t) {
@@ -154,6 +163,14 @@ export function libReducer(l: Lib, a: LibAction): Lib {
       return { ...l, brand: { ...l.brand, [a.field]: a.value } };
     case 'logo':
       return { ...l, brand: { ...l.brand, logo: a.value } };
+    case 'tiersOn':
+      return { ...l, tiers: { ...l.tiers, on: a.on } };
+    case 'tierMarkup': {
+      const n = pn(a.value.trim(), 0);
+      const markup: Markup = [...l.tiers.markup];
+      markup[a.i] = isFinite(n) ? Math.min(TIER_MARKUP_MAX, Math.max(0, Math.round(n))) : 0;
+      return { ...l, tiers: { ...l.tiers, markup } };
+    }
     default:
       return l;
   }
