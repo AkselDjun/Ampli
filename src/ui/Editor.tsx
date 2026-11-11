@@ -22,6 +22,7 @@ import { useByRoom } from './prefs';
 import { Button, IconButton } from './kit';
 
 const CHIP_MAX = 6;
+const CHIP_MAX_PHONE = 3;
 
 function Flash({ v }: { v: string }) {
   const prev = useRef(v);
@@ -66,6 +67,7 @@ export function Editor({
   const [quick, setQuick] = useState<string | null>(null);
   const [quickMsg, setQuickMsg] = useState('');
   const [allChips, setAllChips] = useState(false);
+  const [chipMax] = useState(() => typeof window.matchMedia !== 'function' || window.matchMedia('(min-width:761px)').matches ? CHIP_MAX : CHIP_MAX_PHONE);
   const resRef = useRef<HTMLDivElement>(null);
   const [mini, setMini] = useState(false);
   const [brOn, setBrOn] = useState(false);
@@ -216,32 +218,35 @@ export function Editor({
                 </ul>
               </details>
             )}
-            <div className="why">
-              {!r.empty && (
-                <>
-                  <button className="why-t" type="button" aria-expanded={whyOpen} onClick={() => setWhyOpen(!whyOpen)}>
-                    <span>Как посчитано</span>
-                    <IconDown />
-                  </button>
-                  <dl className="why-b" hidden={!whyOpen}>
-                    {whyRows(l, r, a.c).map(w => (
-                      <div key={w.title} style={{ display: 'contents' }}>
-                        <dt>{w.title}</dt>
-                        <dd>
-                          <span className="w-f">{w.formula}</span>
-                          {w.note && <span className="w-n">{w.note}</span>}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </>
-              )}
-            </div>
           </>
         )}
         <div className="blk">
           <span className="lbl">Тип группы</span>
           <Seg<LineType> name={'t-' + l.id} value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', type: v })} />
+        </div>
+        <div className="grid3 ed-core">
+          <div className="f len-f">
+            <span className="lbl">Длина до распредкоробки, м</span>
+            <Stepper
+              value={l.len}
+              onChange={v => dispatch({ t: 'lineField', field: 'len', value: v })}
+              onStep={d => setLen(pn(l.len, 0) + d)}
+              d={1}
+              min={0}
+              max={500}
+              step="any"
+              label="Длина линии, м"
+              less="Короче"
+              more="Длиннее"
+            />
+          </div>
+          {three && (
+            <div className="f ph-f">
+              <span className="lbl">Фаза</span>
+              <Seg<Phase> name={'p-' + l.id} value={l.phase} items={phItems} onChange={v => dispatch({ t: 'linePhase', phase: v })} />
+            </div>
+          )}
+          <p className="muted len-note">{hasBr && r ? 'До дальней точки ' + fmt(r.len, 0) + ' м, кабеля всего ' + fmt(r.cable, 0) + ' м.' : 'Если коробки нет, это вся длина линии.'}</p>
         </div>
         {a.c.rcdMode && (
           <label className="blk">
@@ -250,7 +255,7 @@ export function Editor({
             <datalist id={'zones-' + l.id}>
               {zones.map(z => <option key={z} value={z} />)}
             </datalist>
-            <small className="muted">Группы одного помещения ставятся под одно УЗО.</small>
+            <small className="muted len-note">Группы одного помещения ставятся под одно УЗО.</small>
           </label>
         )}
         {l.type === 'socket' && (
@@ -360,13 +365,13 @@ export function Editor({
           )}
           <div className={'chips' + (allChips ? ' all' : '')} ref={chips}>
             <button className="chip custom" type="button" onClick={addEmpty}>+ Свой прибор</button>
-            {presets.slice(0, allChips ? presets.length : CHIP_MAX).map(it => (
+            {presets.slice(0, allChips ? presets.length : chipMax).map(it => (
               <button key={it.key} className="chip" type="button" data-tip={it.w + ' Вт'} onClick={() => addFrom(it.name, it.w)}>
                 + {it.name}
               </button>
             ))}
-            {presets.length > CHIP_MAX && (
-              <button className="chip more" type="button" aria-expanded={allChips} onClick={() => setAllChips(!allChips)}>{allChips ? 'Свернуть' : 'Ещё ' + (presets.length - CHIP_MAX)}</button>
+            {presets.length > chipMax && (
+              <button className="chip more" type="button" aria-expanded={allChips} onClick={() => setAllChips(!allChips)}>{allChips ? 'Свернуть' : 'Ещё ' + (presets.length - chipMax)}</button>
             )}
           </div>
           <div className="ed-more" ref={menuRef}>
@@ -393,30 +398,6 @@ export function Editor({
                 }}>Добавить</Button>
                 <span role="status" className="muted">{quickMsg}</span>
               </div>
-            </div>
-          )}
-        </div>
-        <div className="grid3 ed-core">
-          <div className="f len-f">
-            <span className="lbl">Длина до распредкоробки</span>
-            <Stepper
-              value={l.len}
-              onChange={v => dispatch({ t: 'lineField', field: 'len', value: v })}
-              onStep={d => setLen(pn(l.len, 0) + d)}
-              d={1}
-              min={0}
-              max={500}
-              step="any"
-              label="Длина линии, м"
-              less="Короче"
-              more="Длиннее"
-            />
-          </div>
-          <p className="muted len-note">{hasBr && r ? 'До дальней точки ' + fmt(r.len, 0) + ' м, кабеля всего ' + fmt(r.cable, 0) + ' м.' : 'Если коробки нет, это вся длина линии.'}</p>
-          {three && (
-            <div className="f ph-f">
-              <span className="lbl">Фаза</span>
-              <Seg<Phase> name={'p-' + l.id} value={l.phase} items={phItems} onChange={v => dispatch({ t: 'linePhase', phase: v })} />
             </div>
           )}
         </div>
@@ -495,6 +476,26 @@ export function Editor({
             </div>
           </div>
         </div>
+        {r && !r.empty && (
+          <div className="blk fold-in why-in">
+            <button className="why-t" type="button" aria-expanded={whyOpen} onClick={() => setWhyOpen(!whyOpen)}>
+              <span>Как посчитано</span>
+              <small className="muted">формулы и пункты норм</small>
+              <IconDown />
+            </button>
+            <dl className="why-b" hidden={!whyOpen}>
+              {whyRows(l, r, a.c).map(w => (
+                <div key={w.title} style={{ display: 'contents' }}>
+                  <dt>{w.title}</dt>
+                  <dd>
+                    <span className="w-f">{w.formula}</span>
+                    {w.note && <span className="w-n">{w.note}</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
         <div className="ed-end">
           <Button onClick={() => { dispatch({ t: 'dupLine' }); toastOk('Создана копия группы'); }}>Копировать группу</Button>
           <ArmButton variant="danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); toastOk('Группа удалена'); }} />

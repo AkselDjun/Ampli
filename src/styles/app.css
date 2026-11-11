@@ -252,8 +252,6 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 .pj-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .sec-row{display:flex;flex-wrap:wrap;gap:var(--s-3);align-items:center;justify-content:space-between}
 .printdoc{display:none}
-.why{margin-top:-6px}
-.why:empty{display:none}
 .why-t{display:inline-flex;align-items:center;gap:var(--s-1-5);min-height:44px;padding:0;border:0;background:transparent;color:var(--accent);font-weight:600;font-size:var(--t-m);cursor:pointer}
 .why-t svg{width:16px;height:16px;transition:transform var(--dur-fast)}
 .why-t[aria-expanded="true"] svg{transform:rotate(180deg)}
@@ -824,6 +822,8 @@ input,select,textarea,.step{border-color:var(--line-strong)}
 .fold-in>.why-t>small{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;font-weight:400;font-size:var(--t-sm)}
 .fold-in-b{display:grid;gap:var(--s-4);padding:var(--s-1-5) 0 var(--s-1)}
 .fold-in-b[hidden]{display:none}
+.fold-in>.why-b{margin-bottom:var(--s-1-5)}
+.fold-in>.why-t>span{flex:none;text-align:left}
 
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 .nf-main small{white-space:normal}
