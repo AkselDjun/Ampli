@@ -49,11 +49,11 @@ describe('passportRows', () => {
     const three = passportRows(calcAll([line('Г', [['Печь', 9000, 1]], { type: 'power', phase: '3' })], cfg))[0];
     expect(three.capW).toBeGreaterThan(one.capW);
   });
-  it('trims and returns the location', () => {
-    const r = passportRows(calcAll([line('Г', [['Фен', 1000, 1]], { where: '  Ванная  ' })], defaultCfg()))[0];
-    expect(r.where).toBe('Ванная');
+  it('trims and returns the room', () => {
+    const r = passportRows(calcAll([line('Г', [['Фен', 1000, 1]], { zone: '  Ванная  ' })], defaultCfg()))[0];
+    expect(r.room).toBe('Ванная');
     const none = passportRows(calcAll([line('Г', [['Фен', 1000, 1]])], defaultCfg()))[0];
-    expect(none.where).toBe('');
+    expect(none.room).toBe('');
   });
   it('flags residual-current protection', () => {
     const rows = passportRows(calcAll(sampleProject().lines, sampleProject().cfg));
@@ -90,15 +90,25 @@ describe('owner link', () => {
     expect(readOwnerHash('#o=')).toBeNull();
     expect(readOwnerHash('#p=abc')).toBeNull();
   });
-  it('keeps the group location through the link', () => {
-    const q = { ...p, lines: p.lines.map((l, i) => ({ ...l, where: i === 0 ? 'Кухня' : undefined })) };
+  it('keeps the group room through the link', () => {
+    const q = { ...p, lines: p.lines.map((l, i) => ({ ...l, zone: i === 0 ? 'Кухня' : undefined })) };
     const back = unpackProject(packProject(q));
-    expect(back!.lines[0].where).toBe('Кухня');
-    expect(back!.lines[1].where).toBeUndefined();
+    expect(back!.lines[0].zone).toBe('Кухня');
+    expect(back!.lines[1].zone).toBeUndefined();
   });
-  it('limits and ignores blank locations on load', () => {
-    const q = normProject({ ...p, lines: p.lines.map((l, i) => ({ ...l, where: i === 0 ? 'я'.repeat(200) : '   ' })) });
-    expect(q!.lines[0].where).toHaveLength(80);
-    expect(q!.lines[1].where).toBeUndefined();
+  const old = (prot: string, lines: Record<string, unknown>[]) => normProject({ ...p, cfg: { ...p.cfg, prot }, lines: p.lines.slice(0, lines.length).map((l, i) => ({ ...l, zone: undefined, ...lines[i] })) });
+  it('moves an old location into an empty room when rooms do not drive the RCDs', () => {
+    const q = old('rcbo', [{ where: '  Прихожая ' }, { where: 'я'.repeat(200) }, { where: 'Коридор', zone: 'Кухня' }, { where: '   ' }]);
+    expect(q!.lines.map(l => l.zone)).toEqual(['Прихожая', 'я'.repeat(60), 'Кухня', undefined]);
+    expect(q!.lines.every(l => !('where' in l))).toBe(true);
+  });
+  it('spells a moved location like a room already in the project', () => {
+    const q = old('rcbo', [{ zone: 'Кухня' }, { where: ' кухня ' }]);
+    expect(q!.lines.map(l => l.zone)).toEqual(['Кухня', 'Кухня']);
+  });
+  it('drops an old location without touching rooms when they drive the RCDs', () => {
+    const q = old('rcd', [{ where: 'Прихожая' }, { where: 'Коридор', zone: 'Кухня' }]);
+    expect(q!.lines.map(l => l.zone)).toEqual([undefined, 'Кухня']);
+    expect(q!.lines.every(l => !('where' in l))).toBe(true);
   });
 });

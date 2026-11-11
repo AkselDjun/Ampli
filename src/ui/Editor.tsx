@@ -138,7 +138,7 @@ export function Editor({
   const nMeas = (['zs', 'ins', 'leak', 'rcd'] as const).filter(k => String(l.meas?.[k] ?? '').trim() !== '').length;
   const nPhotos = photos.filter(ph => ph.line === l.id).length;
   const measSum = [nMeas ? nMeas + ' ' + plural(nMeas, ['замер', 'замера', 'замеров']) : '', nPhotos ? nPhotos + ' фото' : ''].filter(Boolean).join(', ');
-  const moreSum = [a.c.rcdMode ? '' : (l.zone?.trim() ?? ''), l.where?.trim() ?? '', l.out ? 'на улице' : (l.type !== 'light' ? (l.wet ? 'особо опасные условия' : 'обычные условия') : '')].filter(Boolean).join(', ');
+  const moreSum = [a.c.rcdMode ? '' : (l.zone?.trim() ?? ''), l.out ? 'на улице' : (l.type !== 'light' ? (l.wet ? 'особо опасные условия' : 'обычные условия') : '')].filter(Boolean).join(', ');
   const zones = Array.from(new Set([...a.rows.map(y => (y.l.zone ?? '').trim()).filter(Boolean), ...ZONES]));
   const hasBr = !!r && r.len > pn(l.len, 0);
   const showBr = brOn || l.apps.some(ap => pn(ap.br, 0) > 0);
@@ -415,12 +415,9 @@ export function Editor({
                 <datalist id={'zones-' + l.id}>
                   {zones.map(z => <option key={z} value={z} />)}
                 </datalist>
+                <small className="muted len-note">Подпись группы на щитке, бирках и в паспорте.</small>
               </label>
             )}
-            <label className="blk">
-              <span className="lbl">Где находится</span>
-              <input className="ed-where" aria-label="Где находится группа" placeholder="Например, кухня и коридор" maxLength={80} value={l.where ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'where', value: e.target.value })} />
-            </label>
             {a.c.house ? (
               <div className="blk">
                 <span className="lbl">Условия</span>

@@ -10,7 +10,7 @@ export interface PassItem {
 export interface PassRow {
   no: string;
   name: string;
-  where: string;
+  room: string;
   prot: string;
   rcd: boolean;
   capW: number;
@@ -56,7 +56,7 @@ export function passportRows(a: Calc): PassRow[] {
     out.push({
       no: 'Г' + (i + 1),
       name: x.l.name || 'Без названия',
-      where: (x.l.where ?? '').trim(),
+      room: (x.l.zone ?? '').trim(),
       prot: protName(r),
       rcd: r.rcd,
       capW,

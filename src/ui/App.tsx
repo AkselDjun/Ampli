@@ -382,7 +382,7 @@ export function App() {
     setSheet(APP_SHEET.REPORT);
   };
   const cmds: Cmd[] = [
-    ...p.lines.map((l, i) => ({ id: 'g' + l.id, group: 'Группы', label: 'Г' + (i + 1) + ' ' + (l.name || 'Без названия'), hint: l.where || TYPES[l.type].short, words: 'группа', run: () => { setSheet(null); dispatch({ t: 'select', id: l.id }); goEdit(); } })),
+    ...p.lines.map((l, i) => ({ id: 'g' + l.id, group: 'Группы', label: 'Г' + (i + 1) + ' ' + (l.name || 'Без названия'), hint: l.zone?.trim() || TYPES[l.type].short, words: 'группа', run: () => { setSheet(null); dispatch({ t: 'select', id: l.id }); goEdit(); } })),
     { id: 'add-l', group: 'Добавить', label: 'Добавить группу освещения', words: 'свет новая', run: () => addGroup('light') },
     { id: 'add-s', group: 'Добавить', label: 'Добавить розеточную группу', words: 'розетки новая', run: () => addGroup('socket') },
     { id: 'add-p', group: 'Добавить', label: 'Добавить мощный прибор', words: 'плита бойлер новая группа', run: () => addGroup('power') },

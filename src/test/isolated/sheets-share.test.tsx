@@ -318,15 +318,15 @@ describe('Owner passport', () => {
     return (navigator.clipboard as unknown as { writeText: ReturnType<typeof vi.fn> }).writeText;
   };
 
-  it('stores the group location typed in the editor', () => {
+  it('stores the group room typed in the editor', () => {
     seed(() => undefined);
     render(<App />);
-    change(byLabel(ed(), 'Где находится группа'), 'Кухня и коридор');
-    expect(stored().list[0].lines[0].where).toBe('Кухня и коридор');
+    change(ed().querySelector('input.ed-zone') as HTMLInputElement, 'Кухня и коридор');
+    expect(stored().list[0].lines[0].zone).toBe('Кухня и коридор');
   });
 
   it('prints the passport with the location and no QR code', () => {
-    seed(p => { p.lines[0].where = 'Спальня'; });
+    seed(p => { p.lines[0].zone = 'Спальня'; });
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     render(<App />);
     click(nav(), /Приёмка/);
@@ -351,7 +351,7 @@ describe('Owner passport', () => {
 
   it('opens a read-only passport from an owner link and can hand the project over', () => {
     const p = sampleProject();
-    p.lines[0].where = 'Прихожая';
+    p.lines[0].zone = 'Прихожая';
     window.location.hash = '#o=' + packProject(p);
     render(<App />);
     expect(document.querySelector('.owner h1')?.textContent).toBe('Паспорт электрощита');

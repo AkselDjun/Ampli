@@ -33,7 +33,7 @@ export function PassportBody({ p, a }: { p: Project; a: Calc }) {
               <b>{r.name}</b>
               <span className="pp-prot">{r.prot}</span>
             </header>
-            {r.where && <p className="pp-where">{r.where}</p>}
+            {r.room && <p className="pp-where">{r.room}</p>}
             <p>Предельная нагрузка группы около {watts(r.capW)}.</p>
             {r.heavy.length > 0 && <p>Самые мощные приборы: {r.heavy.map(h => h.name + ' ' + watts(h.watts)).join(', ')}.</p>}
             {r.together && <p className="pp-warn">Сумма мощностей приборов группы ({watts(r.totalW)}) больше предела. Не включайте одновременно: {r.together}.</p>}

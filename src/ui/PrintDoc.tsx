@@ -217,7 +217,7 @@ function TagsDoc({ p, a }: { p: Project; a: Calc }) {
           <div className="tag" key={x.l.id + k}>
             <b>Г{i + 1} {x.l.name || 'Без названия'}</b>
             <span>{cableName(x.r)}</span>
-            {x.l.where && <span>{x.l.where}</span>}
+            {x.l.zone?.trim() && <span>{x.l.zone.trim()}</span>}
             <small>{k === 0 ? 'Конец у щитка' : 'Конец у потребителя'}{x.r.len ? ' · до дальней точки ' + fmt(x.r.len, 0) + ' м' : ''}</small>
           </div>
         )))}
