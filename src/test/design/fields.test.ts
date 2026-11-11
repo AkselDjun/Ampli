@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import tokens from '../../styles/tokens.css?raw';
-import app from '../../styles/app.css?raw';
+
+const sheets = import.meta.glob<string>('../../styles/*.css', { query: '?raw', import: 'default', eager: true });
+const app = Object.entries(sheets).filter(([f]) => !f.endsWith('/tokens.css')).map(([, css]) => css).join('\n');
 
 const rules = (css: string): { sel: string; body: string }[] =>
   [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(m => ({ sel: m[1].trim(), body: m[2] }));
@@ -18,8 +20,8 @@ const media = (css: string, q: string): string => {
 describe('form fields', () => {
   it('defines one set of field tokens', () => {
     for (const t of ['--field-h:44px', '--field-h-s:36px', '--field-px:var(--s-3)', '--field-r:var(--r-m)', '--field-fs:var(--t-base)', '--field-bw:1px', '--check-s:20px']) expect(tokens).toContain(t);
-    expect(media(tokens, '(max-width:760px)')).toContain('--field-h:48px;--field-h-s:44px');
-    expect(media(tokens, '(max-width:760px),(pointer:coarse)')).toContain('--field-fs:16px');
+    expect(media(tokens, '(--tablet)')).toContain('--field-h:48px;--field-h-s:44px');
+    expect(media(tokens, '(--tablet),(pointer:coarse)')).toContain('--field-fs:16px');
   });
 
   it('styles inputs, selects and textareas from one base rule', () => {

@@ -54,6 +54,7 @@ const preloadFont = (match: RegExp): Plugin => ({
 export default defineConfig({
   base: './',
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  css: { transformer: 'lightningcss', lightningcss: { drafts: { customMedia: true } } },
   build: {
     rolldownOptions: {
       output: {
