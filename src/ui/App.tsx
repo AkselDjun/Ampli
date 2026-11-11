@@ -35,7 +35,7 @@ import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
-import { chapterHintPending, markChapterHint, onboardingPending } from '../features/onboarding/storage';
+import { chapterHintPending, freshPending, markChapterHint, markFreshSeen, onboardingPending } from '../features/onboarding/storage';
 import type { TourFinish } from './Onboarding';
 import { APP_SHEET, APP_VIEW } from '../app/types';
 import type { AppView, ReportRequest, SaveStatus } from '../app/types';
@@ -43,8 +43,8 @@ import { useSheetStack } from '../app/useSheetStack';
 import { AppHeader } from '../app/AppHeader';
 import { AppTabs } from '../app/AppTabs';
 import { sheetForTourScene } from '../app/navigation';
-import { TOUR_CHAPTER, TOUR_SCENE } from '../features/onboarding/model';
-import type { TourChapter, TourScene } from '../features/onboarding/model';
+import { TOUR_CHAPTER, TOUR_MODE, TOUR_SCENE } from '../features/onboarding/model';
+import type { TourChapter, TourMode, TourScene } from '../features/onboarding/model';
 
 const waitPhotos = async (n: number): Promise<void> => {
   const deadline = Date.now() + 2500;
@@ -97,24 +97,36 @@ export function App() {
     if (scene === TOUR_SCENE.HOME) {
       setSheet(null);
       setView(APP_VIEW.GROUPS);
-    } else if (scene === TOUR_SCENE.EDITOR) {
+    } else if (scene === TOUR_SCENE.EDITOR || scene === TOUR_SCENE.WIRING) {
       setSheet(null);
       if (p.lines[0]) dispatch({ t: 'select', id: p.lines[0].id });
       setView(isWide() ? APP_VIEW.GROUPS : APP_VIEW.EDITOR);
     } else {
       setView(APP_VIEW.GROUPS);
+      if (scene === TOUR_SCENE.REPORT || scene === TOUR_SCENE.ESTIMATE) setRepWant({ tab: scene === TOUR_SCENE.ESTIMATE ? 'estimate' : 'groups', n: Date.now() });
       setSheet(sheetForTourScene(scene));
     }
   }, [p.lines, setSheet]);
   const [tourChapter, setTourChapter] = useState<TourChapter | undefined>(undefined);
+  const [tourMode, setTourMode] = useState<TourMode>(TOUR_MODE.FULL);
+  const [freshAsk] = useState(() => !tourOpen && !incoming && !shared && !owner && freshPending());
+  useEffect(() => {
+    if (!freshAsk) return;
+    const t = window.setTimeout(() => {
+      markFreshSeen();
+      toast('В Ampli новое: частный дом, укладка в мощность, карта проводки и смета в трёх вариантах.', { label: 'Показать', run: () => { setSheet(null); setTourMode(TOUR_MODE.FRESH); setTourOpen(true); } });
+    }, 1500);
+    return () => window.clearTimeout(t);
+  }, [freshAsk, setSheet]);
   useEffect(() => {
     const ch = sheet === APP_SHEET.PANEL || sheet === APP_SHEET.WORK ? TOUR_CHAPTER.BUILD : (sheet === APP_SHEET.REPORT ? TOUR_CHAPTER.HANDOVER : null);
     if (!ch || tourOpen || onboardingPending() || !chapterHintPending(ch)) return;
     markChapterHint(ch);
-    toast(ch === TOUR_CHAPTER.BUILD ? 'Впервые в монтаже? Покажем щиток, замеры и чек-лист за минуту.' : 'Впервые в документах? Покажем схему, смету и акты за минуту.', { label: 'Показать', run: () => { setTourChapter(ch); setTourOpen(true); } });
+    toast(ch === TOUR_CHAPTER.BUILD ? 'Впервые в монтаже? Покажем щиток, карту проводки и чек-лист за минуту.' : 'Впервые в документах? Покажем схему и смету в трёх вариантах за минуту.', { label: 'Показать', run: () => { setTourChapter(ch); setTourOpen(true); } });
   }, [sheet, tourOpen]);
   const closeTour = useCallback(() => {
     setTourChapter(undefined);
+    setTourMode(TOUR_MODE.FULL);
     setTourOpen(false);
     setSheet(null);
     setView(APP_VIEW.GROUPS);
@@ -556,7 +568,7 @@ export function App() {
         <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => pushSheet(APP_SHEET.PANEL)} /></Hold>
         </SheetNavContext.Provider>
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
-        <Hold open={tourOpen}>{tourOpen && <Onboarding onScene={onTourScene} onClose={closeTour} onFinish={finishTour} chapter={tourChapter} />}</Hold>
+        <Hold open={tourOpen}>{tourOpen && <Onboarding onScene={onTourScene} onClose={closeTour} onFinish={finishTour} chapter={tourChapter} mode={tourMode} />}</Hold>
       </div>
       <Hold open={printing}>{printModes.map(m => <PrintDoc key={m} p={p} a={a} mode={m} />)}</Hold>
     </LibContext.Provider>

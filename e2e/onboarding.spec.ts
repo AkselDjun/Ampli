@@ -1,8 +1,10 @@
 import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { ONBOARDING_STEPS } from '../src/features/onboarding/model';
+import { ONBOARDING_STEPS } from '../src/features/onboarding/steps';
 
 const TOTAL = ONBOARDING_STEPS.length;
+const FRESH = ONBOARDING_STEPS.filter(s => s.fresh);
+const VIEW: Record<string, string> = { estimate: 'report' };
 const card = (page: Page) => page.locator('.tour [role="dialog"]');
 const heading = (page: Page) => card(page).locator('h2');
 
@@ -70,7 +72,8 @@ test('highlights every step and never covers the highlighted element', async ({ 
     const s = ONBOARDING_STEPS[i];
     await expect(heading(page)).toHaveText(s.title);
     await expect(card(page)).toContainText((i + 1) + ' из ' + TOTAL);
-    if (!['home', 'editor'].includes(s.scene)) await expect(page.locator(`[data-tour-view="${s.scene}"]`)).toBeVisible();
+    if (!['home', 'editor', 'wiring'].includes(s.scene)) await expect(page.locator(`[data-tour-view="${VIEW[s.scene] ?? s.scene}"]`)).toBeVisible();
+    if (s.fresh) await expect.poll(() => page.evaluate(sel => sel.some(x => [...document.querySelectorAll(x)].some(el => el.getBoundingClientRect().height > 0)), s.targets.slice(0, -1)), s.id).toBe(true);
     const spot = page.locator('.tour-spot');
     await expect(spot, s.id).toBeVisible();
     const sb = await settled(spot);
@@ -136,6 +139,39 @@ test('works from the keyboard and resumes where the user stopped', async ({ page
   await expect(card(page).getByRole('button', { name: 'Продолжить с шага 2' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(heading(page)).toHaveText(ONBOARDING_STEPS[1].title);
+});
+
+test('shows returning users only what is new', async ({ page }) => {
+  const errs = errors(page);
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('seeded')) return;
+    sessionStorage.setItem('seeded', '1');
+    localStorage.setItem('ampli-onboarding-v1', 'done');
+  });
+  await page.goto('/');
+  const toast = page.locator('.toast');
+  await expect(toast).toContainText('В Ampli новое');
+  await toast.getByRole('button', { name: 'Показать' }).click();
+  const vp = page.viewportSize();
+  if (!vp) throw new Error('no viewport');
+  for (let i = 0; i < FRESH.length; i++) {
+    await expect(heading(page)).toHaveText(FRESH[i].title);
+    await expect(card(page)).toContainText((i + 1) + ' из ' + FRESH.length);
+    await expect(card(page).locator('.tour-chap')).toContainText('Новое');
+    const spot = page.locator('.tour-spot');
+    await expect(spot, FRESH[i].id).toBeVisible();
+    const cb = await settled(card(page));
+    expect(cb.y + cb.height, FRESH[i].id).toBeLessThanOrEqual(vp.height + 1);
+    await card(page).getByRole('button', { name: i === FRESH.length - 1 ? 'Завершить' : 'Далее' }).click();
+  }
+  await expect(card(page)).toHaveAccessibleName('Теперь вы знаете всё новое');
+  await card(page).getByRole('button', { name: 'Понятно' }).click();
+  await expect(page.locator('.tour')).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator('.rows .row').first()).toBeVisible();
+  await page.waitForTimeout(2000);
+  await expect(page.getByText('В Ampli новое')).toHaveCount(0);
+  expect(errs).toEqual([]);
 });
 
 test.describe('with reduced motion', () => {

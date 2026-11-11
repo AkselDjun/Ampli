@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ONBOARDING_KEY, ONBOARDING_STEP_KEY, markOnboardingDone, onboardingPending, saveStep, savedStep } from '../../features/onboarding/storage';
+import { ONBOARDING_FRESH_KEY, ONBOARDING_KEY, ONBOARDING_REVISION, ONBOARDING_STEP_KEY, freshPending, markFreshSeen, markOnboardingDone, onboardingPending, saveStep, savedStep } from '../../features/onboarding/storage';
 
 describe('onboarding storage', () => {
   afterEach(() => vi.restoreAllMocks());
@@ -53,5 +53,25 @@ describe('onboarding storage', () => {
     expect(() => saveStep(3)).not.toThrow();
     expect(() => saveStep(null)).not.toThrow();
     expect(savedStep(9)).toBeNull();
+  });
+
+  it('offers the new steps once to those who finished the first tour', () => {
+    localStorage.removeItem(ONBOARDING_FRESH_KEY);
+    localStorage.removeItem(ONBOARDING_KEY);
+    expect(freshPending()).toBe(false);
+    localStorage.setItem(ONBOARDING_KEY, 'done');
+    expect(freshPending()).toBe(true);
+    markFreshSeen();
+    expect(localStorage.getItem(ONBOARDING_FRESH_KEY)).toBe(ONBOARDING_REVISION);
+    expect(freshPending()).toBe(false);
+    localStorage.setItem(ONBOARDING_FRESH_KEY, '1');
+    expect(freshPending()).toBe(true);
+  });
+
+  it('does not offer the new steps after the current tour', () => {
+    localStorage.removeItem(ONBOARDING_FRESH_KEY);
+    localStorage.removeItem(ONBOARDING_KEY);
+    markOnboardingDone();
+    expect(freshPending()).toBe(false);
   });
 });

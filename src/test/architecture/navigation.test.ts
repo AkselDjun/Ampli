@@ -14,9 +14,11 @@ describe('typed app navigation', () => {
     expect(sheetForTourScene(TOUR_SCENE.PANEL)).toBe(APP_SHEET.PANEL);
     expect(sheetForTourScene(TOUR_SCENE.WORK)).toBe(APP_SHEET.WORK);
     expect(sheetForTourScene(TOUR_SCENE.REPORT)).toBe(APP_SHEET.REPORT);
+    expect(sheetForTourScene(TOUR_SCENE.ESTIMATE)).toBe(APP_SHEET.REPORT);
     expect(sheetForTourScene(TOUR_SCENE.PROJECTS)).toBe(APP_SHEET.PROJECTS);
     expect(sheetForTourScene(TOUR_SCENE.HOME)).toBeNull();
     expect(sheetForTourScene(TOUR_SCENE.EDITOR)).toBeNull();
+    expect(sheetForTourScene(TOUR_SCENE.WIRING)).toBeNull();
   });
 
   it('exposes parent navigation only for nested sheets', () => {

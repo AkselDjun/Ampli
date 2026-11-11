@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { ONBOARDING_STEPS } from '../src/features/onboarding/steps';
 
 const scan = async (page: Page) => {
   const res = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
@@ -69,11 +70,14 @@ for (const scheme of ['light', 'dark'] as const) {
       await tour.getByRole('button', { name: /^Начать ·/ }).click();
       await expect(page.locator('.tour-spot')).toBeVisible();
       expect(await scan(page), 'summary').toEqual([]);
-      for (let i = 0; i < 3; i++) await tour.getByRole('button', { name: 'Далее' }).click();
-      await expect(page.locator('[data-tour-view="network"]')).toBeVisible();
-      expect(await scan(page), 'network modal').toEqual([]);
-      for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight');
-      await expect(tour).toHaveAccessibleName('Проекты и резервные копии');
+      for (const s of ONBOARDING_STEPS.slice(1)) {
+        await tour.getByRole('button', { name: 'Далее' }).click();
+        await expect(tour).toHaveAccessibleName(s.title);
+        if (s.fresh) {
+          await expect(page.locator('.tour-spot')).toBeVisible();
+          expect(await scan(page), s.id).toEqual([]);
+        }
+      }
       await tour.getByRole('button', { name: 'Завершить' }).click();
       await expect(tour).toHaveAccessibleName('Готово, основное вы знаете');
       expect(await scan(page), 'finish').toEqual([]);
