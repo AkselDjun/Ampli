@@ -39,3 +39,4 @@ export const RoomsSheet = part(() => import('./RoomsSheet').then(m => m.RoomsShe
 export const PanelMode = part(() => import('./PanelMode').then(m => m.PanelMode));
 export const EstimateView = part(() => import('./EstimateView').then(m => m.EstimateView));
 export const OwnerView = part(() => import('./Passport').then(m => m.OwnerView));
+export const Onboarding = part(() => import('./Onboarding').then(m => m.Onboarding));

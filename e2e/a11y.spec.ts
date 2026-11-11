@@ -61,14 +61,22 @@ for (const scheme of ['light', 'dark'] as const) {
       }
     });
 
-    test('guided onboarding with an opened modal', async ({ page }) => {
+    test('guided onboarding from welcome to finish', async ({ page }) => {
       await page.getByRole('button', { name: 'Открыть обучение' }).click();
-      const tour = page.locator('.tour-card');
-      await expect(tour).toContainText('Познакомимся с Ampli');
-      expect(await scan(page), 'intro').toEqual([]);
-      await tour.getByRole('button', { name: 'Далее' }).click();
+      const tour = page.locator('.tour [role="dialog"]');
+      await expect(tour).toHaveAccessibleName('Добро пожаловать в Ampli');
+      expect(await scan(page), 'welcome').toEqual([]);
+      await tour.getByRole('button', { name: /^Начать ·/ }).click();
+      await expect(page.locator('.tour-spot')).toBeVisible();
+      expect(await scan(page), 'summary').toEqual([]);
+      for (let i = 0; i < 3; i++) await tour.getByRole('button', { name: 'Далее' }).click();
       await expect(page.locator('[data-tour-view="network"]')).toBeVisible();
       expect(await scan(page), 'network modal').toEqual([]);
+      for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight');
+      await expect(tour).toHaveAccessibleName('Проекты и резервные копии');
+      await tour.getByRole('button', { name: 'Завершить' }).click();
+      await expect(tour).toHaveAccessibleName('Готово, основное вы знаете');
+      expect(await scan(page), 'finish').toEqual([]);
     });
   });
 }

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 const files = import.meta.glob<string>(['../../**/*.{ts,tsx,css}', '!../../test/**'], { query: '?raw', import: 'default', eager: true });
 const tokens = files['../../styles/tokens.css'];
 const app = files['../../styles/app.css'];
-const runtime = new Set(['--rc', '--i', '--cols']);
+const runtime = new Set(['--rc', '--i', '--cols', '--arrow']);
 
 const decls = (css: string): Map<string, string> => {
   const out = new Map<string, string>();
@@ -51,6 +51,15 @@ describe('design tokens', () => {
 
   it('keeps raw colors out of component styles', () => {
     expect(app.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []).toEqual([]);
+  });
+
+  it('keeps raw colors and own tokens out of every feature stylesheet', () => {
+    const sheets = Object.entries(files).filter(([f]) => f.endsWith('.css') && !f.endsWith('/tokens.css') && !f.endsWith('/app.css'));
+    expect(sheets.map(([f]) => f)).toContain('../../styles/onboarding.css');
+    for (const [f, css] of sheets) {
+      expect(css.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/g) ?? [], f).toEqual([]);
+      expect([...decls(css).keys()].filter(k => !runtime.has(k)), f).toEqual([]);
+    }
   });
 
   it('declares no token in component styles', () => {
