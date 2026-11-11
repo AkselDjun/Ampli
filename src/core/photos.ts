@@ -1,17 +1,20 @@
 import type { Line, Photo, PhotoTag } from './types';
+import { normTraces } from './traces';
 
 export const PHOTO_TAGS: [PhotoTag, string][] = [
   ['before', 'До'],
   ['after', 'После'],
   ['plate', 'Шильдик'],
-  ['meas', 'Замер']
+  ['meas', 'Замер'],
+  ['wall', 'Стена']
 ];
 
 export const PHOTO_TAG_LABEL: Record<PhotoTag, string> = {
   before: 'До',
   after: 'После',
   plate: 'Шильдик',
-  meas: 'Замер'
+  meas: 'Замер',
+  wall: 'Стена'
 };
 
 export const PHOTO_LIMIT = 40;
@@ -21,7 +24,8 @@ export function normPhotos(x: unknown): Photo[] {
   const out: Photo[] = [];
   for (const o of x as Partial<Photo>[]) {
     if (!o || typeof o.id !== 'string' || !o.id || !(o.tag && o.tag in PHOTO_TAG_LABEL) || typeof o.line !== 'string' || !o.line) continue;
-    out.push({ id: o.id, tag: o.tag, line: o.line as string, note: String(o.note ?? '').slice(0, 120), at: Number(o.at) || 0 });
+    const traces = o.tag === 'wall' ? normTraces(o.traces) : [];
+    out.push({ id: o.id, tag: o.tag, line: o.line as string, note: String(o.note ?? '').slice(0, 120), at: Number(o.at) || 0, ...(traces.length ? { traces } : {}) });
     if (out.length >= PHOTO_LIMIT) break;
   }
   return out;

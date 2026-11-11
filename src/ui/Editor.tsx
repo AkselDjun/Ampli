@@ -463,12 +463,13 @@ export function Editor({
             <PhotoStrip
               name={'line'}
               line={l.id}
-              tags={['before', 'after', 'plate', 'meas']}
+              tags={['before', 'after', 'wall', 'plate', 'meas']}
               total={photos.length}
               photos={photos.filter(ph => ph.line === l.id)}
               onAdd={photo => dispatch({ t: 'photoAdd', photo })}
               onDel={id => dispatch({ t: 'photoDel', id })}
               onNote={(id, value) => dispatch({ t: 'photoNote', id, value })}
+              onTraces={(id, traces) => dispatch({ t: 'photoTraces', id, traces })}
             />
             </div>
           </div>

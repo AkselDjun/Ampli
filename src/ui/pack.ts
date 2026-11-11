@@ -3,7 +3,7 @@ import type { PrintMode } from './WorkSheet';
 
 export const PACK_KEY = 'ampli-pack';
 export const PACK_DEFAULT: PrintMode[] = ['report', 'a3', 'proto', 'accept', 'passport'];
-const ALL: PrintMode[] = ['report', 'a3', 'proto', 'hidden', 'accept', 'passport', 'stickers', 'tags', 'old'];
+const ALL: PrintMode[] = ['report', 'a3', 'proto', 'hidden', 'wiring', 'accept', 'passport', 'stickers', 'tags', 'old'];
 
 export function loadPack(): PrintMode[] {
   try {
