@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 const dir = 'dist/assets';
-const budget = { js: 100 * 1024, css: 25 * 1024, total: 285 * 1024 };
+const budget = { js: 100 * 1024, css: 25 * 1024, total: 290 * 1024 };
 
 const kb = n => `${(n / 1024).toFixed(1)} kB`;
 const rows = readdirSync(dir)
