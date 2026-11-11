@@ -111,3 +111,14 @@ describe('appliance chips by screen width', () => {
     expect(presets(open('Варочная'))).toBe(6);
   });
 });
+
+describe('one room field', () => {
+  it('has no separate location field and explains where the room is printed', () => {
+    wide(true);
+    render(<App />);
+    const ed = open('Варочная');
+    expect(ed.textContent).not.toContain('Где находится');
+    expect(ed.querySelector('[aria-label="Где находится группа"]')).toBeNull();
+    expect(ed.querySelectorAll('input.ed-zone').length).toBe(1);
+  });
+});

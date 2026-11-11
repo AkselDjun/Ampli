@@ -46,7 +46,7 @@ export type Action =
   | { t: 'photoDel'; id: string }
   | { t: 'photoNote'; id: string; value: string }
   | { t: 'addApps'; apps: { name: string; w: number; n: number; m?: number }[] }
-  | { t: 'lineField'; field: 'name' | 'where' | 'zone' | 'len' | 'sockets' | 'perSocket'; value: string | number }
+  | { t: 'lineField'; field: 'name' | 'zone' | 'len' | 'sockets' | 'perSocket'; value: string | number }
   | { t: 'lineType'; type: LineType }
   | { t: 'linePhase'; phase: Phase }
   | { t: 'lineWet'; wet: boolean; out?: boolean }

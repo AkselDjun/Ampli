@@ -149,8 +149,6 @@ describe('Editor folds', () => {
     expect(more).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(more);
     expect(more).toHaveAttribute('aria-expanded', 'true');
-    change(screen.getByLabelText('Где находится группа'), 'Прихожая');
-    expect(more.textContent).toContain('Прихожая');
     const meas = within(ed()).getByRole('button', { name: /Замеры и фото/ });
     fireEvent.click(meas);
     change(screen.getByLabelText('Замер петли фаза-нуль, Ом'), '0.3');

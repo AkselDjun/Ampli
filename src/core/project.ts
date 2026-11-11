@@ -14,10 +14,13 @@ const numv = (v: unknown, d: number | string = ''): number | string => (typeof v
 
 type Loose = Partial<Project> & { cfg?: unknown; lines?: unknown };
 
-const legacy = (l: Line): Line => {
-  const o = { ...l } as Line & { kc?: unknown; cos?: unknown };
+const legacy = (l: Line, rcd: boolean): Line => {
+  const o = { ...l } as Line & { kc?: unknown; cos?: unknown; where?: unknown };
+  const where = typeof o.where === 'string' ? o.where.trim() : '';
+  if (!rcd && where && !(typeof o.zone === 'string' && o.zone.trim())) o.zone = where.slice(0, 60);
   delete o.kc;
   delete o.cos;
+  delete o.where;
   return o;
 };
 
@@ -25,12 +28,13 @@ export function normProject(o: unknown, keep = false): Project | null {
   const x = o as Loose | null;
   if (!x || typeof x !== 'object' || !x.cfg || typeof x.cfg !== 'object' || Array.isArray(x.cfg) || !Array.isArray(x.lines)) return null;
   const src = x.lines as Line[];
+  const rcd = (x.cfg as { prot?: unknown }).prot === 'rcd';
   const seen = new Map<string, string>();
   for (const l of src) {
     if (l && typeof l.zone === 'string' && l.zone.trim() && !seen.has(l.zone.trim().toLowerCase())) seen.set(l.zone.trim().toLowerCase(), l.zone.trim());
     if (!l || typeof l !== 'object' || typeof l.type !== 'string' || !(l.type in TYPES) || !Array.isArray(l.apps)) return null;
   }
-  const lines: Line[] = src.map(l => legacy(l)).map(l => ({ ...l, ...(typeof l.where === 'string' && l.where.trim() ? { where: l.where.slice(0, 80) } : { where: undefined }), ...(typeof l.zone === 'string' && l.zone.trim() ? { zone: (seen.get(l.zone.trim().toLowerCase()) === l.zone.trim() ? l.zone : seen.get(l.zone.trim().toLowerCase()) as string).slice(0, 60) } : { zone: undefined }), name: str(l.name, 80), id: keep ? keepId(l.id) : nid(), apps: l.apps.filter(a => a && typeof a === 'object').map(a => ({ ...a, name: str(a.name, 80), w: numv(a.w), n: numv(a.n, 1), ...(a.m !== undefined ? { m: numv(a.m) } : {}), ...(a.br !== undefined ? { br: numv(a.br) } : {}), ...(a.cos !== undefined && a.cos !== '' ? { cos: numv(a.cos) } : { cos: undefined }), ...(a.alt === true ? { alt: true } : { alt: undefined }), id: nid() })) }));
+  const lines: Line[] = src.map(l => legacy(l, rcd)).map(l => ({ ...l, ...(typeof l.zone === 'string' && l.zone.trim() ? { zone: (seen.get(l.zone.trim().toLowerCase()) ?? l.zone.trim()) === l.zone.trim() ? l.zone.slice(0, 60) : (seen.get(l.zone.trim().toLowerCase()) as string).slice(0, 60) } : { zone: undefined }), name: str(l.name, 80), id: keep ? keepId(l.id) : nid(), apps: l.apps.filter(a => a && typeof a === 'object').map(a => ({ ...a, name: str(a.name, 80), w: numv(a.w), n: numv(a.n, 1), ...(a.m !== undefined ? { m: numv(a.m) } : {}), ...(a.br !== undefined ? { br: numv(a.br) } : {}), ...(a.cos !== undefined && a.cos !== '' ? { cos: numv(a.cos) } : { cos: undefined }), ...(a.alt === true ? { alt: true } : { alt: undefined }), id: nid() })) }));
   return {
     id: keep && x.id ? String(x.id) : pid(),
     name: String(x.name || 'Без названия').slice(0, 80),

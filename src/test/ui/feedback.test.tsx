@@ -20,7 +20,7 @@ vi.setConfig({ testTimeout: 60000 });
 const zl = (l: Line, zone: string, o: Partial<Line> = {}): Line => ({ ...l, zone, ...o });
 const lines = (): Line[] => [
   zl(mkLine('Свет', 'light', 10, [['Люстра', 200, 1]]), 'Комнаты'),
-  zl(mkLine('Розетки', 'socket', 10, [['ТВ', 1500, 1]]), 'Комнаты', { where: 'Гостиная' }),
+  zl(mkLine('Розетки', 'socket', 10, [['ТВ', 1500, 1]]), 'Комнаты'),
   zl(mkLine('Стиралка', 'power', 8, [['Стиральная машина', 2200, 1]]), 'Ванная', { wet: true })
 ];
 const proj = (ls: Line[], cfg: Partial<Cfg> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), prot: 'rcbo', ...cfg }, lines: ls, sample: false }, 'Тест'), lines: ls });
@@ -109,7 +109,7 @@ describe('printed stickers and tags', () => {
     expect(tags.length).toBe(6);
     const t = tags.map(e => e.textContent).join(' ');
     expect(t).not.toMatch(/Дифавтомат|мА/);
-    expect(t).toContain('Гостиная');
+    expect(t).toContain('Комнаты');
     expect(t).toContain('до дальней точки 10 м');
   });
 });
@@ -261,7 +261,7 @@ describe('panel mode as a real board', () => {
     expect(d.querySelectorAll('.pmb-free').length).toBeGreaterThan(0);
     expect(d.querySelector('.pmb-top')?.textContent).toContain('1 из 3 групп измерено');
     expect(d.querySelector('.pm .no')?.textContent).toBe('Г2');
-    expect(d.querySelector('.pm-prot')?.textContent).toContain('Гостиная');
+    expect(d.querySelector('.pm-prot')?.textContent).toContain('Комнаты');
     expect(byLabel(d, 'Г2: Изоляция, МОм').placeholder).toBe('от 0,5');
     expect(byLabel(d, 'Г2: Отключение УЗО, мс').placeholder).toBe('до 500');
     expect(byLabel(d, 'Г2: Петля фаза-нуль, Ом').placeholder).toMatch(/^до \d+,\d{2}$/);

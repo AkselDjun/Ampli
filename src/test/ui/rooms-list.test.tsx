@@ -47,6 +47,8 @@ describe('group list by rooms', () => {
     expect(stored().list[0].lines[0].zone).toBe('Гостиная');
     expect(heads()).toEqual(['Гостиная', 'Кухня']);
     expect(ed.querySelector('.fold-in .muted')?.textContent).toContain('Гостиная');
+    expect(ed.textContent).toContain('Подпись группы на щитке, бирках и в паспорте.');
+    expect(ed.textContent).not.toContain('Где находится');
   });
 
   it('hides the switch for a single group', () => {
