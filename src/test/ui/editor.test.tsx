@@ -26,7 +26,7 @@ describe('Editor', () => {
     expect(ed().textContent).toContain('Выберите группу');
   });
 
-  it('edits name, length with stepper, kc, cos', () => {
+  it('edits name and length with stepper', () => {
     boot();
     change(byLabel(ed(), 'Название группы'), 'Кухня 2');
     expect(rows()[0].textContent).toContain('Кухня 2');

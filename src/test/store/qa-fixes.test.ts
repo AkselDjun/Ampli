@@ -129,7 +129,7 @@ describe('projects', () => {
 
 describe('library', () => {
   it('drops broken templates, caps prices and names saved templates uniquely', () => {
-    const lib = normLib({ templates: [{ name: 'Ок', cfg: defaultCfg(), lines: [mkLine('Свет', 'light', 5, 1, 1, [])] }, { name: 'Плохой', cfg: defaultCfg(), lines: [{ type: 'zzz', apps: [] }] }] });
+    const lib = normLib({ templates: [{ name: 'Ок', cfg: defaultCfg(), lines: [mkLine('Свет', 'light', 5, [])] }, { name: 'Плохой', cfg: defaultCfg(), lines: [{ type: 'zzz', apps: [] }] }] });
     expect(lib.templates.map(t => t.name)).toEqual(['Ок']);
     let l = libReducer(emptyLib(), { t: 'addTpl', name: 'Мой', cfg: defaultCfg(), lines: [] });
     l = libReducer(l, { t: 'addTpl', name: 'Мой', cfg: defaultCfg(), lines: [] });

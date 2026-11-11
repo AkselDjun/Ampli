@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import type { Calc } from '../core/types';
 import { fmt, plural } from '../core/format';
+import { ALL_STEPS, STD_IN } from '../core/norms';
 import { IconAlert, IconDone } from './Icons';
 import { usePop } from './pop';
 import { Button } from './kit';
@@ -28,7 +29,17 @@ export function checksOf(a: Calc): Check[] {
   if (a.Itot > 0 && !a.inIn) out.push({ k: 'bad', t: 'Вводной автомат не подобран: расчётный ток ввода ' + fmt(a.Itot, 0) + ' А больше 100 А. Уменьшите нагрузку или Ко' + (c.supply === 1 ? ', либо перейдите на трёхфазный ввод' : '') + '.', fix: c.supply === 1 ? 'phase3' : 'net' });
   if (a.P > 0 && a.P > c.alloc * 1000) out.push({ k: 'bad', t: 'Расчётная мощность ' + fmt(a.P / 1000, 1) + ' кВт больше выделенной ' + fmt(c.alloc, 1) + ' кВт. Уменьшите нагрузку или Ко, либо запросите увеличение мощности.', fix: 'net' });
   const allocA = c.alloc * 1000 / (c.supply === 3 ? Math.sqrt(3) * 400 : 230);
-  if (a.inIn && a.inIn > allocA * 1.05 && a.P <= c.alloc * 1000) out.push({ k: 'warn', t: 'Вводной автомат C' + a.inIn + ' больше тока выделенной мощности ' + fmt(c.alloc, 1) + ' кВт (' + fmt(allocA, 0) + ' А). Номинал ввода задают технические условия: согласуйте его или уменьшите наибольший групповой автомат.', fix: 'net' });
+  if (a.inIn && a.inIn > allocA * 1.05 && a.P <= c.alloc * 1000) {
+    const sel = inputBySelectivity(a);
+    if (sel) {
+      const big = sel.groups.map(x => x.l.id);
+      const names = sel.groups.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ');
+      const pow = sel.groups.some(x => x.l.type === 'power' && !x.r.three);
+      out.push({ k: 'warn', t: 'Вводной автомат C' + a.inIn + ' задан селективностью с ' + names + ' (C' + sel.top + ') и больше тока выделенной мощности ' + fmt(c.alloc, 1) + ' кВт (' + fmt(allocA, 0) + ' А). Варианты: разделите ' + names + ' на две группы' + (sel.groups.some(x => /плит|варочн|духов/i.test(x.l.name + ' ' + x.l.apps.map(ap => ap.name).join(' '))) ? ', например варочную панель и духовой шкаф отдельно' : '') + (pow && c.supply === 1 ? ', или питайте прибор от трёх фаз' : '') + '; тогда хватит ввода ' + (sel.next ? 'C' + sel.next : 'меньшего номинала') + '. Либо согласуйте номинал ввода в технических условиях.', groups: big, fix: pow && c.supply === 1 ? 'phase3' : 'net' });
+    } else {
+      out.push({ k: 'warn', t: 'Вводной автомат C' + a.inIn + ' больше тока выделенной мощности ' + fmt(c.alloc, 1) + ' кВт (' + fmt(allocA, 0) + ' А). Номинал ввода задают технические условия: согласуйте его или уменьшите нагрузку.', fix: 'net' });
+    }
+  }
   if (a.inIn && a.inStep >= 2) out.push({ k: 'ok', t: 'Селективность: вводной автомат C' + a.inIn + ' на ' + a.inStep + ' ступ. выше наибольшего группового (СН 4.04.01-2019, п. 10.5).' });
   else if (a.inIn && a.inStep === 1) out.push({ k: 'warn', t: 'Селективность: вводной автомат C' + a.inIn + ' выше группового только на одну ступень. Это допускается лишь в обоснованных случаях (СН 4.04.01-2019, п. 10.5).', fix: 'net' });
   else if (a.inIn && a.inStep < 1) out.push({ k: 'bad', t: 'Селективность не обеспечена: вводной автомат C' + a.inIn + ' не выше группового (СН 4.04.01-2019, п. 10.5).', fix: 'net' });
@@ -41,6 +52,19 @@ export function checksOf(a: Calc): Check[] {
   const gr = a.rows.filter(x => !x.r.empty && x.r.status !== 'ok' && !kzBad.includes(x));
   if (gr.length) out.push({ k: gr.some(x => x.r.status === 'bad') ? 'bad' : 'warn', t: 'Замечания в ' + plural(gr.length, ['группе', 'группах', 'группах']) + ' ' + gr.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + '. Подробности в карточке группы.', groups: gr.map(x => x.l.id) });
   return out;
+}
+
+export function inputBySelectivity(a: Calc): { top: number; next: number | null; groups: Calc['rows'] } | null {
+  if (!a.inIn) return null;
+  const live = a.rows.filter(x => !x.r.empty && x.r.In);
+  const top = live.reduce((m, x) => Math.max(m, x.r.In as number), 0);
+  const gi = ALL_STEPS.indexOf(top);
+  if (gi < 1) return null;
+  const selIn = ALL_STEPS[gi + 2];
+  if (!selIn || a.Itot >= selIn || STD_IN.find(x => x >= a.Itot) === a.inIn) return null;
+  const need = Math.max(a.Itot, ALL_STEPS[gi + 1]);
+  const next = STD_IN.find(x => x >= need) ?? null;
+  return { top, next: next !== null && next < a.inIn ? next : null, groups: live.filter(x => x.r.In === top) };
 }
 
 export function checksState(list: Check[]): { k: 'ok' | 'warn' | 'bad'; n: number; text: string } {

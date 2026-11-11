@@ -34,7 +34,7 @@ describe('group list by rooms', () => {
 
   it('puts groups without a room last and edits the room outside RCD mode', () => {
     wide(true);
-    const ls: Line[] = [mkLine('Свет', 'light', 5, 1, 1, [['Лампа', 100, 1]]), { ...mkLine('Чайник', 'socket', 5, 1, 1, [['Чайник', 2000, 1]]), zone: 'Кухня' }];
+    const ls: Line[] = [mkLine('Свет', 'light', 5, [['Лампа', 100, 1]]), { ...mkLine('Чайник', 'socket', 5, [['Чайник', 2000, 1]]), zone: 'Кухня' }];
     const p = newProject({ cfg: { ...defaultCfg(), prot: 'rcbo' }, lines: ls, sample: false }, 'Т');
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
     localStorage.setItem(LISTBY_KEY, 'room');
@@ -50,7 +50,7 @@ describe('group list by rooms', () => {
   });
 
   it('hides the switch for a single group', () => {
-    const p = newProject({ cfg: defaultCfg(), lines: [mkLine('Свет', 'light', 5, 1, 1, [['Лампа', 100, 1]])], sample: false }, 'Т');
+    const p = newProject({ cfg: defaultCfg(), lines: [mkLine('Свет', 'light', 5, [['Лампа', 100, 1]])], sample: false }, 'Т');
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
     render(<App />);
     expect(screen.queryByRole('button', { name: 'По помещениям' })).toBeNull();
@@ -70,9 +70,9 @@ describe('group list by rooms', () => {
   it('folds a room like an accordion and opens it again when its group is selected', () => {
     wide(true);
     const ls: Line[] = [
-      { ...mkLine('Свет', 'light', 5, 1, 1, [['Лампа', 100, 1]]), zone: 'Комнаты' },
-      { ...mkLine('Перегруз', 'power', 10, 1, 1, [['Первый', 10000, 1], ['Второй', 10000, 1]]), zone: 'Кухня' },
-      { ...mkLine('Чайник', 'socket', 5, 1, 1, [['Чайник', 2000, 1]]), zone: 'Кухня' }
+      { ...mkLine('Свет', 'light', 5, [['Лампа', 100, 1]]), zone: 'Комнаты' },
+      { ...mkLine('Перегруз', 'power', 10, [['Первый', 10000, 1], ['Второй', 10000, 1]]), zone: 'Кухня' },
+      { ...mkLine('Чайник', 'socket', 5, [['Чайник', 2000, 1]]), zone: 'Кухня' }
     ];
     const p = newProject({ cfg: { ...defaultCfg(), prot: 'rcbo' }, lines: ls, sample: false }, 'Т');
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));

@@ -16,8 +16,8 @@ import { stored } from '../stored';
 vi.setConfig({ testTimeout: 60000 });
 
 const lines = (): Line[] => [
-  { ...mkLine('Свет', 'light', 10, null, null, [['Люстра', 200, 1]]), zone: 'Комнаты' },
-  { ...mkLine('Стиралка', 'power', 8, null, null, [['Стиральная машина', 2200, 1]]), zone: 'Ванная' }
+  { ...mkLine('Свет', 'light', 10, [['Люстра', 200, 1]]), zone: 'Комнаты' },
+  { ...mkLine('Стиралка', 'power', 8, [['Стиральная машина', 2200, 1]]), zone: 'Ванная' }
 ];
 const proj = (cfg: Partial<Cfg> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), prot: 'rcbo', ...cfg }, lines: lines(), sample: false }, 'Тест') });
 
@@ -97,7 +97,7 @@ describe('board, stickers, drawing and report', () => {
   });
 
   it('draws the relay through a contactor on a large input and room RCD type A', () => {
-    const big = Array.from({ length: 2 }, (_, i) => mkLine('П' + i, 'power', 5, null, null, [['Плита', 7000, 1]]));
+    const big = Array.from({ length: 2 }, (_, i) => mkLine('П' + i, 'power', 5, [['Плита', 7000, 1]]));
     const p = { ...newProject({ cfg: { ...defaultCfg(), vr: 'on', ko: 1, prot: 'rcd' }, lines: [...lines(), ...big], sample: false }, 'Т') };
     render(<DrawingA3 p={p} a={calcAll(p.lines, p.cfg)} company="" />);
     const t = Array.from(document.querySelectorAll('svg.a3 text')).map(e => e.textContent).join(' ');
@@ -115,6 +115,6 @@ describe('editor', () => {
     render(<App />);
     fireEvent.click(document.querySelectorAll<HTMLElement>('.rows .row')[1]);
     expect(screen.getByText('дифавтомат 30 мА, тип A')).toBeTruthy();
-    expect(document.querySelector('.col-edit .notes li.tip-n')?.textContent).toContain('УЗО типа A');
+    expect(Array.from(document.querySelectorAll('.col-edit .notes li.tip-n')).map(li => li.textContent).join(' ')).toContain('УЗО типа A');
   });
 });

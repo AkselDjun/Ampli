@@ -7,10 +7,10 @@ import { cur, init, reducer } from '../../store/reducer';
 import type { Cfg, Line } from '../../core/types';
 
 const lines = (): Line[] => [
-  mkLine('Свет', 'light', 10, null, null, [['Люстра', 200, 2]]),
-  mkLine('Розетки', 'socket', 12.4, null, null, [['ТВ', 1500, 1]]),
-  mkLine('Кухня', 'socket', 8, null, null, [['Чайник', 2000, 1]]),
-  mkLine('Пусто', 'socket', 5, null, null, [])
+  mkLine('Свет', 'light', 10, [['Люстра', 200, 2]]),
+  mkLine('Розетки', 'socket', 12.4, [['ТВ', 1500, 1]]),
+  mkLine('Кухня', 'socket', 8, [['Чайник', 2000, 1]]),
+  mkLine('Пусто', 'socket', 5, [])
 ];
 const calc = (ls: Line[], cfg: Partial<Cfg> = {}) => calcAll(ls, { ...defaultCfg(), ...cfg });
 

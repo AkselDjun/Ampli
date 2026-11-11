@@ -41,7 +41,7 @@ describe('protection constants', () => {
 describe('hand-checked line results', () => {
   const c = cfgN(defaultCfg());
   it('2200 W kettle line of 20 m: 10 A, B/C16, 2.5 mm²', () => {
-    const l = mkLine('Розетки', 'socket', 20, null, null, [['Чайник', 2200, 1]]);
+    const l = mkLine('Розетки', 'socket', 20, [['Чайник', 2200, 1]]);
     const r = calcLine(l, c);
     expect(r.I).toBeCloseTo(2200 / 230, 6);
     expect(r.In).toBe(16);
@@ -50,7 +50,7 @@ describe('hand-checked line results', () => {
     expect(r.drop).toBeCloseTo(du, 6);
   });
   it('7 kW power line of 15 m: C32 and 4 mm² since 38 A × 0.9 = 34.2 A', () => {
-    const l = mkLine('Плита', 'power', 15, null, null, [['Плита', 7000, 1]]);
+    const l = mkLine('Плита', 'power', 15, [['Плита', 7000, 1]]);
     const r = calcLine(l, c);
     expect(r.I).toBeCloseTo(7000 / 230, 6);
     expect(r.In).toBe(32);
@@ -84,14 +84,15 @@ import { LEAK_PER_M_MA } from '../../core/norms';
 describe('leakage estimate by СН 4.04.01-2019, п. 16.3.7', () => {
   const c = cfgN(defaultCfg());
   it('network part is 10 µA per metre', () => {
-    const r = calcLine(mkLine('Свет', 'light', 50, null, null, [['Лампа', 100, 1]]), c);
-    expect(r.leakEst).toBeCloseTo(50 * LEAK_PER_M_MA, 9);
+    const r = calcLine(mkLine('Свет', 'light', 50, [['Лампа', 100, 1]]), c);
+    expect(r.leakEst).toBeCloseTo(50 * LEAK_PER_M_MA + r.I * 0.4, 9);
   });
-  it('adds 0.4 mA per ampere only for loads above 32 A', () => {
-    const big = calcLine(mkLine('Печь', 'power', 10, null, null, [['Печь', 9000, 1]]), c);
-    expect(big.I).toBeGreaterThan(32);
+  it('adds 0.4 mA per ampere for any load without a jump at 32 A', () => {
+    const big = calcLine(mkLine('Печь', 'power', 10, [['Печь', 7400, 1]]), c);
+    const small = calcLine(mkLine('Печь', 'power', 10, [['Печь', 7300, 1]]), c);
     expect(big.leakEst).toBeCloseTo(10 * LEAK_PER_M_MA + big.I * 0.4, 9);
-    const small = calcLine(mkLine('Печь', 'power', 10, null, null, [['Печь', 7000, 1]]), c);
-    expect(small.leakEst).toBeCloseTo(10 * LEAK_PER_M_MA, 9);
+    expect(small.leakEst).toBeCloseTo(10 * LEAK_PER_M_MA + small.I * 0.4, 9);
+    expect(big.leakEst - small.leakEst).toBeLessThan(0.5);
+    expect([small.ma, big.ma]).toEqual([30, 30]);
   });
 });

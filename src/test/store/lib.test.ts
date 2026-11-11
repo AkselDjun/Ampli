@@ -67,7 +67,7 @@ describe('loadLib and saveLib', () => {
 describe('libReducer', () => {
   const base = emptyLib();
   it('adds a deep-copied template with default name', () => {
-    const lines = [mkLine('a', 'socket', 5, null, null, [['x', 1, 1]])];
+    const lines = [mkLine('a', 'socket', 5, [['x', 1, 1]])];
     const cfg = defaultCfg();
     const l = libReducer(base, { t: 'addTpl', name: '  ', cfg, lines });
     expect(l.templates[0].name).toBe('Мой шаблон');

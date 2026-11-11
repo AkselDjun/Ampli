@@ -12,10 +12,10 @@ vi.setConfig({ testTimeout: 60000 });
 
 const zl = (l: Line, zone: string, o: Partial<Line> = {}): Line => ({ ...l, zone, ...o });
 const lines = (): Line[] => [
-  zl(mkLine('Свет', 'light', 10, null, null, [['Люстра', 200, 1]]), 'Комнаты'),
-  zl(mkLine('Розетки', 'socket', 10, null, null, [['ТВ', 1500, 1]]), 'Комнаты'),
-  zl(mkLine('Стиралка', 'power', 8, null, null, [['Стиральная машина', 2200, 1]]), 'Ванная', { wet: true }),
-  zl(mkLine('', 'socket', 5, null, null, [['Чайник', 2000, 1]]), 'Кухня')
+  zl(mkLine('Свет', 'light', 10, [['Люстра', 200, 1]]), 'Комнаты'),
+  zl(mkLine('Розетки', 'socket', 10, [['ТВ', 1500, 1]]), 'Комнаты'),
+  zl(mkLine('Стиралка', 'power', 8, [['Стиральная машина', 2200, 1]]), 'Ванная', { wet: true }),
+  zl(mkLine('', 'socket', 5, [['Чайник', 2000, 1]]), 'Кухня')
 ];
 const proj = (ls: Line[], cfg: Partial<Cfg> = {}, o: Partial<Project> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), ...cfg }, lines: ls, sample: false }, 'Тест'), lines: ls, ...o });
 const texts = () => Array.from(document.querySelectorAll('svg.a3 text')).map(e => e.textContent);
@@ -95,7 +95,7 @@ describe('A3 drawing', () => {
   });
 
   it('adds the plug-free connection note for water heaters', () => {
-    const p = proj([...lines(), mkLine('Бойлер', 'power', 9, null, null, [['Водонагреватель', 2000, 1]])]);
+    const p = proj([...lines(), mkLine('Бойлер', 'power', 9, [['Водонагреватель', 2000, 1]])]);
     render(<DrawingA3 p={p} a={calcAll(p.lines, p.cfg)} company="" />);
     expect(texts().join(' ')).toContain('5. Водонагреватели и приборы отопления (Г5) подключить отдельными линиями');
   });

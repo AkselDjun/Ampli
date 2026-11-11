@@ -8,9 +8,9 @@ import { sampleProject } from '../../core/project';
 import type { Line } from '../../core/types';
 
 const lines = (): Line[] => [
-  mkLine('Свет', 'light', 10, 1, 1, [['Лампа', 100, 1]]),
-  mkLine('Розетки', 'socket', 10, 1, 1, [['Чайник', 1500, 1]]),
-  mkLine('Плита', 'power', 10, 1, 1, [['Плита', 5000, 1]])
+  mkLine('Свет', 'light', 10, [['Лампа', 100, 1]]),
+  mkLine('Розетки', 'socket', 10, [['Чайник', 1500, 1]]),
+  mkLine('Плита', 'power', 10, [['Плита', 5000, 1]])
 ];
 
 const mods = () => Array.from(document.querySelectorAll<HTMLButtonElement>('button.dev'));

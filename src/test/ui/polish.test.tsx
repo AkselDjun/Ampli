@@ -82,9 +82,9 @@ describe('undo and redo buttons', () => {
 
 describe('bathroom RCD', () => {
   const lines = (): Line[] => [
-    { ...mkLine('Розетка', 'socket', 5, 1, 1, [['Фен', 1500, 1]]), zone: 'Ванная', wet: true },
-    { ...mkLine('Водонагреватель', 'power', 5, 1, 1, [['Бойлер', 2000, 1]]), zone: 'Ванная' },
-    { ...mkLine('Стиральная', 'power', 5, 1, 1, [['Стиралка', 2200, 1]]), zone: 'Ванная' }
+    { ...mkLine('Розетка', 'socket', 5, [['Фен', 1500, 1]]), zone: 'Ванная', wet: true },
+    { ...mkLine('Водонагреватель', 'power', 5, [['Бойлер', 2000, 1]]), zone: 'Ванная' },
+    { ...mkLine('Стиральная', 'power', 5, [['Стиралка', 2200, 1]]), zone: 'Ванная' }
   ];
   it('puts only wet groups on a separate 10 mA RCD', () => {
     const a = calcAll(lines(), { ...defaultCfg(), prot: 'rcd' });
@@ -93,15 +93,15 @@ describe('bathroom RCD', () => {
     expect(a.rows[1].r.ma).toBe(30);
     expect(a.devs.filter(d => d.kind === 'mcb').map(d => d.zone)).toEqual(['Ванная (10 мА)', 'Ванная', 'Ванная']);
     const allWet = calcAll(lines().map(l => ({ ...l, wet: true })), { ...defaultCfg(), prot: 'rcd' });
-    expect(allWet.uzos.map(u => [u.zone, u.ma])).toEqual([['Ванная', 10]]);
+    expect(allWet.uzos.map(u => [u.zone, u.ma])).toEqual([['Ванная · 1', 10], ['Ванная · 2', 10]]);
   });
 
   it('keeps 30 mA on socket groups above 32 A', () => {
-    const big = mkLine('Розетки', 'socket', 5, 1, 1, [['Печь', 9000, 1]]);
+    const big = mkLine('Розетки', 'socket', 5, [['Печь', 9000, 1]]);
     const r = calcAll([big], { ...defaultCfg(), prot: 'rcbo' }).rows[0].r;
     expect(r.ma).toBe(30);
-    const pow = mkLine('Плита', 'power', 5, 1, 1, [['Плита', 9000, 1]]);
-    expect(calcAll([pow], { ...defaultCfg(), prot: 'rcbo' }).rows[0].r.ma).toBe(100);
+    const pow = mkLine('Плита', 'power', 5, [['Плита', 9000, 1]]);
+    expect(calcAll([pow], { ...defaultCfg(), prot: 'rcbo' }).rows[0].r.ma).toBe(30);
     expect(calcAll([big, { ...big, id: 'b2' }], { ...defaultCfg(), prot: 'rcd' }).uzos[0].ma).toBe(30);
   });
 });
@@ -110,7 +110,7 @@ describe('templates keep floor heating and weak current', () => {
   it('saves and restores them', () => {
     const floor = [{ id: 'f', name: 'Ванная', use: 'bath' as const, sys: 'mat' as const, area: 3, wpm: 150 }];
     const weak = { ont: true, pts: [{ id: 'w', room: 'Зал', kind: 'lan' as const, n: 2, len: 10 }] };
-    let l = libReducer(emptyLib(), { t: 'addTpl', name: 'С полом', cfg: defaultCfg(), lines: [mkLine('Свет', 'light', 5, 1, 1, [])], floor, weak });
+    let l = libReducer(emptyLib(), { t: 'addTpl', name: 'С полом', cfg: defaultCfg(), lines: [mkLine('Свет', 'light', 5, [])], floor, weak });
     l = libReducer(l, { t: 'addTpl', name: 'Без', cfg: defaultCfg(), lines: [] });
     expect(l.templates[0].floor?.[0].area).toBe('3');
     expect(l.templates[0].weak?.pts[0].room).toBe('Зал');
@@ -131,7 +131,7 @@ const defaultCfgProject = () => ({ sample: false, cfg: defaultCfg(), lines: [] a
 
 describe('CSV export', () => {
   it('contains materials, works and their totals', () => {
-    const p = newProject({ sample: false, cfg: defaultCfg(), lines: [mkLine('Плита', 'power', 5, 1, 1, [['Плита', 5000, 1]])] }, 'Т');
+    const p = newProject({ sample: false, cfg: defaultCfg(), lines: [mkLine('Плита', 'power', 5, [['Плита', 5000, 1]])] }, 'Т');
     const csv = toCsv(...exportTables(calcAll(p.lines, p.cfg), {}, { panel: 100 }));
     expect(csv.charCodeAt(0)).toBe(0xfeff);
     expect(csv).toContain('Работы');
@@ -141,7 +141,7 @@ describe('CSV export', () => {
 
 describe('A3 drawing with many groups', () => {
   it('splits the groups over several sheets with sheet numbers', () => {
-    const many = Array.from({ length: 26 }, (_, i) => mkLine('Г' + i, 'socket', 5, 1, 1, [['Прибор', 500, 1]]));
+    const many = Array.from({ length: 26 }, (_, i) => mkLine('Г' + i, 'socket', 5, [['Прибор', 500, 1]]));
     const p = newProject({ sample: false, cfg: { ...defaultCfg(), prot: 'rcbo' }, lines: many }, 'Т');
     const { container } = render(<DrawingA3 p={p} a={calcAll(p.lines, p.cfg)} company="" />);
     const svgs = container.querySelectorAll('svg.a3');
@@ -155,7 +155,7 @@ describe('A3 drawing with many groups', () => {
   });
 
   it('keeps a single sheet for a small board and an empty project', () => {
-    const p = newProject({ sample: false, cfg: { ...defaultCfg(), prot: 'rcd', vr: 'on', spd: 'on' }, lines: [{ ...mkLine('Свет', 'light', 5, 1, 1, [['Лампа', 100, 1]]), zone: 'Зал' }] }, 'Т');
+    const p = newProject({ sample: false, cfg: { ...defaultCfg(), prot: 'rcd', vr: 'on', spd: 'on' }, lines: [{ ...mkLine('Свет', 'light', 5, [['Лампа', 100, 1]]), zone: 'Зал' }] }, 'Т');
     const { container, unmount } = render(<DrawingA3 p={p} a={calcAll(p.lines, p.cfg)} company="" />);
     expect(container.querySelectorAll('svg.a3')).toHaveLength(1);
     expect(container.textContent).toContain('KV1');

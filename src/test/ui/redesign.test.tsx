@@ -24,9 +24,9 @@ const proj = (lines: Line[], cfg: Partial<Cfg> = {}, o: Partial<Project> = {}): 
   ...o
 });
 const seed = (p: Project) => localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
-const longLine = () => mkLine('Длинная', 'power', 400, 1, 1, [['Печь', 3500, 1]]);
-const overload = () => mkLine('Перегруз', 'power', 10, 1, 1, [['Первый', 10000, 1], ['Второй', 10000, 1]]);
-const heavySockets = () => mkLine('Розетки', 'socket', 10, 1, 1, [['Чайник', 1000, 1], ['Духовка', 3500, 1]]);
+const longLine = () => mkLine('Длинная', 'power', 400, [['Печь', 3500, 1]]);
+const overload = () => mkLine('Перегруз', 'power', 10, [['Первый', 10000, 1], ['Второй', 10000, 1]]);
+const heavySockets = () => mkLine('Розетки', 'socket', 10, [['Чайник', 1000, 1], ['Духовка', 3500, 1]]);
 
 const pt = (type: string, x: number, y = 0, extra: object = {}) => ({ pointerType: type, clientX: x, clientY: y, pointerId: 1, ...extra });
 const down = (el: Element, x: number, y = 0, type = 'touch') => fireEvent.pointerDown(el, pt(type, x, y));
@@ -297,7 +297,7 @@ describe('GroupList', () => {
 
   it('summarises the network and opens the settings in one tap', async () => {
     const user = userEvent.setup();
-    const { h, el } = props(proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]));
+    const { h, el } = props(proj([mkLine('A', 'light', 5, [['x', 100, 1]])]));
     render(el);
     const b = screen.getByRole('button', { name: /^Параметры сети ?:/ });
     expect(b).toHaveTextContent('1 фаза, 230 В');
@@ -307,7 +307,7 @@ describe('GroupList', () => {
     expect(h.onOpenNet).toHaveBeenCalledTimes(1);
   });
   it('describes an open three-phase network with residual-current devices per room', () => {
-    const { el } = props(proj([mkLine('A', 'power', 5, 1, 1, [['x', 100, 1]], '3')], { supply: 3, method: 'open', prot: 'rcd' }));
+    const { el } = props(proj([mkLine('A', 'power', 5, [['x', 100, 1]], '3')], { supply: 3, method: 'open', prot: 'rcd' }));
     render(el);
     const b = screen.getByRole('button', { name: /^Параметры сети ?:/ });
     expect(b).toHaveTextContent('3 фазы, 400 В');
@@ -330,7 +330,7 @@ describe('GroupList', () => {
   it('shows project info, row details, flags, and routes the buttons', async () => {
     const user = userEvent.setup();
     const bad = longLine();
-    const p = proj([bad, mkLine('', 'light', 5, 1, 1, []), mkLine('Свет', 'light', 5, 1, 1, [['x', 100, 1]])], {}, { name: '', address: 'ул. Тестовая' });
+    const p = proj([bad, mkLine('', 'light', 5, []), mkLine('Свет', 'light', 5, [['x', 100, 1]])], {}, { name: '', address: 'ул. Тестовая' });
     const { h, el } = props(p);
     render(el);
     expect(document.querySelector('.pb-name')?.textContent).toBe('Без названия');
@@ -366,14 +366,14 @@ describe('GroupList', () => {
     expect(h.onFix).toHaveBeenLastCalledWith(p.lines[1].id, { k: 'half' });
   });
   it('shows a fix note without a button when nothing can be applied', () => {
-    const { el } = props(proj([mkLine('Огромная', 'power', 10, 1, 1, [['x', 30000, 1]])]));
+    const { el } = props(proj([mkLine('Огромная', 'power', 10, [['x', 30000, 1]])]));
     render(el);
     expect(screen.getByRole('note')).toHaveTextContent('уменьшите мощность');
     expect(within(screen.getByRole('note')).queryByRole('button')).toBeNull();
   });
   it('shows the sample hint and starts blank after two clicks', async () => {
     const user = userEvent.setup();
-    const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])], {}, { sample: true });
+    const p = proj([mkLine('A', 'light', 5, [['x', 100, 1]])], {}, { sample: true });
     const { h, el } = props(p);
     render(el);
     await user.click(screen.getByRole('button', { name: 'Начать с нуля' }));
@@ -381,10 +381,10 @@ describe('GroupList', () => {
     expect(h.onBlank).toHaveBeenCalledTimes(1);
   });
   it('scrolls the selected row into view when the count changes and tolerates a missing API', () => {
-    const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]);
+    const p = proj([mkLine('A', 'light', 5, [['x', 100, 1]])]);
     const { el } = props(p);
     const { rerender } = render(el);
-    const p2 = proj([p.lines[0], mkLine('B', 'light', 5, 1, 1, [['x', 100, 1]])]);
+    const p2 = proj([p.lines[0], mkLine('B', 'light', 5, [['x', 100, 1]])]);
     const { el: el2 } = props({ ...p2, lines: [p.lines[0], p2.lines[1]] });
     expect(() => rerender(el2)).not.toThrow();
     const fn = vi.fn();
@@ -397,7 +397,7 @@ describe('GroupList', () => {
   it('does not scroll when nothing is selected', () => {
     const fn = vi.fn();
     Element.prototype.scrollIntoView = fn;
-    const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]);
+    const p = proj([mkLine('A', 'light', 5, [['x', 100, 1]])]);
     const { h } = props(p);
     render(<GroupList p={p} a={calcAll(p.lines, p.cfg)} sel={null} {...h} />);
     expect(fn).not.toHaveBeenCalled();
@@ -440,7 +440,7 @@ describe('Side folds', () => {
     expect(document.getElementById('chk-pop')).toBeNull();
   });
   it('uses the plural forms in the label', () => {
-    const heavy = Array.from({ length: 6 }, (_, i) => mkLine('П' + i, 'power', 400, 1, 1, [['x', 3500, 1]]));
+    const heavy = Array.from({ length: 6 }, (_, i) => mkLine('П' + i, 'power', 400, [['x', 3500, 1]]));
     const b = chkOf(proj(heavy));
     expect(b.querySelector('.vh')?.textContent).toMatch(/^Проверки по нормам: \d+ замечани(е|я|й)\. $/);
     expect(checksState([{ k: 'warn', t: 'a' }]).text).toBe('1 замечание');
@@ -448,7 +448,7 @@ describe('Side folds', () => {
     expect(checksState(Array.from({ length: 5 }, () => ({ k: 'warn' as const, t: 'x' }))).text).toBe('5 замечаний');
   });
   it('shows a quiet green button when everything is fine and nothing without load', () => {
-    const b = chkOf(proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]]), mkLine('B', 'socket', 5, 1, 1, [['x', 100, 1]])]));
+    const b = chkOf(proj([mkLine('A', 'light', 5, [['x', 100, 1]]), mkLine('B', 'socket', 5, [['x', 100, 1]])]));
     expect(b).toHaveClass('st-ok');
     expect(b.querySelector('.vh')?.textContent).toBe('Проверки по нормам: Всё в норме. ');
     expect(b.querySelector('.chk-n')).toBeNull();
@@ -460,7 +460,7 @@ describe('Side folds', () => {
     expect(screen.queryByRole('button', { name: /^Проверки по нормам/ })).toBeNull();
   });
   it('solo opens the summary folds and the panel is one tabbed block', () => {
-    const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]]), mkLine('B', 'socket', 5, 1, 1, [['x', 100, 1]])], { supply: 3 });
+    const p = proj([mkLine('A', 'light', 5, [['x', 100, 1]]), mkLine('B', 'socket', 5, [['x', 100, 1]])], { supply: 3 });
     const a = calcAll(p.lines, p.cfg);
     render(<><Summary a={a} solo onBalance={() => undefined} /><PanelPane a={a} /></>);
     expect(screen.queryByRole('heading', { name: 'Проверки по нормам' })).toBeNull();
@@ -472,7 +472,7 @@ describe('Side folds', () => {
   });
   it('the panel block shows the rail and one list with load bars, no tabs', async () => {
     const user = userEvent.setup();
-    const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]]), mkLine('B', 'power', 5, 1, 1, [['x', 2200, 1]])]);
+    const p = proj([mkLine('A', 'light', 5, [['x', 100, 1]]), mkLine('B', 'power', 5, [['x', 2200, 1]])]);
     const a = calcAll(p.lines, p.cfg);
     const pick = vi.fn();
     render(<PanelPane a={a} onPick={pick} />);
@@ -489,7 +489,7 @@ describe('Side folds', () => {
     expect(document.querySelector('.bd-help')).toBeNull();
   });
   it('shows a static list without a pick handler and an empty board', () => {
-    const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]])]);
+    const p = proj([mkLine('A', 'light', 5, [['x', 100, 1]])]);
     render(<PanelPane a={calcAll(p.lines, p.cfg)} />);
     expect(document.querySelector('button.bd-b')).toBeNull();
     expect(document.querySelectorAll('div.bd-b').length).toBe(2);
@@ -501,8 +501,8 @@ describe('Side folds', () => {
   it('phase fold opens on imbalance with a badge and balance button', async () => {
     const user = userEvent.setup();
     const lines = [
-      mkLine('A', 'socket', 5, 1, 1, [['x', 3000, 1]], 'L1'),
-      mkLine('B', 'socket', 5, 1, 1, [['x', 3000, 1]], 'L1')
+      mkLine('A', 'socket', 5, [['x', 3000, 1]], 'L1'),
+      mkLine('B', 'socket', 5, [['x', 3000, 1]], 'L1')
     ];
     const onBalance = sumOf(proj(lines, { supply: 3 }));
     const b = foldBtn('Нагрузка по фазам');
@@ -513,9 +513,9 @@ describe('Side folds', () => {
   });
   it('phase fold stays closed and says "Ровно" when balanced', () => {
     const lines = [
-      mkLine('A', 'socket', 5, 1, 1, [['x', 3000, 1]], 'L1'),
-      mkLine('B', 'socket', 5, 1, 1, [['x', 3000, 1]], 'L2'),
-      mkLine('C', 'socket', 5, 1, 1, [['x', 3000, 1]], 'L3')
+      mkLine('A', 'socket', 5, [['x', 3000, 1]], 'L1'),
+      mkLine('B', 'socket', 5, [['x', 3000, 1]], 'L2'),
+      mkLine('C', 'socket', 5, [['x', 3000, 1]], 'L3')
     ];
     sumOf(proj(lines, { supply: 3 }));
     const b = foldBtn('Нагрузка по фазам');
@@ -530,7 +530,7 @@ describe('Side folds', () => {
   });
   it('expands a closed fold on click', async () => {
     const user = userEvent.setup();
-    const p = proj([mkLine('A', 'light', 5, 1, 1, [['x', 100, 1]], 'L1'), mkLine('B', 'light', 5, 1, 1, [['x', 100, 1]], 'L2'), mkLine('C', 'light', 5, 1, 1, [['x', 100, 1]], 'L3')], { supply: 3 });
+    const p = proj([mkLine('A', 'light', 5, [['x', 100, 1]], 'L1'), mkLine('B', 'light', 5, [['x', 100, 1]], 'L2'), mkLine('C', 'light', 5, [['x', 100, 1]], 'L3')], { supply: 3 });
     render(<Summary a={calcAll(p.lines, p.cfg)} onBalance={() => undefined} />);
     const b = foldBtn('Нагрузка по фазам');
     expect(b).toHaveAttribute('aria-expanded', 'false');
@@ -673,7 +673,7 @@ describe('App flows', () => {
   });
   it('the editor shows a fix note without a button when no action exists', () => {
     wide(true);
-    seed(proj([mkLine('Огромная', 'power', 10, 1, 1, [['x', 30000, 1]])]));
+    seed(proj([mkLine('Огромная', 'power', 10, [['x', 30000, 1]])]));
     render(<App />);
     const ed = document.querySelector('.col-edit') as HTMLElement;
     expect(within(ed).getByRole('note')).toBeInTheDocument();
@@ -685,7 +685,7 @@ describe('row action buttons', () => {
   it('copy and delete buttons act on the chosen group', async () => {
     const user = userEvent.setup();
     wide(true);
-    seed(proj([mkLine('Первая', 'socket', 10, 1, 1, [['Чайник', 1000, 1]]), mkLine('Вторая', 'light', 10, 1, 1, [['Лампа', 60, 1]])]));
+    seed(proj([mkLine('Первая', 'socket', 10, [['Чайник', 1000, 1]]), mkLine('Вторая', 'light', 10, [['Лампа', 60, 1]])]));
     render(<App />);
     expect(rowsOf()).toHaveLength(2);
     await user.click(screen.getByRole('button', { name: 'Копировать группу Г2' }));
@@ -699,7 +699,7 @@ describe('row action buttons', () => {
   });
   it('gives every row its own labelled buttons', () => {
     wide(true);
-    seed(proj([mkLine('А', 'socket', 10, 1, 1, [['Чайник', 1000, 1]]), mkLine('Б', 'light', 10, 1, 1, [['Лампа', 60, 1]])]));
+    seed(proj([mkLine('А', 'socket', 10, [['Чайник', 1000, 1]]), mkLine('Б', 'light', 10, [['Лампа', 60, 1]])]));
     render(<App />);
     ['Г1', 'Г2'].forEach(g => {
       expect(screen.getByRole('button', { name: 'Копировать группу ' + g })).toBeTruthy();

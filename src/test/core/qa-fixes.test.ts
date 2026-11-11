@@ -16,7 +16,7 @@ import { checksOf } from '../../ui/Checks';
 import type { Cfg, Line, Room } from '../../core/types';
 
 const cfg = (o: Partial<Cfg> = {}): Cfg => ({ ...defaultCfg(), prot: 'rcbo', ...o });
-const power = (w: number, o: Partial<Line> = {}): Line => ({ ...mkLine('Мощный', 'power', 10, 1, 1, [['Прибор', w, 1]]), ...o });
+const power = (w: number, o: Partial<Line> = {}): Line => ({ ...mkLine('Мощный', 'power', 10, [['Прибор', w, 1]]), ...o });
 
 describe('input breaker and allocated power checks', () => {
   it('reports a missing input breaker above 100 A', () => {
@@ -46,7 +46,7 @@ describe('input breaker and allocated power checks', () => {
 
 describe('why explanations', () => {
   it('shows the measured loop in the short-circuit formula', () => {
-    const l = { ...mkLine('Розетки', 'socket', 10, 1, 1, [['Чайник', 1500, 1]]), meas: { zs: '2' } };
+    const l = { ...mkLine('Розетки', 'socket', 10, [['Чайник', 1500, 1]]), meas: { zs: '2' } };
     const c = cfgN(cfg());
     const kz = whyRows(l, calcLine(l, c), c).find(x => x.title === 'Короткое замыкание');
     expect(kz?.formula).toBe('Iк = 230 / 2,00 (замер петли) = 115 А');
@@ -54,13 +54,13 @@ describe('why explanations', () => {
   });
 
   it('names short circuit as the reason for a larger cable', () => {
-    const l = mkLine('Розетки', 'socket', 60, 1, 1, [['Чайник', 1500, 1]]);
+    const l = mkLine('Розетки', 'socket', 60, [['Чайник', 1500, 1]]);
     const c = cfgN(cfg({ zs: 0.8 }));
     const r = calcLine(l, c);
     const cable = whyRows(l, r, c).find(x => x.title === 'Кабель');
     expect(cable?.note).toContain('чтобы автомат отключил короткое замыкание');
     expect(r.notes.some(n => n.includes('не заходит в клеммы'))).toBe(true);
-    const drop = mkLine('Розетки', 'socket', 90, 1, 1, [['Чайник', 3000, 1]]);
+    const drop = mkLine('Розетки', 'socket', 90, [['Чайник', 3000, 1]]);
     const c2 = cfgN(cfg({ zs: 0.05 }));
     expect(whyRows(drop, calcLine(drop, c2), c2).find(x => x.title === 'Кабель')?.note).toContain('потеря напряжения не превысила');
   });
@@ -117,7 +117,7 @@ describe('project normalisation', () => {
   });
 
   it('merges room names that differ only in case', () => {
-    const p = normProject({ cfg: {}, lines: [{ ...mkLine('А', 'light', 5, 1, 1, []), zone: 'Детская' }, { ...mkLine('Б', 'socket', 5, 1, 1, []), zone: 'детская ' }] });
+    const p = normProject({ cfg: {}, lines: [{ ...mkLine('А', 'light', 5, []), zone: 'Детская' }, { ...mkLine('Б', 'socket', 5, []), zone: 'детская ' }] });
     expect(p?.lines.map(l => l.zone)).toEqual(['Детская', 'Детская']);
   });
 });
