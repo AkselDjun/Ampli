@@ -126,8 +126,8 @@ describe('App', () => {
     expect(isOpen('Комнаты')).toBe(true);
     fireEvent.click(dlg('Комнаты').parentElement as HTMLElement);
     expect(isOpen('Комнаты')).toBe(false);
-    click(nav, /Отчёт/);
-    click(dlg('Отчёт и спецификация'), 'Сравнить варианты');
+    fireEvent.click(screen.getByRole('button', { name: /^Итого по квартире/ }));
+    click(document.querySelector('.tot-pop') as HTMLElement, 'Сравнить варианты');
     expect(isOpen('Сравнение вариантов')).toBe(true);
     fireEvent.keyDown(document, { key: 'Escape' });
     click(nav, /Приёмка/);

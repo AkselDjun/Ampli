@@ -1,10 +1,10 @@
-import { Brand, IconBack, IconCheck, IconDoc, IconPanel } from '../ui/Icons';
+import { Brand, IconBack, IconCheck, IconDoc, IconMeter } from '../ui/Icons';
 import { Checks } from '../ui/Checks';
 import { Totals } from '../ui/Totals';
 import { Button } from '../ui/kit';
 import type { AppHeaderProps } from './types';
 
-export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, onNetwork, onGroup, onCheckFix, onTour, onPanel, onWork, onReport }: AppHeaderProps) {
+export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, onNetwork, onGroup, onCheckFix, onTour, onPanel, onWork, onReport, onCompare }: AppHeaderProps) {
   return (
     <header className="appbar">
       <div className="in">
@@ -20,13 +20,13 @@ export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, o
           <h1 className="brand"><Brand /><span>Ampli</span></h1>
           <span className="save-indicator" aria-live="polite">{saveStatus === 'saving' ? 'Проекты: сохранение…' : saveStatus === 'saved' ? 'Проекты: сохранено' : saveStatus === 'conflict' ? 'Конфликт вкладок' : 'Ошибка сохранения проектов'}</span>
           <div className="hud" data-tour="summary">
-            <Totals a={calc} onNet={onNetwork} />
+            <Totals a={calc} onNet={onNetwork} onCompare={onCompare} />
             <Checks a={calc} onGroup={onGroup} onFix={onCheckFix} />
           </div>
           <button className="ab-btn tour-help" type="button" data-tip="Обучение" aria-label="Открыть обучение" onClick={onTour}>?</button>
-          <button className="ab-btn" type="button" data-tour="panel" data-tip="Режим на щитке" aria-label="Режим на щитке" onClick={onPanel}>
-            <IconPanel />
-            <span className="ab-txt">На щитке</span>
+          <button className="ab-btn" type="button" data-tour="panel" data-tip="Замеры на щитке" aria-label="Замеры на щитке" onClick={onPanel}>
+            <IconMeter />
+            <span className="ab-txt">Замеры</span>
           </button>
           <button className="ab-btn desk" type="button" data-tour="work" data-tip="Монтаж и приёмка" onClick={onWork}>
             <IconCheck />

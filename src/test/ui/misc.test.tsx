@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { LIB_KEY } from '../../store/lib';
 import { byLabel, change, click, dlg, isOpen, wide, toastText } from './util';
@@ -68,8 +68,8 @@ describe('WorkSheet', () => {
 describe('CompareSheet', () => {
   it('toggles exclusions and add-ons and resets', () => {
     render(<App />);
-    click(nav(), /Отчёт/);
-    click(dlg('Отчёт и спецификация'), 'Сравнить варианты');
+    fireEvent.click(screen.getByRole('button', { name: /^Итого по квартире/ }));
+    click(document.querySelector('.tot-pop') as HTMLElement, 'Сравнить варианты');
     const d = dlg('Сравнение вариантов');
     const reset = Array.from(d.querySelectorAll('button')).find(b => b.textContent === 'Сбросить') as HTMLButtonElement;
     expect(reset.disabled).toBe(true);

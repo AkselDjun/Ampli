@@ -48,7 +48,7 @@ export function checksOf(a: Calc): Check[] {
   const kzBad = act.filter(x => x.r.len > 0 && x.r.ik < x.r.ikNeed);
   const kzNo = act.filter(x => x.r.len === 0);
   if (kzBad.length) out.push({ k: 'bad', t: 'Короткое замыкание: автомат может не отключить ' + kzBad.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + ' за 0,4 с. Сократите линию.', groups: kzBad.map(x => x.l.id) });
-  else if (act.length && !kzNo.length) out.push({ k: 'ok', t: 'Короткое замыкание в конце каждой линии отключается за 0,4 с (ТКП 339-2022, п. 4.3.5.4). Петля питающей сети ' + fmt(c.zs, 2) + ' Ом задана вами, проверьте её.' });
+  else if (act.length && !kzNo.length) out.push({ k: 'ok', t: 'Короткое замыкание в конце каждой линии отключается за 0,4 с (ТКП 339-2022, п. 4.3.5.4). Петля питающей сети ' + fmt(c.zs, 2) + ' Ом: если её не замеряли, замерьте на вводе или уточните у энергоснабжающей организации.' });
   else if (kzNo.length) out.push({ k: 'warn', t: 'Короткое замыкание не проверено для ' + kzNo.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + ': не задана длина.', groups: kzNo.map(x => x.l.id) });
   out.push(...houseChecks(a));
   const gr = a.rows.filter(x => !x.r.empty && x.r.status !== 'ok' && !kzBad.includes(x));

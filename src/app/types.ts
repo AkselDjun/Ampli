@@ -51,6 +51,7 @@ export interface AppHeaderProps {
   onPanel: () => void;
   onWork: () => void;
   onReport: () => void;
+  onCompare: () => void;
 }
 
 export interface AppTabsProps {

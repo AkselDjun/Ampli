@@ -64,7 +64,7 @@ export function NetSheet({
         <Seg<number> name="sup" labelledBy="l-sup" value={c.supply} items={[[1, '1 фаза · 230 В'], [3, '3 фазы · 400 В']]} onChange={v => dispatch({ t: 'cfg', field: 'supply', value: v })} />
       </div>
       <div className="f">
-        <span className="lbl-row"><span className="lbl">Выделенная мощность, кВт</span><Tip label="О выделенной мощности">Из технических условий на квартиру. С ней сравнивается расчётная мощность в табло вверху.</Tip></span>
+        <span className="lbl-row"><span className="lbl">Выделенная мощность, кВт</span><Tip label="О выделенной мощности">{'Из технических условий на ' + (c.house ? 'дом' : 'квартиру') + '. С ней сравнивается расчётная мощность в табло вверху.'}</Tip></span>
         <Stepper value={p.cfg.alloc} d={1} min={1} step={0.5} label="Выделенная мощность, кВт" onChange={v => dispatch({ t: 'cfg', field: 'alloc', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'alloc', d })} />
       </div>
       <div className="f">
@@ -94,7 +94,7 @@ export function NetSheet({
         <summary>Для точного расчёта<small>{[IN_CABLE[c.inCable]].concat(c.grpCable !== 'vvg' ? ['группы ' + IN_CABLE[c.grpCable]] : []).concat([c.boxAuto ? 'коробки по прокладке' : 'коробки ' + BOX_NAME[c.box], 'петля сети ' + fmt(c.zs, 2) + ' Ом', 'одновременность ' + fs(c.ko), 'поправка на группировку ' + fs(c.k), c.safe ? 'сечение с запасом' : 'сечение по норме']).concat(c.margin > 1 ? ['запас по автомату ' + fs(c.margin)] : []).concat(c.feeder > 0 ? ['потеря до щитка ' + fs(c.feeder) + ' %'] : []).join(' · ')}</small></summary>
         <div className="net-more-b">
           <div className="f">
-            <span className="lbl-row"><span className="lbl" id="l-inc">Кабель ввода</span><Tip label="О кабеле ввода">Марка кабеля от этажного щита до щитка квартиры. Сечение подбирается расчётом.</Tip></span>
+            <span className="lbl-row"><span className="lbl" id="l-inc">Кабель ввода</span><Tip label="О кабеле ввода">{c.house ? 'Марка кабеля от ВРУ или ящика учёта до щитка дома. Сечение подбирается расчётом.' : 'Марка кабеля от этажного щита до щитка квартиры. Сечение подбирается расчётом.'}</Tip></span>
             <Seg<string> name="inc" labelledBy="l-inc" value={c.inCable} items={(Object.keys(IN_CABLE) as (keyof typeof IN_CABLE)[]).map(k => [k, IN_CABLE[k]])} onChange={v => dispatch({ t: 'cfg', field: 'inCable', value: v })} />
           </div>
           <div className="f">
@@ -112,12 +112,12 @@ export function NetSheet({
           </div>
           <div className="set-grid">
             <div className="f">
-              <span className="lbl-row"><span className="lbl">Петля фаза-нуль сети, Ом</span><Tip label="О петле фаза-нуль">Сопротивление до щитка квартиры. Значение по умолчанию ориентировочное: уточните у энергоснабжающей организации или замерьте. Нужно для проверки отключения при коротком замыкании.</Tip></span>
+              <span className="lbl-row"><span className="lbl">Петля фаза-нуль сети, Ом</span><Tip label="О петле фаза-нуль">{'Сопротивление петли до щитка ' + (c.house ? 'дома' : 'квартиры') + '. Значение по умолчанию ориентировочное: замерьте на вводе или уточните у энергоснабжающей организации. Нужно, чтобы проверить отключение короткого замыкания.'}</Tip></span>
               <Stepper value={p.cfg.zs} d={0.05} min={0.05} max={2} step={0.05} label="Сопротивление петли фаза-нуль питающей сети, Ом" onChange={v => dispatch({ t: 'cfg', field: 'zs', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'zs', d })} />
             </div>
             <div className="f">
-              <span className="lbl-row"><span className="lbl">Потеря до щитка, %</span><Tip label="О потере напряжения до щитка">Нормы СН 4.04.01-2019 (п. 9.14: 3 % для освещения, 5 % для остальных) отсчитываются от ВРУ здания. Потеря на стояке до квартиры вычитается из допуска групп. Если неизвестна, оставьте 0.</Tip></span>
-              <Stepper value={p.cfg.feeder} d={0.1} min={0} max={3} step={0.1} label="Потеря напряжения от ВРУ до щитка квартиры, %" onChange={v => dispatch({ t: 'cfg', field: 'feeder', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'feeder', d })} />
+              <span className="lbl-row"><span className="lbl">Потеря до щитка, %</span><Tip label="О потере напряжения до щитка">{'Сколько напряжения теряется от ВРУ до щитка ' + (c.house ? 'дома' : 'квартиры') + '. Вычитается из допуска групп: 3 % для освещения, 5 % для остального (СН 4.04.01-2019, п. 9.14). Не знаете, оставьте 0.'}</Tip></span>
+              <Stepper value={p.cfg.feeder} d={0.1} min={0} max={3} step={0.1} label={'Потеря напряжения от ВРУ до щитка ' + (c.house ? 'дома' : 'квартиры') + ', %'} onChange={v => dispatch({ t: 'cfg', field: 'feeder', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'feeder', d })} />
             </div>
             <div className="f">
               <span className="lbl-row"><span className="lbl">Одновременность, Ко</span><Tip label="О коэффициенте одновременности">Доля приборов квартиры, работающих одновременно. Применяется к расчётной мощности и току ввода.</Tip></span>
@@ -368,7 +368,7 @@ export function ProjectsSheet({
 }
 
 export function ReportSheet({
-  open, onClose, p, a, onPrint, onCompare, onShop, dispatch, want
+  open, onClose, p, a, onPrint, onShop, dispatch, want
 }: {
   open: boolean;
   onClose: () => void;
@@ -377,7 +377,6 @@ export function ReportSheet({
   dispatch: (x: Action) => void;
   want?: { tab: string; n: number };
   onPrint: (m: PrintMode) => void;
-  onCompare: () => void;
   onShop: () => void;
 }) {
   const [fallback, setFallback] = useState<string | null>(null);
@@ -421,7 +420,6 @@ export function ReportSheet({
       <div className="copy-row">
         <Button variant="primary" onClick={() => onPrint('report')}>Печать / PDF</Button>
         <Button onClick={copy}>Скопировать отчёт</Button>
-        <Button onClick={onCompare}>Сравнить варианты</Button>
       </div>
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <h3 className="sec-t">Группы линий</h3>

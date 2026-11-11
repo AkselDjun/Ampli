@@ -485,6 +485,7 @@ export function App() {
           onPanel={() => setSheet(APP_SHEET.PANEL)}
           onWork={() => setSheet(APP_SHEET.WORK)}
           onReport={() => setSheet(APP_SHEET.REPORT)}
+          onCompare={() => setSheet(APP_SHEET.COMPARE)}
         />
 
         <main className="workspace">
@@ -546,7 +547,7 @@ export function App() {
         <Hold open={sheet === APP_SHEET.LIBRARY}><LibSheet open={sheet === APP_SHEET.LIBRARY} onClose={closeSheet} /></Hold>
         <Hold open={sheet === APP_SHEET.COMPARE}><CompareSheet open={sheet === APP_SHEET.COMPARE} onClose={closeSheet} p={p} a={a} /></Hold>
         <Hold open={sheet === APP_SHEET.ROOMS}><RoomsSheet open={sheet === APP_SHEET.ROOMS} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
-        <Hold open={sheet === APP_SHEET.REPORT}><ReportSheet open={sheet === APP_SHEET.REPORT} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onCompare={() => pushSheet(APP_SHEET.COMPARE)} onShop={() => pushSheet(APP_SHEET.SHOP)} dispatch={dispatch} want={repWant} /></Hold>
+        <Hold open={sheet === APP_SHEET.REPORT}><ReportSheet open={sheet === APP_SHEET.REPORT} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onShop={() => pushSheet(APP_SHEET.SHOP)} dispatch={dispatch} want={repWant} /></Hold>
         <Hold open={pal} eager><Palette open={pal} onClose={() => setPal(false)} cmds={cmds} /></Hold>
         <Hold open={sheet === APP_SHEET.SHOP}><ShopSheet open={sheet === APP_SHEET.SHOP} onClose={closeSheet} a={a} /></Hold>
         <Toaster />
