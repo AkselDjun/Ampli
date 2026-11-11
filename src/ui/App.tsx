@@ -24,7 +24,7 @@ import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
 import { SheetNavContext } from './sheetnav';
-import { CompareSheet, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, PanelMode, PrintDoc, ProjectsSheet, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
+import { CompareSheet, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, PanelMode, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { IncomingSheet } from './IncomingSheet';
@@ -35,7 +35,8 @@ import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
-import { Onboarding, onboardingPending } from './Onboarding';
+import { onboardingPending } from '../features/onboarding/storage';
+import type { TourFinish } from './Onboarding';
 import { APP_SHEET, APP_VIEW } from '../app/types';
 import type { AppView, ReportRequest, SaveStatus } from '../app/types';
 import { useSheetStack } from '../app/useSheetStack';
@@ -110,6 +111,14 @@ export function App() {
     setSheet(null);
     setView(APP_VIEW.GROUPS);
   }, [setSheet]);
+  const listNames = state.list.map(x => x.name);
+  const finishTour = useStable((choice: TourFinish) => {
+    if (choice !== 'create') return;
+    const name = uniqName(listNames, 'Мой объект');
+    dispatch({ t: 'addProject', content: blank(), name });
+    setSheet(APP_SHEET.ROOMS);
+    toastOk('Создан проект: ' + name);
+  });
 
   const saveFail = useRef(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
@@ -536,7 +545,7 @@ export function App() {
         <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => pushSheet(APP_SHEET.PANEL)} /></Hold>
         </SheetNavContext.Provider>
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
-        {tourOpen && <Onboarding onScene={onTourScene} onClose={closeTour} />}
+        <Hold open={tourOpen}>{tourOpen && <Onboarding onScene={onTourScene} onClose={closeTour} onFinish={finishTour} />}</Hold>
       </div>
       <Hold open={printing}>{printModes.map(m => <PrintDoc key={m} p={p} a={a} mode={m} />)}</Hold>
     </LibContext.Provider>

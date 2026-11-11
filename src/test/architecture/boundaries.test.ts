@@ -27,4 +27,12 @@ describe('architecture boundaries', () => {
       expect(forbidden, file).toEqual([]);
     }
   });
+
+  it('loads the onboarding screen only when it is needed', () => {
+    const app = import.meta.glob<string>('../../ui/App.tsx', { query: '?raw', import: 'default', eager: true })['../../ui/App.tsx'];
+    const runtime = [...app.matchAll(/^import\s+(?!type\b)[^;]*from\s+['"]([^'"]+)['"]/gm)].map(m => m[1]);
+    expect(runtime).not.toContain('./Onboarding');
+    const parts = import.meta.glob<string>('../../ui/parts.tsx', { query: '?raw', import: 'default', eager: true })['../../ui/parts.tsx'];
+    expect(parts).toMatch(/import\('\.\/Onboarding'\)/);
+  });
 });
