@@ -966,6 +966,9 @@ button.pmb-dev:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .pmb-lever.v-ok,.pmb-leg i.v-ok{background:var(--hw-lever-ok)}
 .pmb-lever.v-bad,.pmb-leg i.v-bad{background:var(--hw-lever-bad)}
 .pmb-lever.v-none,.pmb-leg i.v-none{background:var(--hw-lever-none)}
+.pmb-lever.v-ok::after,.pmb-lever.v-bad::after{position:absolute;left:0;right:0;bottom:4px;color:var(--on-fill);font-size:var(--t-xs);font-weight:700;line-height:1;text-align:center}
+.pmb-lever.v-ok::after{content:"✓"}
+.pmb-lever.v-bad::after{content:"✕"}
 .pmb-lever.v-in{background:var(--hw-lever-in)}
 .pmb-sub{font-size:10px;color:var(--hw-sub);white-space:nowrap}
 .pmb-dev.k-rcd{background:var(--hw-rcd-dev);border-color:var(--hw-rcd-edge)}

@@ -161,7 +161,7 @@ export function Editor({
         <div className="ed-head">
           <span className="no">Г{idx + 1}</span>
           <input className="ed-name" aria-label="Название группы" value={l.name} onChange={e => dispatch({ t: 'lineField', field: 'name', value: e.target.value })} />
-          {r && !r.empty && <span className={'pill ' + r.status}>{STATUS[r.status]}</span>}
+          {r && !r.empty && <span className={'pill ' + r.status}>{STATUS[r.status] + (r.status === 'ok' && r.tips.length ? ' · ' + r.tips.length + ' ' + plural(r.tips.length, ['совет', 'совета', 'советов']) : '')}</span>}
         </div>
         {r && (
           <>
