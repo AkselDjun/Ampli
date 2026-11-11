@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import type { Calc } from '../core/types';
 import { fmt } from '../core/format';
 import { ROWLEN } from '../core/norms';
@@ -42,12 +42,28 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
   const x = cur ? a.rows.find(y => y.l.id === cur) : undefined;
   const r = cur ? byNo.get(noOf(cur)) : undefined;
   const at = cur ? order.indexOf(cur) : -1;
-  const go = (k: number) => {
+  const wantFocus = useRef(false);
+  useEffect(() => {
+    if (!wantFocus.current) return;
+    wantFocus.current = false;
+    document.querySelector<HTMLInputElement>('.pm-in input')?.focus();
+  }, [cur]);
+  const go = (k: number, focus = false) => {
+    wantFocus.current = focus;
     setPick(order[k]);
     requestAnimationFrame(() => {
       const el = document.querySelector('.pmb-dev.sel');
       if (el && 'scrollIntoView' in el) (el as HTMLElement).scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
+  };
+  const nextOpen = at >= 0 ? [...order.slice(at + 1), ...order.slice(0, at)].find(id => byNo.get(noOf(id))?.verdict === 'none') : undefined;
+  const onEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const all = Array.from(document.querySelectorAll<HTMLInputElement>('.pm-in input'));
+    const k = all.indexOf(e.currentTarget);
+    if (k >= 0 && k < all.length - 1) all[k + 1].focus();
+    else if (at < order.length - 1) go(at + 1, true);
   };
   const hint = (f: MeasField): string => {
     if (!x) return '';
@@ -140,6 +156,8 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
                   min={0}
                   step={fd.step}
                   aria-label={r.no + ': ' + fd.label + ', ' + fd.unit}
+                  enterKeyHint="next"
+                  onKeyDown={onEnter}
                   placeholder={hint(fd.f)}
                   value={String((x.l.meas ?? {})[fd.f] ?? '')}
                   onChange={e => {
@@ -159,6 +177,10 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
             <Button disabled={at <= 0} onClick={() => go(at - 1)}>← {at > 0 ? noOf(order[at - 1]) : 'Назад'}</Button>
             <Button variant="primary" disabled={at >= order.length - 1} onClick={() => go(at + 1)}>{at < order.length - 1 ? 'Дальше: ' + noOf(order[at + 1]) : 'Последняя группа'} →</Button>
           </div>
+          {nextOpen && nextOpen !== order[at + 1] && (
+            <Button size="sm" className="pm-skip" onClick={() => go(order.indexOf(nextOpen), true)}>К неизмеренной: {noOf(nextOpen)}</Button>
+          )}
+          <p className="pm-kb muted">Enter переходит к следующему полю, после последнего к следующей группе.</p>
         </section>
       )}
     </Sheet>

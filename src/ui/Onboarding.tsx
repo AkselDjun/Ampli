@@ -5,7 +5,7 @@ import { Button } from './kit';
 import { plural } from '../core/format';
 import { IconBolt, IconBulb, IconCheck, IconClose, IconDoc, IconDone, IconFolder, IconList, IconNet, IconPanel, IconRooms, IconSocket } from './Icons';
 import { ONBOARDING_CHAPTERS, ONBOARDING_STEPS, TOUR_SCENE, chapterProgress, chapterStart, chapterSteps, clampStep, minutesFor, targetsFor } from '../features/onboarding/model';
-import type { TourIcon, TourScene } from '../features/onboarding/model';
+import type { TourChapter, TourIcon, TourScene } from '../features/onboarding/model';
 import { markOnboardingDone, saveStep, savedStep } from '../features/onboarding/storage';
 import { EDGE, NARROW, needsScroll, placeCard, spotBox } from '../features/onboarding/placement';
 import type { Box, CardPlace } from '../features/onboarding/placement';
@@ -68,10 +68,10 @@ function Board() {
   );
 }
 
-export function Onboarding({ onScene, onClose, onFinish }: { onScene: (scene: TourScene) => void; onClose: () => void; onFinish?: (choice: TourFinish) => void }) {
+export function Onboarding({ onScene, onClose, onFinish, chapter: startChapter }: { onScene: (scene: TourScene) => void; onClose: () => void; onFinish?: (choice: TourFinish) => void; chapter?: TourChapter }) {
   const [resume] = useState(() => savedStep(TOTAL));
-  const [phase, setPhase] = useState<Phase>('welcome');
-  const [step, setStep] = useState(0);
+  const [phase, setPhase] = useState<Phase>(startChapter ? 'step' : 'welcome');
+  const [step, setStep] = useState(() => (startChapter ? chapterStart(startChapter) : 0));
   const [target, setTarget] = useState<Box | null>(null);
   const [place, setPlace] = useState<CardPlace>({ mode: 'center' });
   const root = useRef<HTMLDivElement>(null);
