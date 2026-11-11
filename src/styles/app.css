@@ -1498,3 +1498,12 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
 }
 .nf-pair.compact .netfold{min-height:44px;padding-block:var(--s-1-5)}
 .nf-pair.compact .nf-main small{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.tips-fold{margin:0}
+.tips-fold>summary{display:flex;align-items:center;gap:var(--s-1);min-height:44px;color:var(--accent);font-weight:600;cursor:pointer;list-style:none}
+.tips-fold>summary::-webkit-details-marker{display:none}
+.tips-fold>summary svg{width:16px;height:16px;transition:transform var(--dur-fast)}
+.tips-fold[open]>summary svg{transform:rotate(180deg)}
+.tips-fold>.notes{margin-top:var(--s-1)}
+@media (max-width:760px){.gtab td.g-st:has(.pill.ok){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
+.bd-fold>summary{display:flex;align-items:center;min-height:44px;color:var(--accent);font-weight:600;cursor:pointer}
+@media (min-width:1000px){.bd-fold>summary{display:none}}

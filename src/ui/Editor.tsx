@@ -125,8 +125,9 @@ export function Editor({
   const fix = r ? fixFor(l, r, a.c) : null;
   const cat = catalog();
   const found = searchCatalog(cat, search, lib.usage, tag);
-  const often = topUsed(cat, lib.usage, tag);
-  const presets = byUsage(catalog().filter(it => it.tags.indexOf(tag) >= 0 && (search.trim() || !often.some(o => o.key === it.key))), lib.usage);
+  const have = (name: string): boolean => l.type === 'power' && !search.trim() && l.apps.some(ap => ap.name.trim() !== '' && ap.name.toLowerCase().includes(name.toLowerCase()));
+  const often = topUsed(cat, lib.usage, tag).filter(it => !have(it.name));
+  const presets = byUsage(catalog().filter(it => it.tags.indexOf(tag) >= 0 && !have(it.name) && (search.trim() || !often.some(o => o.key === it.key))), lib.usage);
   const addFrom = (name: string, w: number) => {
     keepChips(() => dispatch({ t: 'addApp', name, w, ...(/лент/i.test(name) ? { m: 5 } : {}) }));
     libDispatch({ t: 'use', name });
@@ -161,7 +162,7 @@ export function Editor({
         <div className="ed-head">
           <span className="no">Г{idx + 1}</span>
           <input className="ed-name" aria-label="Название группы" value={l.name} onChange={e => dispatch({ t: 'lineField', field: 'name', value: e.target.value })} />
-          {r && !r.empty && <span className={'pill ' + r.status}>{STATUS[r.status] + (r.status === 'ok' && r.tips.length ? ' · ' + r.tips.length + ' ' + plural(r.tips.length, ['совет', 'совета', 'советов']) : '')}</span>}
+          {r && !r.empty && <span className={'pill ' + r.status}>{STATUS[r.status]}</span>}
         </div>
         {r && (
           <>
@@ -206,8 +207,15 @@ export function Editor({
             )}
             <ul className={'notes' + (r.status === 'bad' ? ' bad' : '')}>
               {!r.empty && r.notes.map(n => <li key={n}>{n}</li>)}
-              {!r.empty && r.tips.map(n => <li key={n} className="tip-n">{n}</li>)}
             </ul>
+            {!r.empty && r.tips.length > 0 && (
+              <details className="tips-fold" open={r.tips.length === 1}>
+                <summary>{r.tips.length + ' ' + plural(r.tips.length, ['совет', 'совета', 'советов']) + ', не нарушения норм'}<IconDown /></summary>
+                <ul className="notes">
+                  {r.tips.map(n => <li key={n} className="tip-n">{n}</li>)}
+                </ul>
+              </details>
+            )}
             <div className="why">
               {!r.empty && (
                 <>
@@ -230,6 +238,20 @@ export function Editor({
               )}
             </div>
           </>
+        )}
+        <div className="blk">
+          <span className="lbl">Тип группы</span>
+          <Seg<LineType> name={'t-' + l.id} value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', type: v })} />
+        </div>
+        {a.c.rcdMode && (
+          <label className="blk">
+            <span className="lbl">Помещение</span>
+            <input className="ed-zone" list={'zones-' + l.id} aria-label="Помещение для УЗО" placeholder="Например, кухня" maxLength={60} value={l.zone ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'zone', value: e.target.value })} />
+            <datalist id={'zones-' + l.id}>
+              {zones.map(z => <option key={z} value={z} />)}
+            </datalist>
+            <small className="muted">Группы одного помещения ставятся под одно УЗО.</small>
+          </label>
         )}
         {l.type === 'socket' && (
           <div className="grid3 sock">
@@ -373,20 +395,6 @@ export function Editor({
               </div>
             </div>
           )}
-        </div>
-        {a.c.rcdMode && (
-          <label className="blk">
-            <span className="lbl">Помещение</span>
-            <input className="ed-zone" list={'zones-' + l.id} aria-label="Помещение для УЗО" placeholder="Например, кухня" maxLength={60} value={l.zone ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'zone', value: e.target.value })} />
-            <datalist id={'zones-' + l.id}>
-              {zones.map(z => <option key={z} value={z} />)}
-            </datalist>
-            <small className="muted">Группы одного помещения ставятся под одно УЗО.</small>
-          </label>
-        )}
-        <div className="blk">
-          <span className="lbl">Тип группы</span>
-          <Seg<LineType> name={'t-' + l.id} value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', type: v })} />
         </div>
         <div className="grid3 ed-core">
           <div className="f len-f">

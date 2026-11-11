@@ -57,7 +57,7 @@ describe('sheets use tabs and one panel at a time', () => {
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
   };
   const cases: [string, string, string[]][] = [
-    ['Отчёт', 'Отчёт и спецификация', ['Группы', 'Схема', 'Смета', 'Допущения']],
+    ['Отчёт', 'Отчёт и спецификация', ['Группы', 'Схема', 'Смета', 'Основания']],
     ['Приёмка', 'Монтаж и приёмка', ['Чек-лист 0/10', 'Замеры', 'Документы']]
   ];
   cases.forEach(([opener, title, labels]) => {
@@ -86,7 +86,7 @@ describe('sheets use tabs and one panel at a time', () => {
     expect(within(d).getByRole('button', { name: /Excel/ })).toBeTruthy();
     expect(within(d).getByRole('button', { name: 'Где купить' })).toBeTruthy();
     expect(d.querySelector('#rep-tp-estimate .est')).toBeTruthy();
-    fireEvent.click(within(d).getByRole('tab', { name: 'Допущения' }));
+    fireEvent.click(within(d).getByRole('tab', { name: 'Основания' }));
     expect(d.querySelector('#rep-tp-notes .assum')).toBeTruthy();
     fireEvent.click(within(d).getByRole('tab', { name: 'Схема' }));
     expect(d.querySelector('#rep-tp-scheme svg')).toBeTruthy();

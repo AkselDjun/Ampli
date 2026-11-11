@@ -18,11 +18,11 @@ describe('advice without violations', () => {
     expect(st.n).toBe(list.filter(x => x.k === 'warn' || x.k === 'bad').length);
   });
 
-  it('shows the advice count next to the norm status on the group card', () => {
+  it('shows the advice count under the result on the group card', () => {
     wide(false);
     render(<App />);
     const row = Array.from(document.querySelectorAll<HTMLElement>('.rows .row')).find(x => x.textContent?.includes('Варочная'));
     fireEvent.click(row as HTMLElement);
-    expect(screen.getByText(/^Норма · \d+ совет/)).toBeTruthy();
+    expect(screen.getByText(/^\d+ совет\S*, не нарушения норм$/)).toBeTruthy();
   });
 });

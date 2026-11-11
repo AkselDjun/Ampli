@@ -62,7 +62,7 @@ export function WorkSheet({
           <li key={it.id}>
             <label>
               <input type="checkbox" checked={!!checks[it.id]} onChange={e => dispatch({ t: 'check', id: it.id, on: e.target.checked })} />
-              <span className="ck-t"><b>{it.title}</b><small>{it.hint}</small></span>
+              <span className="ck-t"><b>{it.title}</b>{!checks[it.id] && <small>{it.hint}</small>}</span>
             </label>
           </li>
         ))}

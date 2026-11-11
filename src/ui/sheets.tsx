@@ -416,7 +416,7 @@ export function ReportSheet({
     if (want) setTab(want.tab);
   }
   return (
-    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Допущения' }]} />}>
+    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Основания' }]} />}>
       <TabPanel scope="rep" id="groups" cur={tab}>
       <div className="copy-row">
         <Button variant="primary" onClick={() => onPrint('report')}>Печать / PDF</Button>

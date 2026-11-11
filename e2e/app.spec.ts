@@ -70,7 +70,7 @@ test('opens the report with every tab and prints it', async ({ page }) => {
   await page.keyboard.press('Enter');
   const sheet = page.getByRole('dialog', { name: 'Отчёт и спецификация' });
   await expect(sheet).toBeVisible();
-  for (const t of ['Группы', 'Схема', 'Смета', 'Допущения']) {
+  for (const t of ['Группы', 'Схема', 'Смета', 'Основания']) {
     await sheet.getByRole('tab', { name: t }).click();
     await expect(sheet.getByRole('tab', { name: t })).toHaveAttribute('aria-selected', 'true');
     await noSideScroll(page);
