@@ -45,7 +45,7 @@ export type Action =
   | { t: 'photoDel'; id: string }
   | { t: 'photoNote'; id: string; value: string }
   | { t: 'addApps'; apps: { name: string; w: number; n: number; m?: number }[] }
-  | { t: 'lineField'; field: 'name' | 'where' | 'zone' | 'len' | 'kc' | 'cos' | 'sockets' | 'perSocket'; value: string | number }
+  | { t: 'lineField'; field: 'name' | 'where' | 'zone' | 'len' | 'sockets' | 'perSocket'; value: string | number }
   | { t: 'lineType'; type: LineType }
   | { t: 'linePhase'; phase: Phase }
   | { t: 'lineWet'; wet: boolean }
@@ -66,11 +66,12 @@ export type Action =
   | { t: 'weakSet'; id: string; field: Exclude<keyof WeakPt, 'id'>; value: string }
   | { t: 'weakDel'; id: string }
   | { t: 'weakOnt'; on: boolean }
-  | { t: 'appField'; id: string; field: 'name' | 'w' | 'n' | 'br' | 'm'; value: string | number }
+  | { t: 'appField'; id: string; field: 'name' | 'w' | 'n' | 'br' | 'm' | 'cos'; value: string | number }
+  | { t: 'appAlt'; id: string; on: boolean }
   | { t: 'addApp'; name?: string; w?: number; m?: number }
   | { t: 'delApp'; id: string }
   | { t: 'cfg'; field: keyof Cfg; value: string | number }
-  | { t: 'cfgStep'; field: 'alloc' | 'ko' | 'k' | 'zs' | 'feeder'; d: number }
+  | { t: 'cfgStep'; field: 'alloc' | 'ko' | 'k' | 'zs' | 'feeder' | 'margin'; d: number }
   | { t: 'balance' }
   | { t: 'meta'; field: 'name' | 'address' | 'client' | 'author'; value: string }
   | { t: 'replace'; content: Content }
@@ -99,7 +100,7 @@ export function init(store: Store): State {
 }
 
 const LINE_MAX: Record<string, number> = { len: 500, sockets: 99, perSocket: 10000 };
-const APP_MAX: Record<string, number> = { w: 100000, n: 999, m: 100, br: 200 };
+const APP_MAX: Record<string, number> = { w: 100000, n: 999, m: 100, br: 200, cos: 1 };
 
 export function numIn<T>(v: T, max: number): T | string | number {
   if (typeof v === 'number') return Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : 0;
@@ -115,7 +116,7 @@ export function reducer(s: State, a: Action): State {
     case 'select':
       return { ...s, sel: a.id };
     case 'addLine': {
-      const nl = mkLine(TYPES[a.type].label, a.type, 15, null, null, []);
+      const nl = mkLine(TYPES[a.type].label, a.type, 15, []);
       let next = patch(s, q => ({ ...q, lines: [...q.lines, nl] }));
       next = { ...next, sel: nl.id };
       if (pn(p.cfg.supply, 1) === 3) next = patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) }));
@@ -163,7 +164,7 @@ export function reducer(s: State, a: Action): State {
       const parts = splitApps(src, a.mode);
       if (!parts || !parts.move.length) return s;
       const moved: Line = {
-        ...mkLine(a.mode === 'largest' ? (parts.move[0].name || 'Мощный прибор') : (src.name || 'Без названия') + ' (2)', a.mode === 'largest' ? 'power' : src.type, pn(src.len, 15), null, null, [], src.phase),
+        ...mkLine(a.mode === 'largest' ? (parts.move[0].name || 'Мощный прибор') : (src.name || 'Без названия') + ' (2)', a.mode === 'largest' ? 'power' : src.type, pn(src.len, 15), [], src.phase),
         wet: src.wet,
         apps: parts.move.map(x => ({ ...x, id: nid() }))
       };
@@ -236,8 +237,6 @@ export function reducer(s: State, a: Action): State {
           ...l,
           type: a.type,
           name: l.name === prev.label ? d.label : l.name,
-          kc: d.kc,
-          cos: d.cos,
           phase: a.type !== 'power' && l.phase === '3' ? 'L1' : l.phase
         };
       });
@@ -306,7 +305,7 @@ export function reducer(s: State, a: Action): State {
       const name = floorAppName(room);
       const where = room.name.trim();
       if (a.line === 'new') {
-        const nl = { ...mkLine('Тёплый пол: ' + (where || 'помещение'), 'power', 10, null, null, [[name, res.watts, 1]]), zone: where || undefined, ...(room.use === 'bath' ? { wet: true } : {}) };
+        const nl = { ...mkLine('Тёплый пол: ' + (where || 'помещение'), 'power', 10, [[name, res.watts, 1]]), zone: where || undefined, ...(room.use === 'bath' ? { wet: true } : {}) };
         const next = patch(s, q => ({ ...q, lines: [...q.lines, nl] }));
         return pn(p.cfg.supply, 1) === 3 ? patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) })) : next;
       }
@@ -341,6 +340,8 @@ export function reducer(s: State, a: Action): State {
       return patchLine(s, l => ({ ...l, wet: a.wet }));
     case 'appField':
       return patchLine(s, l => ({ ...l, apps: l.apps.map(x => (x.id === a.id ? { ...x, [a.field]: a.field in APP_MAX ? numIn(a.value, APP_MAX[a.field]) : a.value } : x)) }));
+    case 'appAlt':
+      return patchLine(s, l => ({ ...l, apps: l.apps.map(x => (x.id === a.id ? { ...x, alt: a.on || undefined } : x)) }));
     case 'addApp':
       return patchLine(s, l => {
         if (a.name === undefined) return { ...l, apps: [...l.apps, { id: nid(), name: '', w: '', n: 1 }] };

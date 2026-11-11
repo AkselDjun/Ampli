@@ -7,9 +7,9 @@ import { cur, init, reducer } from '../../store/reducer';
 import type { OldWiring } from '../../core/types';
 
 const a = () => calcAll([
-  mkLine('Свет', 'light', 10, null, null, [['Люстра', 200, 1]]),
-  mkLine('Плита', 'power', 6, null, null, [['Плита', 7000, 1]]),
-  mkLine('Пусто', 'socket', 5, null, null, [])
+  mkLine('Свет', 'light', 10, [['Люстра', 200, 1]]),
+  mkLine('Плита', 'power', 6, [['Плита', 7000, 1]]),
+  mkLine('Пусто', 'socket', 5, [])
 ], defaultCfg());
 const w = (o: Partial<OldWiring>): OldWiring => ({ ...OLD_EMPTY, ...o });
 const ids = (o: Partial<OldWiring>) => oldVerdict(w(o), a()).findings.map(f => f.id + ':' + f.k);

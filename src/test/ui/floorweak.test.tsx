@@ -64,7 +64,7 @@ describe('floor heating sheet', () => {
   });
 
   it('adds the floor work to the estimate only when there is heating', () => {
-    const p = { ...newProject({ sample: false, cfg: defaultCfg(), lines: [mkLine('Розетки', 'socket', 5, 1, 1, [['Чайник', 2000, 1]])] }, 'Т'), floor: [{ ...newFloorRoom('kitchen'), area: 4 }] };
+    const p = { ...newProject({ sample: false, cfg: defaultCfg(), lines: [mkLine('Розетки', 'socket', 5, [['Чайник', 2000, 1]])] }, 'Т'), floor: [{ ...newFloorRoom('kitchen'), area: 4 }] };
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
     render(<App />);
     click(document.querySelector('nav.tabs') as HTMLElement, /Отчёт/);

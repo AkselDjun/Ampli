@@ -8,7 +8,7 @@ const three = cfgN({ ...defaultCfg(), supply: 3 } as Cfg);
 
 describe('reference groups checked by hand against ТКП 339-2022, СН 4.04.01-2019 and ПУЭ табл. 1.3.4', () => {
   it('lighting 10 × 60 W on 25 m: B10, 1,5 mm², ΔU 0,85 %, Iкз 161 А', () => {
-    const r = calcLine(mkLine('Свет', 'light', 25, null, null, [['Светильник', 60, 10]]), one);
+    const r = calcLine(mkLine('Свет', 'light', 25, [['Светильник', 60, 10]]), one);
     expect(r.pInst).toBe(600);
     expect(r.I).toBeCloseTo(2.6087, 3);
     expect(r.curve + r.In).toBe('B10');
@@ -21,7 +21,7 @@ describe('reference groups checked by hand against ТКП 339-2022, СН 4.04.01
   });
 
   it('kitchen sockets 3 550 W on 15 m: C16, 2,5 mm², ΔU 1,81 %, Iкз 326 А', () => {
-    const r = calcLine(mkLine('Кухня', 'socket', 15, null, null, [['Чайник', 2200, 1], ['Микроволновая печь', 1200, 1], ['Холодильник', 150, 1]]), one);
+    const r = calcLine(mkLine('Кухня', 'socket', 15, [['Чайник', 2200, 1], ['Микроволновая печь', 1200, 1], ['Холодильник', 150, 1]]), one);
     expect(r.I).toBeCloseTo(15.4348, 3);
     expect(r.curve + r.In).toBe('C16');
     expect(r.S).toBe(2.5);
@@ -33,7 +33,7 @@ describe('reference groups checked by hand against ТКП 339-2022, СН 4.04.01
   });
 
   it('long lighting line 1 500 W on 60 m: section grows 1,5 → 4 mm² to keep ΔU within 3 %', () => {
-    const r = calcLine(mkLine('Коридор', 'light', 60, null, null, [['Люстра', 1500, 1]]), one);
+    const r = calcLine(mkLine('Коридор', 'light', 60, [['Люстра', 1500, 1]]), one);
     expect(r.In).toBe(10);
     expect(r.S).toBe(4);
     expect(r.drop).toBeCloseTo(1.9140, 3);
@@ -43,7 +43,7 @@ describe('reference groups checked by hand against ТКП 339-2022, СН 4.04.01
   });
 
   it('socket line on 70 m: section grows to 6 mm² so C16 trips within 0,4 s', () => {
-    const r = calcLine(mkLine('Балкон', 'socket', 70, null, null, [['Компьютер', 500, 1]]), one);
+    const r = calcLine(mkLine('Балкон', 'socket', 70, [['Компьютер', 500, 1]]), one);
     expect(r.drop).toBeCloseTo(0.4962, 3);
     expect(r.S).toBe(6);
     expect(r.ik).toBeCloseTo(211.49, 1);
@@ -54,7 +54,7 @@ describe('reference groups checked by hand against ТКП 339-2022, СН 4.04.01
   });
 
   it('three-phase cooker 7 kW on 10 m: C16 3P, 2,5 mm², ΔU 0,39 %, RCD type A', () => {
-    const l = { ...mkLine('Плита', 'power', 10, null, null, [['Электроплита', 7000, 1]]), phase: '3' as const };
+    const l = { ...mkLine('Плита', 'power', 10, [['Электроплита', 7000, 1]]), phase: '3' as const };
     const r = calcLine(l, three);
     expect(r.three).toBe(true);
     expect(r.I).toBeCloseTo(10.1036, 3);
@@ -68,7 +68,7 @@ describe('reference groups checked by hand against ТКП 339-2022, СН 4.04.01
   });
 
   it('water heater shares a line with a kettle: separate line required by СН 4.04.01-2019 п. 14.4', () => {
-    const r = calcLine(mkLine('Ванная', 'power', 12, null, null, [['Водонагреватель', 2000, 1], ['Чайник', 2200, 1]]), one);
+    const r = calcLine(mkLine('Ванная', 'power', 12, [['Водонагреватель', 2000, 1], ['Чайник', 2200, 1]]), one);
     expect(r.status).toBe('warn');
     expect(r.notes.join(' ')).toContain('п. 14.4');
   });
@@ -76,9 +76,9 @@ describe('reference groups checked by hand against ТКП 339-2022, СН 4.04.01
 
 describe('reference apartment checked by hand', () => {
   const lines = [
-    mkLine('Свет', 'light', 25, null, null, [['Светильник', 60, 10]]),
-    mkLine('Кухня', 'socket', 15, null, null, [['Чайник', 2200, 1], ['Микроволновая печь', 1200, 1], ['Холодильник', 150, 1]]),
-    mkLine('Бойлер', 'power', 12, null, null, [['Водонагреватель', 2000, 1]])
+    mkLine('Свет', 'light', 25, [['Светильник', 60, 10]]),
+    mkLine('Кухня', 'socket', 15, [['Чайник', 2200, 1], ['Микроволновая печь', 1200, 1], ['Холодильник', 150, 1]]),
+    mkLine('Бойлер', 'power', 12, [['Водонагреватель', 2000, 1]])
   ];
   const a = calcAll(lines, defaultCfg());
 
@@ -96,13 +96,13 @@ describe('reference apartment checked by hand', () => {
 
   it('one 30 mA RCD limited by the input breaker: 25 А', () => {
     expect(a.uzos).toHaveLength(1);
-    expect(a.uzos[0].sumIn).toBe(36);
+    expect(a.uzos[0].sumIn).toBe(42);
     expect(a.uzos[0].In).toBe(25);
     expect(a.uzos[0].ma).toBe(30);
   });
 
   it('board of 12 modules with 20 % reserve', () => {
-    expect(a.devs.map(d => d.label)).toEqual(['C25', '25А', 'B10', 'C16', 'C10']);
+    expect(a.devs.map(d => d.label)).toEqual(['C25', '25А', 'B10', 'C16', 'C16']);
     expect(a.modSum).toBe(7);
     expect(a.size).toBe(12);
     expect(a.issues).toBe(0);

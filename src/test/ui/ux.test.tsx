@@ -29,7 +29,7 @@ afterEach(() => {
 
 describe('actionable checks', () => {
   it('switches to three phases from the check', () => {
-    boot(Array.from({ length: 3 }, (_, i) => mkLine('П' + i, 'power', 5, 1, 1, [['Плита', 6000, 1]])));
+    boot(Array.from({ length: 3 }, (_, i) => mkLine('П' + i, 'power', 5, [['Плита', 6000, 1]])));
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /^Проверки по нормам/ }));
     click(document.getElementById('chk-pop') as HTMLElement, 'Включить 3 фазы');
@@ -38,7 +38,7 @@ describe('actionable checks', () => {
   });
 
   it('offers a single phase for a small load and opens groups', () => {
-    const ls = [mkLine('Длинная', 'power', 400, 1, 1, [['Печь', 3500, 1]]), mkLine('Без длины', 'light', 0, 1, 1, [['Лампа', 100, 1]]), mkLine('Перегруз', 'power', 10, 1, 1, [['Первый', 10000, 1], ['Второй', 10000, 1]])];
+    const ls = [mkLine('Длинная', 'power', 400, [['Печь', 3500, 1]]), mkLine('Без длины', 'light', 0, [['Лампа', 100, 1]]), mkLine('Перегруз', 'power', 10, [['Первый', 10000, 1], ['Второй', 10000, 1]])];
     const a = calc(ls, { supply: 3 });
     const list = checksOf(a);
     expect(checksOf(calc([ls[1]], { supply: 3 })).find(x => x.fix === 'phase1')).toBeTruthy();
@@ -61,7 +61,7 @@ describe('actionable checks', () => {
 
   it('opens a group from the check in the app', () => {
     wide(true);
-    const ls = [mkLine('Свет', 'light', 5, 1, 1, [['Лампа', 100, 1]]), mkLine('Перегруз', 'power', 10, 1, 1, [['Первый', 10000, 1], ['Второй', 10000, 1]])];
+    const ls = [mkLine('Свет', 'light', 5, [['Лампа', 100, 1]]), mkLine('Перегруз', 'power', 10, [['Первый', 10000, 1], ['Второй', 10000, 1]])];
     boot(ls);
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /^Проверки по нормам/ }));
@@ -143,6 +143,22 @@ describe('editor', () => {
     expect(brs().length).toBeGreaterThan(0);
     click(ed(), /Ещё действия/);
     expect(within(ed().querySelector('[role="menu"]') as HTMLElement).queryByText(/отводы к точкам/)).toBeNull();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    const cos = () => ed().querySelectorAll<HTMLInputElement>('[aria-label="cos φ прибора"]');
+    expect(cos().length).toBe(0);
+    click(ed(), /Ещё действия/);
+    click(ed(), 'Указать cos φ и одновременность');
+    expect(cos().length).toBeGreaterThan(0);
+    change(cos()[0], '0.85');
+    const alt = ed().querySelector<HTMLInputElement>('.a-alt input') as HTMLInputElement;
+    fireEvent.click(alt);
+    expect(stored().list[0].lines.find((l: { id: string }) => l.id === stored().list[0].lines[2].id).apps[0]).toMatchObject({ cos: '0.85', alt: true });
+    click(ed(), /Ещё действия/);
+    click(ed(), 'Скрыть cos φ и одновременность');
+    expect(cos().length).toBeGreaterThan(0);
+    fireEvent.click(ed().querySelector('.a-alt input') as HTMLElement);
+    change(cos()[0], '');
+    expect(cos().length).toBe(0);
   });
 });
 
@@ -204,7 +220,7 @@ describe('document package', () => {
     expect(loadPack()).toEqual(PACK_DEFAULT);
     localStorage.setItem(PACK_KEY, JSON.stringify(['old', 'zz', 'report']));
     expect(loadPack()).toEqual(['report', 'old']);
-    const p = newProject({ cfg: defaultCfg(), lines: [mkLine('Свет', 'light', 5, 1, 1, [['Лампа', 100, 1]])], sample: false }, 'Т');
+    const p = newProject({ cfg: defaultCfg(), lines: [mkLine('Свет', 'light', 5, [['Лампа', 100, 1]])], sample: false }, 'Т');
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [{ ...p, old: { metal: 'al' } }] }));
     render(<App />);
     const list = openDocs();

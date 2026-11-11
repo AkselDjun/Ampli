@@ -17,6 +17,8 @@ export interface Appliance {
   n: Num;
   br?: Num;
   m?: Num;
+  cos?: Num;
+  alt?: boolean;
 }
 
 export interface RoomApp {
@@ -88,8 +90,6 @@ export interface Line {
   sockets?: Num;
   perSocket?: Num;
   len: Num;
-  kc: Num;
-  cos: Num;
   apps: Appliance[];
 }
 
@@ -109,6 +109,8 @@ export interface Cfg {
   spd?: string;
   vr?: string;
   afdd?: string;
+  margin?: Num;
+  grpCable?: string;
 }
 
 export interface Project {
@@ -158,6 +160,8 @@ export interface CfgN {
   spd: boolean;
   vr: boolean;
   afdd: AfddMode;
+  margin: number;
+  grpCable: InCable;
 }
 
 export interface LineResult {
@@ -168,7 +172,8 @@ export interface LineResult {
   three: boolean;
   len: number;
   cos: number;
-  kc: number;
+  load: number;
+  cab: string;
   notes: string[];
   tips: string[];
   status: Status;

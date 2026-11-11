@@ -9,9 +9,9 @@ import { emptyLib, libReducer, normLib } from '../../store/lib';
 import { cur, init, reducer } from '../../store/reducer';
 
 const lines = () => [
-  mkLine('Свет', 'light', 20, 1, 1, [['Люстра', 100, 2], ['Бра', 40, 1]]),
-  mkLine('Розетки', 'socket', 15, 1, 1, [['Чайник', 2000, 1], ['Пусто', 0, 3]]),
-  mkLine('Плита', 'power', 8, 1, 1, [['Плита', 6000, 1]])
+  mkLine('Свет', 'light', 20, [['Люстра', 100, 2], ['Бра', 40, 1]]),
+  mkLine('Розетки', 'socket', 15, [['Чайник', 2000, 1], ['Пусто', 0, 3]]),
+  mkLine('Плита', 'power', 8, [['Плита', 6000, 1]])
 ];
 
 describe('labour quantities', () => {

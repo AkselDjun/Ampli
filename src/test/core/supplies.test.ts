@@ -7,8 +7,8 @@ import { bestOffers, matches, parseAttrs, shopQuery } from '../../core/shop';
 import type { Cfg, SpecItem } from '../../core/types';
 
 const cfg = (o: Partial<Cfg> = {}): Cfg => ({ ...defaultCfg(), ...o });
-const sock = (name: string, len = 10) => mkLine(name, 'socket', len, null, null, [['x', 1000, 1]]);
-const light = (name: string, len = 8) => mkLine(name, 'light', len, null, null, [['x', 100, 1]]);
+const sock = (name: string, len = 10) => mkLine(name, 'socket', len, [['x', 1000, 1]]);
+const light = (name: string, len = 8) => mkLine(name, 'light', len, [['x', 100, 1]]);
 const names = (items: SpecItem[]) => items.map(i => i.name);
 const item = (items: SpecItem[], name: string) => items.find(i => i.name === name)!;
 
@@ -23,7 +23,7 @@ describe('panel and route supplies', () => {
   });
   it('gives nothing without working groups', () => {
     expect(supplySpec(calcAll([], defaultCfg()))).toEqual([]);
-    expect(supplySpec(calcAll([mkLine('e', 'light', 5, null, null, [])], defaultCfg()))).toEqual([]);
+    expect(supplySpec(calcAll([mkLine('e', 'light', 5, [])], defaultCfg()))).toEqual([]);
   });
   it('adds combs under each RCD with two or more breakers, jumpers, ferrules and tube', () => {
     const lines = [sock('a'), sock('b'), light('c')].map(l => ({ ...l, zone: 'Кухня' }));
@@ -49,7 +49,7 @@ describe('panel and route supplies', () => {
     expect(s.find(i => i.name.includes('синий'))!.note).toBe('перемычки N');
   });
   it('uses 3P and 4P combs and five ferrules per three phase group', () => {
-    const three = mkLine('p', 'power', 10, null, null, [['x', 9000, 1]], '3');
+    const three = mkLine('p', 'power', 10, [['x', 9000, 1]], '3');
     const a = calcAll([three, { ...sock('a'), phase: 'L2' }, { ...sock('b'), phase: 'L3' }], cfg({ supply: 3, prot: 'rcbo' }));
     const s = supplySpec(a);
     expect(s.some(i => i.name === 'Шина соединительная (гребёнка) 4P')).toBe(true);

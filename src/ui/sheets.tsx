@@ -75,11 +75,15 @@ export function NetSheet({
         </label>
       </fieldset>
       <details className="bd-help net-more">
-        <summary>Для точного расчёта<small>{[IN_CABLE[c.inCable], c.boxAuto ? 'коробки по прокладке' : 'коробки ' + BOX_NAME[c.box], 'петля сети ' + fmt(c.zs, 2) + ' Ом', 'одновременность ' + fs(c.ko), 'поправка на группировку ' + fs(c.k), c.safe ? 'сечение с запасом' : 'сечение по норме'].concat(c.feeder > 0 ? ['потеря до щитка ' + fs(c.feeder) + ' %'] : []).join(' · ')}</small></summary>
+        <summary>Для точного расчёта<small>{[IN_CABLE[c.inCable]].concat(c.grpCable !== 'vvg' ? ['группы ' + IN_CABLE[c.grpCable]] : []).concat([c.boxAuto ? 'коробки по прокладке' : 'коробки ' + BOX_NAME[c.box], 'петля сети ' + fmt(c.zs, 2) + ' Ом', 'одновременность ' + fs(c.ko), 'поправка на группировку ' + fs(c.k), c.safe ? 'сечение с запасом' : 'сечение по норме']).concat(c.margin > 1 ? ['запас по автомату ' + fs(c.margin)] : []).concat(c.feeder > 0 ? ['потеря до щитка ' + fs(c.feeder) + ' %'] : []).join(' · ')}</small></summary>
         <div className="net-more-b">
           <div className="f">
             <span className="lbl-row"><span className="lbl" id="l-inc">Кабель ввода</span><Tip label="О кабеле ввода">Марка кабеля от этажного щита до щитка квартиры. Сечение подбирается расчётом.</Tip></span>
             <Seg<string> name="inc" labelledBy="l-inc" value={c.inCable} items={(Object.keys(IN_CABLE) as (keyof typeof IN_CABLE)[]).map(k => [k, IN_CABLE[k]])} onChange={v => dispatch({ t: 'cfg', field: 'inCable', value: v })} />
+          </div>
+          <div className="f">
+            <span className="lbl-row"><span className="lbl" id="l-gc">Кабель групп</span><Tip label="О кабеле групп">Марка кабеля от щитка до приборов. Попадает в схему, спецификацию, смету и закупку.</Tip></span>
+            <Seg<string> name="gc" labelledBy="l-gc" value={c.grpCable} items={(Object.keys(IN_CABLE) as (keyof typeof IN_CABLE)[]).map(k => [k, IN_CABLE[k]])} onChange={v => dispatch({ t: 'cfg', field: 'grpCable', value: v })} />
           </div>
           <div className="f">
             <span className="lbl-row"><span className="lbl" id="l-box">Распределительные коробки</span><Tip label="О коробках">Для скрытой проводки в бетон и кирпич берут коробки под штукатурку, в гипсокартон с прижимными лапками, для открытой проводки и мокрых зон накладные IP54.</Tip></span>
@@ -102,6 +106,10 @@ export function NetSheet({
             <div className="f">
               <span className="lbl-row"><span className="lbl">Одновременность, Ко</span><Tip label="О коэффициенте одновременности">Доля приборов квартиры, работающих одновременно. Применяется к расчётной мощности и току ввода.</Tip></span>
               <Stepper value={p.cfg.ko} d={0.05} min={0.3} max={1} step={0.05} label="Коэффициент одновременности" onChange={v => dispatch({ t: 'cfg', field: 'ko', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'ko', d })} />
+            </div>
+            <div className="f">
+              <span className="lbl-row"><span className="lbl">Запас по автомату</span><Tip label="О запасе по автомату">Номинал группового автомата берётся не меньше тока группы, умноженного на запас. 1 — без запаса. В плотно собранном щитке автоматы нагреваются и отключаются раньше номинала, обычно берут 1,1–1,25.</Tip></span>
+              <Stepper value={p.cfg.margin ?? 1} d={0.05} min={1} max={1.5} step={0.05} label="Запас по номиналу группового автомата" onChange={v => dispatch({ t: 'cfg', field: 'margin', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'margin', d })} />
             </div>
             <div className="f">
               <span className="lbl-row"><span className="lbl">Поправка на группировку</span><Tip label="О поправке на группировку">Уменьшает табличный допустимый ток кабеля, если кабели идут пучком.</Tip></span>

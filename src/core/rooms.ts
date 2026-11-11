@@ -77,20 +77,20 @@ export function assemble(rooms: Room[]): Line[] {
   const pick = (r: Room, tag: string): RoomApp[] => r.apps.filter(a => a.tag === tag && power(a) > 0);
   const lights = rooms.map(r => ({ room: r, apps: pick(r, 'l') })).filter(x => x.apps.length);
   merge(lights, LIGHT_CAP_W).forEach(b => {
-    lines.push(zoned(mkLine(title('Освещение', b.rooms), 'light', 15, null, null, b.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])), b.rooms));
+    lines.push(zoned(mkLine(title('Освещение', b.rooms), 'light', 15, b.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])), b.rooms));
   });
   const sockets = rooms.map(r => ({ room: r, apps: pick(r, 's') })).filter(x => x.apps.length);
   sockets.filter(x => x.room.kitchen).forEach(x => {
-    lines.push(zoned(mkLine(title('Розетки', [x.room.name || 'Кухня']), 'socket', 15, null, null, x.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])), [x.room.name || 'Кухня']));
+    lines.push(zoned(mkLine(title('Розетки', [x.room.name || 'Кухня']), 'socket', 15, x.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])), [x.room.name || 'Кухня']));
   });
   merge(sockets.filter(x => !x.room.kitchen), SOCKET_CAP_W).forEach(b => {
-    lines.push(zoned(mkLine(title('Розетки', b.rooms), 'socket', 15, null, null, b.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])), b.rooms));
+    lines.push(zoned(mkLine(title('Розетки', b.rooms), 'socket', 15, b.apps.map(a => [a.name, pn(a.w, 0), pn(a.n, 1)])), b.rooms));
   });
   rooms.forEach(r => {
     pick(r, 'p').forEach(a => {
       const n = Math.max(1, Math.round(pn(a.n, 1)));
       for (let i = 0; i < n; i++) {
-        lines.push(zoned(mkLine(n > 1 ? a.name + ' ' + (i + 1) : a.name, 'power', 10, null, null, [[a.name, pn(a.w, 0), 1]]), [r.name || 'Комната']));
+        lines.push(zoned(mkLine(n > 1 ? a.name + ' ' + (i + 1) : a.name, 'power', 10, [[a.name, pn(a.w, 0), 1]]), [r.name || 'Комната']));
       }
     });
   });

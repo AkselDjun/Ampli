@@ -6,7 +6,7 @@ import { defaultCfg, mkLine } from '../../core/templates';
 import { packProject, unpackProject } from '../../core/share';
 
 const mk = (supply = 1): State => {
-  const p = newProject({ sample: false, cfg: { ...defaultCfg(), supply }, lines: [mkLine('Свет', 'light', 10, 1, 1, [['', 0, 1]]), mkLine('Розетки', 'socket', 10, 1, 1, [['Чайник', 2000, 1]])] }, 'Т');
+  const p = newProject({ sample: false, cfg: { ...defaultCfg(), supply }, lines: [mkLine('Свет', 'light', 10, [['', 0, 1]]), mkLine('Розетки', 'socket', 10, [['Чайник', 2000, 1]])] }, 'Т');
   return init({ cur: p.id, list: [p] });
 };
 const run = (s: State, ...as: Action[]): State => as.reduce(reducer, s);

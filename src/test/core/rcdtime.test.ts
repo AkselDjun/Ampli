@@ -19,7 +19,7 @@ describe('RCD trip time limits from ТКП 339-2022 amendment 1', () => {
     expect(rcdTripMs(100)).toBe(2000);
   });
   it('accepts a fast RCD and rejects a slow one', () => {
-    const base = mkLine('Розетки', 'socket', 10, 1, 1, [['Чайник', 2000, 1]]);
+    const base = mkLine('Розетки', 'socket', 10, [['Чайник', 2000, 1]]);
     const none = calcLine(base, c);
     expect(none.rcdMeas).toBeNull();
     expect(none.rcdLim).toBe(500);
@@ -31,14 +31,14 @@ describe('RCD trip time limits from ТКП 339-2022 amendment 1', () => {
     expect(bad.notes.join(' ')).toContain('табл. 4.4.48');
   });
   it('uses table 4.4.47 for RCDs above 30 mA', () => {
-    const big = mkLine('Плита', 'power', 10, 1, 1, [['Плита', 9000, 1]]);
-    const r = calcLine(withMeas(big, 2500), c);
+    const big = mkLine('Плита', 'power', 10, [['Плита', 9000, 1]]);
+    const r = calcLine(withMeas(big, 2500), c, 100);
     expect(r.ma).toBe(100);
     expect(r.rcdLim).toBe(2000);
     expect(r.notes.join(' ')).toContain('табл. 4.4.47');
   });
   it('puts trip time into the protocol verdict', () => {
-    const l = mkLine('Свет', 'light', 10, 1, 1, [['Люстра', 100, 1]]);
+    const l = mkLine('Свет', 'light', 10, [['Люстра', 100, 1]]);
     const ok = protocolRows(calcAll([withMeas(l, 30)], defaultCfg()))[0];
     expect(ok.rcdT).toBe(30);
     expect(ok.rcdLim).toBe(500);
@@ -57,8 +57,8 @@ describe('norm references after amendment 1', () => {
     expect(text).not.toContain('табл. 8.1');
   });
   it('explains why each group type gets an RCD', () => {
-    const light = mkLine('Свет', 'light', 10, 1, 1, [['Люстра', 100, 1]]);
-    const power = mkLine('Бойлер', 'power', 10, 1, 1, [['Бойлер', 2000, 1]]);
+    const light = mkLine('Свет', 'light', 10, [['Люстра', 100, 1]]);
+    const power = mkLine('Бойлер', 'power', 10, [['Бойлер', 2000, 1]]);
     const note = (l: Line) => (whyRows(l, calcLine(l, c), c).find(w => w.title === 'Автомат')?.note ?? '');
     expect(note(light)).toContain('п. 4.3.18.5');
     expect(note(power)).toContain('по практике');

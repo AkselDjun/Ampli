@@ -77,7 +77,7 @@ describe('PanelMode', () => {
     expect(dlg('На щитке').querySelector('.pm')).toBeNull();
   });
   it('shows no cable name when the protection is missing', () => {
-    const l = mkLine('Пустая', 'socket', 10, null, null, [['Чайник', 2200, 1]]);
+    const l = mkLine('Пустая', 'socket', 10, [['Чайник', 2200, 1]]);
     const a = calcAll([l], defaultCfg());
     const dispatch = vi.fn();
     render(<PanelMode open onClose={() => undefined} a={a} dispatch={dispatch} />);
@@ -102,7 +102,7 @@ describe('IncomingSheet', () => {
 
 describe('incoming project flow', () => {
   const hashFor = (name: string, address = '') => {
-    const p = newProject({ sample: false, cfg: defaultCfg(), lines: [mkLine('Кухня', 'socket', 10, null, null, [['Чайник', 2200, 1]])] }, name);
+    const p = newProject({ sample: false, cfg: defaultCfg(), lines: [mkLine('Кухня', 'socket', 10, [['Чайник', 2200, 1]])] }, name);
     return packProject({ ...p, address });
   };
 
@@ -379,7 +379,7 @@ describe('Owner passport', () => {
 
   it('sizes the breaker for all appliances at once and explains the test button for residual-current devices', () => {
     const p = sampleProject();
-    p.lines = [mkLine('Кухня', 'socket', 10, null, null, [['Духовка', 3500, 1], ['Чайник', 2200, 1], ['Тостер', 900, 1]])];
+    p.lines = [mkLine('Кухня', 'socket', 10, [['Духовка', 3500, 1], ['Чайник', 2200, 1], ['Тостер', 900, 1]])];
 
     window.location.hash = '#o=' + packProject(p);
     render(<App />);

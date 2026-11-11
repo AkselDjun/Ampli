@@ -7,7 +7,7 @@ import { OWNER_PREFIX, ownerUrl, packProject, readOwnerHash, unpackProject } fro
 import type { Line } from '../../core/types';
 
 const line = (name: string, apps: [string, number, number][], extra: Partial<Line> = {}): Line => ({
-  ...mkLine(name, extra.type ?? 'socket', 10, null, null, apps, extra.phase),
+  ...mkLine(name, extra.type ?? 'socket', 10, apps, extra.phase),
   ...extra
 });
 
