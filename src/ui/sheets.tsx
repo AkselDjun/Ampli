@@ -3,6 +3,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import type { Calc, Project } from '../core/types';
 import type { TplKey } from '../core/templates';
 import { TPL_LIST, TPL_NAME, blank, contentFor, sample } from '../core/templates';
+import { MAX_PROJECTS } from '../core/limits';
 import { cfgN } from '../core/calc';
 import { BOX_NAME, IN_CABLE } from '../core/norms';
 import { dfmt, fmt, fs, plural } from '../core/format';
@@ -219,7 +220,7 @@ export function ProjectsSheet({
         return;
       }
     }
-    const arr: unknown[] = Array.isArray(o) ? o : (Array.isArray(list) ? list : [o]);
+    const arr: unknown[] = (Array.isArray(o) ? o : (Array.isArray(list) ? list : [o])).slice(0, MAX_PROJECTS);
     const parsed = arr.map(x => { try { return normProject(x, restore); } catch (e) { void e; return null; } }).filter((x): x is Project => !!x);
     const have = new Set(state.list.map(x => x.id));
     const added = restore ? parsed.filter(x => !have.has(x.id)) : parsed;

@@ -1,7 +1,9 @@
-import type { Content, Line, Project, Room } from './types';
+import type { Appliance, Cfg, Content, Line, LineType, Meas, Phase, Project, Proto, Room, RoomApp } from './types';
 import { normActs } from './acts';
 import { normOld, oldStarted } from './oldwire';
-import { TYPES } from './norms';
+import { CLIMITS, TYPES } from './norms';
+import { pn } from './format';
+import { APP_MAX, LINE_MAX, MAX_APPS, MAX_CHECKS, MAX_LINES, MAX_ROOMS, MEAS_MAX, numField } from './limits';
 import { defaultCfg, sample } from './templates';
 import { keepId, nid, pid } from './ids';
 import { normPhotos } from './photos';
@@ -10,47 +12,152 @@ import { normWeak, weakStarted } from './weak';
 import { normFloor } from './floor';
 
 const str = (v: unknown, n: number): string => (typeof v === 'string' ? v.slice(0, n) : typeof v === 'number' ? String(v) : '');
-const numv = (v: unknown, d: number | string = ''): number | string => (typeof v === 'number' && Number.isFinite(v) ? v : typeof v === 'string' ? v.slice(0, 12) : d);
+const PHASES: readonly string[] = ['L1', 'L2', 'L3', '3'];
+const MEAS_KEYS = ['zs', 'ins', 'leak', 'rcd'] as const;
+const CFG_TEXT = ['method', 'minS', 'prot', 'box', 'inCable', 'spd', 'vr', 'afdd', 'grpCable', 'obj'] as const;
+const CFG_NUM = ['ko', 'k', 'alloc', 'zs', 'feeder', 'margin', 'sip', 'rz'] as const;
+const ROOM_TAGS: readonly string[] = ['l', 's', 'p'];
 
-type Loose = Partial<Project> & { cfg?: unknown; lines?: unknown };
+type Loose = Record<string, unknown>;
 
-const legacy = (l: Line, rcd: boolean): Line => {
-  const o = { ...l } as Line & { kc?: unknown; cos?: unknown; where?: unknown };
-  const where = typeof o.where === 'string' ? o.where.trim() : '';
-  if (!rcd && where && !(typeof o.zone === 'string' && o.zone.trim())) o.zone = where.slice(0, 60);
-  delete o.kc;
-  delete o.cos;
-  delete o.where;
-  return o;
+const obj = (v: unknown): Loose | null => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Loose) : null);
+const when = (v: unknown, max: number) => (typeof v === 'number' || typeof v === 'string' ? numField(v, max) : undefined);
+
+function normCfg(o: Loose): Cfg {
+  const out: Loose = { ...defaultCfg(), ...('prot' in o ? {} : { prot: 'rcbo' }) };
+  if ('supply' in o) out.supply = Number(o.supply) === 3 ? 3 : 1;
+  for (const k of CFG_TEXT) if (typeof o[k] === 'string') out[k] = (o[k] as string).slice(0, 16);
+  for (const k of CFG_NUM) {
+    const v = o[k];
+    if (v === '' && (k === 'rz' || k === 'sip')) out[k] = '';
+    else {
+      const x = pn(v, NaN);
+      if ((typeof v === 'number' || typeof v === 'string') && Number.isFinite(x)) out[k] = Math.min(CLIMITS[k][1], Math.max(CLIMITS[k][0], x));
+    }
+  }
+  return out as unknown as Cfg;
+}
+
+function normMeas(v: unknown): Meas | undefined {
+  const m = obj(v);
+  if (!m) return undefined;
+  const out: Meas = {};
+  for (const k of MEAS_KEYS) {
+    const x = when(m[k], MEAS_MAX);
+    if (x !== undefined) out[k] = x;
+  }
+  return out;
+}
+
+function normApp(a: Loose): Appliance {
+  const m = when(a.m, APP_MAX.m);
+  const br = when(a.br, APP_MAX.br);
+  const cos = a.cos === '' ? undefined : when(a.cos, APP_MAX.cos);
+  return {
+    id: nid(),
+    name: str(a.name, 80),
+    w: numField(a.w, APP_MAX.w),
+    n: numField(a.n, APP_MAX.n, 1),
+    ...(m !== undefined ? { m } : {}),
+    ...(br !== undefined ? { br } : {}),
+    cos,
+    alt: a.alt === true ? true : undefined
+  };
+}
+
+function normLine(l: Loose, id: string, z: string | undefined): Line {
+  const meas = normMeas(l.meas);
+  const sockets = when(l.sockets, LINE_MAX.sockets);
+  const perSocket = when(l.perSocket, LINE_MAX.perSocket);
+  return {
+    id,
+    name: str(l.name, 80),
+    type: l.type as LineType,
+    phase: (PHASES.includes(l.phase as string) ? l.phase : 'L1') as Phase,
+    ...(l.wet === true ? { wet: true } : {}),
+    ...(l.out === true ? { out: true } : {}),
+    ...(meas ? { meas } : {}),
+    zone: z,
+    ...(sockets !== undefined ? { sockets } : {}),
+    ...(perSocket !== undefined ? { perSocket } : {}),
+    len: numField(l.len, LINE_MAX.len),
+    apps: (l.apps as unknown[]).slice(0, MAX_APPS).map(obj).filter((a): a is Loose => !!a).map(normApp)
+  };
+}
+
+function normRooms(v: unknown): Room[] {
+  if (!Array.isArray(v)) return [];
+  return v.slice(0, MAX_ROOMS).map(obj).filter((r): r is Loose => !!r && Array.isArray(r.apps)).map(r => ({
+    id: nid(),
+    name: str(r.name, 60),
+    ...(r.kitchen === true ? { kitchen: true } : {}),
+    apps: (r.apps as unknown[]).slice(0, MAX_APPS).map(obj).filter((a): a is Loose => !!a && ROOM_TAGS.includes(a.tag as string)).map(a => ({
+      id: nid(),
+      name: str(a.name, 80),
+      w: numField(a.w, APP_MAX.w),
+      n: numField(a.n, APP_MAX.n, 1),
+      tag: a.tag as RoomApp['tag']
+    }))
+  }));
+}
+
+function normChecks(v: unknown): Record<string, boolean> {
+  const o = obj(v);
+  const out: Record<string, boolean> = {};
+  if (!o) return out;
+  for (const [k, x] of Object.entries(o).slice(0, MAX_CHECKS)) if (typeof x === 'boolean') out[k.slice(0, 80)] = x;
+  return out;
+}
+
+function normProto(v: unknown): Proto {
+  const o = obj(v) ?? {};
+  return { date: str(o.date, 40), device: str(o.device, 80), by: str(o.by, 80) };
+}
+
+const stamp = (v: unknown): number => {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 && n < 8.64e15 ? n : Date.now();
 };
 
 export function normProject(o: unknown, keep = false): Project | null {
-  const x = o as Loose | null;
-  if (!x || typeof x !== 'object' || !x.cfg || typeof x.cfg !== 'object' || Array.isArray(x.cfg) || !Array.isArray(x.lines)) return null;
-  const src = x.lines as Line[];
-  const rcd = (x.cfg as { prot?: unknown }).prot === 'rcd';
+  const x = obj(o);
+  const cfg = x ? obj(x.cfg) : null;
+  if (!x || !cfg || !Array.isArray(x.lines)) return null;
+  const src = (x.lines as unknown[]).slice(0, MAX_LINES);
+  const rcd = cfg.prot === 'rcd';
   const seen = new Map<string, string>();
-  for (const l of src) {
-    if (l && typeof l.zone === 'string' && l.zone.trim() && !seen.has(l.zone.trim().toLowerCase())) seen.set(l.zone.trim().toLowerCase(), l.zone.trim());
-    if (!l || typeof l !== 'object' || typeof l.type !== 'string' || !(l.type in TYPES) || !Array.isArray(l.apps)) return null;
+  for (const v of src) {
+    const l = obj(v);
+    if (!l || typeof l.type !== 'string' || !Object.prototype.hasOwnProperty.call(TYPES, l.type) || !Array.isArray(l.apps)) return null;
+    const z = typeof l.zone === 'string' ? l.zone.trim() : '';
+    if (z && !seen.has(z.toLowerCase())) seen.set(z.toLowerCase(), z);
   }
-  const lines: Line[] = src.map(l => legacy(l, rcd)).map(l => ({ ...l, ...(typeof l.zone === 'string' && l.zone.trim() ? { zone: (seen.get(l.zone.trim().toLowerCase()) ?? l.zone.trim()) === l.zone.trim() ? l.zone.slice(0, 60) : (seen.get(l.zone.trim().toLowerCase()) as string).slice(0, 60) } : { zone: undefined }), name: str(l.name, 80), id: keep ? keepId(l.id) : nid(), apps: l.apps.filter(a => a && typeof a === 'object').map(a => ({ ...a, name: str(a.name, 80), w: numv(a.w), n: numv(a.n, 1), ...(a.m !== undefined ? { m: numv(a.m) } : {}), ...(a.br !== undefined ? { br: numv(a.br) } : {}), ...(a.cos !== undefined && a.cos !== '' ? { cos: numv(a.cos) } : { cos: undefined }), ...(a.alt === true ? { alt: true } : { alt: undefined }), id: nid() })) }));
+  const ids = new Set<string>();
+  const lines: Line[] = (src as Loose[]).map(l => {
+    let id = keep ? keepId(typeof l.id === 'string' ? l.id.slice(0, 64) : undefined) : nid();
+    if (ids.has(id)) id = nid();
+    ids.add(id);
+    const own = typeof l.zone === 'string' && l.zone.trim() ? l.zone : '';
+    const where = typeof l.where === 'string' ? l.where.trim() : '';
+    const raw = own || (!rcd && where ? where.slice(0, 60) : '');
+    const z = raw.trim();
+    const zone = z ? (seen.get(z.toLowerCase()) === undefined || seen.get(z.toLowerCase()) === z ? raw : (seen.get(z.toLowerCase()) as string)).slice(0, 60) : undefined;
+    return normLine(l, id, zone);
+  });
   return {
-    id: keep && x.id ? String(x.id) : pid(),
-    name: String(x.name || 'Без названия').slice(0, 80),
-    address: String(x.address || '').slice(0, 120),
-    client: String(x.client || '').slice(0, 80),
-    author: String(x.author || '').slice(0, 80),
-    created: Number(x.created) || Date.now(),
-    updated: Number(x.updated) || Date.now(),
+    id: keep && (typeof x.id === 'string' || typeof x.id === 'number') && String(x.id) ? String(x.id).slice(0, 64) : pid(),
+    name: str(x.name, 80) || 'Без названия',
+    address: str(x.address, 120),
+    client: str(x.client, 80),
+    author: str(x.author, 80),
+    created: stamp(x.created),
+    updated: stamp(x.updated),
     sample: !!x.sample,
-    cfg: { ...defaultCfg(), ...('prot' in (x.cfg as object) ? {} : { prot: 'rcbo' }), ...(x.cfg as object) },
+    cfg: normCfg(cfg),
     lines,
-    rooms: Array.isArray(x.rooms)
-      ? (x.rooms as Room[]).filter(r => r && Array.isArray(r.apps)).map(r => ({ ...r, id: nid(), apps: r.apps.map(a => ({ ...a, id: nid() })) }))
-      : [],
-    checks: x.checks && typeof x.checks === 'object' ? { ...x.checks } : {},
-    proto: { date: '', device: '', by: '', ...(x.proto ?? {}) },
+    rooms: normRooms(x.rooms),
+    checks: normChecks(x.checks),
+    proto: normProto(x.proto),
     photos: keep ? normPhotos(x.photos) : [],
     ...(x.work && Object.keys(normWork(x.work)).length ? { work: normWork(x.work) } : {}),
     ...(x.acts ? { acts: normActs(x.acts) } : {}),

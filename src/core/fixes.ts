@@ -1,6 +1,7 @@
 import type { CfgN, Line, LineResult } from './types';
 import { calcLine } from './calc';
 import { pn } from './format';
+import { LINE_MAX } from './limits';
 
 export type FixAct = { k: 'len'; len: number } | { k: 'largest' } | { k: 'half' };
 
@@ -20,12 +21,20 @@ export function canSplit(l: Line): boolean {
 }
 
 export function maxLenFor(l: Line, c: CfgN): number | null {
-  const len = Math.max(0, pn(l.len, 0));
-  for (let L = Math.floor(len) - 1; L >= 1; L--) {
+  const len = Math.min(LINE_MAX.len + 1, Math.max(0, pn(l.len, 0)));
+  const ok = (L: number): boolean => {
     const r = calcLine({ ...l, len: L }, c);
-    if (r.status !== 'bad' && r.In) return L;
+    return r.status !== 'bad' && !!r.In;
+  };
+  let hi = Math.floor(len) - 1;
+  if (hi < 1 || !ok(1)) return null;
+  let lo = 1;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (ok(mid)) lo = mid;
+    else hi = mid - 1;
   }
-  return null;
+  return lo;
 }
 
 export function fixFor(l: Line, r: LineResult, c: CfgN): Fix | null {

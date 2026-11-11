@@ -10,6 +10,7 @@ import { nid } from '../core/ids';
 import { SAMPLE_NAME, newProject, normProject, uniqName } from '../core/project';
 import type { WorkKey } from '../core/labor';
 import { pn, round2 } from '../core/format';
+import { APP_MAX, LINE_MAX, MEAS_MAX, numIn } from '../core/limits';
 import { normActs } from '../core/acts';
 import { normOld } from '../core/oldwire';
 import type { OldKey } from '../core/oldwire';
@@ -98,17 +99,6 @@ const firstId = (p: Project): string | null => (p.lines.length ? p.lines[0].id :
 export function init(store: Store): State {
   const p = store.list.find(x => x.id === store.cur) as Project;
   return { ...store, sel: firstId(p) };
-}
-
-const LINE_MAX: Record<string, number> = { len: 500, sockets: 99, perSocket: 10000 };
-const APP_MAX: Record<string, number> = { w: 100000, n: 999, m: 100, br: 200, cos: 1 };
-
-export function numIn<T>(v: T, max: number): T | string | number {
-  if (typeof v === 'number') return Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : 0;
-  if (typeof v !== 'string') return v;
-  const t = v.replace(/[^\d.,]/g, '').replace(/^([^.,]*[.,][^.,]*)[.,].*$/, '$1');
-  const x = pn(t, NaN);
-  return Number.isFinite(x) && x > max ? String(max) : t;
 }
 
 export function reducer(s: State, a: Action): State {
@@ -245,9 +235,9 @@ export function reducer(s: State, a: Action): State {
     case 'linePhase':
       return patchLine(s, l => ({ ...l, phase: a.phase }));
     case 'lineMeas':
-      return patchLine(s, l => ({ ...l, meas: { ...(l.meas ?? {}), [a.field]: numIn(a.value, 100000) } }));
+      return patchLine(s, l => ({ ...l, meas: { ...(l.meas ?? {}), [a.field]: numIn(a.value, MEAS_MAX) } }));
     case 'lineMeasAt':
-      return patch(s, q => ({ ...q, lines: q.lines.map(l => (l.id === a.id ? { ...l, meas: { ...(l.meas ?? {}), [a.field]: numIn(a.value, 100000) } } : l)) }));
+      return patch(s, q => ({ ...q, lines: q.lines.map(l => (l.id === a.id ? { ...l, meas: { ...(l.meas ?? {}), [a.field]: numIn(a.value, MEAS_MAX) } } : l)) }));
     case 'workQty': {
       const v = a.value.trim();
       const n = Number(v.replace(',', '.'));
