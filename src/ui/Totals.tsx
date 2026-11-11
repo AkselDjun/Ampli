@@ -21,18 +21,19 @@ export function allocState(a: Calc): AllocState {
   return { pct, k: 'ok', text: 'Укладывается' };
 }
 
-export const Totals = memo(function Totals({ a, onNet }: { a: Calc; onNet: () => void }) {
+export const Totals = memo(function Totals({ a, onNet, onCompare }: { a: Calc; onNet: () => void; onCompare?: () => void }) {
   const { open, setOpen, ref } = usePop<HTMLDivElement>();
   const c = a.c;
   const st = allocState(a);
   const three = c.supply === 3;
   const inDev = a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—';
   const inCab = a.inIn ? (a.inS ? inCableName(c, a.inS) : 'больше 35 мм²') : '—';
+  const title = c.house ? 'Итого по дому' : 'Итого по квартире';
   const width = Math.min(100, Math.max(0, st.pct)) + '%';
   return (
     <div className={'tot-w' + (open ? ' open' : '')} ref={ref}>
       <button className={'kpis st-' + st.k} type="button" aria-expanded={open} aria-controls="tot-pop" onClick={() => setOpen(!open)}>
-        <span className="vh">{'Итого по квартире: ' + fmt(a.P / 1000, 1) + ' из ' + fmt(c.alloc, 1) + ' кВт, ' + st.text + '. '}</span>
+        <span className="vh">{title + ': ' + fmt(a.P / 1000, 1) + ' из ' + fmt(c.alloc, 1) + ' кВт, ' + st.text + '. '}</span>
         <div><span className="lbl"><span className="kp-l">Мощность</span><span className="kp-s">кВт</span></span><b>{a.P > 0 ? fmt(a.P / 1000, 1) : '—'}<small className="kp-of">/{fmt(c.alloc, 0)}</small><small className="kp-u"> кВт</small></b></div>
         <div><span className="lbl">{three ? 'Фаза' : 'Ток'}</span><b>{a.Itot > 0 ? fmt(a.Itot, 0) + ' А' : '—'}</b></div>
         <div className="kp-in"><span className="lbl">Ввод</span><b>{a.inIn ? 'C' + a.inIn : '—'}</b></div>
@@ -40,9 +41,9 @@ export const Totals = memo(function Totals({ a, onNet }: { a: Calc; onNet: () =>
         <i className="kp-meter" aria-hidden="true"><i style={{ width }} /></i>
       </button>
       {open && (
-        <section className="tot-pop" id="tot-pop" aria-label="Итого по квартире">
+        <section className="tot-pop" id="tot-pop" aria-label={title}>
           <div className="tp-head">
-            <h2>Итого по квартире</h2>
+            <h2>{title}</h2>
             <span className={'pill ' + st.k}>{st.text}</span>
           </div>
           <div className="tp-main">
@@ -59,7 +60,10 @@ export const Totals = memo(function Totals({ a, onNet }: { a: Calc; onNet: () =>
             <div><dt>Вводной автомат</dt><dd>{inDev}</dd></div>
             <div className="wide"><dt>Вводной кабель</dt><dd>{inCab}</dd></div>
           </dl>
-          <Button size="sm" onClick={() => { setOpen(false); onNet(); }}>Изменить выделенную мощность</Button>
+          <div className="tp-acts">
+            <Button size="sm" onClick={() => { setOpen(false); onNet(); }}>Изменить выделенную мощность</Button>
+            {onCompare && <Button size="sm" onClick={() => { setOpen(false); onCompare(); }}>Сравнить варианты</Button>}
+          </div>
         </section>
       )}
     </div>

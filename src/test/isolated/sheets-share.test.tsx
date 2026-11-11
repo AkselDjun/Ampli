@@ -46,7 +46,7 @@ describe('PanelMode', () => {
   it('opens from the header and updates verdicts while typing', () => {
     render(<App />);
     expect(isOpen('На щитке')).toBe(false);
-    fireEvent.click(screen.getByRole('button', { name: 'Режим на щитке' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
     expect(isOpen('На щитке')).toBe(true);
     const d = dlg('На щитке');
     expect(d.querySelectorAll('button.pmb-dev').length).toBeGreaterThan(3);
@@ -392,7 +392,7 @@ describe('Owner passport', () => {
 describe('RCD trip time measurement', () => {
   it('is entered in panel mode and shows in the acceptance list', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Режим на щитке' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
     const d = dlg('На щитке');
     const first = d.querySelector('.pm') as HTMLElement;
     change(byLabel(d, 'Г1: Отключение УЗО, мс'), '28');

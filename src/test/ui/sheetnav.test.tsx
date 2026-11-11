@@ -57,17 +57,16 @@ describe('back arrow between sheets', () => {
     expect(isOpen('На щитке')).toBe(false);
     expect(isOpen('Монтаж и приёмка')).toBe(false);
     fireEvent.click(nav().getByRole('button', { name: /Щиток/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Режим на щитке' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
     expect(dlg('На щитке').querySelector('.sheet-back')).toBeNull();
   });
 
-  it('chains report to compare and projects to my data', () => {
+  it('opens compare from totals and chains projects to my data', () => {
     render(<App />);
-    fireEvent.click(nav().getByRole('button', { name: /Отчёт/ }));
-    fireEvent.click(within(dlg('Отчёт и спецификация')).getByRole('button', { name: /Сравнить варианты/ }));
-    const cmp = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(d => !(d.parentElement as HTMLElement).hidden) as HTMLElement;
-    fireEvent.click(within(cmp).getByRole('button', { name: 'Назад: Отчёт и спецификация' }));
-    expect(isOpen('Отчёт и спецификация')).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: /^Итого по квартире/ }));
+    fireEvent.click(within(document.querySelector('.tot-pop') as HTMLElement).getByRole('button', { name: 'Сравнить варианты' }));
+    expect(isOpen('Сравнение вариантов')).toBe(true);
+    expect(dlg('Сравнение вариантов').querySelector('.sheet-back')).toBeNull();
     fireEvent.keyDown(document, { key: 'Escape' });
     fireEvent.click(document.querySelector('.projbar') as HTMLElement);
     fireEvent.click(screen.getByRole('tab', { name: /Обмен|Перенос|Поделиться/ }));

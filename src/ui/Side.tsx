@@ -1,5 +1,5 @@
 import type { Calc, Device, LineType } from '../core/types';
-import { fmt, fs } from '../core/format';
+import { fmt, fs, plural } from '../core/format';
 import { ROWLEN } from '../core/norms';
 import { railCells, useFitCols } from './railfit';
 import { Fragment, memo, useState } from 'react';
@@ -128,6 +128,7 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
     typeOf.set(x.l.id, x.l.type);
   });
   const lids = a.devs.filter(x => x.lid).map(x => x.lid as string);
+  const [listOpen, setListOpen] = useState(() => typeof window.matchMedia !== 'function' || window.matchMedia('(min-width: 1000px)').matches);
   return (
     <div className="pane-panel">
       <Fold title="Щиток" className="c-panel" open>
@@ -142,13 +143,13 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
               const cap = lid ? (d.mod === 1 ? shortName(nameOf[d.sub.split(' ')[0]]) : nameOf[d.sub.split(' ')[0]]) : '';
               return (
                 <Fragment key={d.lid ?? d.kind + i}>
-                  {Array.from({ length: gapBefore[i] }, (_, g) => <div key={'g' + g} className="dev dev-free" data-tip="Резерв" />)}
+                  {Array.from({ length: gapBefore[i] }, (_, g) => <div key={'g' + g} className="dev dev-free" data-tip="Резерв" aria-hidden="true" />)}
                   <Module d={d} i={i} cap={cap} t={lid ? typeOf.get(lid) : undefined} drag={drag} over={!!lid && over === lid} sel={!!lid && lid === sel} hot={!!lid && lid === hot} prev={k > 0 ? lids[k - 1] : undefined} next={k >= 0 ? lids[k + 1] : undefined} onPick={onPick} onMove={onMove} onHot={onHot} setDrag={setDrag} setOver={setOver} />
                 </Fragment>
               );
             })}
             {Array.from({ length: free }, (_, i) => (
-              <div key={'f' + i} className="dev dev-free" data-tip="Резерв" />
+              <div key={'f' + i} className="dev dev-free" data-tip="Резерв" aria-hidden="true" />
             ))}
           </div>
         </div>
@@ -160,8 +161,10 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
           {kinds.has('spd') && <span><i className="dev-spd" />УЗИП</span>}
           {a.devs.some(d => d.arc) && <span><i className="lg-arc" />УЗДП</span>}
           <span><i className="dev-free" style={{ border: '1px dashed var(--ink-2)' }} />Резерв</span>
-          <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Порядок меняется перетаскиванием или клавишами Alt и стрелка. Цвет рычажка показывает статус группы.</Tip>
+          <Tip label="Как пользоваться щитком">Нажмите на модуль, чтобы открыть группу. Цвет рычажка показывает статус группы. Порядок групп меняется в карточке группы, в меню «Ещё действия», а на компьютере ещё перетаскиванием или клавишами Alt и стрелка.</Tip>
         </div>
+        <details className="bd-fold" open={listOpen} onToggle={e => setListOpen(e.currentTarget.open)}>
+        <summary>{'Состав щитка: ' + a.devs.length + ' ' + plural(a.devs.length, ['аппарат', 'аппарата', 'аппаратов'])}</summary>
         <ul className="bd-list" aria-label="Состав щитка">
           {a.devs.map((d, i) => {
             const row = d.lid ? a.rows.find(y => y.l.id === d.lid) : undefined;
@@ -195,6 +198,7 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
             );
           })}
         </ul>
+        </details>
       </Fold>
     </div>
   );

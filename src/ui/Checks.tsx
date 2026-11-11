@@ -11,7 +11,7 @@ import { houseChecks } from '../core/house';
 export type CheckFix = HeaderCheckFix;
 
 export interface Check {
-  k: 'ok' | 'warn' | 'bad';
+  k: 'ok' | 'warn' | 'bad' | 'info';
   t: string;
   groups?: string[];
   fix?: CheckFix;
@@ -48,11 +48,13 @@ export function checksOf(a: Calc): Check[] {
   const kzBad = act.filter(x => x.r.len > 0 && x.r.ik < x.r.ikNeed);
   const kzNo = act.filter(x => x.r.len === 0);
   if (kzBad.length) out.push({ k: 'bad', t: 'Короткое замыкание: автомат может не отключить ' + kzBad.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + ' за 0,4 с. Сократите линию.', groups: kzBad.map(x => x.l.id) });
-  else if (act.length && !kzNo.length) out.push({ k: 'ok', t: 'Короткое замыкание в конце каждой линии отключается за 0,4 с (ТКП 339-2022, п. 4.3.5.4). Петля питающей сети ' + fmt(c.zs, 2) + ' Ом задана вами, проверьте её.' });
+  else if (act.length && !kzNo.length) out.push({ k: 'ok', t: 'Короткое замыкание в конце каждой линии отключается за 0,4 с (ТКП 339-2022, п. 4.3.5.4). Петля питающей сети ' + fmt(c.zs, 2) + ' Ом: если её не замеряли, замерьте на вводе или уточните у энергоснабжающей организации.' });
   else if (kzNo.length) out.push({ k: 'warn', t: 'Короткое замыкание не проверено для ' + kzNo.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + ': не задана длина.', groups: kzNo.map(x => x.l.id) });
   out.push(...houseChecks(a));
   const gr = a.rows.filter(x => !x.r.empty && x.r.status !== 'ok' && !kzBad.includes(x));
   if (gr.length) out.push({ k: gr.some(x => x.r.status === 'bad') ? 'bad' : 'warn', t: 'Замечания в ' + plural(gr.length, ['группе', 'группах', 'группах']) + ' ' + gr.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + '. Подробности в карточке группы.', groups: gr.map(x => x.l.id) });
+  const adv = a.rows.filter(x => !x.r.empty && x.r.status === 'ok' && x.r.tips.length);
+  if (adv.length) out.push({ k: 'info', t: 'Советы в ' + plural(adv.length, ['группе', 'группах', 'группах']) + ' ' + adv.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + '. Это не нарушения норм, подробности в карточке группы.', groups: adv.map(x => x.l.id) });
   return out;
 }
 
@@ -70,7 +72,7 @@ export function inputBySelectivity(a: Calc): { top: number; next: number | null;
 }
 
 export function checksState(list: Check[]): { k: 'ok' | 'warn' | 'bad'; n: number; text: string } {
-  const n = list.filter(x => x.k !== 'ok').length;
+  const n = list.filter(x => x.k === 'warn' || x.k === 'bad').length;
   const k = list.some(x => x.k === 'bad') ? 'bad' : (n ? 'warn' : 'ok');
   return { k, n, text: n ? n + ' ' + plural(n, ['замечание', 'замечания', 'замечаний']) : 'Всё в норме' };
 }

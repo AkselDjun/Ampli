@@ -70,6 +70,12 @@ export const IconCopy = make(0, (
 ));
 export const IconList = make(0, <path d="M4 6h16M4 12h16M4 18h16" />);
 export const IconBolt = make(0, <path d="M13 2 5 13h6l-1 9 8-11h-6z" />);
+export const IconMeter = make(0, (
+  <>
+    <rect x="5" y="2.5" width="14" height="19" rx="2.5" />
+    <path d="M8.5 6.5h7v4h-7zM9 15h.01M12 15h.01M15 15h.01M9 18h6" />
+  </>
+));
 export const IconPanel = make(0, (
   <>
     <rect x="3" y="4" width="18" height="16" rx="2" />
