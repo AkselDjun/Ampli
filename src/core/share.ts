@@ -8,6 +8,17 @@ export const SHARE_PREFIX = '#p=';
 export const OWNER_PREFIX = '#o=';
 export const ESTIMATE_PREFIX = '#e=';
 export const SHARE_VERSION = 'v1.';
+
+export const TIER_MARKUP_MAX = 300;
+
+export type Markup = [number, number, number];
+
+export function normMarkup(o: unknown): Markup | null {
+  if (!Array.isArray(o) || o.length !== 3) return null;
+  const out = o.map(v => (typeof v === 'number' && isFinite(v) ? Math.min(TIER_MARKUP_MAX, Math.max(0, Math.round(v))) : NaN));
+  return out.some(v => isNaN(v)) ? null : (out as Markup);
+}
+
 const INFLATE_LIMIT = 2_000_000;
 export const LINK_LIMIT = 1_000_000;
 
@@ -90,6 +101,7 @@ export interface EstimateShare {
   company: string;
   contacts: string;
   at: number;
+  tiers?: Markup;
 }
 
 const priceMap = (o: unknown): Record<string, number> => {
@@ -102,7 +114,7 @@ const priceMap = (o: unknown): Record<string, number> => {
 };
 
 export function packEstimate(e: EstimateShare): string {
-  return packJson({ p: slimProject(e.p), prices: e.prices, labor: e.labor, company: e.company, contacts: e.contacts, at: e.at });
+  return packJson({ p: slimProject(e.p), prices: e.prices, labor: e.labor, company: e.company, contacts: e.contacts, at: e.at, ...(e.tiers ? { tiers: e.tiers } : {}) });
 }
 
 export function unpackEstimate(text: string): EstimateShare | null {
@@ -110,13 +122,15 @@ export function unpackEstimate(text: string): EstimateShare | null {
     const o = unpackJson(text) as Partial<Record<keyof EstimateShare, unknown>> | null;
     const p = o ? normProject(o.p) : null;
     if (!o || !p) return null;
+    const tiers = normMarkup(o.tiers);
     return {
       p,
       prices: priceMap(o.prices),
       labor: normWork(o.labor),
       company: String(o.company ?? '').slice(0, 80),
       contacts: String(o.contacts ?? '').slice(0, 160),
-      at: Number(o.at) || 0
+      at: Number(o.at) || 0,
+      ...(tiers ? { tiers } : {})
     };
   } catch (e) {
     void e;

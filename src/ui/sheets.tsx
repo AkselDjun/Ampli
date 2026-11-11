@@ -3,6 +3,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import type { Calc, Project } from '../core/types';
 import type { TplKey } from '../core/templates';
 import { TPL_LIST, TPL_NAME, blank, contentFor, sample } from '../core/templates';
+import { MAX_PROJECTS } from '../core/limits';
 import { cfgN } from '../core/calc';
 import { BOX_NAME, IN_CABLE } from '../core/norms';
 import { dfmt, fmt, fs, plural } from '../core/format';
@@ -22,6 +23,7 @@ import { IOS_STEPS, install, usePwa } from './pwa';
 import { PWA_ENABLED } from '../core/flags';
 import { ShareBlock } from './ShareBlock';
 import { LaborTable, Totals, totals } from './Labor';
+import { TierSettings } from './Tiers';
 import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
 import { DrawingA3 } from './parts';
@@ -218,7 +220,7 @@ export function ProjectsSheet({
         return;
       }
     }
-    const arr: unknown[] = Array.isArray(o) ? o : (Array.isArray(list) ? list : [o]);
+    const arr: unknown[] = (Array.isArray(o) ? o : (Array.isArray(list) ? list : [o])).slice(0, MAX_PROJECTS);
     const parsed = arr.map(x => { try { return normProject(x, restore); } catch (e) { void e; return null; } }).filter((x): x is Project => !!x);
     const have = new Set(state.list.map(x => x.id));
     const added = restore ? parsed.filter(x => !have.has(x.id)) : parsed;
@@ -527,6 +529,7 @@ export function ReportSheet({
       {est.missing > 0 && Object.keys(lib.prices).length > 0 && <p className="muted">Для {est.missing} поз. цена или количество не заданы, они не входят в итог.</p>}
       <LaborTable p={p} a={a} dispatch={dispatch} />
       <Totals {...totals(a, p, lib.prices, lib.labor)} />
+      <TierSettings p={p} dispatch={dispatch} />
       <ShareBlock p={p} kind="estimate" />
       </TabPanel>
       <TabPanel scope="rep" id="notes" cur={tab}>

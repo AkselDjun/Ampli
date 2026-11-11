@@ -3,6 +3,7 @@ import type { Offer } from './shop';
 
 export const MAX_ROWS = 5000;
 export const MAX_FILE = 5_000_000;
+export const MAX_UNZIP = 20_000_000;
 
 export type Grid = string[][];
 
@@ -69,7 +70,15 @@ const textOf = (el: Element): string => Array.from(el.getElementsByTagName('t'))
 
 export function parseXlsx(buf: ArrayBuffer): Grid | null {
   try {
-    const files = unzipSync(new Uint8Array(buf), { filter: f => /^xl\/(sharedStrings\.xml|worksheets\/sheet\d+\.xml)$/.test(f.name) && f.originalSize < 40_000_000 });
+    let budget = MAX_UNZIP;
+    const files = unzipSync(new Uint8Array(buf), {
+      filter: f => {
+        if (!/^xl\/(sharedStrings\.xml|worksheets\/sheet\d+\.xml)$/.test(f.name)) return false;
+        if (f.originalSize > budget) return false;
+        budget -= f.originalSize;
+        return true;
+      }
+    });
     const sheetName = Object.keys(files).filter(n => n.startsWith('xl/worksheets/')).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))[0];
     if (!sheetName) return null;
     const dom = (u8: Uint8Array) => new DOMParser().parseFromString(strFromU8(u8), 'application/xml');
