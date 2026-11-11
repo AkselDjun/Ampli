@@ -6,7 +6,8 @@ import { nid } from '../core/ids';
 import { plural } from '../core/format';
 import type { Action } from '../store/reducer';
 import { toastOk } from './toast';
-import { ArmButton, Sheet } from './common';
+import { ArmButton, Err, Sheet, errAttrs } from './common';
+import { asLabel, fieldErr } from '../core/limits';
 import { Button, IconButton } from './kit';
 
 export function RoomsSheet({
@@ -34,19 +35,25 @@ export function RoomsSheet({
             <input className="ed-name" aria-label="Название комнаты" value={r.name} onChange={e => dispatch({ t: 'roomName', id: r.id, value: e.target.value })} />
             <ArmButton variant="danger" size="sm" label="Удалить" armedLabel="Точно?" onRun={() => dispatch({ t: 'roomDel', id: r.id })} />
           </div>
-          {r.apps.map(ap => (
-            <div className="room-app" key={ap.id}>
-              <input aria-label="Название прибора" placeholder="Прибор" value={ap.name} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'name', value: e.target.value })} />
-              <span className="fld" data-sfx="Вт"><input aria-label="Мощность, Вт" type="text" inputMode="numeric" min={0} placeholder="0" value={String(ap.w)} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'w', value: e.target.value })} /></span>
-              <span className="fld" data-sfx="шт"><input aria-label="Количество" type="text" inputMode="numeric" min={1} value={String(ap.n)} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'n', value: e.target.value })} /></span>
-              <select aria-label="Тип нагрузки" value={ap.tag} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'tag', value: e.target.value })}>
-                <option value="l">Свет</option>
-                <option value="s">Розетка</option>
-                <option value="p">Мощный</option>
-              </select>
-              <IconButton label="Удалить прибор" onClick={() => dispatch({ t: 'roomAppDel', rid: r.id, aid: ap.id })}>×</IconButton>
-            </div>
-          ))}
+          {r.apps.map(ap => {
+            const we = fieldErr('w', ap.w);
+            const ne = fieldErr('n', ap.n);
+            return (
+              <div className="room-app" key={ap.id}>
+                <input aria-label="Название прибора" placeholder="Прибор" value={ap.name} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'name', value: e.target.value })} />
+                <span className="fld" data-sfx="Вт"><input aria-label="Мощность, Вт" type="text" inputMode="numeric" min={0} placeholder="0" {...errAttrs(we, 'e-rw-' + ap.id)} value={String(ap.w)} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'w', value: e.target.value })} /></span>
+                <span className="fld" data-sfx="шт"><input aria-label="Количество" type="text" inputMode="numeric" min={1} {...errAttrs(ne, 'e-rn-' + ap.id)} value={String(ap.n)} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'n', value: e.target.value })} /></span>
+                <select aria-label="Тип нагрузки" value={ap.tag} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'tag', value: e.target.value })}>
+                  <option value="l">Свет</option>
+                  <option value="s">Розетка</option>
+                  <option value="p">Мощный</option>
+                </select>
+                <IconButton label="Удалить прибор" onClick={() => dispatch({ t: 'roomAppDel', rid: r.id, aid: ap.id })}>×</IconButton>
+                <Err e={we && asLabel('Мощность', we)} id={'e-rw-' + ap.id} />
+                <Err e={ne && asLabel('Количество', ne)} id={'e-rn-' + ap.id} />
+              </div>
+            );
+          })}
           <div className="room-tools">
             <select aria-label={'Добавить прибор в комнату ' + r.name} value="" onChange={e => {
               const pr = PRESETS[Number(e.target.value)];

@@ -4,7 +4,8 @@ import { FLOOR_SYS, FLOOR_USES, SYS_KEYS, USE_KEYS, floorAppName, floorCalc } fr
 import type { FloorRoom, FloorUse } from '../core/floor';
 import { fmt } from '../core/format';
 import type { Action } from '../store/reducer';
-import { ArmButton, Sheet } from './common';
+import { ArmButton, Err, Sheet, errAttrs } from './common';
+import { fieldErr } from '../core/limits';
 import { IconAlert, IconDone } from './Icons';
 import { toastOk } from './toast';
 import { Button } from './kit';
@@ -18,6 +19,8 @@ function RoomCard({ r, p, dispatch }: { r: FloorRoom; p: Project; dispatch: (a: 
   const mine = lines.find(x => x.l.apps.some(a => a.name === name));
   const [target, setTarget] = useState('');
   const to = target && (target === 'new' || lines.some(x => x.l.id === target)) ? target : mine ? mine.l.id : 'new';
+  const areaErr = fieldErr('area', r.area);
+  const wpmErr = r.sys === 'mat' ? null : fieldErr('floorWpm', r.wpm);
   const set = (field: Exclude<keyof FloorRoom, 'id'>) => (value: string) => dispatch({ t: 'floorSet', id: r.id, field, value });
   const apply = () => {
     const x = lines.find(o => o.l.id === to);
@@ -45,11 +48,13 @@ function RoomCard({ r, p, dispatch }: { r: FloorRoom; p: Project; dispatch: (a: 
         </label>
         <label className="f">
           <span className="lbl">Свободная площадь, м²</span>
-          <input type="text" inputMode="decimal" min={0} step={0.1} placeholder="3,5" value={String(r.area)} onChange={e => set('area')(e.target.value)} />
+          <input type="text" inputMode="decimal" min={0} step={0.1} placeholder="3,5" {...errAttrs(areaErr, 'e-fa-' + r.id)} value={String(r.area)} onChange={e => set('area')(e.target.value)} />
+          <Err e={areaErr} id={'e-fa-' + r.id} />
         </label>
         <label className="f">
           <span className="lbl">Мощность, Вт/м²</span>
-          <input type="text" inputMode="numeric" min={0} step={10} value={String(r.wpm)} disabled={r.sys === 'mat'} onChange={e => set('wpm')(e.target.value)} />
+          <input type="text" inputMode="numeric" min={0} step={10} {...errAttrs(wpmErr, 'e-fw-' + r.id)} value={String(r.wpm)} disabled={r.sys === 'mat'} onChange={e => set('wpm')(e.target.value)} />
+          <Err e={wpmErr} id={'e-fw-' + r.id} />
         </label>
       </div>
       <p className="muted fl-hint">{FLOOR_SYS[r.sys].hint}. Площадь без мебели, ванны и сантехники.</p>
