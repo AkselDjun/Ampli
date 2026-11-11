@@ -1,6 +1,7 @@
 import { SIP_LEN_DEF } from '../core/house';
-import type { Appliance, Cfg, Content, Line, LineType, Phase, Photo, Project, Room, RoomApp } from '../core/types';
+import type { Appliance, Cfg, Content, Line, LineType, Phase, Photo, Project, Room, RoomApp, Trace } from '../core/types';
 import { PHOTO_LIMIT } from '../core/photos';
+import { normTraces } from '../core/traces';
 import { splitApps } from '../core/fixes';
 import { assemble } from '../core/rooms';
 import { TYPES, CLIMITS } from '../core/norms';
@@ -45,6 +46,7 @@ export type Action =
   | { t: 'photoAdd'; photo: Photo }
   | { t: 'photoDel'; id: string }
   | { t: 'photoNote'; id: string; value: string }
+  | { t: 'photoTraces'; id: string; traces: Trace[] }
   | { t: 'addApps'; apps: { name: string; w: number; n: number; m?: number }[] }
   | { t: 'lineField'; field: 'name' | 'zone' | 'len' | 'sockets' | 'perSocket'; value: string | number }
   | { t: 'lineType'; type: LineType }
@@ -135,6 +137,19 @@ export function reducer(s: State, a: Action): State {
       return patch(s, q => ({ ...q, photos: [...(q.photos ?? []), a.photo] }));
     case 'photoDel':
       return patch(s, q => ({ ...q, photos: (q.photos ?? []).filter(ph => ph.id !== a.id) }));
+    case 'photoTraces': {
+      const traces = normTraces(a.traces);
+      return patch(s, q => ({
+        ...q,
+        photos: (q.photos ?? []).map(ph => {
+          if (ph.id !== a.id) return ph;
+          const next: Photo = { ...ph };
+          if (traces.length) next.traces = traces;
+          else delete next.traces;
+          return next;
+        })
+      }));
+    }
     case 'photoNote':
       return patch(s, q => ({ ...q, photos: (q.photos ?? []).map(ph => (ph.id === a.id ? { ...ph, note: a.value.slice(0, 120) } : ph)) }));
     case 'roomAdd':

@@ -58,7 +58,7 @@ describe('photos', () => {
   const lines = [{ id: 'l1', name: 'Кухня' }, { id: 'l2', name: 'Спальня' }] as Line[];
 
   it('exposes tags and labels', () => {
-    expect(PHOTO_TAGS.map(t => t[0])).toEqual(['before', 'after', 'plate', 'meas']);
+    expect(PHOTO_TAGS.map(t => t[0])).toEqual(['before', 'after', 'plate', 'meas', 'wall']);
     expect(PHOTO_TAG_LABEL.meas).toBe('Замер');
   });
   it('normPhotos rejects non arrays and invalid entries', () => {

@@ -44,7 +44,12 @@ export interface Meas {
   rcd?: Num;
 }
 
-export type PhotoTag = 'before' | 'after' | 'plate' | 'meas';
+export type PhotoTag = 'before' | 'after' | 'plate' | 'meas' | 'wall';
+
+export interface Trace {
+  pts: number[];
+  note: string;
+}
 
 export interface Photo {
   id: string;
@@ -52,6 +57,7 @@ export interface Photo {
   line: string;
   note: string;
   at: number;
+  traces?: Trace[];
 }
 
 export interface Proto {
