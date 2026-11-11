@@ -3,15 +3,18 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import userEvent from '@testing-library/user-event';
 import { App } from '../../ui/App';
 import { Onboarding } from '../../ui/Onboarding';
-import { ONBOARDING_KEY, ONBOARDING_STEP_KEY } from '../../features/onboarding/storage';
-import { ONBOARDING_STEPS, TOUR_SCENE } from '../../features/onboarding/model';
+import { ONBOARDING_FRESH_KEY, ONBOARDING_KEY, ONBOARDING_REVISION, ONBOARDING_STEP_KEY } from '../../features/onboarding/storage';
+import { TOUR_SCENE } from '../../features/onboarding/model';
+import { ONBOARDING_STEPS } from '../../features/onboarding/steps';
 import type { TourScene } from '../../features/onboarding/model';
 import { KEY } from '../../store/storage';
 import { sampleProject } from '../../core/project';
 import { shareUrl } from '../../core/share';
 import { toastText } from './util';
+import { currentToast } from '../../ui/toast';
 
 const TOTAL = ONBOARDING_STEPS.length;
+const VIEW: Partial<Record<TourScene, string>> = { [TOUR_SCENE.ESTIMATE]: 'report' };
 const WELCOME = 'Добро пожаловать в Ampli';
 const tour = (): HTMLElement => {
   const el = document.querySelector<HTMLElement>('.tour [role="dialog"]');
@@ -56,8 +59,10 @@ describe('first-run onboarding in the app', () => {
       expect(tour()).toHaveTextContent((i + 1) + ' из ' + TOTAL);
       expect(screen.getByRole('progressbar', { name: 'Прогресс обучения' })).toHaveAttribute('aria-valuenow', String(i + 1));
       expect(tour().querySelector('[aria-live="polite"]')).toHaveTextContent('Шаг ' + (i + 1) + ' из ' + TOTAL + ': ' + s.title);
-      if (s.scene === TOUR_SCENE.EDITOR) expect(screen.getByLabelText('Редактор группы')).toBeInTheDocument();
-      else if (s.scene !== TOUR_SCENE.HOME) await waitFor(() => expect(document.querySelector(`[data-tour-view="${s.scene}"]`)).toBeVisible());
+      if (s.scene === TOUR_SCENE.EDITOR || s.scene === TOUR_SCENE.WIRING) expect(screen.getByLabelText('Редактор группы')).toBeInTheDocument();
+      else if (s.scene !== TOUR_SCENE.HOME) await waitFor(() => expect(document.querySelector(`[data-tour-view="${VIEW[s.scene] ?? s.scene}"]`)).toBeVisible());
+      if (s.scene === TOUR_SCENE.ESTIMATE) await waitFor(() => expect(screen.getByRole('tab', { name: 'Смета' })).toHaveAttribute('aria-selected', 'true'));
+      if (s.scene === TOUR_SCENE.REPORT) await waitFor(() => expect(screen.getByRole('tab', { name: 'Группы' })).toHaveAttribute('aria-selected', 'true'));
       if (s.tip) expect(tour()).toHaveTextContent(s.tip);
       expect(within(tour()).getByRole('button', { name: i === TOTAL - 1 ? 'Завершить' : 'Далее' })).toHaveFocus();
       await user.click(within(tour()).getByRole('button', { name: i === TOTAL - 1 ? 'Завершить' : 'Далее' }));
@@ -279,5 +284,124 @@ describe('onboarding component', () => {
     expect(document.querySelector('.tour')).toHaveAttribute('data-place', 'center');
     rect.mockRestore();
     host.remove();
+  });
+});
+
+describe('what is new for those who already know Ampli', () => {
+  const FRESH = ONBOARDING_STEPS.filter(s => s.fresh);
+  const veteran = () => {
+    localStorage.setItem(ONBOARDING_KEY, 'done');
+    localStorage.removeItem(ONBOARDING_FRESH_KEY);
+  };
+
+  it('offers a short tour of the new features once', async () => {
+    veteran();
+    localStorage.setItem(ONBOARDING_STEP_KEY, '4');
+    const user = userEvent.setup();
+    render(<App />);
+    expect(document.querySelector('.tour')).toBeNull();
+    await waitFor(() => expect(toastText()).toContain('В Ampli новое'), { timeout: 3000 });
+    expect(toastText()).toMatch(/частный дом.*мощность.*карта проводки.*трёх вариантах/);
+    expect(localStorage.getItem(ONBOARDING_FRESH_KEY)).toBe(ONBOARDING_REVISION);
+    expect(currentToast()?.label).toBe('Показать');
+    act(() => currentToast()?.run?.());
+
+    for (let i = 0; i < FRESH.length; i++) {
+      const s = FRESH[i];
+      expect(title()).toBe(s.title);
+      expect(tour()).toHaveTextContent((i + 1) + ' из ' + FRESH.length);
+      expect(tour().querySelector('.tour-chap')).toHaveTextContent(/^Новое · /);
+      expect(within(tour()).queryByRole('button', { name: 'Назад к приветствию' })).toBeNull();
+      expect(tour().querySelectorAll('.tour-seg')).toHaveLength(3);
+      await user.click(within(tour()).getByRole('button', { name: i === FRESH.length - 1 ? 'Завершить' : 'Далее' }));
+    }
+
+    const done = screen.getByRole('dialog', { name: 'Теперь вы знаете всё новое' });
+    expect(within(done).queryByRole('button', { name: 'Создать свой проект' })).toBeNull();
+    await user.click(within(done).getByRole('button', { name: 'Понятно' }));
+    expect(document.querySelector('.tour')).toBeNull();
+    expect(localStorage.getItem(ONBOARDING_STEP_KEY)).toBe('4');
+    expect(document.querySelector('.pb-name')).toHaveTextContent('Пример: двухкомнатная квартира');
+
+    await user.click(screen.getByRole('button', { name: 'Открыть обучение' }));
+    const back = await screen.findByRole('dialog', { name: 'С возвращением в обучение' });
+    expect(within(back).getByRole('button', { name: 'Продолжить с шага 5' })).toBeInTheDocument();
+  });
+
+  it('keeps the place in the full tour when the short one is closed early', async () => {
+    veteran();
+    localStorage.setItem(ONBOARDING_STEP_KEY, '6');
+    render(<App />);
+    await waitFor(() => expect(toastText()).toContain('В Ampli новое'), { timeout: 3000 });
+    act(() => currentToast()?.run?.());
+    fireEvent.keyDown(tour(), { key: 'ArrowRight' });
+    expect(title()).toBe(FRESH[1].title);
+    fireEvent.keyDown(tour(), { key: 'ArrowLeft' });
+    fireEvent.keyDown(tour(), { key: 'ArrowLeft' });
+    expect(title()).toBe(FRESH[0].title);
+    fireEvent.keyDown(tour(), { key: 'Escape' });
+    expect(document.querySelector('.tour')).toBeNull();
+    expect(localStorage.getItem(ONBOARDING_STEP_KEY)).toBe('6');
+    expect(localStorage.getItem(ONBOARDING_KEY)).toBe('done');
+  });
+
+  it('stays quiet for new users, after the offer and for shared links', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const quiet = () => {
+      const { unmount } = render(<App />);
+      act(() => { vi.advanceTimersByTime(2000); });
+      expect(toastText() ?? '').not.toContain('В Ampli новое');
+      unmount();
+    };
+    try {
+      firstRun();
+      localStorage.removeItem(ONBOARDING_FRESH_KEY);
+      quiet();
+      veteran();
+      localStorage.setItem(ONBOARDING_FRESH_KEY, ONBOARDING_REVISION);
+      quiet();
+      veteran();
+      window.location.hash = new URL(shareUrl(sampleProject(), 'https://ampli.test/')).hash;
+      quiet();
+      expect(localStorage.getItem(ONBOARDING_FRESH_KEY)).toBeNull();
+    } finally {
+      window.history.replaceState(null, '', window.location.pathname);
+      vi.useRealTimers();
+    }
+  });
+
+  it('points the new steps at the real controls of the app', async () => {
+    firstRun();
+    const user = userEvent.setup();
+    render(<App />);
+    await start(user);
+    for (const s of ONBOARDING_STEPS) {
+      while (title() !== s.title) fireEvent.keyDown(tour(), { key: 'ArrowRight' });
+      if (s.fresh) {
+        const real = s.targets.slice(0, -1);
+        await waitFor(() => expect(real.some(t => document.querySelector(t)), s.id).toBe(true));
+      }
+    }
+    await waitFor(() => expect(document.querySelector('[data-tour="object"]')).toHaveTextContent('Частный дом'));
+    expect(document.querySelector('[data-tour="alloc"]')).toHaveTextContent('Выделенная мощность');
+  });
+});
+
+describe('welcome and finish texts', () => {
+  it('names the private house and explains the info buttons', () => {
+    render(<Onboarding onScene={() => undefined} onClose={() => undefined} />);
+    expect(screen.getByRole('dialog', { name: WELCOME })).toHaveAccessibleDescription(/квартиры или частного дома/);
+    for (let i = 0; i <= TOTAL; i++) fireEvent.keyDown(tour(), { key: 'ArrowRight' });
+    const done = screen.getByRole('dialog', { name: 'Готово, основное вы знаете' });
+    expect(done).toHaveTextContent('у поля объяснит, откуда значение');
+    expect(done.querySelector('.tour-kb')).toHaveTextContent('Ctrl');
+  });
+
+  it('opens the short tour straight on the first new step', () => {
+    const onScene = vi.fn<(s: TourScene) => void>();
+    render(<Onboarding mode="fresh" onScene={onScene} onClose={() => undefined} />);
+    expect(title()).toBe(ONBOARDING_STEPS.find(s => s.fresh)?.title);
+    expect(onScene).toHaveBeenLastCalledWith(TOUR_SCENE.EDITOR);
+    expect(screen.getByRole('progressbar', { name: 'Прогресс обучения' })).toHaveAttribute('aria-valuemax', String(ONBOARDING_STEPS.filter(s => s.fresh).length));
   });
 });

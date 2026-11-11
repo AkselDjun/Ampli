@@ -35,4 +35,11 @@ describe('architecture boundaries', () => {
     const parts = import.meta.glob<string>('../../ui/parts.tsx', { query: '?raw', import: 'default', eager: true })['../../ui/parts.tsx'];
     expect(parts).toMatch(/import\('\.\/Onboarding'\)/);
   });
+
+  it('keeps the texts of the tour out of the first screen', () => {
+    const eager = import.meta.glob<string>(['../../ui/App.tsx', '../../app/*.{ts,tsx}', '../../features/onboarding/{model,storage,placement}.ts'], { query: '?raw', import: 'default', eager: true });
+    for (const [file, source] of Object.entries(eager)) expect(importsFrom(source).filter(path => path.endsWith('/steps') || path.endsWith('onboarding/steps')), file).toEqual([]);
+    const onboarding = import.meta.glob<string>('../../ui/Onboarding.tsx', { query: '?raw', import: 'default', eager: true })['../../ui/Onboarding.tsx'];
+    expect(importsFrom(onboarding)).toContain('../features/onboarding/steps');
+  });
 });

@@ -138,7 +138,9 @@ describe('screen reader feedback in the editor', () => {
     render(<App />);
     fireEvent.click(rows()[6]);
     act(() => cb([{ isIntersecting: false, boundingClientRect: { top: -200 }, rootBounds: { top: 56 } }]));
-    expect(document.querySelector('.ed-mini')?.getAttribute('aria-label')).toMatch(/^Г7: ток .* автомат C32, .*, норма\. Показать расчёт$/);
+    const mini = document.querySelector<HTMLElement>('.ed-mini');
+    expect(mini).not.toHaveAttribute('aria-label');
+    expect(mini?.textContent?.replace(/\s+/g, ' ')).toMatch(/^Г7: .*А.*C32.*мм².*%, норма\. Показать расчёт$/);
     vi.unstubAllGlobals();
   });
 });
