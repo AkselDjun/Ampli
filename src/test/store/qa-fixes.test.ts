@@ -152,3 +152,23 @@ describe('saving reports failures', () => {
     expect(saveLib(emptyLib())).toBe(true);
   });
 });
+
+describe('typed values are capped like imported ones', () => {
+  it('cleans and caps room appliance power and count', () => {
+    const s = run(
+      one(),
+      { t: 'roomAdd', room: { id: 'r1', name: 'Кухня', apps: [{ id: 'a1', name: 'Чайник', w: 2000, n: 1, tag: 's' }] } },
+      { t: 'roomAppField', rid: 'r1', aid: 'a1', field: 'w', value: '1e9abc' },
+      { t: 'roomAppField', rid: 'r1', aid: 'a1', field: 'n', value: '-5000' }
+    );
+    const got = cur(s).rooms?.[0].apps[0];
+    expect(got?.w).toBe('19');
+    expect(got?.n).toBe('999');
+  });
+
+  it('caps typed network parameters', () => {
+    const s = run(one(), { t: 'cfg', field: 'alloc', value: '99999' }, { t: 'cfg', field: 'zs', value: '7' });
+    expect(cur(s).cfg.alloc).toBe('500');
+    expect(cur(s).cfg.zs).toBe('2');
+  });
+});

@@ -5,7 +5,8 @@ import { grandTotal, laborEstimate } from '../core/labor';
 import type { LaborEstimate } from '../core/labor';
 import type { Action } from '../store/reducer';
 import { useLib } from '../store/LibContext';
-import { Tip } from './common';
+import { Err, Tip, errAttrs } from './common';
+import { fieldErr } from '../core/limits';
 
 export function LaborTable({ p, a, dispatch }: { p: Project; a: Calc; dispatch: (x: Action) => void }) {
   const { lib, dispatch: libDispatch } = useLib();
@@ -31,7 +32,8 @@ export function LaborTable({ p, a, dispatch }: { p: Project; a: Calc; dispatch: 
                   </span>
                 </td>
                 <td className="num" data-label="Цена, BYN">
-                  <input className="price-in" type="text" inputMode="decimal" min={0} step={0.01} aria-label={'Цена: ' + r.def.name} value={lib.labor[r.def.key] ?? ''} onChange={e => libDispatch({ t: 'labor', key: r.def.key, value: e.target.value })} />
+                  <input className="price-in" type="text" inputMode="decimal" min={0} step={0.01} aria-label={'Цена: ' + r.def.name} {...errAttrs(fieldErr('rate', lib.labor[r.def.key]), 'e-lb-' + r.def.key)} value={lib.labor[r.def.key] ?? ''} onChange={e => libDispatch({ t: 'labor', key: r.def.key, value: e.target.value })} />
+                  <Err e={fieldErr('rate', lib.labor[r.def.key])} id={'e-lb-' + r.def.key} />
                 </td>
                 <td className="num" data-label="Сумма, BYN">{r.sum === null ? '—' : fmt(r.sum, 2)}</td>
               </tr>

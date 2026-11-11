@@ -3,11 +3,18 @@ import { UTP_MAX, WEAK_KEYS, WEAK_KINDS, weakCalc, weakSpec } from '../core/weak
 import type { WeakKind } from '../core/weak';
 import { fmt, plural, pn } from '../core/format';
 import type { Action } from '../store/reducer';
-import { Sheet } from './common';
+import { Err, Sheet, errAttrs } from './common';
+import { asLabel, fieldErr } from '../core/limits';
+import type { FieldErr } from '../core/limits';
 import { toastOk } from './toast';
 import { IconAlert, IconInfo } from './Icons';
 import { IconButton } from './kit';
 
+
+const nErr = (v: unknown): FieldErr | null => {
+  const e = fieldErr('wkN', v);
+  return e && asLabel('Количество', e);
+};
 export function WeakSheet({ open, onClose, p, dispatch }: { open: boolean; onClose: () => void; p: Project; dispatch: (a: Action) => void }) {
   const w = p.weak;
   const pts = w?.pts ?? [];
@@ -40,9 +47,10 @@ export function WeakSheet({ open, onClose, p, dispatch }: { open: boolean; onClo
               <select aria-label="Что подключаем" value={x.kind} onChange={e => dispatch({ t: 'weakSet', id: x.id, field: 'kind', value: e.target.value as WeakKind })}>
                 {WEAK_KEYS.map(k => <option key={k} value={k}>{WEAK_KINDS[k].label}</option>)}
               </select>
-              <input aria-label="Количество" type="text" inputMode="numeric" min={1} value={String(x.n)} onChange={e => dispatch({ t: 'weakSet', id: x.id, field: 'n', value: e.target.value })} onBlur={() => { if (!(pn(x.n, 0) >= 1)) dispatch({ t: 'weakSet', id: x.id, field: 'n', value: '1' }); }} />
+              <input aria-label="Количество" type="text" inputMode="numeric" min={1} {...errAttrs(nErr(x.n), 'e-wn-' + x.id)} value={String(x.n)} onChange={e => dispatch({ t: 'weakSet', id: x.id, field: 'n', value: e.target.value })} onBlur={() => { if (!(pn(x.n, 0) >= 1)) dispatch({ t: 'weakSet', id: x.id, field: 'n', value: '1' }); }} />
               <input aria-label="Длина от щитка, м" type="text" inputMode="decimal" min={0} placeholder="м" value={String(x.len)} onChange={e => dispatch({ t: 'weakSet', id: x.id, field: 'len', value: e.target.value })} />
               <IconButton label="Удалить точку" onClick={() => { dispatch({ t: 'weakDel', id: x.id }); toastOk('Точка удалена: ' + (x.room || WEAK_KINDS[x.kind].short)); }}>×</IconButton>
+              <Err e={nErr(x.n)} id={'e-wn-' + x.id} />
             </div>
           ))}
         </div>

@@ -16,6 +16,11 @@ textarea{display:block;height:auto;min-height:calc(var(--field-h) * 2);padding:v
 input[inputmode=decimal],input[inputmode=numeric]{font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .f{display:flex;flex-direction:column;gap:var(--s-1-5);min-width:0}
 .f small{font-size:var(--t-s);color:var(--ink-2);line-height:1.35}
+.f-err,.f small.f-err{display:block;font-size:var(--t-s);line-height:1.35;color:var(--bad)}
+:focus-within>.f-err.soft{display:none}
+input[data-err=hard],input[data-err=soft]:not(:focus){border-color:var(--bad)}
+.step:has(input[data-err=hard]),.step:has(input[data-err=soft]:not(:focus)){border-color:var(--bad)}
+.app>.f-err,.room-app>.f-err,.wk-row>.f-err,.sock>.f-err{grid-column:1/-1}
 .fld{position:relative;display:block}
 .fld input{padding-right:var(--s-10)}
 input[type=number]{-moz-appearance:textfield;appearance:textfield}

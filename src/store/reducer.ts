@@ -154,7 +154,7 @@ export function reducer(s: State, a: Action): State {
     case 'roomAppField':
       return patch(s, q => ({
         ...q,
-        rooms: (q.rooms ?? []).map(r => (r.id === a.rid ? { ...r, apps: r.apps.map(x => (x.id === a.aid ? { ...x, [a.field]: a.value } : x)) } : r))
+        rooms: (q.rooms ?? []).map(r => (r.id === a.rid ? { ...r, apps: r.apps.map(x => (x.id === a.aid ? { ...x, [a.field]: a.field === 'w' || a.field === 'n' ? numIn(a.value, APP_MAX[a.field]) : a.value } : x)) } : r))
       }));
     case 'roomAppDel':
       return patch(s, q => ({ ...q, rooms: (q.rooms ?? []).map(r => (r.id === a.rid ? { ...r, apps: r.apps.filter(x => x.id !== a.aid) } : r)) }));
@@ -378,7 +378,7 @@ export function reducer(s: State, a: Action): State {
     case 'delApp':
       return patchLine(s, l => ({ ...l, apps: l.apps.filter(x => x.id !== a.id) }));
     case 'cfg': {
-      let next = patch(s, q => ({ ...q, cfg: { ...q.cfg, [a.field]: a.field === 'supply' || a.field === 'drop' ? Number(a.value) : a.value } }));
+      let next = patch(s, q => ({ ...q, cfg: { ...q.cfg, [a.field]: a.field === 'supply' || a.field === 'drop' ? Number(a.value) : a.field in CLIMITS ? numIn(a.value, CLIMITS[a.field][1]) : a.value } }));
       if (a.field === 'obj' && a.value === 'house' && p.cfg.obj !== 'house') next = patch(next, q => ({ ...q, cfg: { ...q.cfg, spd: 'on', sip: q.cfg.sip ?? SIP_LEN_DEF } }));
       if (a.field === 'supply' && Number(a.value) === 3) next = patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) }));
       return next;

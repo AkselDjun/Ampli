@@ -8,6 +8,7 @@ import { haptic } from './haptic';
 import { buttonClass } from './kit';
 import type { ButtonSize, ButtonVariant } from './kit';
 import type { CfgN } from '../core/types';
+import type { FieldErr } from '../core/limits';
 import { BASIS_LABEL, assumptions } from '../core/assumptions';
 
 export function Seg<T extends string | number>({
@@ -31,8 +32,14 @@ export function Seg<T extends string | number>({
   );
 }
 
+export const errAttrs = (e: FieldErr | null | undefined, id: string) => (e ? { 'aria-invalid': true, 'aria-describedby': id, 'data-err': e.hard ? 'hard' : 'soft' } as const : {});
+
+export function Err({ e, id }: { e: FieldErr | null | undefined; id: string }) {
+  return e ? <small id={id} className={'f-err' + (e.hard ? '' : ' soft')} role={e.hard ? 'alert' : undefined}>{e.msg}</small> : null;
+}
+
 export function Stepper({
-  value, onChange, onStep, label, min, max, step, less = 'Меньше', more = 'Больше', d
+  value, onChange, onStep, label, min, max, step, less = 'Меньше', more = 'Больше', d, err, errId
 }: {
   value: string | number;
   onChange: (v: string) => void;
@@ -44,11 +51,13 @@ export function Stepper({
   less?: string;
   more?: string;
   d: number;
+  err?: FieldErr | null;
+  errId?: string;
 }) {
   return (
     <div className="step">
       <button type="button" onClick={() => onStep(-d)} aria-label={less}>−</button>
-      <input type="text" inputMode="decimal" min={min} max={max} step={step} aria-label={label} value={String(value)} onChange={e => onChange(e.target.value)} onBlur={() => {
+      <input type="text" inputMode="decimal" min={min} max={max} step={step} aria-label={label} {...errAttrs(err, errId ?? '')} value={String(value)} onChange={e => onChange(e.target.value)} onBlur={() => {
         const raw = String(value).trim().replace(',', '.');
         const v = Number(raw);
         if (!raw || !Number.isFinite(v)) return;

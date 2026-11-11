@@ -7,7 +7,8 @@ import { VERDICT, protocolRows } from '../core/protocol';
 import type { ProtoRow } from '../core/protocol';
 import { cableName } from '../core/protection';
 import type { Action, MeasField } from '../store/reducer';
-import { Sheet } from './common';
+import { Err, Sheet, errAttrs } from './common';
+import { fieldErr } from '../core/limits';
 import { shortName } from './Side';
 import { Button } from './kit';
 
@@ -159,12 +160,14 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
                   enterKeyHint="next"
                   onKeyDown={onEnter}
                   placeholder={hint(fd.f)}
+                  {...errAttrs(fieldErr(fd.f, (x.l.meas ?? {})[fd.f]), 'e-pm-' + fd.f)}
                   value={String((x.l.meas ?? {})[fd.f] ?? '')}
                   onChange={e => {
                     setPick(x.l.id);
                     dispatch({ t: 'lineMeasAt', id: x.l.id, field: fd.f, value: e.target.value });
                   }}
                 />
+                <Err e={fieldErr(fd.f, (x.l.meas ?? {})[fd.f])} id={'e-pm-' + fd.f} />
                 <small className="muted pm-norm">норма {hint(fd.f)}</small>
               </label>
             ))}

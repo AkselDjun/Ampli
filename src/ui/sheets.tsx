@@ -3,7 +3,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import type { Calc, Project } from '../core/types';
 import type { TplKey } from '../core/templates';
 import { TPL_LIST, TPL_NAME, blank, contentFor, sample } from '../core/templates';
-import { MAX_PROJECTS } from '../core/limits';
+import { MAX_PROJECTS, cfgErr, fieldErr } from '../core/limits';
 import { cfgN } from '../core/calc';
 import { BOX_NAME, IN_CABLE } from '../core/norms';
 import { dfmt, fmt, fs, plural } from '../core/format';
@@ -16,7 +16,7 @@ import { download, exportBackup } from './download';
 import { IconChev, IconDownload, IconWire } from './Icons';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
-import { ArmButton, Assumptions, Seg, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
+import { ArmButton, Assumptions, Err, Seg, errAttrs, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
 import { Schematic } from './Schematic';
 import { toast, toastBad, toastOk } from './toast';
 import { IOS_STEPS, install, usePwa } from './pwa';
@@ -54,11 +54,13 @@ export function NetSheet({
         <div className="set-grid">
           <div className="f">
             <span className="lbl-row"><span className="lbl">Ввод СИП от опоры, м</span><Tip label="О вводе СИП">Длина ответвления от опоры ВЛ до дома. По ней и току ввода подбирается сечение СИП-4 с потерей не больше 2 %.</Tip></span>
-            <Stepper value={p.cfg.sip ?? ''} d={5} min={0} max={500} step={1} label="Длина ввода СИП от опоры, м" onChange={v => dispatch({ t: 'cfg', field: 'sip', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'sip', d })} />
+            <Stepper value={p.cfg.sip ?? ''} d={5} min={0} max={500} step={1} label="Длина ввода СИП от опоры, м" onChange={v => dispatch({ t: 'cfg', field: 'sip', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'sip', d })} err={cfgErr('sip', p.cfg.sip ?? '')} errId="e-cfg-sip" />
+            <Err e={cfgErr('sip', p.cfg.sip ?? '')} id="e-cfg-sip" />
           </div>
           <div className="f">
             <span className="lbl-row"><span className="lbl">Повторное заземление, Ом</span><Tip label="О повторном заземлении">Замер сопротивления контура на вводе. Норма не больше 30 Ом. Пусто, пока замера нет.</Tip></span>
-            <Stepper value={p.cfg.rz ?? ''} d={1} min={0} max={500} step={0.5} label="Сопротивление повторного заземления, Ом" onChange={v => dispatch({ t: 'cfg', field: 'rz', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'rz', d })} />
+            <Stepper value={p.cfg.rz ?? ''} d={1} min={0} max={500} step={0.5} label="Сопротивление повторного заземления, Ом" onChange={v => dispatch({ t: 'cfg', field: 'rz', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'rz', d })} err={cfgErr('rz', p.cfg.rz ?? '')} errId="e-cfg-rz" />
+            <Err e={cfgErr('rz', p.cfg.rz ?? '')} id="e-cfg-rz" />
           </div>
         </div>
       )}
@@ -68,7 +70,8 @@ export function NetSheet({
       </div>
       <div className="f">
         <span className="lbl-row"><span className="lbl">Выделенная мощность, кВт</span><Tip label="О выделенной мощности">{'Из технических условий на ' + (c.house ? 'дом' : 'квартиру') + '. С ней сравнивается расчётная мощность в табло вверху.'}</Tip></span>
-        <Stepper value={p.cfg.alloc} d={1} min={1} step={0.5} label="Выделенная мощность, кВт" onChange={v => dispatch({ t: 'cfg', field: 'alloc', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'alloc', d })} />
+        <Stepper value={p.cfg.alloc} d={1} min={1} step={0.5} label="Выделенная мощность, кВт" onChange={v => dispatch({ t: 'cfg', field: 'alloc', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'alloc', d })} err={cfgErr('alloc', p.cfg.alloc)} errId="e-cfg-alloc" />
+        <Err e={cfgErr('alloc', p.cfg.alloc)} id="e-cfg-alloc" />
       </div>
       <PowerFitBlock p={p} dispatch={dispatch} />
       <div className="f">
@@ -118,23 +121,28 @@ export function NetSheet({
           <div className="set-grid">
             <div className="f">
               <span className="lbl-row"><span className="lbl">Петля фаза-нуль сети, Ом</span><Tip label="О петле фаза-нуль">{'Сопротивление петли до щитка ' + (c.house ? 'дома' : 'квартиры') + '. Значение по умолчанию ориентировочное: замерьте на вводе или уточните у энергоснабжающей организации. Нужно, чтобы проверить отключение короткого замыкания.'}</Tip></span>
-              <Stepper value={p.cfg.zs} d={0.05} min={0.05} max={2} step={0.05} label="Сопротивление петли фаза-нуль питающей сети, Ом" onChange={v => dispatch({ t: 'cfg', field: 'zs', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'zs', d })} />
+              <Stepper value={p.cfg.zs} d={0.05} min={0.05} max={2} step={0.05} label="Сопротивление петли фаза-нуль питающей сети, Ом" onChange={v => dispatch({ t: 'cfg', field: 'zs', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'zs', d })} err={cfgErr('zs', p.cfg.zs)} errId="e-cfg-zs" />
+              <Err e={cfgErr('zs', p.cfg.zs)} id="e-cfg-zs" />
             </div>
             <div className="f">
               <span className="lbl-row"><span className="lbl">Потеря до щитка, %</span><Tip label="О потере напряжения до щитка">{'Сколько напряжения теряется от ВРУ до щитка ' + (c.house ? 'дома' : 'квартиры') + '. Вычитается из допуска групп: 3 % для освещения, 5 % для остального (СН 4.04.01-2019, п. 9.14). Не знаете, оставьте 0.'}</Tip></span>
-              <Stepper value={p.cfg.feeder} d={0.1} min={0} max={3} step={0.1} label={'Потеря напряжения от ВРУ до щитка ' + (c.house ? 'дома' : 'квартиры') + ', %'} onChange={v => dispatch({ t: 'cfg', field: 'feeder', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'feeder', d })} />
+              <Stepper value={p.cfg.feeder} d={0.1} min={0} max={3} step={0.1} label={'Потеря напряжения от ВРУ до щитка ' + (c.house ? 'дома' : 'квартиры') + ', %'} onChange={v => dispatch({ t: 'cfg', field: 'feeder', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'feeder', d })} err={cfgErr('feeder', p.cfg.feeder)} errId="e-cfg-feeder" />
+              <Err e={cfgErr('feeder', p.cfg.feeder)} id="e-cfg-feeder" />
             </div>
             <div className="f">
               <span className="lbl-row"><span className="lbl">Одновременность, Ко</span><Tip label="О коэффициенте одновременности">Какая часть установленной мощности работает одновременно. Влияет на ввод (ток, автомат, кабель) и оценку утечки на УЗО. Автоматы групп не меняет.</Tip></span>
-              <Stepper value={p.cfg.ko} d={0.05} min={0.3} max={1} step={0.05} label="Коэффициент одновременности" onChange={v => dispatch({ t: 'cfg', field: 'ko', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'ko', d })} />
+              <Stepper value={p.cfg.ko} d={0.05} min={0.3} max={1} step={0.05} label="Коэффициент одновременности" onChange={v => dispatch({ t: 'cfg', field: 'ko', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'ko', d })} err={cfgErr('ko', p.cfg.ko)} errId="e-cfg-ko" />
+              <Err e={cfgErr('ko', p.cfg.ko)} id="e-cfg-ko" />
             </div>
             <div className="f">
               <span className="lbl-row"><span className="lbl">Запас по автомату</span><Tip label="О запасе по автомату">Во сколько раз номинал автомата больше тока группы. 1 без запаса. В плотном щитке автоматы греют друг друга и отключаются раньше номинала, обычно берут 1,1–1,25.</Tip></span>
-              <Stepper value={p.cfg.margin ?? 1} d={0.05} min={1} max={1.5} step={0.05} label="Запас по номиналу группового автомата" onChange={v => dispatch({ t: 'cfg', field: 'margin', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'margin', d })} />
+              <Stepper value={p.cfg.margin ?? 1} d={0.05} min={1} max={1.5} step={0.05} label="Запас по номиналу группового автомата" onChange={v => dispatch({ t: 'cfg', field: 'margin', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'margin', d })} err={cfgErr('margin', p.cfg.margin ?? 1)} errId="e-cfg-margin" />
+              <Err e={cfgErr('margin', p.cfg.margin ?? 1)} id="e-cfg-margin" />
             </div>
             <div className="f">
               <span className="lbl-row"><span className="lbl">Поправка на группировку</span><Tip label="О поправке на группировку">Одиночный кабель: 1. Если в одной штробе или лотке идут несколько кабелей, они хуже остывают, и допустимый ток кабеля снижается на этот коэффициент.</Tip></span>
-              <Stepper value={p.cfg.k} d={0.05} min={0.5} max={1} step={0.05} label="Поправка на группировку кабелей" onChange={v => dispatch({ t: 'cfg', field: 'k', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'k', d })} />
+              <Stepper value={p.cfg.k} d={0.05} min={0.5} max={1} step={0.05} label="Поправка на группировку кабелей" onChange={v => dispatch({ t: 'cfg', field: 'k', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'k', d })} err={cfgErr('k', p.cfg.k)} errId="e-cfg-k" />
+              <Err e={cfgErr('k', p.cfg.k)} id="e-cfg-k" />
             </div>
           </div>
         </div>
@@ -516,7 +524,8 @@ export function ReportSheet({
                 <td className="num sp-q" data-label="Количество">{item.qty}</td>
                 <td className="sp-n" data-label="Примечание">{item.note || '—'}</td>
                 <td className="num sp-p" data-label="Цена, BYN">
-                  <input className="price-in" type="text" inputMode="decimal" min={0} step={0.01} placeholder="цена" aria-label={'Цена: ' + item.name} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
+                  <input className="price-in" type="text" inputMode="decimal" min={0} step={0.01} placeholder="цена" aria-label={'Цена: ' + item.name} {...errAttrs(fieldErr('price', lib.prices[item.name]), 'e-pr-' + i)} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
+                  <Err e={fieldErr('price', lib.prices[item.name])} id={'e-pr-' + i} />
                 </td>
                 <td className="num sp-s" data-label="Сумма, BYN">{sum === null ? '—' : fmt(sum, 2)}</td>
               </tr>
