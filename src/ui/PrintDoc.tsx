@@ -138,7 +138,7 @@ function ProtoDoc({ p, a }: { p: Project; a: Calc }) {
   );
 }
 
-const STK_KIND: Record<string, string> = { light: 'Свет', socket: 'Розетки', power: 'Силовая', in: 'Ввод', uzo: 'УЗО', vr: 'Реле U', spd: 'УЗИП' };
+const STK_KIND: Record<string, string> = { light: 'Свет', socket: 'Розетки', power: 'Силовая', in: 'Ввод', uzo: 'УЗО', vr: 'Реле U', spd: 'УЗИП', prio: 'Приоритет' };
 
 function StkIcon({ k }: { k: string }) {
   const d: Record<string, JSX.Element> = {
@@ -148,7 +148,8 @@ function StkIcon({ k }: { k: string }) {
     in: <><path d="M4 12h12" /><path d="m12 7 5 5-5 5" /><path d="M20 4v16" /></>,
     uzo: <><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" /><path d="M12 8v5M12 16v.01" /></>,
     spd: <><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" /><path d="m13 7-3 5h4l-3 5" /></>,
-    vr: <><circle cx="12" cy="12" r="8" /><path d="m8.5 9 3.5 7 3.5-7" /></>
+    vr: <><circle cx="12" cy="12" r="8" /><path d="m8.5 9 3.5 7 3.5-7" /></>,
+    prio: <><path d="M4 7h10M4 12h7M4 17h4" /><path d="m15 14 3 3 3-3M18 17V7" /></>
   };
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{d[k]}</svg>;
 }
@@ -159,19 +160,19 @@ function StickersDoc({ p, a }: { p: Project; a: Calc }) {
   const slots = layout(a.devs, rl);
   a.devs.forEach((d, i) => {
     while (rows.length <= slots[i].row) rows.push([]);
-    const fixed = d.kind === 'in' || d.kind === 'uzo' || d.kind === 'spd' || d.kind === 'vr';
+    const fixed = d.kind === 'in' || d.kind === 'uzo' || d.kind === 'spd' || d.kind === 'vr' || d.kind === 'prio';
     const g = fixed ? '' : d.sub.split(' ')[0];
     const line = g ? a.rows[Number(g.slice(1)) - 1] : undefined;
     const k = fixed ? d.kind : (line?.l.type ?? 'socket');
-    const nm = d.kind === 'in' ? 'Вся квартира' : (d.kind === 'uzo' ? (d.zone ?? '') : (d.kind === 'spd' ? 'Защита от перенапряжений' : (d.kind === 'vr' ? 'Контроль напряжения' : (line?.l.name || ''))));
-    rows[rows.length - 1].push({ d, k, no: d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (d.kind === 'spd' ? 'УЗИП' : (d.kind === 'vr' ? 'Реле U' : g))), nm });
+    const nm = d.kind === 'in' ? 'Вся квартира' : (d.kind === 'uzo' ? (d.zone ?? '') : (d.kind === 'spd' ? 'Защита от перенапряжений' : (d.kind === 'vr' ? 'Контроль напряжения' : (d.kind === 'prio' ? (d.sub === 'приоритет' ? 'Приоритет нагрузки' : 'Отключение ' + d.sub) : (line?.l.name || '')))));
+    rows[rows.length - 1].push({ d, k, no: d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (d.kind === 'spd' ? 'УЗИП' : (d.kind === 'vr' ? 'Реле U' : (d.kind === 'prio' ? d.label : g)))), nm });
   });
   return (
     <>
       <h1>Наклейки для щитка</h1>
       <p className="pd-sub">{p.name || 'Без названия'}. Наклейки разложены по рядам щитка на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}: каждую полосу можно вырезать целиком, длинные ряды разбиты на части по ширине листа. Ширина ячейки равна ширине аппарата (1 модуль = 17,5 мм).</p>
       <div className="stk-legend">
-        {['in', 'vr', 'spd', 'uzo', 'light', 'socket', 'power'].filter(k => rows.some(r => r.some(x => x.k === k))).map(k => (
+        {['in', 'vr', 'spd', 'prio', 'uzo', 'light', 'socket', 'power'].filter(k => rows.some(r => r.some(x => x.k === k))).map(k => (
           <span key={k} className={'stk-k k-' + k}><StkIcon k={k} />{STK_KIND[k]}</span>
         ))}
       </div>

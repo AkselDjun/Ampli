@@ -18,7 +18,7 @@ const FIELDS: { f: MeasField; label: string; unit: string; step: number }[] = [
   { f: 'rcd', label: 'Отключение УЗО', unit: 'мс', step: 1 }
 ];
 
-const STRIP: Record<string, [string, string]> = { in: ['Ввод', 'вся квартира'], uzo: ['УЗО', ''], spd: ['УЗИП', 'перенапряж.'], vr: ['Реле U', 'напряжение'], rcd: ['', ''], mcb: ['', ''] };
+const STRIP: Record<string, [string, string]> = { in: ['Ввод', 'вся квартира'], uzo: ['УЗО', ''], spd: ['УЗИП', 'перенапряж.'], vr: ['Реле U', 'напряжение'], prio: ['Приор.', 'нагрузка'], rcd: ['', ''], mcb: ['', ''] };
 
 const pillOf = (v: ProtoRow['verdict']): string => (v === 'ok' ? 'ok' : (v === 'bad' ? 'bad' : 'none'));
 

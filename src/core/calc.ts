@@ -359,7 +359,8 @@ export function calcAll(lines: Line[], cfg: Cfg, ex: { weak?: Weak; floor?: Floo
   if (c.house) rows.forEach(x => { if (!x.r.empty) houseTips(x.l, x.r.tips); });
   const sumInst = rows.reduce((s, x) => s + x.r.pInst, 0);
   const sumD = rows.reduce((s, x) => s + x.r.pd, 0);
-  const P = sumD * c.ko;
+  const prio = prioPlan(rows);
+  const P = (sumD - prio.pd) * c.ko;
   let phases: Calc['phases'] = null;
   let Itot: number;
   if (c.supply === 3) {
@@ -374,13 +375,13 @@ export function calcAll(lines: Line[], cfg: Cfg, ex: { weak?: Weak; floor?: Floo
         ph[key] += x.r.I;
       }
     });
-    ph.L1 *= c.ko;
-    ph.L2 *= c.ko;
-    ph.L3 *= c.ko;
+    ph.L1 = (ph.L1 - prio.ph.L1) * c.ko;
+    ph.L2 = (ph.L2 - prio.ph.L2) * c.ko;
+    ph.L3 = (ph.L3 - prio.ph.L3) * c.ko;
     phases = ph;
     Itot = Math.max(ph.L1, ph.L2, ph.L3);
   } else {
-    Itot = c.ko * rows.reduce((s, x) => s + x.r.I, 0);
+    Itot = c.ko * (rows.reduce((s, x) => s + x.r.I, 0) - prio.I);
   }
   const maxLineIn = rows.reduce((m, x) => Math.max(m, x.r.In || 0), 0);
   const gi = maxLineIn > 0 ? ALL_STEPS.indexOf(maxLineIn) : -1;
@@ -405,6 +406,15 @@ export function calcAll(lines: Line[], cfg: Cfg, ex: { weak?: Weak; floor?: Floo
     const vr = vrRating(inIn);
     const n = c.supply === 3 ? 3 : 1;
     devs.push({ kind: 'vr', mod: 2 * n, label: vr ? vr + 'А' : 'РН', sub: n > 1 ? '3 × реле' : 'реле U', title: 'Реле контроля напряжения' + (n > 1 ? ', по одному на фазу' : '') + (vr ? ' ' + vr + ' А' : ', через контактор') });
+  }
+  if (prio.on) {
+    const pName = prio.p.map(i => 'Г' + (i + 1)).join(', ');
+    const sName = prio.s.map(i => 'Г' + (i + 1)).join(', ');
+    devs.push({ kind: 'prio', mod: PRIO_MOD, label: 'РПН', sub: 'приоритет', title: 'Реле приоритета нагрузки: при работе ' + pName + ' отключает ' + sName });
+    prio.s.forEach(i => {
+      const r = rows[i].r;
+      devs.push({ kind: 'prio', mod: r.three ? 4 : 2, label: 'КМ' + contactorIn(r.In ?? 0), sub: 'Г' + (i + 1), title: 'Контактор ' + (r.three ? '4P' : '2P') + ' ' + contactorIn(r.In ?? 0) + ' А: отключение Г' + (i + 1) + ' реле приоритета' });
+    });
   }
   if (inIn && c.spd) devs.push({ kind: 'spd', mod: c.supply === 3 ? 4 : 2, label: 'УЗИП', sub: c.house ? 'тип 1+2' : 'тип 2', title: 'УЗИП тип ' + (c.house ? '1+2 ' : '2 ') + (c.supply === 3 ? '3P+N' : '1P+N') });
   const groupDev = (x: Row, idx: number): Device => ({
@@ -460,7 +470,34 @@ export function calcAll(lines: Line[], cfg: Cfg, ex: { weak?: Weak; floor?: Floo
   const issues = rows.filter(x => !x.r.empty && x.r.status !== 'ok').length;
   const hint3 = c.supply === 1 && P > SINGLE_INPUT_KW * 1000;
   const boxes = rows.filter(x => !x.r.empty && x.l.apps.some(a => appW(a) > 0 && appBr(a) > 0)).length;
-  return { c, rows, sumInst, P, Itot, phases, imb, inIn, inS, devs, modSum, size, placed, fits, issues, inStep, hint3, uzos, boxes, ...(weakStarted(weak) ? { weak: weakCalc(weak) } : {}), ...(floor.length ? { floor } : {}), ...(c.house ? { house: houseCalc(c, rows, Itot, inIn) } : {}) };
+  return { c, rows, sumInst, P, Itot, ...(prio.on ? { prio: { p: prio.p, s: prio.s } } : {}), phases, imb, inIn, inS, devs, modSum, size, placed, fits, issues, inStep, hint3, uzos, boxes, ...(weakStarted(weak) ? { weak: weakCalc(weak) } : {}), ...(floor.length ? { floor } : {}), ...(c.house ? { house: houseCalc(c, rows, Itot, inIn) } : {}) };
+}
+
+export const PRIO_MOD = 2;
+const CONTACTOR_IN = [16, 20, 25, 32, 40, 63, 80, 100];
+
+export function contactorIn(In: number): number {
+  return CONTACTOR_IN.find(x => x >= In) ?? CONTACTOR_IN[CONTACTOR_IN.length - 1];
+}
+
+export function prioPlan(rows: Row[]): { on: boolean; p: number[]; s: number[]; pd: number; I: number; ph: { L1: number; L2: number; L3: number } } {
+  const p: number[] = [];
+  const s: number[] = [];
+  rows.forEach((x, i) => {
+    if (x.r.empty || !x.r.In) return;
+    if (x.l.prio === 'p') p.push(i);
+    else if (x.l.prio === 's') s.push(i);
+  });
+  const ph = { L1: 0, L2: 0, L3: 0 };
+  if (!p.length || !s.length) return { on: false, p, s, pd: 0, I: 0, ph };
+  const sum = (ids: number[], f: (r: LineResult) => number) => ids.reduce((acc, i) => acc + f(rows[i].r), 0);
+  const onPh = (ids: number[], k: 'L1' | 'L2' | 'L3') => ids.reduce((acc, i) => {
+    const x = rows[i];
+    const key = x.l.phase === 'L2' || x.l.phase === 'L3' ? x.l.phase : 'L1';
+    return acc + (x.r.three || key === k ? x.r.I : 0);
+  }, 0);
+  (['L1', 'L2', 'L3'] as const).forEach(k => { ph[k] = Math.min(onPh(p, k), onPh(s, k)); });
+  return { on: true, p, s, pd: Math.min(sum(p, r => r.pd), sum(s, r => r.pd)), I: Math.min(sum(p, r => r.I), sum(s, r => r.I)), ph };
 }
 
 export function balanceLines(lines: Line[], cfg: Cfg): Line[] {

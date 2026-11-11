@@ -1375,20 +1375,20 @@ button.dev.sel.hot{outline-color:var(--accent)}
 .net-opts input{margin-top:var(--s-0-5)}
 .net-opts span{display:grid;gap:var(--s-0-5)}
 .net-opts small{color:var(--ink-2);font-size:var(--t-sm)}
-.rail .dev-vr,.rail .dev-spd{background:var(--dev-body);color:var(--dev-ink);border:1px solid var(--dev-edge)}
-.rail .dev-vr::before{background:var(--hw-neutral)}
+.rail .dev-vr,.rail .dev-spd,.rail .dev-prio{background:var(--dev-body);color:var(--dev-ink);border:1px solid var(--dev-edge)}
+.rail .dev-vr::before,.rail .dev-prio::before{background:var(--hw-neutral)}
 .rail .dev-spd::before{background:var(--hw-neutral)}
 .rail .dev-vr::after{height:5px;border-radius:0 0 4px 4px;background:repeating-linear-gradient(90deg,var(--ink-2) 0 4px,transparent 4px 8px)}
 .rail .dev-spd::after{height:5px;border-radius:0 0 4px 4px;background:repeating-linear-gradient(90deg,var(--hw-warn) 0 4px,var(--ink) 4px 8px)}
 .legend .dev-vr,.legend .dev-spd{height:6px;border-radius:3px}
 .legend .dev-vr{background:repeating-linear-gradient(90deg,var(--ink-2) 0 3px,transparent 3px 6px)}
 .legend .dev-spd{background:repeating-linear-gradient(90deg,var(--hw-warn) 0 3px,var(--ink) 3px 6px)}
-.bd-no.k-vr,.bd-no.k-spd{background:var(--surface-2);color:var(--ink-2)}
-.pmb-dev.k-vr,.pmb-dev.k-spd{background:var(--hw-aux-dev)}
+.bd-no.k-vr,.bd-no.k-spd,.bd-no.k-prio{background:var(--surface-2);color:var(--ink-2)}
+.pmb-dev.k-vr,.pmb-dev.k-spd,.pmb-dev.k-prio{background:var(--hw-aux-dev)}
 .pmb-dev.k-spd .pmb-lever{background:var(--hw-lever-spd)}
 .pmb-dev.k-vr .pmb-lever{background:var(--hw-lever-vr)}
 @media print{
-  .printdoc .k-vr .stk-top,.printdoc .stk-k.k-vr{background:var(--print-ink-4);color:var(--print-paper)}
+  .printdoc .k-vr .stk-top,.printdoc .stk-k.k-vr,.printdoc .k-prio .stk-top,.printdoc .stk-k.k-prio{background:var(--print-ink-4);color:var(--print-paper)}
   .printdoc .k-spd .stk-top,.printdoc .stk-k.k-spd{background:var(--print-spd);color:var(--print-ink)}
   .printdoc .k-socket .stk-top,.printdoc .stk-k.k-socket{background:var(--print-socket);color:var(--print-paper)}
 }
@@ -1497,3 +1497,11 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
 @media (max-width:760px){.gtab td.g-st:has(.pill.ok){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 .bd-fold>summary{display:flex;align-items:center;min-height:44px;color:var(--accent);font-weight:600;cursor:pointer}
 @media (min-width:1000px){.bd-fold>summary{display:none}}
+.pfit{margin:var(--s-2) 0 var(--s-4);padding:var(--s-3);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
+.pfit .sec-t{margin-top:0}
+.pfit-lead{margin:0 0 var(--s-2);color:var(--ink-2)}
+.pfit-list{margin:0;padding:0;list-style:none;display:grid;gap:var(--s-2)}
+.pfit-o{display:grid;gap:var(--s-1);justify-items:start;padding:var(--s-2) var(--s-3);border-radius:var(--r-m);background:var(--surface-2)}
+.pfit-o.ok small{color:var(--ok)}
+.pfit-now{display:grid;gap:var(--s-2);justify-items:start;margin-top:var(--s-3)}
+.pfit-now p{margin:0}

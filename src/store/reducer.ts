@@ -50,6 +50,7 @@ export type Action =
   | { t: 'lineType'; type: LineType }
   | { t: 'linePhase'; phase: Phase }
   | { t: 'lineWet'; wet: boolean; out?: boolean }
+  | { t: 'prio'; set: Record<string, 'p' | 's' | ''> }
   | { t: 'lineMeas'; field: MeasField; value: string }
   | { t: 'lineMeasAt'; id: string; field: MeasField; value: string }
   | { t: 'check'; id: string; on: boolean }
@@ -338,6 +339,18 @@ export function reducer(s: State, a: Action): State {
       });
     case 'weakOnt':
       return patch(s, q => ({ ...q, weak: { ...(q.weak ?? WEAK_EMPTY), ont: a.on } }));
+    case 'prio':
+      return patch(s, q => ({
+        ...q,
+        lines: q.lines.map(l => {
+          if (!(l.id in a.set)) return l;
+          const v = a.set[l.id];
+          const next: Line = { ...l };
+          if (v) next.prio = v;
+          else delete next.prio;
+          return next;
+        })
+      }));
     case 'lineWet':
       return patchLine(s, l => {
         const next: Line = { ...l, wet: a.wet };

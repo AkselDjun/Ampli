@@ -28,7 +28,7 @@ export const Summary = memo(function Summary({ a, onBalance, solo = false }: { a
   );
 });
 
-const EXTRA: Record<string, [string, string]> = { spd: ['УЗИП', 'Защита от перенапряжений'], vr: ['Реле U', 'Реле контроля напряжения'] };
+const EXTRA: Record<string, [string, string]> = { spd: ['УЗИП', 'Защита от перенапряжений'], vr: ['Реле U', 'Реле контроля напряжения'], prio: ['Приоритет', 'Реле приоритета нагрузки'] };
 
 export function shortName(t: string): string {
   const w = (t.trim().split(/[\s,:;]+/)[0] ?? '').replace(/[^\p{L}\d-]/gu, '');
@@ -70,7 +70,7 @@ const Module = memo(function Module({ d, i, cap, t, drag, over, sel, hot, prev, 
       <div className={cls} style={style} data-tip={d.title}>
         <b>{d.label}</b>
         <i>{d.sub}</i>
-        <em className="dev-cap">{d.kind === 'in' ? 'Ввод' : (d.kind === 'spd' || d.kind === 'vr' ? EXTRA[d.kind][0] : d.zone)}</em>
+        <em className="dev-cap">{d.kind === 'in' ? 'Ввод' : (d.kind === 'spd' || d.kind === 'vr' || d.kind === 'prio' ? EXTRA[d.kind][0] : d.zone)}</em>
       </div>
     );
   }
@@ -172,12 +172,12 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
             const load = d.kind === 'in' ? (a.inIn ? a.Itot / a.inIn * 100 : 0) : (row && row.r.In ? row.r.I / row.r.In * 100 : null);
             const cl = load === null ? '' : (load > 100 ? 'bad' : (load > 80 ? 'warn' : ''));
             const u = d.kind === 'uzo' ? a.uzos.find(z => z.zone === d.zone) : undefined;
-            const extra = d.kind === 'spd' || d.kind === 'vr';
-            const name = d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? 'УЗО: ' + d.zone : (extra ? EXTRA[d.kind][1] : nameOf[g]));
-            const kind = d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'rcd' ? (d.arc ? 'УЗДП с дифавтоматом ' : 'дифавтомат ') + d.ma + ' мА' + (row?.r.rcdA ? ', тип A' : '') : (d.kind === 'uzo' ? d.sub.replace('мА', ' мА') + (u?.typeA ? ', тип A' : '') + ', своя шина N' : (d.kind === 'spd' ? 'тип 2, ' + (c.supply === 3 ? '3P+N' : '1P+N') : (d.kind === 'vr' ? (c.supply === 3 ? 'по одному на фазу' : 'отключит квартиру при скачке напряжения') : (d.arc ? 'УЗДП с автоматом' : 'автомат')))));
+            const extra = d.kind === 'spd' || d.kind === 'vr' || d.kind === 'prio';
+            const name = d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? 'УЗО: ' + d.zone : (d.kind === 'prio' && d.sub !== 'приоритет' ? 'Контактор ' + d.sub : (extra ? EXTRA[d.kind][1] : nameOf[g])));
+            const kind = d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'rcd' ? (d.arc ? 'УЗДП с дифавтоматом ' : 'дифавтомат ') + d.ma + ' мА' + (row?.r.rcdA ? ', тип A' : '') : (d.kind === 'uzo' ? d.sub.replace('мА', ' мА') + (u?.typeA ? ', тип A' : '') + ', своя шина N' : (d.kind === 'spd' ? 'тип 2, ' + (c.supply === 3 ? '3P+N' : '1P+N') : (d.kind === 'vr' ? (c.supply === 3 ? 'по одному на фазу' : 'отключит квартиру при скачке напряжения') : d.kind === 'prio' ? d.title.split(': ')[1] ?? '' : (d.arc ? 'УЗДП с автоматом' : 'автомат')))));
             const body = (
               <>
-                <span className={'bd-no k-' + d.kind}>{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (extra ? (d.kind === 'spd' ? 'FV' : 'KV') : g))}</span>
+                <span className={'bd-no k-' + d.kind}>{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (extra ? (d.kind === 'spd' ? 'FV' : (d.kind === 'prio' && d.sub !== 'приоритет' ? 'KM' : 'KV')) : g))}</span>
                 <span className="bd-main">
                   <span className="bd-name">{name}</span>
                   <span className="bd-sub">{kind}{row && row.r.S ? ', ' + fs(row.r.S) + ' мм²' : ''}{u ? ' · ' + u.groups.map(k => 'Г' + (k + 1)).join(', ') : ''}</span>
