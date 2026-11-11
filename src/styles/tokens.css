@@ -134,10 +134,10 @@
   --print-spd:#E0A020;
   --print-rcd:#0B5CD5;
 }
-@media (min-width:1000px){:root{--gutter:24px;--gap:20px;--pad:20px}}
-@media (max-width:760px){:root{--field-h:48px;--field-h-s:44px}}
-@media (max-width:760px),(pointer:coarse){:root{--field-fs:16px}}
-@media (min-width:1600px){:root{--gap:24px}}
+@media (--desktop){:root{--gutter:24px;--gap:20px;--pad:20px}}
+@media (--tablet){:root{--field-h:48px;--field-h-s:44px}}
+@media (--tablet),(pointer:coarse){:root{--field-fs:16px}}
+@media (--wide-xl){:root{--gap:24px}}
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#0D141B;
