@@ -8,11 +8,12 @@ import { Sheet, TabPanel, Tabs } from './common';
 import { ShareBlock } from './ShareBlock';
 import { actsOf, actsSummary } from '../core/acts';
 import { oldStarted } from '../core/oldwire';
+import { tracedCount, wallPhotos } from '../core/traces';
 import { IconPrint } from './Icons';
 import { usePack } from './pack';
 import { Button, Field, IconButton } from './kit';
 
-export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3' | 'hidden' | 'accept' | 'old';
+export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3' | 'hidden' | 'wiring' | 'accept' | 'old';
 
 export function WorkSheet({
   open, onClose, p, a, dispatch, onPrint, onBoard
@@ -36,18 +37,21 @@ export function WorkSheet({
   const done = rows.filter(r => r.verdict !== 'none').length;
   const failed = rows.filter(r => r.verdict === 'bad').length;
   const empty = !rows.length;
+  const walls = wallPhotos(p.photos).length;
+  const traced = tracedCount(p.photos);
   const docs: { m: PrintMode; name: string; hint: string; one: string }[] = [
     { m: 'report', name: 'Отчёт и спецификация', hint: 'расчёт групп, схема, материалы и смета', one: 'Печать отчёта' },
     { m: 'a3', name: 'Схема щитка А3', hint: 'однолинейная по ГОСТ 21.613 со штампом', one: 'Печать схемы А3' },
     { m: 'proto', name: 'Протокол замеров', hint: rows.length ? 'измерено ' + done + ' из ' + rows.length + ' групп' : 'групп пока нет', one: 'Печать протокола' },
     { m: 'hidden', name: 'Акт скрытых работ', hint: 'подписывают до заделки штроб', one: 'Акт скрытых работ' },
+    { m: 'wiring', name: 'Карта скрытой проводки', hint: walls ? 'фото стен: ' + walls + ', трасс: ' + traced : 'в карточке группы добавьте фото «Стена» и разметьте трассы', one: 'Печать карты проводки' },
     { m: 'accept', name: 'Акт сдачи-приёмки', hint: failed ? 'в протоколе ' + failed + ' ' + plural(failed, ['группа не соответствует', 'группы не соответствуют', 'групп не соответствуют']) + ', сначала устраните' : 'работы из сметы, сроки и гарантия', one: 'Акт приёмки' },
     { m: 'passport', name: 'Паспорт для владельца', hint: 'оставить у щитка', one: 'Печать паспорта' },
     { m: 'stickers', name: 'Наклейки щитка', hint: 'по рядам, в размер модулей', one: 'Наклейки щитка' },
     { m: 'tags', name: 'Бирки кабелей', hint: 'по две на группу', one: 'Бирки кабелей' },
     ...(oldStarted(p.old) ? [{ m: 'old' as PrintMode, name: 'Заключение по старой проводке', hint: 'результаты осмотра и вывод', one: 'Печать заключения по проводке' }] : [])
   ];
-  const chosen = docs.map(d => d.m).filter(m => pack.includes(m));
+  const chosen = docs.map(d => d.m).filter(m => pack.includes(m) && (m !== 'wiring' || walls > 0));
   return (
     <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" tourId="work" bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Замеры вводятся в карточке группы, раздел «Замеры и фото», или в режиме «На щитке». По ним проверяются КЗ, УЗО и изоляция.">
       <TabPanel scope="wk" id="check" cur={tab}>
@@ -112,7 +116,7 @@ export function WorkSheet({
               <input type="checkbox" checked={pack.includes(d.m)} onChange={e => setPack(e.target.checked ? [...pack, d.m] : pack.filter(x => x !== d.m))} />
               <span className="pk-t"><b>{d.name}</b><small>{d.hint}</small></span>
             </label>
-            <IconButton className="pk-p" label={d.one} tip="Напечатать только этот" disabled={empty && d.m !== 'old'} onClick={() => onPrint(d.m)}><IconPrint /></IconButton>
+            <IconButton className="pk-p" label={d.one} tip="Напечатать только этот" disabled={(empty && d.m !== 'old') || (d.m === 'wiring' && !walls)} onClick={() => onPrint(d.m)}><IconPrint /></IconButton>
           </li>
         ))}
       </ul>

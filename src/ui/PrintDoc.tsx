@@ -14,6 +14,8 @@ import { VERDICT, hasMeasurements, protocolRows } from '../core/protocol';
 import type { PrintMode } from './WorkSheet';
 import { CHECK_ITEMS } from '../core/checklist';
 import { photoCaption } from '../core/photos';
+import { wallCaption, wallPhotos } from '../core/traces';
+import { TraceNums, TraceOverlay } from './TraceOverlay';
 import { usePhotoUrls } from './PhotoStrip';
 import { PassportDoc } from './Passport';
 import { DrawingA3, drawCode } from './DrawingA3';
@@ -234,6 +236,7 @@ export function PrintDoc({ p, a, mode = 'report' }: { p: Project; a: Calc; mode?
   if (mode === 'tags') return <div className="printdoc" aria-hidden="true"><TagsDoc p={p} a={a} /></div>;
   if (mode === 'a3') return <A3Doc p={p} a={a} />;
   if (mode === 'hidden') return <div className="printdoc act" aria-hidden="true"><HiddenDoc p={p} a={a} /></div>;
+  if (mode === 'wiring') return <div className="printdoc" aria-hidden="true"><BrandHead /><WiringDoc p={p} /></div>;
   if (mode === 'old') return <div className="printdoc act" aria-hidden="true"><OldDoc p={p} a={a} /></div>;
   if (mode === 'accept') return <div className="printdoc act" aria-hidden="true"><AcceptDoc p={p} a={a} /></div>;
   return <ReportDoc p={p} a={a} />;
@@ -296,7 +299,35 @@ function HiddenDoc({ p, a }: { p: Project; a: Calc }) {
       </ol>
       <p><b>Решение комиссии.</b> Работы выполнены в соответствии с проектной документацией, требованиями ТКП 339-2022 и СН 4.04.01-2019 и отвечают требованиям их приёмки. Разрешается производство последующих работ по {next}.</p>
       <Signs who={[['Исполнитель', b.signer || p.author], ['Заказчик', p.client], ['Технический надзор', '']]} />
-      <p className="pd-note">Акт составлен по форме акта освидетельствования скрытых работ СН 1.03.04-2020 «Организация строительного производства». Перед заделкой штроб рекомендуется приложить фото трасс с привязкой к стенам.</p>
+      <p className="pd-note">Акт составлен по форме акта освидетельствования скрытых работ СН 1.03.04-2020 «Организация строительного производства». {wallPhotos(p.photos).some(ph => ph.traces?.length) ? 'Приложение: карта скрытой проводки с фото трасс и привязкой к стенам.' : 'Перед заделкой штроб рекомендуется приложить фото трасс с привязкой к стенам.'}</p>
+    </>
+  );
+}
+
+function WiringDoc({ p }: { p: Project }) {
+  const walls = wallPhotos(p.photos);
+  const urls = usePhotoUrls(walls.map(x => x.id));
+  return (
+    <>
+      <h1>Карта скрытой проводки</h1>
+      <p className="pd-sub">{[p.name || 'Без названия', p.address].filter(Boolean).join(', ')}. Фото стен сделаны до штукатурки и отделки, красным показаны трассы кабелей, цифры совпадают с привязками под фото.</p>
+      {!walls.length && <p>Фото стен пока нет. Добавьте фото «Стена» в карточке группы и разметьте трассы.</p>}
+      {walls.map(ph => (
+        <figure key={ph.id} className="wd-wall">
+          <div className="wd-img">
+            {urls[ph.id] && <img src={urls[ph.id]} alt={wallCaption(ph, p.lines)} />}
+            <TraceOverlay traces={ph.traces ?? []} />
+            <TraceNums traces={ph.traces ?? []} />
+          </div>
+          <figcaption>{wallCaption(ph, p.lines)}</figcaption>
+          {ph.traces?.length ? (
+            <ol className="wd-list">
+              {ph.traces.map((t, i) => <li key={i}>{t.note || 'привязка не указана'}</li>)}
+            </ol>
+          ) : <p className="pd-note">Трассы на этом фото не размечены.</p>}
+        </figure>
+      ))}
+      <p className="pd-note">Не сверлите и не штробите стены над трассами и рядом с ними. Положение трасс показано по фото, размеры из привязок проверяйте рулеткой или детектором проводки.</p>
     </>
   );
 }

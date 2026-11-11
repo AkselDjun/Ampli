@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import type { Photo, PhotoTag } from '../core/types';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import type { Photo, PhotoTag, Trace } from '../core/types';
+import { TraceSheet } from './parts';
 import { toastBad } from './toast';
 import { PHOTO_LIMIT, PHOTO_TAGS, PHOTO_TAG_LABEL } from '../core/photos';
 import { nid } from '../core/ids';
@@ -27,7 +28,7 @@ export function usePhotoUrls(ids: string[]): Record<string, string> {
 }
 
 export function PhotoStrip({
-  photos, line, tags, total, onAdd, onDel, onNote, name
+  photos, line, tags, total, onAdd, onDel, onNote, onTraces, name
 }: {
   photos: Photo[];
   line: string;
@@ -36,8 +37,11 @@ export function PhotoStrip({
   onAdd: (p: Photo) => void;
   onDel: (id: string) => void;
   onNote: (id: string, v: string) => void;
+  onTraces?: (id: string, traces: Trace[]) => void;
   name: string;
 }) {
+  const [mark, setMark] = useState<string | null>(null);
+  const marking = mark ? photos.find(ph => ph.id === mark) : undefined;
   const [tag, setTag] = useState<PhotoTag>(tags[0]);
   const [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -90,9 +94,19 @@ export function PhotoStrip({
                 <IconButton className="ph-del" label="Удалить фото" tip="Удалить фото" onClick={() => del(ph.id)}><IconTrash /></IconButton>
               </div>
               <input type="text" maxLength={120} aria-label="Подпись к фото" placeholder="Подпись" value={ph.note} onChange={e => onNote(ph.id, e.target.value)} />
+              {ph.tag === 'wall' && onTraces && (
+                <Button size="sm" variant="ghost" className="ph-tr" disabled={!urls[ph.id]} onClick={() => setMark(ph.id)}>
+                  {ph.traces?.length ? 'Трассы: ' + ph.traces.length : 'Разметить трассы'}
+                </Button>
+              )}
             </li>
           ))}
         </ul>
+      )}
+      {marking && onTraces && urls[marking.id] && (
+        <Suspense fallback={null}>
+          <TraceSheet photo={marking} url={urls[marking.id]} onSave={tr => onTraces(marking.id, tr)} onClose={() => setMark(null)} />
+        </Suspense>
       )}
     </div>
   );
