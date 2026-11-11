@@ -22,7 +22,8 @@
 [Быстрый старт](#быстрый-старт) ·
 [Архитектура](#архитектура) ·
 [Нормы](#нормы-и-допущения) ·
-[Журнал изменений](CHANGELOG.md)
+[Журнал изменений](CHANGELOG.md) ·
+[Контекст проекта](PROJECT_CONTEXT.md)
 
 <br>
 
@@ -243,7 +244,7 @@ flowchart LR
 | --- | --- |
 | Lint and types | ESLint, Stylelint, TypeScript |
 | Unit tests | Vitest с порогом покрытия |
-| Build and size budget | Сборка и бюджет: самый большой JS 100 kB, CSS 25 kB, всё вместе 280 kB в gzip |
+| Build and size budget | Сборка и бюджет: самый большой JS 100 kB, CSS 25 kB, всё вместе 290 kB в gzip |
 | Lighthouse | Производительность ≥ 85, доступность ≥ 95, лучшие практики ≥ 90; LCP ≤ 3 с, TBT ≤ 400 мс, CLS ≤ 0,1 |
 | Browser tests | Playwright, при падении прикладываются трейсы |
 
