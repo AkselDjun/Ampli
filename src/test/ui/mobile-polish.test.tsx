@@ -22,10 +22,10 @@ vi.setConfig({ testTimeout: 60000 });
 const zl = (l: Line, zone: string): Line => ({ ...l, zone });
 const proj = (ls: Line[], cfg: Partial<Cfg> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), prot: 'rcbo', ...cfg }, lines: ls, sample: false }, 'Тест'), lines: ls });
 const mixed = (): Line[] => [
-  zl(mkLine('Свет кухни', 'light', 5, null, null, [['Лампа', 100, 1]]), 'Кухня'),
-  mkLine('Розетки коридора', 'socket', 5, null, null, [['Пылесос', 1600, 1]]),
-  zl(mkLine('Свет комнат', 'light', 5, null, null, [['Люстра', 100, 1]]), 'Комнаты'),
-  zl(mkLine('Розетки кухни', 'socket', 5, null, null, [['Чайник', 2000, 1]]), 'кухня')
+  zl(mkLine('Свет кухни', 'light', 5, [['Лампа', 100, 1]]), 'Кухня'),
+  mkLine('Розетки коридора', 'socket', 5, [['Пылесос', 1600, 1]]),
+  zl(mkLine('Свет комнат', 'light', 5, [['Люстра', 100, 1]]), 'Комнаты'),
+  zl(mkLine('Розетки кухни', 'socket', 5, [['Чайник', 2000, 1]]), 'кухня')
 ];
 const save = (p: Project) => localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
 
@@ -55,8 +55,8 @@ describe('breaker load in the group list', () => {
   it('shows a load bar under each breaker and marks it above 90 %', () => {
     wide(true);
     save(proj([
-      mkLine('Лампы', 'light', 5, null, null, [['Лампа', 100, 1]]),
-      mkLine('Духовка', 'power', 5, null, null, [['Духовка', 3600, 1]])
+      mkLine('Лампы', 'light', 5, [['Лампа', 100, 1]]),
+      mkLine('Духовка', 'power', 5, [['Духовка', 3600, 1]])
     ]));
     render(<App />);
     const brk = Array.from(document.querySelectorAll<HTMLElement>('.rows .brk'));
@@ -69,7 +69,7 @@ describe('breaker load in the group list', () => {
 
   it('names the RCD zone when groups share an RCD', () => {
     wide(true);
-    save(proj([zl(mkLine('Лампы', 'light', 5, null, null, [['Лампа', 100, 1]]), 'Комнаты')], { prot: 'rcd' }));
+    save(proj([zl(mkLine('Лампы', 'light', 5, [['Лампа', 100, 1]]), 'Комнаты')], { prot: 'rcd' }));
     render(<App />);
     expect(document.querySelector('.rows .brk')?.getAttribute('data-tip')).toMatch(/УЗО «Комнаты» 30 мА$/);
   });
@@ -77,7 +77,7 @@ describe('breaker load in the group list', () => {
 
 describe('short header labels', () => {
   it('keeps the long and the short power label for narrow screens', () => {
-    const p = proj([mkLine('Лампы', 'light', 5, null, null, [['Лампа', 100, 1]])]);
+    const p = proj([mkLine('Лампы', 'light', 5, [['Лампа', 100, 1]])]);
     render(<Totals a={calcAll(p.lines, p.cfg)} onNet={() => undefined} />);
     expect(document.querySelector('.kp-l')?.textContent).toBe('Мощность');
     expect(document.querySelector('.kp-s')?.textContent).toBe('кВт');
@@ -87,10 +87,10 @@ describe('short header labels', () => {
 
 describe('measuring on the board with the keyboard', () => {
   const lines = (): Line[] => [
-    zl(mkLine('Свет', 'light', 10, null, null, [['Люстра', 200, 1]]), 'Комнаты'),
-    zl(mkLine('Розетки', 'socket', 10, null, null, [['ТВ', 1500, 1]]), 'Комнаты'),
-    zl(mkLine('Кухня', 'socket', 8, null, null, [['Чайник', 2000, 1]]), 'Кухня'),
-    zl(mkLine('Ванная', 'socket', 8, null, null, [['Фен', 1200, 1]]), 'Ванная')
+    zl(mkLine('Свет', 'light', 10, [['Люстра', 200, 1]]), 'Комнаты'),
+    zl(mkLine('Розетки', 'socket', 10, [['ТВ', 1500, 1]]), 'Комнаты'),
+    zl(mkLine('Кухня', 'socket', 8, [['Чайник', 2000, 1]]), 'Кухня'),
+    zl(mkLine('Ванная', 'socket', 8, [['Фен', 1200, 1]]), 'Ванная')
   ];
   const raf = () => vi.spyOn(window, 'requestAnimationFrame').mockImplementation(cb => { cb(0); return 0; });
 
