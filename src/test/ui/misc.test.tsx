@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { LIB_KEY } from '../../store/lib';
 import { byLabel, change, click, dlg, isOpen, wide, toastText } from './util';
@@ -170,6 +170,7 @@ describe('LibSheet', () => {
     expect(lib().templates.length).toBe(0);
     fireEvent.keyDown(document, { key: 'Escape' });
     click(nav(), /Отчёт/);
+    fireEvent.click(within(dlg('Отчёт и спецификация')).getByRole('tab', { name: 'Смета' }));
     change(dlg('Отчёт и спецификация').querySelector('.price-in') as HTMLElement, '5');
     fireEvent.keyDown(document, { key: 'Escape' });
     click(list(), 'Проекты');

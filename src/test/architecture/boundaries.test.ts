@@ -35,4 +35,33 @@ describe('architecture boundaries', () => {
     const parts = import.meta.glob<string>('../../ui/parts.tsx', { query: '?raw', import: 'default', eager: true })['../../ui/parts.tsx'];
     expect(parts).toMatch(/import\('\.\/Onboarding'\)/);
   });
+
+  it('keeps link compression, the palette and the assumptions table out of the first screen', () => {
+    const all = import.meta.glob<string>('../../**/*.{ts,tsx}', { query: '?raw', import: 'default', eager: true });
+    const src = new Map(Object.entries(all).filter(([f]) => !f.includes('/test/')).map(([f, v]) => [f.replace('../../', 'src/'), v]));
+    const resolve = (from: string, spec: string): string | null => {
+      if (!spec.startsWith('.')) return spec;
+      const parts = from.split('/').slice(0, -1);
+      for (const seg of spec.split('/')) {
+        if (seg === '..') parts.pop();
+        else if (seg !== '.') parts.push(seg);
+      }
+      const base = parts.join('/');
+      return [base + '.ts', base + '.tsx', base].find(f => src.has(f)) ?? null;
+    };
+    const seen = new Set<string>();
+    const walk = (file: string) => {
+      if (seen.has(file)) return;
+      seen.add(file);
+      const code = src.get(file);
+      if (!code) return;
+      for (const m of code.matchAll(/^import\s+(?!type\b)[^;]*?from\s+['"]([^'"]+)['"]/gm)) {
+        const next = resolve(file, m[1]);
+        if (next) walk(next);
+      }
+    };
+    walk('src/main.tsx');
+    expect(seen.has('src/ui/App.tsx')).toBe(true);
+    for (const lazy of ['fflate', 'src/core/share.ts', 'src/ui/Palette.tsx', 'src/ui/Assumptions.tsx', 'src/core/assumptions.ts']) expect(seen.has(lazy), lazy).toBe(false);
+  });
 });

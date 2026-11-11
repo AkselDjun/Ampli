@@ -40,6 +40,7 @@ describe('ReportSheet downloads', () => {
     render(<App />);
     click(nav(), /Отчёт/);
     const d = dlg('Отчёт и спецификация');
+    fireEvent.click(within(d).getByRole('tab', { name: 'Смета' }));
     click(d, /Excel/);
     expect(download).toHaveBeenCalledTimes(1);
     const x = vi.mocked(download).mock.calls[0];

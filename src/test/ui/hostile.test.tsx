@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { fireEvent, render, waitFor, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { BOOT_KEY } from '../../store/storage';
 import { sampleProject } from '../../core/project';
@@ -51,6 +51,7 @@ describe('oversized uploads', () => {
   it('refuses a price list over the limit without reading it', async () => {
     render(<App />);
     click(document.querySelector('nav.tabs') as HTMLElement, /Отчёт/);
+    fireEvent.click(within(dlg('Отчёт и спецификация')).getByRole('tab', { name: 'Смета' }));
     click(dlg('Отчёт и спецификация'), 'Где купить');
     const d = dlg('Где купить');
     const f = big(MAX_FILE + 1, 'text/csv', 'opt.csv');

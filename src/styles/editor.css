@@ -23,6 +23,10 @@
 .cmp.worse{color:var(--bad)}
 .cmp.better{color:var(--ok)}
 .quick{display:grid;gap:var(--s-2);margin-top:var(--s-2)}
+.mic{display:inline-flex;align-items:center;gap:var(--s-1-5);min-height:44px;padding:0 var(--s-3);font-size:var(--t-m);font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);cursor:pointer;touch-action:manipulation}
+.mic:hover{border-color:var(--ink-2)}
+.mic.on{color:var(--bad);border-color:var(--bad);background:var(--bad-soft)}
+.room-text{display:grid;gap:var(--s-2)}
 .meas .grid3{margin-top:var(--s-2)}
 .hist{display:flex;align-items:center;gap:var(--s-1-5)}
 .hist .icon-btn:disabled{opacity:.35;cursor:default}

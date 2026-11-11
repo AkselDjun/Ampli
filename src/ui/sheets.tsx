@@ -16,7 +16,8 @@ import { download, exportBackup } from './download';
 import { IconChev, IconDownload, IconWire } from './Icons';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
-import { ArmButton, Assumptions, Err, Seg, errAttrs, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
+import { Assumptions } from './Assumptions';
+import { ArmButton, Err, Seg, errAttrs, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
 import { Schematic } from './Schematic';
 import { toast, toastBad, toastOk } from './toast';
 import { IOS_STEPS, install, usePwa } from './pwa';
@@ -32,6 +33,7 @@ import type { PrintMode } from './WorkSheet';
 import { Button, Field } from './kit';
 import { APP_VERSION, NORMS_EDITION } from '../core/version';
 import { MAX_IMPORT_BYTES, lastBackup, restorePhotos, validateBackup } from '../store/backup';
+import { isEvLine } from '../core/ev';
 
 export function NetSheet({
   open, onClose, p, dispatch, onOld, oldLabel
@@ -429,7 +431,7 @@ export function ReportSheet({
   }
   return (
     <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Основания' }]} />}>
-      <TabPanel scope="rep" id="groups" cur={tab}>
+      <TabPanel scope="rep" id="groups" cur={tab} lazy>
       <div className="copy-row">
         <Button variant="primary" onClick={() => onPrint('report')}>Печать / PDF</Button>
         <Button onClick={copy}>Скопировать отчёт</Button>
@@ -487,7 +489,7 @@ export function ReportSheet({
         </table>
       </div>
       </TabPanel>
-      <TabPanel scope="rep" id="scheme" cur={tab}>
+      <TabPanel scope="rep" id="scheme" cur={tab} lazy>
       <div className="sec-row">
         <h3 className="sec-t">Схема щитка</h3>
         <Button size="sm" onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
@@ -499,7 +501,7 @@ export function ReportSheet({
         <div className="a3-wrap"><Suspense fallback={null}><DrawingA3 p={p} a={a} company={lib.brand.company} /></Suspense></div>
       </details>
       </TabPanel>
-      <TabPanel scope="rep" id="estimate" cur={tab}>
+      <TabPanel scope="rep" id="estimate" cur={tab} lazy>
       <div className="copy-row">
         <Button onClick={() => saveFile('xlsx')} data-tip="Смета и группы в Excel"><IconDownload /> Excel</Button>
         <Button onClick={() => saveFile('csv')} data-tip="Смета в CSV"><IconDownload /> CSV</Button>
@@ -543,9 +545,9 @@ export function ReportSheet({
       <TierSettings p={p} dispatch={dispatch} />
       <ShareBlock p={p} kind="estimate" />
       </TabPanel>
-      <TabPanel scope="rep" id="notes" cur={tab}>
+      <TabPanel scope="rep" id="notes" cur={tab} lazy>
       <h3 className="sec-t">Допущения и источники</h3>
-      <Assumptions cfg={cfgN(p.cfg)} />
+      <Assumptions cfg={cfgN(p.cfg)} ev={p.lines.some(isEvLine)} />
       <div className="foot">
         <p>Допустимые токи медных жил взяты из таблицы 1.3.4 главы 1.3 ПУЭ, на которую ссылается ТКП 339-2022, и умножены на поправку; прокладка по ГОСТ 30331.15. Групповые сети выполняются медными жилами, наименьшее сечение жилы 1,5 мм² (ГОСТ 30331.15-2001, табл. 52J).</p>
         <p>УЗО до 30 мА предусмотрены для розеток и светильников (ТКП 339-2022 с изм. № 1, п. 4.3.18.5) и по практике для мощных приборов, при расчётном токе больше 32 А до 100 мА (СН 4.04.01-2019, п. 16.3.13). Время отключения УЗО в протоколе сравнивается с табл. 4.4.47 и 4.4.48 ТКП 339-2022 в редакции изм. № 1. Потеря напряжения: 3 % для освещения и 5 % для остальных групп, на линиях длиннее 100 м допуск растёт на 0,005 % за метр, но не более чем на 0,5 % (СН 4.04.01-2019, п. 9.14); сопротивление меди 0,0225 Ом·мм²/м. Коэффициенты спроса и одновременности приняты по практике, их сверка с таблицами СН 4.04.01-2019 не выполнена.</p>

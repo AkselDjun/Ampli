@@ -8,7 +8,7 @@ import { useLib } from '../store/LibContext';
 import { cableName, inCableName, protName } from '../core/protection';
 import { dropText } from '../core/report';
 import { Schematic } from './Schematic';
-import { Assumptions } from './common';
+import { Assumptions } from './Assumptions';
 import { cfgN, layout } from '../core/calc';
 import { VERDICT, hasMeasurements, protocolRows } from '../core/protocol';
 import type { PrintMode } from './WorkSheet';
@@ -25,6 +25,7 @@ import { BATH_REF, FLOOR_SYS, FLOOR_USES, UZO_REF, floorCalc } from '../core/flo
 import { actDate, actsOf, hiddenMaterials, hiddenWorks, ruDate, warrantyText } from '../core/acts';
 import { useNow } from './now';
 import { stamp } from '../core/version';
+import { isEvLine } from '../core/ev';
 
 function ProtoTable({ a }: { a: Calc }) {
   const rows = protocolRows(a);
@@ -579,7 +580,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
         Допустимые токи по таблице 1.3.4 ПУЭ, на которую ссылается ТКП 339-2022, с поправкой; УЗО 30 мА на розетки и свет по ТКП 339-2022 с изм. № 1, п. 4.3.18.5; коэффициенты спроса и одновременности приняты по практике. Потеря напряжения: 3 % для освещения и 5 % для остальных групп, на линиях длиннее 100 м допуск растёт на 0,005 % за метр, но не более чем на 0,5 % (СН 4.04.01-2019, п. 9.14); сопротивление меди 0,0225 Ом·мм²/м. Допустимые токи взяты из ПУЭ и не сверены с таблицами МЭК 364-5-523 (ГОСТ 30331.15-2001 их не содержит); минимальное сечение жилы 1,5 мм² по табл. 52J. Ввод по СН 4.04.01-2019, п. 9.12, селективность по п. 10.5; отключение короткого замыкания за 0,4 с проверено по заданной петле фаза-нуль питающей сети (ТКП 339-2022, п. 4.3.5.4). Длины кабеля даны с запасом 10 %, ввод и мелочь уточняются по месту. Нормы: ТКП 339-2022 с изм. № 1, СН 4.04.01-2019 «Системы электрооборудования жилых и общественных зданий» с изм. № 1 и № 2 (изм. № 2 действует с 07.12.2026, учтён п. 14.4 о водонагревателях и отоплении; остальные пункты к квартирам не относятся), ПУЭ, ГОСТ 30331.15-2001. Результат предварительный: проект щитка и монтаж согласуйте с аттестованным электриком.
       </p>
       <h2>Допущения и источники</h2>
-      <Assumptions cfg={cfgN(p.cfg)} />
+      <Assumptions cfg={cfgN(p.cfg)} ev={p.lines.some(isEvLine)} />
       <SignBlock />
       <div className="pd-foot">{stamp(now)}</div>
     </div>

@@ -82,6 +82,7 @@ describe('Labour estimate in the report', () => {
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     render(<App />);
     const d = openEstimate();
+    fireEvent.click(within(d).getByRole('tab', { name: 'Группы' }));
     click(d, /Печать/);
     const doc = document.querySelector('.printdoc') as HTMLElement;
     expect(doc.textContent).toContain('Установка розетки');

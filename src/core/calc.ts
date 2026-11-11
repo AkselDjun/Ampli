@@ -6,6 +6,7 @@ import { weakCalc, weakStarted } from './weak';
 import type { FloorRoom } from './floor';
 import { floorCalc } from './floor';
 import { houseCalc, houseTips } from './house';
+import { evNotes } from './ev';
 
 export function cfgN(c: Cfg): CfgN {
   return {
@@ -208,6 +209,7 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
     r.tips.push('УЗО типа A: ' + names.join(', ') + (names.length > 1 ? ' дают' : ' даёт') + ' пульсирующий ток утечки, на который УЗО типа AC может не сработать.');
   }
   if (arcSkip) r.tips.push('УЗДП не ставится: трёхфазная линия, защита от дугового пробоя в расчёте только для однофазных групп.');
+  evNotes(l, live, three, r);
   const heat = live.filter(a => HEAT_RX.test(a.name));
   if (heat.length) {
     if (live.length > heat.length) {

@@ -1,7 +1,9 @@
 import type { Calc, Cfg, Line, Project } from './types';
 import { balanceLines, calcAll } from './calc';
+import { EV_MIN_A, evW, isEvApp } from './ev';
+import { fmt, pn } from './format';
 
-export type FitKind = 'prio' | 'three' | 'alloc';
+export type FitKind = 'ev' | 'prio' | 'three' | 'alloc';
 
 export interface FitOption {
   kind: FitKind;
@@ -13,6 +15,7 @@ export interface FitOption {
   set?: Record<string, 'p' | 's' | ''>;
   supply?: 3;
   alloc?: number;
+  ev?: { line: string; app: string; w: number };
 }
 
 export interface PowerFit {
@@ -39,6 +42,10 @@ export function powerFit(p: Project, a: Calc = calcAll(p.lines, p.cfg, p)): Powe
   const options: FitOption[] = [];
   const over = isOver(a) || (a.c.supply === 1 && a.hint3);
   const fits = (b: Calc) => !isOver(b);
+  if (isOver(a)) {
+    const ev = evLimit(p, a, fits);
+    if (ev) options.push(ev);
+  }
   if (isOver(a) && !a.prio) {
     const live = a.rows.filter(x => !x.r.empty && x.r.In && x.l.type === 'power');
     const pri = [...live].filter(x => !sheddable(x.l)).sort((x, y) => y.r.pd - x.r.pd)[0];
@@ -94,6 +101,31 @@ export function powerFit(p: Project, a: Calc = calcAll(p.lines, p.cfg, p)): Powe
     });
   }
   return { over, P: a.P, alloc, allocA: allocAmps(a), inIn: a.inIn, options };
+}
+
+function evLimit(p: Project, a: Calc, fits: (b: Calc) => boolean): FitOption | null {
+  for (const x of a.rows) {
+    if (x.r.empty) continue;
+    const app = x.l.apps.find(q => isEvApp(q) && evW(q) > 0);
+    if (!app) continue;
+    const volt = x.r.three ? Math.sqrt(3) * 400 : 230;
+    for (let amp = Math.ceil(pn(app.w, 0) / volt) - 1; amp >= EV_MIN_A; amp--) {
+      const w = Math.round(amp * volt / 10) * 10;
+      const lines = p.lines.map(l => (l.id === x.l.id ? { ...l, apps: l.apps.map(q => (q.id === app.id ? { ...q, w } : q)) } : l));
+      const b = calcAll(lines, p.cfg, p);
+      if (!fits(b)) continue;
+      return {
+        kind: 'ev',
+        title: 'Ограничить ток зарядки',
+        text: 'Настройте в станции ' + name(x.l) + ' ток зарядки не больше ' + amp + ' А (' + fmt(w / 1000, 1) + ' кВт) или поставьте станцию с балансировкой по току ввода. Машина заряжается дольше, остальная техника работает как обычно.',
+        P: b.P,
+        inIn: b.inIn,
+        fits: true,
+        ev: { line: x.l.id, app: app.id, w }
+      };
+    }
+  }
+  return null;
 }
 
 export function prioNames(p: Project): { p: string[]; s: string[] } {

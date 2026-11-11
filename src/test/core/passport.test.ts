@@ -96,7 +96,7 @@ describe('owner link', () => {
     expect(back!.lines[0].zone).toBe('Кухня');
     expect(back!.lines[1].zone).toBeUndefined();
   });
-  const old = (prot: string, lines: Record<string, unknown>[]) => normProject({ ...p, cfg: { ...p.cfg, prot }, lines: p.lines.slice(0, lines.length).map((l, i) => ({ ...l, zone: undefined, ...lines[i] })) });
+  const old = (prot: string, lines: Record<string, unknown>[]) => normProject({ ...p, schema: undefined, cfg: { ...p.cfg, prot }, lines: p.lines.slice(0, lines.length).map((l, i) => ({ ...l, zone: undefined, ...lines[i] })) });
   it('moves an old location into an empty room when rooms do not drive the RCDs', () => {
     const q = old('rcbo', [{ where: '  Прихожая ' }, { where: 'я'.repeat(200) }, { where: 'Коридор', zone: 'Кухня' }, { where: '   ' }]);
     expect(q!.lines.map(l => l.zone)).toEqual(['Прихожая', 'я'.repeat(60), 'Кухня', undefined]);

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { useState } from 'react';
 import { App } from '../../ui/App';
 import { DrawingA3 } from '../../ui/DrawingA3';
@@ -171,6 +171,7 @@ describe('A3 drawing with many groups', () => {
     wide(true);
     render(<App />);
     fireEvent.click(screen.getAllByRole('button', { name: /Отчёт/ })[0]);
+    fireEvent.click(within(dlg('Отчёт и спецификация')).getByRole('tab', { name: 'Схема' }));
     expect(dlg('Отчёт и спецификация').querySelectorAll('svg.a3').length).toBeGreaterThan(0);
   });
 });

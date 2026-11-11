@@ -49,3 +49,14 @@ describe('Priority marks in the store', () => {
     expect('prio' in cur(s).lines[1]).toBe(false);
   });
 });
+
+describe('Power fit block with an EV charger', () => {
+  it('limits the charging current first', () => {
+    const p = proj([stove(), mkLine('Зарядка', 'power', 20, [['Зарядка электромобиля', 7400, 1]])], 9);
+    const dispatch = vi.fn();
+    render(<PowerFitBlock p={p} dispatch={dispatch} />);
+    expect(screen.getByText('Ограничить ток зарядки')).toBeTruthy();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Применить' })[0]);
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ t: 'appPower', line: p.lines[1].id, app: p.lines[1].apps[0].id }));
+  });
+});

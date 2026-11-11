@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { EstimateShare } from '../core/share';
+import type { EstimateShare } from '../core/links';
 import { calcAll } from '../core/calc';
 import { buildSpec, estimate } from '../core/spec';
 import { grandTotal, laborEstimate, unitQty } from '../core/labor';

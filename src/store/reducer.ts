@@ -54,6 +54,7 @@ export type Action =
   | { t: 'linePhase'; phase: Phase }
   | { t: 'lineWet'; wet: boolean; out?: boolean }
   | { t: 'prio'; set: Record<string, 'p' | 's' | ''> }
+  | { t: 'appPower'; line: string; app: string; w: number }
   | { t: 'lineMeas'; field: MeasField; value: string }
   | { t: 'lineMeasAt'; id: string; field: MeasField; value: string }
   | { t: 'check'; id: string; on: boolean }
@@ -344,6 +345,11 @@ export function reducer(s: State, a: Action): State {
       });
     case 'weakOnt':
       return patch(s, q => ({ ...q, weak: { ...(q.weak ?? WEAK_EMPTY), ont: a.on } }));
+    case 'appPower':
+      return patch(s, q => ({
+        ...q,
+        lines: q.lines.map(l => (l.id === a.line ? { ...l, apps: l.apps.map(x => (x.id === a.app ? { ...x, w: a.w } : x)) } : l))
+      }));
     case 'prio':
       return patch(s, q => ({
         ...q,
