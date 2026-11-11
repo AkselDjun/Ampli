@@ -20,6 +20,8 @@ const tick = () => act(() => new Promise(r => setTimeout(r, 10)));
 
 describe('back button', () => {
   it('closes the top sheet and leaves the history clean after closing by hand', async () => {
+    act(() => { window.dispatchEvent(new PopStateEvent('popstate')); });
+    await tick();
     const push = vi.spyOn(window.history, 'pushState');
     const back = vi.spyOn(window.history, 'back').mockImplementation(() => undefined);
     const Two = () => {

@@ -8,6 +8,8 @@
   --r-2xs:2px;--r-xs:4px;--r-s:8px;--r-m:12px;--r-l:16px;--r-pill:999px;--r-round:50%;
 
   --bar:56px;
+
+  --field-h:44px;--field-h-s:36px;--field-px:var(--s-3);--field-r:var(--r-m);--field-fs:var(--t-base);--field-bw:1px;--check-s:20px;
   --gutter:16px;--gap:16px;--pad:16px;
 
   --dur-fast:.15s;--dur-quick:.18s;--dur:.2s;
@@ -133,6 +135,8 @@
   --print-rcd:#0B5CD5;
 }
 @media (min-width:1000px){:root{--gutter:24px;--gap:20px;--pad:20px}}
+@media (max-width:760px){:root{--field-h:48px;--field-h-s:44px}}
+@media (max-width:760px),(pointer:coarse){:root{--field-fs:16px}}
 @media (min-width:1600px){:root{--gap:24px}}
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){

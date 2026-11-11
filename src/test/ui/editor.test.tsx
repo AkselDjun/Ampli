@@ -76,7 +76,7 @@ describe('Editor', () => {
 
   it('toggles the why block and measurement block and edits measurements', () => {
     boot();
-    const why = btn(ed(), 'Как посчитано');
+    const why = btn(ed(), /\|Как посчитано/);
     fireEvent.click(why);
     expect(why).toHaveAttribute('aria-expanded', 'true');
     expect(ed().querySelector('.why-b')).not.toHaveAttribute('hidden');
