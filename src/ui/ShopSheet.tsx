@@ -4,7 +4,7 @@ import { fmt } from '../core/format';
 import { buildSpec } from '../core/spec';
 import { SHOPS, bestOffers, searchUrl, shopQuery } from '../core/shop';
 import type { Offer } from '../core/shop';
-import { parsePriceFile } from '../core/pricelist';
+import { MAX_FILE, parsePriceFile } from '../core/pricelist';
 import { MAX_LISTS, addList, loadLists, saveLists } from '../store/pricelists';
 import type { PriceList } from '../store/pricelists';
 import { useLib } from '../store/LibContext';
@@ -33,6 +33,10 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
 
   const onFile = async (f: File | undefined) => {
     if (!f) return;
+    if (f.size > MAX_FILE) {
+      note('Файл прайса больше 5 МБ. Сохраните в нём только нужный лист и загрузите снова.', true);
+      return;
+    }
     let buf: ArrayBuffer;
     try {
       buf = await f.arrayBuffer();

@@ -4,8 +4,11 @@ import { SCHEMA } from './storage';
 import { getPhoto, putPhotos } from './photos';
 import { referencedPhotoIds } from '../core/photos';
 import { normProject } from '../core/project';
+import { MAX_PROJECTS } from '../core/limits';
 
 export const MAX_IMPORT_BYTES = 32 * 1024 * 1024;
+export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export const BACKUP_AT = 'ampli-backup-at';
 export const BACKUP_SNOOZE = 'ampli-backup-snooze';
@@ -65,7 +68,7 @@ export async function backupArchive(list: Project[], now = Date.now()): Promise<
 export function validateBackup(data: unknown): Map<string, Blob> {
   if (!data || typeof data !== 'object') throw new Error('invalid backup');
   const archive = data as { app?: unknown; kind?: unknown; version?: unknown; schema?: unknown; list?: unknown; photos?: unknown };
-  if (archive.app !== 'ampli' || archive.kind !== 'backup' || !Array.isArray(archive.list) || !archive.list.length || archive.list.some(p => !normProject(p, true))) throw new Error('invalid projects');
+  if (archive.app !== 'ampli' || archive.kind !== 'backup' || !Array.isArray(archive.list) || !archive.list.length || archive.list.length > MAX_PROJECTS || archive.list.some(p => !normProject(p, true))) throw new Error('invalid projects');
   if (archive.version !== undefined && archive.version !== 1 && archive.version !== 2) throw new Error('unsupported backup version');
   if (archive.schema !== undefined && (typeof archive.schema !== 'number' || archive.schema > SCHEMA)) throw new Error('unsupported project schema');
   const ids = archive.list.map(p => (p as Project).id);
@@ -83,7 +86,7 @@ export function validateBackup(data: unknown): Map<string, Blob> {
     const value = (photos as Record<string, unknown>)[id];
     if (!value || typeof value !== 'object') throw new Error('invalid photo');
     const { type, data: encoded } = value as { type: unknown; data: unknown };
-    if (typeof type !== 'string' || !type.startsWith('image/') || typeof encoded !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) throw new Error('invalid photo');
+    if (typeof type !== 'string' || !PHOTO_TYPES.includes(type) || typeof encoded !== 'string' || encoded.length > Math.ceil(MAX_PHOTO_BYTES / 3) * 4 || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) throw new Error('invalid photo');
     const binary = atob(encoded);
     const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
     decoded.set(id, new Blob([bytes], { type }));

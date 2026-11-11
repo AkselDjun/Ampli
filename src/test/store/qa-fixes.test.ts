@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cur, init, numIn, reducer } from '../../store/reducer';
+import { cur, init, reducer } from '../../store/reducer';
+import { numIn } from '../../core/limits';
 import type { Action, State } from '../../store/reducer';
 import { SAMPLE_NAME, newProject, sampleProject } from '../../core/project';
 import { blank, defaultCfg, mkLine } from '../../core/templates';

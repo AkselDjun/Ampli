@@ -51,8 +51,7 @@ export function PhotoStrip({
       await putPhoto(id, blob);
       onAdd({ id, tag, line, note: '', at: Date.now() });
     } catch (e) {
-      void e;
-      toastBad('Не удалось сохранить фото: в браузере не хватает места');
+      toastBad(e instanceof Error && e.message === 'too large' ? 'Фото больше 30 МБ. Выберите снимок поменьше' : 'Не удалось сохранить фото: в браузере не хватает места');
     }
     setBusy(false);
   };

@@ -43,7 +43,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
             if (!f) return;
             scaleLogo(f).then(
               v => dispatch({ t: 'logo', value: v }),
-              () => toastBad('Не удалось прочитать изображение. Подойдёт PNG, JPG или SVG.')
+              (e: unknown) => toastBad(e instanceof Error && e.message === 'too large' ? 'Логотип больше 10 МБ. Выберите файл поменьше.' : 'Не удалось прочитать изображение. Подойдёт PNG, JPG или SVG.')
             );
             input.value = '';
           }}
