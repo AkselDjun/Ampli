@@ -10,9 +10,9 @@ import { defaultCfg, mkLine } from '../../core/templates';
 import type { Cfg, Line } from '../../core/types';
 
 const ls = (): Line[] => [
-  { ...mkLine('Свет', 'light', 10, null, null, [['Люстра', 200, 1]]), zone: 'Комнаты' },
-  { ...mkLine('Стиралка', 'power', 8, null, null, [['Стиральная машина', 2200, 1]]), zone: 'Ванная' },
-  { ...mkLine('Кухня', 'socket', 8, null, null, [['Чайник', 2000, 1], ['Посудомоечная машина', 1800, 1]]), zone: 'Кухня' }
+  { ...mkLine('Свет', 'light', 10, [['Люстра', 200, 1]]), zone: 'Комнаты' },
+  { ...mkLine('Стиралка', 'power', 8, [['Стиральная машина', 2200, 1]]), zone: 'Ванная' },
+  { ...mkLine('Кухня', 'socket', 8, [['Чайник', 2000, 1], ['Посудомоечная машина', 1800, 1]]), zone: 'Кухня' }
 ];
 const calc = (cfg: Partial<Cfg> = {}) => calcAll(ls(), { ...defaultCfg(), prot: 'rcbo', ...cfg });
 
@@ -20,8 +20,8 @@ describe('RCD type A', () => {
   it('marks groups with electronics and names the device', () => {
     const a = calc();
     expect(a.rows.map(x => x.r.rcdA)).toEqual([false, true, true]);
-    expect(protFull(a.rows[1].r)).toBe('Дифавтомат 1P+N C10 30 мА тип A');
-    expect(protName(a.rows[1].r)).toBe('Дифавтомат C10 · 30 мА · тип A');
+    expect(protFull(a.rows[1].r)).toBe('Дифавтомат 1P+N C16 30 мА тип A');
+    expect(protName(a.rows[1].r)).toBe('Дифавтомат C16 · 30 мА · тип A');
     expect(protFull(a.rows[0].r)).not.toContain('тип');
     expect(a.rows[2].r.tips).toContain('УЗО типа A: посудомоечная машина даёт пульсирующий ток утечки, на который УЗО типа AC может не сработать.');
     expect(whyRows(a.rows[1].l, a.rows[1].r, a.c).find(w => w.title === 'Автомат')?.formula).toContain('тип A');
@@ -37,12 +37,12 @@ describe('RCD type A', () => {
   });
 
   it('uses the plural form for several appliances', () => {
-    const a = calcAll([mkLine('Кухня', 'power', 8, null, null, [['Посудомоечная машина', 1800, 1], ['Варочная панель', 3000, 1], ['Варочная панель', 3000, 1]])], defaultCfg());
+    const a = calcAll([mkLine('Кухня', 'power', 8, [['Посудомоечная машина', 1800, 1], ['Варочная панель', 3000, 1], ['Варочная панель', 3000, 1]])], defaultCfg());
     expect(a.rows[0].r.tips[0]).toBe('УЗО типа A: посудомоечная машина, варочная панель дают пульсирующий ток утечки, на который УЗО типа AC может не сработать.');
   });
 
   it('does not mark an empty or unprotected group', () => {
-    const a = calcAll([mkLine('Пусто', 'power', 5, null, null, [['Стиральная машина', 0, 1]])], defaultCfg());
+    const a = calcAll([mkLine('Пусто', 'power', 5, [['Стиральная машина', 0, 1]])], defaultCfg());
     expect(a.rows[0].r.tips).toEqual([]);
   });
 
@@ -87,7 +87,7 @@ describe('voltage relay and surge protection', () => {
 
   it('picks the relay rating and falls back to a contactor above 63 A', () => {
     expect([vrRating(32), vrRating(40), vrRating(63), vrRating(80)]).toEqual([40, 40, 63, null]);
-    const heavy = calcAll(Array.from({ length: 3 }, (_, i) => mkLine('П' + i, 'power', 5, null, null, [['Плита', 7000, 1]])), { ...defaultCfg(), vr: 'on', ko: 1 });
+    const heavy = calcAll(Array.from({ length: 3 }, (_, i) => mkLine('П' + i, 'power', 5, [['Плита', 7000, 1]])), { ...defaultCfg(), vr: 'on', ko: 1 });
     expect(heavy.inIn).toBeGreaterThan(63);
     expect(heavy.devs.find(d => d.kind === 'vr')?.title).toContain('через контактор');
     expect(buildSpec(heavy).find(i => i.name.startsWith('Реле'))?.name).toBe('Реле контроля напряжения 63 А с контактором');

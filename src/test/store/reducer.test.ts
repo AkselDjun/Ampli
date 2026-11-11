@@ -81,12 +81,12 @@ describe('lines', () => {
   });
   it('edits line fields', () => {
     let s = mk();
-    s = run(s, { t: 'lineField', field: 'name', value: 'N' }, { t: 'lineField', field: 'len', value: '33' }, { t: 'lineField', field: 'kc', value: 0.5 }, { t: 'lineField', field: 'cos', value: '0.9' });
-    expect(selLine(s)).toMatchObject({ name: 'N', len: '33', kc: 0.5, cos: '0.9' });
+    s = run(s, { t: 'lineField', field: 'name', value: 'N' }, { t: 'lineField', field: 'len', value: '33' });
+    expect(selLine(s)).toMatchObject({ name: 'N', len: '33' });
   });
   it('changes line type resetting defaults and phase', () => {
     let s = run(mk(3), { t: 'lineField', field: 'name', value: 'Освещение' }, { t: 'linePhase', phase: '3' }, { t: 'lineType', type: 'socket' });
-    expect(selLine(s)).toMatchObject({ type: 'socket', kc: 0.7, cos: 0.95, phase: 'L1' });
+    expect(selLine(s)).toMatchObject({ type: 'socket', phase: 'L1' });
     expect(selLine(s).name).toBe('Розетки');
     s = run(s, { t: 'lineField', field: 'name', value: 'Custom' }, { t: 'lineType', type: 'power' }, { t: 'linePhase', phase: '3' }, { t: 'lineType', type: 'power' });
     expect(selLine(s)).toMatchObject({ name: 'Custom', phase: '3', type: 'power' });
@@ -235,7 +235,7 @@ describe('rooms', () => {
 
 describe('replace and projects', () => {
   it('replaces content and keeps sample flag from content', () => {
-    let s = run(mk(), { t: 'replace', content: { sample: true, cfg: defaultCfg(), lines: [mkLine('only', 'light', 1, null, null, [])] } });
+    let s = run(mk(), { t: 'replace', content: { sample: true, cfg: defaultCfg(), lines: [mkLine('only', 'light', 1, [])] } });
     expect(lines(s)).toHaveLength(1);
     expect(cur(s).sample).toBe(true);
     expect(s.sel).toBe(lines(s)[0].id);

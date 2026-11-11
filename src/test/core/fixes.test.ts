@@ -7,7 +7,7 @@ import type { Appliance, Cfg, Line, LineType, Num } from '../../core/types';
 const cfg = (o: Partial<Cfg> = {}) => cfgN({ ...defaultCfg(), ...o });
 const ap = (id: string, w: Num, n: Num, name = id): Appliance => ({ id, name, w, n });
 const line = (type: LineType, len: Num, apps: Appliance[], o: Partial<Line> = {}): Line => ({
-  ...mkLine('Линия', type, 10, 1, 1, []),
+  ...mkLine('Линия', type, 10, []),
   type,
   len,
   apps,

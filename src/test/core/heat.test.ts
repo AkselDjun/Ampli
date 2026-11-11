@@ -5,7 +5,7 @@ import { cfgN } from '../../core/calc';
 import { defaultCfg, mkLine } from '../../core/templates';
 import { HEAT_RX } from '../../core/norms';
 
-const row = (apps: [string, number, number][], type: 'power' | 'socket' = 'power') => calcAll([mkLine('Г', type, 8, 1, 1, apps)], defaultCfg()).rows[0].r;
+const row = (apps: [string, number, number][], type: 'power' | 'socket' = 'power') => calcAll([mkLine('Г', type, 8, apps)], defaultCfg()).rows[0].r;
 
 describe('water heaters and heating (СН 4.04.01-2019, п. 14.4)', () => {
   it('recognises stationary heating appliances but not portable heaters', () => {
@@ -17,7 +17,7 @@ describe('water heaters and heating (СН 4.04.01-2019, п. 14.4)', () => {
     const r = row([['Водонагреватель', 2000, 1]]);
     expect(r.status).toBe('ok');
     expect(r.notes).toEqual([]);
-    expect(r.tips).toEqual(['С 07.12.2026 по изменению № 2 к СН 4.04.01-2019 (п. 14.4) водонагреватели и приборы отопления любой мощности подключают неразъёмно, без вилки и розетки.']);
+    expect(r.tips.filter(t => !t.startsWith('Автомат не меньше'))).toEqual(['С 07.12.2026 по изменению № 2 к СН 4.04.01-2019 (п. 14.4) водонагреватели и приборы отопления любой мощности подключают неразъёмно, без вилки и розетки.']);
   });
 
   it('requires a plug-free connection now for devices above 5 kW', () => {

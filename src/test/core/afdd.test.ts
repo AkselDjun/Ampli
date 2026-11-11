@@ -8,9 +8,9 @@ import { matches, parseAttrs, shopQuery } from '../../core/shop';
 import type { Cfg } from '../../core/types';
 
 const cfg = (o: Partial<Cfg> = {}): Cfg => ({ ...defaultCfg(), prot: 'rcbo', ...o });
-const light = mkLine('Свет', 'light', 10, 1, 1, [['Лампа', 100, 1]]);
-const sock = mkLine('Розетки', 'socket', 10, 1, 1, [['Чайник', 2000, 1]]);
-const three = { ...mkLine('Плита', 'power', 10, 1, 1, [['Плита', 9000, 1]]), phase: '3' as const };
+const light = mkLine('Свет', 'light', 10, [['Лампа', 100, 1]]);
+const sock = mkLine('Розетки', 'socket', 10, [['Чайник', 2000, 1]]);
+const three = { ...mkLine('Плита', 'power', 10, [['Плита', 9000, 1]]), phase: '3' as const };
 
 describe('arc fault detection devices', () => {
   it('normalises the option', () => {

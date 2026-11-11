@@ -19,9 +19,9 @@ vi.setConfig({ testTimeout: 60000 });
 
 const zl = (l: Line, zone: string, o: Partial<Line> = {}): Line => ({ ...l, zone, ...o });
 const lines = (): Line[] => [
-  zl(mkLine('Свет', 'light', 10, null, null, [['Люстра', 200, 1]]), 'Комнаты'),
-  zl(mkLine('Розетки', 'socket', 10, null, null, [['ТВ', 1500, 1]]), 'Комнаты', { where: 'Гостиная' }),
-  zl(mkLine('Стиралка', 'power', 8, null, null, [['Стиральная машина', 2200, 1]]), 'Ванная', { wet: true })
+  zl(mkLine('Свет', 'light', 10, [['Люстра', 200, 1]]), 'Комнаты'),
+  zl(mkLine('Розетки', 'socket', 10, [['ТВ', 1500, 1]]), 'Комнаты', { where: 'Гостиная' }),
+  zl(mkLine('Стиралка', 'power', 8, [['Стиральная машина', 2200, 1]]), 'Ванная', { wet: true })
 ];
 const proj = (ls: Line[], cfg: Partial<Cfg> = {}): Project => ({ ...newProject({ cfg: { ...defaultCfg(), prot: 'rcbo', ...cfg }, lines: ls, sample: false }, 'Тест'), lines: ls });
 const ed = () => document.querySelector('.col-edit') as HTMLElement;
@@ -62,7 +62,7 @@ describe('panel board in RCD mode', () => {
 
 describe('single-line diagram', () => {
   it('draws an RCD per room with its own bus and the input cable brand', () => {
-    const p = proj([...lines(), mkLine('Пустая', 'socket', 8, null, null, [])], { prot: 'rcd', inCable: 'nym' });
+    const p = proj([...lines(), mkLine('Пустая', 'socket', 8, [])], { prot: 'rcd', inCable: 'nym' });
     render(<Schematic a={calcAll(p.lines, p.cfg)} />);
     const svg = document.querySelector('.schem') as SVGElement;
     expect(svg.textContent).toContain('УЗО: Комнаты');
@@ -96,7 +96,7 @@ describe('printed stickers and tags', () => {
     expect(document.querySelectorAll('.stk-i svg').length).toBeGreaterThan(3);
   });
   it('wraps stickers to the next row when a row is full', () => {
-    const many = Array.from({ length: 12 }, (_, i) => mkLine('Г' + i, 'light', 5, null, null, [['x', 100, 1]]));
+    const many = Array.from({ length: 12 }, (_, i) => mkLine('Г' + i, 'light', 5, [['x', 100, 1]]));
     const p = proj(many);
     const a = calcAll(p.lines, p.cfg);
     render(<PrintDoc p={p} a={a} mode="stickers" />);
@@ -175,7 +175,7 @@ describe('editor fields from the electricians', () => {
 
 describe('owner passport body', () => {
   it('shows owner details and the simultaneous-use warning when the breaker is smaller than the load', () => {
-    const p = { ...proj([mkLine('Кухня', 'socket', 10, null, null, [['Духовка', 3500, 1], ['Чайник', 2200, 1]])]), address: 'ул. Ленина, 1', client: 'Иванов', author: 'Петров' };
+    const p = { ...proj([mkLine('Кухня', 'socket', 10, [['Духовка', 3500, 1], ['Чайник', 2200, 1]])]), address: 'ул. Ленина, 1', client: 'Иванов', author: 'Петров' };
     const a = calcAll(p.lines, p.cfg);
     a.rows[0].r.In = 16;
     render(<PassportBody p={p} a={a} />);
@@ -186,7 +186,7 @@ describe('owner passport body', () => {
     expect(document.querySelector('.pp-warn')?.textContent).toContain('Духовка и Чайник');
   });
   it('omits empty owner details', () => {
-    const p = { ...proj([mkLine('Свет', 'light', 10, null, null, [['Лампа', 60, 1]])]), name: '', address: '', client: '', author: '' };
+    const p = { ...proj([mkLine('Свет', 'light', 10, [['Лампа', 60, 1]])]), name: '', address: '', client: '', author: '' };
     render(<PassportBody p={p} a={calcAll(p.lines, p.cfg)} />);
     const t = (document.querySelector('.pp') as HTMLElement).textContent;
     expect(t).toContain('Без названия');
@@ -291,7 +291,7 @@ describe('panel mode as a real board', () => {
     expect(d.querySelectorAll('button.pmb-dev.k-mcb').length).toBe(3);
   });
   it('wraps a long board onto several rails with blank plates', () => {
-    const many = Array.from({ length: 14 }, (_, i) => mkLine('Группа ' + i, 'light', 5, null, null, [['x', 100, 1]]));
+    const many = Array.from({ length: 14 }, (_, i) => mkLine('Группа ' + i, 'light', 5, [['x', 100, 1]]));
     const p = proj(many);
     render(<PanelMode open onClose={() => undefined} a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} />);
     expect(document.querySelectorAll('button.pmb-dev').length).toBe(14);
@@ -327,7 +327,7 @@ describe('apartment totals in the header', () => {
     expect((net.parentElement as HTMLElement).hidden).toBe(false);
   });
   it('rates the allocation for empty, normal, high and exceeded loads', () => {
-    const mk = (w: number, alloc = 15, supply = 1) => calcAll(w ? [mkLine('A', 'power', 5, null, null, [['x', w, 1]])] : [], { ...defaultCfg(), alloc, supply });
+    const mk = (w: number, alloc = 15, supply = 1) => calcAll(w ? [mkLine('A', 'power', 5, [['x', w, 1]])] : [], { ...defaultCfg(), alloc, supply });
     expect(allocState(mk(0))).toEqual({ pct: 0, k: 'ok', text: 'Нет нагрузки' });
     expect(allocState(mk(2000)).k).toBe('ok');
     expect(allocState(mk(2000)).text).toBe('Укладывается');

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
 import { calcAll, calcLine, cfgN } from '../../core/calc';
-import { IZ, SECTIONS, STD, STD_IN, TYPES, RCD_STD } from '../../core/norms';
+import { IZ, LONG_MIN_IN, LONG_RX, SECTIONS, STD, STD_IN, TYPES, RCD_STD } from '../../core/norms';
 import { defaultCfg, mkLine } from '../../core/templates';
 import type { Cfg, Line, LineType } from '../../core/types';
 
@@ -20,7 +20,7 @@ const line = fc.record({
   wet: fc.boolean(),
   zone: fc.constantFrom('', 'Кухня', 'Ванная', 'Комнаты')
 }).map(o => {
-  const l = mkLine('Г', o.type, o.len, null, null, o.apps.map(a => [a.name, a.w, a.n] as [string, number, number]));
+  const l = mkLine('Г', o.type, o.len, o.apps.map(a => [a.name, a.w, a.n] as [string, number, number]));
   return { ...l, phase: o.phase, wet: o.wet, zone: o.zone, apps: l.apps.map((a, i) => ({ ...a, br: o.apps[i].br })) } as Line;
 });
 
@@ -46,7 +46,8 @@ describe('calculation properties on random groups', () => {
     fc.assert(fc.property(line, cfg, (l, c) => {
       const r = calcLine(l, cfgN(c));
       if (r.empty || r.In === null) return;
-      const need = Math.max(r.I, TYPES[l.type].minIn);
+      const long = l.type === 'power' && l.apps.some(a => Number(a.w) > 0 && LONG_RX.test(a.name)) ? LONG_MIN_IN : 0;
+      const need = Math.max(r.I, TYPES[l.type].minIn, long);
       expect(r.In).toBeGreaterThanOrEqual(need);
       expect(STD.filter(x => x >= need)[0]).toBe(r.In);
     }), runs);

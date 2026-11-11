@@ -89,7 +89,7 @@ describe('normWeak and summary', () => {
 });
 
 describe('weak current in the calculation', () => {
-  const lines = [mkLine('Свет', 'light', 10, 1, 1, [['Лампа', 100, 1]])];
+  const lines = [mkLine('Свет', 'light', 10, [['Лампа', 100, 1]])];
   it('adds items to the specification and works to the estimate', () => {
     const w = weak([pt({ n: 2, len: 10 }), pt({ kind: 'tv', len: 10 })]);
     const a = calcAll(lines, defaultCfg(), { weak: w });

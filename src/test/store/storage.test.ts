@@ -3,7 +3,7 @@ import { BOOT_KEY, KEY, OLDKEY, changes, clearProjects, dropLegacy, loadBoot, lo
 import { sampleProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
 
-const legacy = { cfg: defaultCfg(), lines: [mkLine('a', 'socket', 5, null, null, [['x', 100, 1]])], sample: false };
+const legacy = { cfg: defaultCfg(), lines: [mkLine('a', 'socket', 5, [['x', 100, 1]])], sample: false };
 
 describe('loadStore', () => {
   it('returns the sample project when storage is empty', () => {

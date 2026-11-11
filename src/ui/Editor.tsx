@@ -17,7 +17,7 @@ import { fixFor } from '../core/fixes';
 import { ArmButton, Seg, Stepper } from './common';
 import { useLib } from '../store/LibContext';
 import { parseApps } from '../core/quick';
-import { zoneOf } from '../core/calc';
+import { appCos, zoneOf } from '../core/calc';
 import { useByRoom } from './prefs';
 import { Button, IconButton } from './kit';
 
@@ -69,6 +69,7 @@ export function Editor({
   const resRef = useRef<HTMLDivElement>(null);
   const [mini, setMini] = useState(false);
   const [brOn, setBrOn] = useState(false);
+  const [extOn, setExtOn] = useState(false);
   const { ref: menuRef, open: menuOpen, setOpen: setMenuOpen } = usePop<HTMLDivElement>();
   const { listRef: mkListRef, triggerRef: mkTriggerRef, onKeyDown: mkKeyDown, back: mkBack } = useMenuKeys(menuOpen, () => setMenuOpen(false));
   const powRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -138,6 +139,7 @@ export function Editor({
   const zones = Array.from(new Set([...a.rows.map(y => (y.l.zone ?? '').trim()).filter(Boolean), ...ZONES]));
   const hasBr = !!r && r.len > pn(l.len, 0);
   const showBr = brOn || l.apps.some(ap => pn(ap.br, 0) > 0);
+  const showExt = extOn || l.apps.some(ap => !!ap.alt || String(ap.cos ?? '').trim() !== '');
   const addEmpty = () => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp' }); });
   const onPowKey = (e: React.KeyboardEvent<HTMLInputElement>, i: number) => {
     if (e.key !== 'Enter') return;
@@ -288,6 +290,18 @@ export function Editor({
                   </label>
                 )}
                 <IconButton className="a-del" label="Удалить прибор" tip="Удалить прибор" onClick={() => keepChips(() => { dispatch({ t: 'delApp', id: ap.id }); if (ap.name.trim() || pn(ap.w, 0) > 0) toastOk('Прибор удалён: ' + (ap.name.trim() || 'без названия')); })}>×</IconButton>
+                {showExt && (
+                  <div className="a-ext">
+                    <label className="a-alt" data-tip="Из отмеченных приборов группы в расчёт идёт только самый мощный">
+                      <input type="checkbox" checked={!!ap.alt} onChange={e => dispatch({ t: 'appAlt', id: ap.id, on: e.target.checked })} />
+                      <span>Не одновременно</span>
+                    </label>
+                    <label className="a-cos">
+                      <span className="lbl a-lbl">cos φ</span>
+                      <input aria-label="cos φ прибора" type="text" inputMode="decimal" placeholder={fs(appCos({ ...ap, cos: undefined }))} value={String(ap.cos ?? '')} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'cos', value: e.target.value })} />
+                    </label>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -338,6 +352,7 @@ export function Editor({
               <div className="ed-menu" role="menu" aria-label="Действия с группой" ref={el => { mkListRef.current = el; }} onKeyDown={mkKeyDown}>
                 <button type="button" role="menuitem" onClick={() => { mkBack(); setQuick(quick === null ? '' : null); setQuickMsg(''); }}>{quick === null ? 'Вставить список текстом' : 'Скрыть вставку списком'}</button>
                 {(brOn || !showBr) && <button type="button" role="menuitem" onClick={() => { mkBack(); setBrOn(!brOn); }}>{brOn ? 'Скрыть отводы к точкам' : 'Указать отводы к точкам'}</button>}
+                {(extOn || !showExt) && <button type="button" role="menuitem" onClick={() => { mkBack(); setExtOn(!extOn); }}>{extOn ? 'Скрыть cos φ и одновременность' : 'Указать cos φ и одновременность'}</button>}
                 {prevPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mkBack(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[prevPeer].l.id }); toastOk('Группа перемещена на место Г' + (prevPeer + 1)); }}>Переставить раньше, на место Г{prevPeer + 1}</button>}
                 {nextPeer >= 0 && <button type="button" role="menuitem" onClick={() => { mkBack(); dispatch({ t: 'moveLine', id: l.id, to: a.rows[nextPeer].l.id }); toastOk('Группа перемещена на место Г' + (nextPeer + 1)); }}>Переставить позже, на место Г{nextPeer + 1}</button>}
               </div>
