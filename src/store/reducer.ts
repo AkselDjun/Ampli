@@ -1,3 +1,4 @@
+import { SIP_LEN_DEF } from '../core/house';
 import type { Appliance, Cfg, Content, Line, LineType, Phase, Photo, Project, Room, RoomApp } from '../core/types';
 import { PHOTO_LIMIT } from '../core/photos';
 import { splitApps } from '../core/fixes';
@@ -47,7 +48,7 @@ export type Action =
   | { t: 'lineField'; field: 'name' | 'where' | 'zone' | 'len' | 'kc' | 'cos' | 'sockets' | 'perSocket'; value: string | number }
   | { t: 'lineType'; type: LineType }
   | { t: 'linePhase'; phase: Phase }
-  | { t: 'lineWet'; wet: boolean }
+  | { t: 'lineWet'; wet: boolean; out?: boolean }
   | { t: 'lineMeas'; field: MeasField; value: string }
   | { t: 'lineMeasAt'; id: string; field: MeasField; value: string }
   | { t: 'check'; id: string; on: boolean }
@@ -69,7 +70,7 @@ export type Action =
   | { t: 'addApp'; name?: string; w?: number; m?: number }
   | { t: 'delApp'; id: string }
   | { t: 'cfg'; field: keyof Cfg; value: string | number }
-  | { t: 'cfgStep'; field: 'alloc' | 'ko' | 'k' | 'zs' | 'feeder'; d: number }
+  | { t: 'cfgStep'; field: 'alloc' | 'ko' | 'k' | 'zs' | 'feeder' | 'sip' | 'rz'; d: number }
   | { t: 'balance' }
   | { t: 'meta'; field: 'name' | 'address' | 'client' | 'author'; value: string }
   | { t: 'replace'; content: Content }
@@ -164,6 +165,7 @@ export function reducer(s: State, a: Action): State {
       const moved: Line = {
         ...mkLine(a.mode === 'largest' ? (parts.move[0].name || 'Мощный прибор') : (src.name || 'Без названия') + ' (2)', a.mode === 'largest' ? 'power' : src.type, pn(src.len, 15), null, null, [], src.phase),
         wet: src.wet,
+        ...(src.out ? { out: true } : {}),
         apps: parts.move.map(x => ({ ...x, id: nid() }))
       };
       const lines = [...p.lines];
@@ -328,7 +330,12 @@ export function reducer(s: State, a: Action): State {
     case 'weakOnt':
       return patch(s, q => ({ ...q, weak: { ...(q.weak ?? WEAK_EMPTY), ont: a.on } }));
     case 'lineWet':
-      return patchLine(s, l => ({ ...l, wet: a.wet }));
+      return patchLine(s, l => {
+        const next: Line = { ...l, wet: a.wet };
+        if (a.out) next.out = true;
+        else delete next.out;
+        return next;
+      });
     case 'appField':
       return patchLine(s, l => ({ ...l, apps: l.apps.map(x => (x.id === a.id ? { ...x, [a.field]: a.field in APP_MAX ? numIn(a.value, APP_MAX[a.field]) : a.value } : x)) }));
     case 'addApp':
@@ -343,6 +350,7 @@ export function reducer(s: State, a: Action): State {
       return patchLine(s, l => ({ ...l, apps: l.apps.filter(x => x.id !== a.id) }));
     case 'cfg': {
       let next = patch(s, q => ({ ...q, cfg: { ...q.cfg, [a.field]: a.field === 'supply' || a.field === 'drop' ? Number(a.value) : a.value } }));
+      if (a.field === 'obj' && a.value === 'house' && p.cfg.obj !== 'house') next = patch(next, q => ({ ...q, cfg: { ...q.cfg, spd: 'on', sip: q.cfg.sip ?? SIP_LEN_DEF } }));
       if (a.field === 'supply' && Number(a.value) === 3) next = patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) }));
       return next;
     }

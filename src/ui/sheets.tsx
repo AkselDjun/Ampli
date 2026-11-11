@@ -44,6 +44,22 @@ export function NetSheet({
   return (
     <Sheet open={open} onClose={onClose} title="Параметры сети" tourId="network">
       <div className="f">
+        <span className="lbl-row"><span className="lbl" id="l-obj">Объект</span><Tip label="О режиме частного дома">Частный дом: ввод СИП от опоры, разделение PEN на вводе, повторное заземление, УЗИП тип 1+2 и уличные группы.</Tip></span>
+        <Seg<string> name="obj" labelledBy="l-obj" value={c.house ? 'house' : 'flat'} items={[['flat', 'Квартира'], ['house', 'Частный дом']]} onChange={v => dispatch({ t: 'cfg', field: 'obj', value: v === 'house' ? 'house' : '' })} />
+      </div>
+      {c.house && (
+        <div className="set-grid">
+          <div className="f">
+            <span className="lbl-row"><span className="lbl">Ввод СИП от опоры, м</span><Tip label="О вводе СИП">Длина ответвления от опоры ВЛ до дома. По ней и току ввода подбирается сечение СИП-4 с потерей не больше 2 %.</Tip></span>
+            <Stepper value={p.cfg.sip ?? ''} d={5} min={0} max={500} step={1} label="Длина ввода СИП от опоры, м" onChange={v => dispatch({ t: 'cfg', field: 'sip', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'sip', d })} />
+          </div>
+          <div className="f">
+            <span className="lbl-row"><span className="lbl">Повторное заземление, Ом</span><Tip label="О повторном заземлении">Замер сопротивления контура на вводе. Норма не больше 30 Ом. Пусто, пока замера нет.</Tip></span>
+            <Stepper value={p.cfg.rz ?? ''} d={1} min={0} max={500} step={0.5} label="Сопротивление повторного заземления, Ом" onChange={v => dispatch({ t: 'cfg', field: 'rz', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'rz', d })} />
+          </div>
+        </div>
+      )}
+      <div className="f">
         <span className="lbl" id="l-sup">Питание</span>
         <Seg<number> name="sup" labelledBy="l-sup" value={c.supply} items={[[1, '1 фаза · 230 В'], [3, '3 фазы · 400 В']]} onChange={v => dispatch({ t: 'cfg', field: 'supply', value: v })} />
       </div>
@@ -67,11 +83,11 @@ export function NetSheet({
         <legend className="lbl">Защита всего щитка</legend>
         <label>
           <input type="checkbox" checked={c.vr} onChange={e => dispatch({ t: 'cfg', field: 'vr', value: e.target.checked ? 'on' : '' })} />
-          <span><b>Реле контроля напряжения</b><small>Отключит квартиру при скачке напряжения или обрыве нуля в подъезде</small></span>
+          <span><b>Реле контроля напряжения</b><small>{c.house ? 'Отключит дом при скачке напряжения или обрыве нуля на линии' : 'Отключит квартиру при скачке напряжения или обрыве нуля в подъезде'}</small></span>
         </label>
         <label>
           <input type="checkbox" checked={c.spd} onChange={e => dispatch({ t: 'cfg', field: 'spd', value: e.target.checked ? 'on' : '' })} />
-          <span><b>УЗИП тип 2</b><small>Защита техники от импульсных перенапряжений при грозе и переключениях в сети</small></span>
+          <span><b>{c.house ? 'УЗИП тип 1+2' : 'УЗИП тип 2'}</b><small>{c.house ? 'Воздушный ввод: защита от грозовых импульсов с линии и перенапряжений в сети' : 'Защита техники от импульсных перенапряжений при грозе и переключениях в сети'}</small></span>
         </label>
       </fieldset>
       <details className="bd-help net-more">

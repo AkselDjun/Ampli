@@ -63,13 +63,14 @@ export function sample(): Content {
   };
 }
 
-export type TplKey = 'studio' | 'k1' | 'k2' | 'k3' | 'blank';
+export type TplKey = 'studio' | 'k1' | 'k2' | 'k3' | 'house' | 'blank';
 
 export const TPL_NAME: Record<Exclude<TplKey, 'blank'>, string> = {
   studio: 'Студия',
   k1: '1-комнатная квартира',
   k2: '2-комнатная квартира',
-  k3: '3-комнатная квартира'
+  k3: '3-комнатная квартира',
+  house: 'Частный дом'
 };
 
 export const TPL_LIST: { key: TplKey; title: string; sub: string }[] = [
@@ -77,6 +78,7 @@ export const TPL_LIST: { key: TplKey; title: string; sub: string }[] = [
   { key: 'k1', title: '1-комнатная', sub: '35–50 м²' },
   { key: 'k2', title: '2-комнатная', sub: '50–70 м²' },
   { key: 'k3', title: '3-комнатная', sub: 'от 70 м²' },
+  { key: 'house', title: 'Частный дом', sub: 'ввод СИП, улица, котёл' },
   { key: 'blank', title: 'Пустой проект', sub: 'без групп' }
 ];
 
@@ -104,6 +106,18 @@ export function tplLines(k: TplKey, elec: boolean): Line[] {
     L.push(mkLine('Бойлер', 'power', 7, 1, 1, [['Водонагреватель', 2000, 1]]));
   } else if (k === 'k2') {
     return sample().lines.filter(l => elec || (l.name !== 'Варочная панель' && l.name !== 'Духовой шкаф'));
+  } else if (k === 'house') {
+    const z = (l: Line, zone: string, o: Partial<Line> = {}): Line => ({ ...l, zone, ...o });
+    L.push(z(mkLine('Освещение: дом', 'light', 35, 1, 0.95, [['Комнаты', 300, 1], ['Кухня и коридор', 150, 1], ['Санузел', 60, 1]]), 'Дом'));
+    L.push(z(mkLine('Розетки: комнаты', 'socket', 30, 0.7, 0.95, [['Телевизор', 150, 1], ['Компьютер', 400, 1], ['Пылесос', 1600, 1]]), 'Дом'));
+    L.push(z(kitchen(15), 'Кухня'));
+    if (elec) L.push(z(plate(12), 'Кухня'));
+    L.push(z(mkLine('Стиральная машина', 'power', 12, 1, 0.95, [['Стиральная машина', 2200, 1]]), 'Санузел', { wet: true }));
+    L.push(z(mkLine('Бойлер', 'power', 10, 1, 1, [['Водонагреватель', 2000, 1]]), 'Санузел', { wet: true }));
+    L.push(z(mkLine('Котёл', 'power', 8, 1, 1, [['Газовый котёл с насосом', 200, 1]]), 'Котельная'));
+    L.push(z(mkLine('Насос скважины', 'power', 25, 1, 0.8, [['Насос скважины', 1100, 1]]), 'Улица', { out: true }));
+    L.push(z(mkLine('Освещение: двор', 'light', 40, 1, 0.95, [['Фонари во дворе', 150, 1]]), 'Улица', { out: true }));
+    L.push(z(mkLine('Розетки: двор и гараж', 'socket', 30, 0.7, 0.95, [['Газонокосилка', 1600, 1], ['Инструмент', 1200, 1]]), 'Улица', { out: true }));
   } else if (k === 'k3') {
     L.push(mkLine('Освещение: комнаты', 'light', 30, 1, 0.95, [['Гостиная', 180, 1], ['Спальня', 120, 1], ['Детская', 120, 1]]));
     L.push(mkLine('Освещение: кухня и коридор', 'light', 20, 1, 0.95, [['Кухня', 90, 1], ['Коридор и санузел', 100, 1]]));
@@ -125,5 +139,10 @@ export function blank(): Content {
 
 export function contentFor(k: TplKey, elec: boolean): Content {
   if (k === 'blank') return blank();
+  if (k === 'house') {
+    const cfg: Cfg = { ...defaultCfg(), supply: 3, alloc: 15, zs: 0.8, obj: 'house', sip: 20, spd: 'on' };
+    const ph: Phase[] = ['L1', 'L2', 'L3'];
+    return { sample: false, cfg, lines: tplLines(k, elec).map((l, i) => ({ ...l, phase: ph[i % 3] })) };
+  }
   return { sample: false, cfg: defaultCfg(), lines: tplLines(k, elec) };
 }

@@ -102,7 +102,7 @@ describe('templates', () => {
     expect(k2e.length).toBe(k2g.length + 2);
     expect(k2e).toContain('Варочная панель');
     expect(k2g).not.toContain('Духовой шкаф');
-    (['studio', 'k1', 'k3'] as TplKey[]).forEach(k => {
+    (['studio', 'k1', 'k3', 'house'] as TplKey[]).forEach(k => {
       const e = tplLines(k, true);
       const g = tplLines(k, false);
       expect(e.length).toBe(g.length + 1);
@@ -112,7 +112,7 @@ describe('templates', () => {
       expect(TPL_NAME[k as 'studio']).toBeTruthy();
     });
     expect(tplLines('blank', true)).toEqual([]);
-    expect(TPL_LIST.length).toBe(5);
+    expect(TPL_LIST.length).toBe(6);
   });
   it('builds blank content', () => {
     const b = contentFor('blank', true);

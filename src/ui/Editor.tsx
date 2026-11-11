@@ -134,7 +134,7 @@ export function Editor({
   const nMeas = (['zs', 'ins', 'leak', 'rcd'] as const).filter(k => String(l.meas?.[k] ?? '').trim() !== '').length;
   const nPhotos = photos.filter(ph => ph.line === l.id).length;
   const measSum = [nMeas ? nMeas + ' ' + plural(nMeas, ['замер', 'замера', 'замеров']) : '', nPhotos ? nPhotos + ' фото' : ''].filter(Boolean).join(', ');
-  const moreSum = [a.c.rcdMode ? '' : (l.zone?.trim() ?? ''), l.where?.trim() ?? '', l.type !== 'light' ? (l.wet ? 'особо опасные условия' : 'обычные условия') : ''].filter(Boolean).join(', ');
+  const moreSum = [a.c.rcdMode ? '' : (l.zone?.trim() ?? ''), l.where?.trim() ?? '', l.out ? 'на улице' : (l.type !== 'light' ? (l.wet ? 'особо опасные условия' : 'обычные условия') : '')].filter(Boolean).join(', ');
   const zones = Array.from(new Set([...a.rows.map(y => (y.l.zone ?? '').trim()).filter(Boolean), ...ZONES]));
   const hasBr = !!r && r.len > pn(l.len, 0);
   const showBr = brOn || l.apps.some(ap => pn(ap.br, 0) > 0);
@@ -415,7 +415,12 @@ export function Editor({
               <span className="lbl">Где находится</span>
               <input className="ed-where" aria-label="Где находится группа" placeholder="Например, кухня и коридор" maxLength={80} value={l.where ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'where', value: e.target.value })} />
             </label>
-            {l.type !== 'light' && (
+            {a.c.house ? (
+              <div className="blk">
+                <span className="lbl">Условия</span>
+                <Seg<string> name={'w-' + l.id} value={l.out ? 'out' : (l.wet ? 'wet' : 'dry')} items={[['dry', 'Обычные'], ['wet', 'Особо опасные'], ['out', 'На улице']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet', out: v === 'out' })} />
+              </div>
+            ) : l.type !== 'light' && (
               <div className="blk">
                 <span className="lbl">Условия</span>
                 <Seg<string> name={'w-' + l.id} value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычные'], ['wet', 'Вне помещения или особо опасные']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet' })} />

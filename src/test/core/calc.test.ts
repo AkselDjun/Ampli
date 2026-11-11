@@ -12,7 +12,7 @@ const pw = (w: number, len = 10, type: 'light' | 'socket' | 'power' = 'power', e
 
 describe('cfgN', () => {
   it('normalizes defaults', () => {
-    expect(cfgN(defaultCfg())).toEqual({ supply: 1, method: 'wall', drop: 0, ko: 0.75, k: 0.9, alloc: 15, safe: true, zs: 0.3, feeder: 0, rcdMode: true, box: 'brick', boxAuto: true, inCable: 'vvg', spd: false, vr: false, afdd: 'off' });
+    expect(cfgN(defaultCfg())).toEqual({ supply: 1, method: 'wall', drop: 0, ko: 0.75, k: 0.9, alloc: 15, safe: true, zs: 0.3, feeder: 0, rcdMode: true, box: 'brick', boxAuto: true, inCable: 'vvg', spd: false, vr: false, afdd: 'off', house: false, sip: 0, rz: null });
   });
   it('accepts three phase, open method and norm minS', () => {
     const c = cfgN(cfg({ supply: '3', method: 'open', minS: 'norm' }));
