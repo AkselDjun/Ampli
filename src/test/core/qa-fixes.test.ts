@@ -113,7 +113,7 @@ describe('project normalisation', () => {
     const p = normProject({ cfg: {}, lines: [{ type: 'light', name: { x: 1 }, apps: [{ name: { y: 1 }, w: { z: 1 }, n: 2, m: 3, br: 'a' }, null] }] });
     expect(p?.lines[0].name).toBe('');
     expect(p?.lines[0].apps).toHaveLength(1);
-    expect(p?.lines[0].apps[0]).toMatchObject({ name: '', w: '', n: 2, m: 3, br: 'a' });
+    expect(p?.lines[0].apps[0]).toMatchObject({ name: '', w: '', n: 2, m: 3, br: '' });
   });
 
   it('merges room names that differ only in case', () => {

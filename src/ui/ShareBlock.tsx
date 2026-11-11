@@ -3,6 +3,7 @@ import type { Project } from '../core/types';
 import { estimateUrl, ownerUrl, shareUrl } from '../core/share';
 import { buildSpec } from '../core/spec';
 import { calcAll } from '../core/calc';
+import { tierPriceNames } from '../core/tiers';
 import { useLib } from '../store/LibContext';
 import { IconShare } from './Icons';
 import { Tip } from './common';
@@ -34,12 +35,12 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
     const base = window.location.href;
     if (k === 'owner') return ownerUrl(p, base);
     if (k === 'project') return shareUrl(p, base);
-    const names = new Set(buildSpec(calcAll(p.lines, p.cfg, p)).map(i => i.name));
+    const names = lib.tiers.on ? tierPriceNames(p) : new Set(buildSpec(calcAll(p.lines, p.cfg, p)).map(i => i.name));
     const prices: Record<string, number> = {};
     Object.entries(lib.prices).forEach(([n, v]) => {
       if (names.has(n)) prices[n] = v;
     });
-    return estimateUrl({ p, prices, labor: lib.labor, company: lib.brand.company, contacts: lib.brand.contacts, at: Date.now() }, base);
+    return estimateUrl({ p, prices, labor: lib.labor, company: lib.brand.company, contacts: lib.brand.contacts, at: Date.now(), ...(lib.tiers.on ? { tiers: lib.tiers.markup } : {}) }, base);
   };
   const t = TEXT[k];
   const copy = async () => {

@@ -1,5 +1,6 @@
 export const PHOTO_MAX_SIDE = 1280;
 export const PHOTO_QUALITY = 0.75;
+export const PHOTO_MAX_BYTES = 30 * 1024 * 1024;
 
 export function fitSide(w: number, h: number, max = PHOTO_MAX_SIDE): { w: number; h: number } {
   if (w <= 0 || h <= 0) return { w: 0, h: 0 };
@@ -11,6 +12,10 @@ export function scalePhoto(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith('image/')) {
       reject(new Error('not an image'));
+      return;
+    }
+    if (file.size > PHOTO_MAX_BYTES) {
+      reject(new Error('too large'));
       return;
     }
     const src = URL.createObjectURL(file);

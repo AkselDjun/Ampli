@@ -8,16 +8,25 @@ import { Toaster } from './common';
 import { Totals } from './Labor';
 import { toast, toastOk } from './toast';
 import { Button } from './kit';
+import { markPrices, tierEstimates } from '../core/tiers';
+import type { TierDef, TierId } from '../core/tiers';
+import { TierCards } from './Tiers';
 
-export function approveText(e: EstimateShare, materials: number, works: number, url: string): string {
+export function approveText(e: EstimateShare, materials: number, works: number, url: string, tier?: TierDef): string {
   const p = e.p;
-  return 'Согласую смету «' + (p.name || 'Без названия') + '»' + (p.address ? ', ' + p.address : '') + ' на ' + fmt(grandTotal(materials, works), 2) + ' BYN (работы ' + fmt(works, 2) + ', материалы ' + fmt(materials, 2) + '). ' + url;
+  return 'Согласую смету «' + (p.name || 'Без названия') + '»' + (p.address ? ', ' + p.address : '') + (tier ? ', вариант «' + tier.title + '»' : '') + ' на ' + fmt(grandTotal(materials, works), 2) + ' BYN (работы ' + fmt(works, 2) + ', материалы ' + fmt(materials, 2) + '). ' + url;
 }
 
 export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: () => void }) {
   const p = data.p;
-  const a = useMemo(() => calcAll(p.lines, p.cfg, p), [p]);
-  const est = useMemo(() => estimate(buildSpec(a), data.prices), [a, data.prices]);
+  const tiers = useMemo(() => (data.tiers ? tierEstimates(p, data.prices, data.labor, data.tiers) : []), [p, data.prices, data.labor, data.tiers]);
+  const [pick, setPick] = useState<TierId>(() => (tiers.some(t => t.def.id === 'safe') ? 'safe' : 'base'));
+  const tier = tiers.length > 1 ? tiers.find(t => t.def.id === pick) ?? tiers[0] : null;
+  const base = useMemo(() => calcAll(p.lines, p.cfg, p), [p]);
+  const a = tier ? tier.calc : base;
+  const mk = tier ? tier.markup : 0;
+  const prices = useMemo(() => markPrices(data.prices, mk), [data.prices, mk]);
+  const est = useMemo(() => estimate(buildSpec(a), prices), [a, prices]);
   const le = useMemo(() => laborEstimate(a, p.work, data.labor), [a, p.work, data.labor]);
   const works = le.rows.filter(r => r.qty > 0 && r.price !== null);
   const groups = a.rows.filter(x => !x.r.empty && x.r.In).length;
@@ -30,7 +39,7 @@ export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: 
     }
   }, [fallback]);
   const approve = async () => {
-    const text = approveText(data, est.total, le.total, window.location.href);
+    const text = approveText(data, est.total, le.total, window.location.href, tier?.def);
     const nav = navigator as Navigator & { share?: (d: { text: string }) => Promise<void> };
     if (typeof nav.share === 'function') {
       try {
@@ -63,6 +72,12 @@ export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: 
         <p className="pp-sub">
           {p.address ? p.address + '. ' : ''}{groups} {plural(groups, ['группа', 'группы', 'групп'])}, щиток на {a.size} модулей.{data.at ? ' Цены на ' + dfmt(data.at) + '.' : ''}
         </p>
+        {tier && (
+          <>
+            <h2>Выберите вариант</h2>
+            <TierCards list={tiers} cur={tier.def.id} onPick={setPick} name="tier-client" />
+          </>
+        )}
         <Totals materials={est.total} works={le.total} total={grandTotal(est.total, le.total)} />
         <div className="owner-act ev-act">
           <Button variant="primary" onClick={approve}>Отправить согласование мастеру</Button>

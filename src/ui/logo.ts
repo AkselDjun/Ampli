@@ -1,5 +1,6 @@
 export const LOGO_MAX_W = 240;
 export const LOGO_MAX_H = 120;
+export const LOGO_MAX_BYTES = 10 * 1024 * 1024;
 
 export function fitSize(w: number, h: number): { w: number; h: number } {
   if (w <= 0 || h <= 0) return { w: 0, h: 0 };
@@ -11,6 +12,10 @@ export function scaleLogo(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith('image/')) {
       reject(new Error('not an image'));
+      return;
+    }
+    if (file.size > LOGO_MAX_BYTES) {
+      reject(new Error('too large'));
       return;
     }
     const rd = new FileReader();

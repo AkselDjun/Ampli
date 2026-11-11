@@ -2,6 +2,7 @@ import type { Line, Room, RoomApp } from './types';
 import { mkLine } from './templates';
 import { nid } from './ids';
 import { pn } from './format';
+import { ROOM_SPLIT_MAX } from './limits';
 
 export const LIGHT_CAP_W = 1000;
 export const SOCKET_CAP_W = 2500;
@@ -88,7 +89,7 @@ export function assemble(rooms: Room[]): Line[] {
   });
   rooms.forEach(r => {
     pick(r, 'p').forEach(a => {
-      const n = Math.max(1, Math.round(pn(a.n, 1)));
+      const n = Math.min(ROOM_SPLIT_MAX, Math.max(1, Math.round(pn(a.n, 1))));
       for (let i = 0; i < n; i++) {
         lines.push(zoned(mkLine(n > 1 ? a.name + ' ' + (i + 1) : a.name, 'power', 10, [[a.name, pn(a.w, 0), 1]]), [r.name || 'Комната']));
       }
