@@ -94,7 +94,16 @@ const GroupRow = memo(function GroupRow({
           {x.r.status !== 'ok' && !x.r.empty && (
             <span className={'flag ' + x.r.status} data-tip={STATUS[x.r.status]} aria-label={STATUS[x.r.status]}>!</span>
           )}
-          {x.r.In && <span className={'brk' + (x.r.rcbo ? ' rcd' : '')}>{x.r.curve}{x.r.In}</span>}
+          {x.r.In && (() => {
+            const load = Math.round(x.r.I / x.r.In * 100);
+            const tip = 'Загрузка автомата ' + load + ' %' + (x.r.rcd ? (x.r.rcbo ? ', дифавтомат ' : ', УЗО «' + x.r.zone + '» ') + x.r.ma + ' мА' : '');
+            return (
+              <span className={'brk' + (x.r.rcbo ? ' rcd' : '')} data-tip={tip}>
+                {x.r.curve}{x.r.In}
+                <i className={'brk-load' + (load > 90 ? ' warn' : '')} aria-hidden="true"><i style={{ width: Math.min(100, load) + '%' }} /></i>
+              </span>
+            );
+          })()}
         </span>
         <IconChev className="chev" />
       </button>
@@ -108,8 +117,9 @@ const GroupRow = memo(function GroupRow({
 }, sameRow);
 
 export const GroupList = memo(function GroupList({
-  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, onOpenFloor = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix
+  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, onOpenFloor = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix, onRenumber = () => undefined
 }: {
+  onRenumber?: () => void;
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
   onFix: (id: string, act: FixAct) => void;
@@ -156,6 +166,7 @@ export const GroupList = memo(function GroupList({
     });
     groups.sort((p, q) => Number(p.zone === 'Без помещения') - Number(q.zone === 'Без помещения'));
   } else groups.push({ zone: null, items: a.rows.map((_, i) => i) });
+  const jumbled = groups.flatMap(g => g.items).some((k, j) => k !== j);
   const [shut, setShut] = useState<string[]>([]);
   const selZone = byRoom ? (() => { const x = a.rows.find(y => y.l.id === sel); return x ? zoneOf(x.l) : null; })() : null;
   useEffect(() => {
@@ -225,6 +236,11 @@ export const GroupList = memo(function GroupList({
             <button className={'lv-t' + (byRoom ? ' on' : '')} type="button" aria-pressed={byRoom} data-tip="Сгруппировать по помещениям" onClick={() => setByRoom(!byRoom)}>
               <IconRooms />
               <span>По помещениям</span>
+            </button>
+          )}
+          {byRoom && jumbled && (
+            <button className="lv-t" type="button" data-tip="Номера групп пойдут подряд по помещениям, как на щитке" onClick={onRenumber}>
+              <span>Номера по порядку</span>
             </button>
           )}
         </span>
