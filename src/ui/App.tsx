@@ -35,7 +35,7 @@ import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
-import { onboardingPending } from '../features/onboarding/storage';
+import { chapterHintPending, markChapterHint, onboardingPending } from '../features/onboarding/storage';
 import type { TourFinish } from './Onboarding';
 import { APP_SHEET, APP_VIEW } from '../app/types';
 import type { AppView, ReportRequest, SaveStatus } from '../app/types';
@@ -43,8 +43,8 @@ import { useSheetStack } from '../app/useSheetStack';
 import { AppHeader } from '../app/AppHeader';
 import { AppTabs } from '../app/AppTabs';
 import { sheetForTourScene } from '../app/navigation';
-import { TOUR_SCENE } from '../features/onboarding/model';
-import type { TourScene } from '../features/onboarding/model';
+import { TOUR_CHAPTER, TOUR_SCENE } from '../features/onboarding/model';
+import type { TourChapter, TourScene } from '../features/onboarding/model';
 
 const waitPhotos = async (n: number): Promise<void> => {
   const deadline = Date.now() + 2500;
@@ -106,7 +106,15 @@ export function App() {
       setSheet(sheetForTourScene(scene));
     }
   }, [p.lines, setSheet]);
+  const [tourChapter, setTourChapter] = useState<TourChapter | undefined>(undefined);
+  useEffect(() => {
+    const ch = sheet === APP_SHEET.PANEL || sheet === APP_SHEET.WORK ? TOUR_CHAPTER.BUILD : (sheet === APP_SHEET.REPORT ? TOUR_CHAPTER.HANDOVER : null);
+    if (!ch || tourOpen || onboardingPending() || !chapterHintPending(ch)) return;
+    markChapterHint(ch);
+    toast(ch === TOUR_CHAPTER.BUILD ? 'Впервые в монтаже? Покажем щиток, замеры и чек-лист за минуту.' : 'Впервые в документах? Покажем схему, смету и акты за минуту.', { label: 'Показать', run: () => { setTourChapter(ch); setTourOpen(true); } });
+  }, [sheet, tourOpen]);
   const closeTour = useCallback(() => {
+    setTourChapter(undefined);
     setTourOpen(false);
     setSheet(null);
     setView(APP_VIEW.GROUPS);
@@ -358,6 +366,7 @@ export function App() {
     toastOk('Исправлено');
   });
   const moveLine = useStable((id: string, to: string) => { dispatch({ t: 'moveLine', id, to }); toastOk('Порядок групп изменён'); });
+  const renumber = useStable(() => { dispatch({ t: 'sortByZone' }); toastOk('Группы перенумерованы по помещениям'); });
   const balance = useStable(() => { dispatch({ t: 'balance' }); toastOk('Фазы выровнены'); });
   const openProj = useStable(() => setSheet(APP_SHEET.PROJECTS));
   const openNet = useStable(() => setSheet(APP_SHEET.NETWORK));
@@ -488,6 +497,7 @@ export function App() {
             onCopy={copyLine}
             onDelete={deleteLine}
             onFix={fixLine}
+            onRenumber={renumber}
             onOpenProj={openProj}
             onOpenNet={openNet}
             onOpenOld={openOld}
@@ -545,7 +555,7 @@ export function App() {
         <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => pushSheet(APP_SHEET.PANEL)} /></Hold>
         </SheetNavContext.Provider>
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
-        <Hold open={tourOpen}>{tourOpen && <Onboarding onScene={onTourScene} onClose={closeTour} onFinish={finishTour} />}</Hold>
+        <Hold open={tourOpen}>{tourOpen && <Onboarding onScene={onTourScene} onClose={closeTour} onFinish={finishTour} chapter={tourChapter} />}</Hold>
       </div>
       <Hold open={printing}>{printModes.map(m => <PrintDoc key={m} p={p} a={a} mode={m} />)}</Hold>
     </LibContext.Provider>

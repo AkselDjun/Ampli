@@ -31,6 +31,7 @@ export type Action =
   | { t: 'addLine'; type: LineType }
   | { t: 'delLine' }
   | { t: 'moveLine'; id: string; to: string }
+  | { t: 'sortByZone' }
   | { t: 'dupLine' }
   | { t: 'splitLine'; mode: 'largest' | 'half' }
   | { t: 'roomAdd'; room: Room }
@@ -173,6 +174,15 @@ export function reducer(s: State, a: Action): State {
       next = { ...next, sel: src.id };
       if (pn(p.cfg.supply, 1) === 3) next = patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) }));
       return next;
+    }
+    case 'sortByZone': {
+      const zk = (l: Line): string => zoneOf(l).toLowerCase();
+      const seen: string[] = [];
+      p.lines.forEach(l => { if (!seen.includes(zk(l))) seen.push(zk(l)); });
+      const none = zoneOf({ ...p.lines[0], zone: '' }).toLowerCase();
+      const order = [...seen.filter(z => z !== none), ...seen.filter(z => z === none)];
+      const lines = order.flatMap(z => p.lines.filter(l => zk(l) === z));
+      return lines.every((l, i) => l === p.lines[i]) ? s : patch(s, q => ({ ...q, lines }));
     }
     case 'moveLine': {
       const from = p.lines.findIndex(l => l.id === a.id);

@@ -36,3 +36,13 @@ export function savedStep(total: number): number | null {
 export function saveStep(step: number | null): void {
   write(ONBOARDING_STEP_KEY, step && step > 0 ? String(step) : null);
 }
+
+const HINT_KEY = 'ampli-chapter-hint-';
+
+export function chapterHintPending(chapter: string): boolean {
+  return read(HINT_KEY + chapter) === null;
+}
+
+export function markChapterHint(chapter: string): void {
+  write(HINT_KEY + chapter, 'shown');
+}
