@@ -5,6 +5,7 @@ import type { Weak } from './weak';
 import { weakCalc, weakStarted } from './weak';
 import type { FloorRoom } from './floor';
 import { floorCalc } from './floor';
+import { houseCalc, houseTips } from './house';
 
 export function cfgN(c: Cfg): CfgN {
   return {
@@ -25,7 +26,10 @@ export function cfgN(c: Cfg): CfgN {
     vr: c.vr === 'on',
     afdd: c.afdd === 'sock' || c.afdd === 'all' ? c.afdd : 'off',
     margin: Math.min(MARGIN_MAX, Math.max(1, pn(c.margin, 1))),
-    grpCable: c.grpCable === 'frls' || c.grpCable === 'nym' ? (c.grpCable as InCable) : 'vvg'
+    grpCable: c.grpCable === 'frls' || c.grpCable === 'nym' ? (c.grpCable as InCable) : 'vvg',
+    house: c.obj === 'house',
+    sip: Math.min(500, Math.max(0, pn(c.sip, 0))),
+    rz: measOf(c.rz)
   };
 }
 
@@ -352,6 +356,7 @@ export function calcAll(lines: Line[], cfg: Cfg, ex: { weak?: Weak; floor?: Floo
   const floor = (ex.floor ?? []).filter(r => floorCalc(r).ok);
   const c = cfgN(cfg);
   const { rows, uzos } = planUzos(lines, c);
+  if (c.house) rows.forEach(x => { if (!x.r.empty) houseTips(x.l, x.r.tips); });
   const sumInst = rows.reduce((s, x) => s + x.r.pInst, 0);
   const sumD = rows.reduce((s, x) => s + x.r.pd, 0);
   const P = sumD * c.ko;
@@ -401,7 +406,7 @@ export function calcAll(lines: Line[], cfg: Cfg, ex: { weak?: Weak; floor?: Floo
     const n = c.supply === 3 ? 3 : 1;
     devs.push({ kind: 'vr', mod: 2 * n, label: vr ? vr + 'А' : 'РН', sub: n > 1 ? '3 × реле' : 'реле U', title: 'Реле контроля напряжения' + (n > 1 ? ', по одному на фазу' : '') + (vr ? ' ' + vr + ' А' : ', через контактор') });
   }
-  if (inIn && c.spd) devs.push({ kind: 'spd', mod: c.supply === 3 ? 4 : 2, label: 'УЗИП', sub: 'тип 2', title: 'УЗИП тип 2 ' + (c.supply === 3 ? '3P+N' : '1P+N') });
+  if (inIn && c.spd) devs.push({ kind: 'spd', mod: c.supply === 3 ? 4 : 2, label: 'УЗИП', sub: c.house ? 'тип 1+2' : 'тип 2', title: 'УЗИП тип ' + (c.house ? '1+2 ' : '2 ') + (c.supply === 3 ? '3P+N' : '1P+N') });
   const groupDev = (x: Row, idx: number): Device => ({
     kind: x.r.rcbo ? 'rcd' : 'mcb',
     mod: x.r.mod,
@@ -455,7 +460,7 @@ export function calcAll(lines: Line[], cfg: Cfg, ex: { weak?: Weak; floor?: Floo
   const issues = rows.filter(x => !x.r.empty && x.r.status !== 'ok').length;
   const hint3 = c.supply === 1 && P > SINGLE_INPUT_KW * 1000;
   const boxes = rows.filter(x => !x.r.empty && x.l.apps.some(a => appW(a) > 0 && appBr(a) > 0)).length;
-  return { c, rows, sumInst, P, Itot, phases, imb, inIn, inS, devs, modSum, size, placed, fits, issues, inStep, hint3, uzos, boxes, ...(weakStarted(weak) ? { weak: weakCalc(weak) } : {}), ...(floor.length ? { floor } : {}) };
+  return { c, rows, sumInst, P, Itot, phases, imb, inIn, inS, devs, modSum, size, placed, fits, issues, inStep, hint3, uzos, boxes, ...(weakStarted(weak) ? { weak: weakCalc(weak) } : {}), ...(floor.length ? { floor } : {}), ...(c.house ? { house: houseCalc(c, rows, Itot, inIn) } : {}) };
 }
 
 export function balanceLines(lines: Line[], cfg: Cfg): Line[] {

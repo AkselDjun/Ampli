@@ -1,6 +1,7 @@
 import type { WorkQty } from './labor';
 import type { Weak, WeakCalc } from './weak';
 import type { FloorRoom } from './floor';
+import type { House } from './house';
 
 export type LineType = 'light' | 'socket' | 'power';
 export type Phase = 'L1' | 'L2' | 'L3' | '3';
@@ -85,6 +86,7 @@ export interface Line {
   type: LineType;
   phase: Phase;
   wet?: boolean;
+  out?: boolean;
   meas?: Meas;
   zone?: string;
   sockets?: Num;
@@ -111,6 +113,9 @@ export interface Cfg {
   afdd?: string;
   margin?: Num;
   grpCable?: string;
+  obj?: string;
+  sip?: Num;
+  rz?: Num;
 }
 
 export interface Project {
@@ -162,6 +167,9 @@ export interface CfgN {
   afdd: AfddMode;
   margin: number;
   grpCable: InCable;
+  house: boolean;
+  sip: number;
+  rz: number | null;
 }
 
 export interface LineResult {
@@ -262,6 +270,7 @@ export interface Calc {
   boxes: number;
   weak?: WeakCalc;
   floor?: FloorRoom[];
+  house?: House;
 }
 
 export interface SpecItem {

@@ -6,6 +6,7 @@ import { IconAlert, IconDone } from './Icons';
 import { usePop } from './pop';
 import { Button } from './kit';
 import type { HeaderCheckFix } from '../app/types';
+import { houseChecks } from '../core/house';
 
 export type CheckFix = HeaderCheckFix;
 
@@ -22,7 +23,7 @@ export function checksOf(a: Calc): Check[] {
   const c = a.c;
   const out: Check[] = [];
   const three = a.rows.filter(x => !x.r.empty && x.r.three);
-  if (a.hint3) out.push({ k: 'warn', t: 'Расчётная нагрузка ' + fmt(a.P / 1000, 1) + ' кВт больше 12 кВт. Для квартиры нужен трёхфазный ввод (СН 4.04.01-2019, п. 9.12).', fix: 'phase3' });
+  if (a.hint3) out.push({ k: 'warn', t: 'Расчётная нагрузка ' + fmt(a.P / 1000, 1) + ' кВт больше 12 кВт. ' + (c.house ? 'Для дома' : 'Для квартиры') + ' нужен трёхфазный ввод (СН 4.04.01-2019, п. 9.12).', fix: 'phase3' });
   else if (c.supply === 3 && a.P > 0 && a.P <= 12000 && three.length) out.push({ k: 'ok', t: 'Трёхфазный ввод нужен для трёхфазных приборов: ' + three.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + '.' });
   else if (c.supply === 3 && a.P > 0 && a.P <= 12000) out.push({ k: 'warn', t: 'Расчётная нагрузка ' + fmt(a.P / 1000, 1) + ' кВт не больше 12 кВт: по СН 4.04.01-2019, п. 9.12 достаточно однофазного ввода.', fix: 'phase1' });
   else if (a.P > 0) out.push({ k: 'ok', t: 'Тип ввода соответствует нагрузке (до 12 кВт однофазный, больше трёхфазный, СН п. 9.12).' });
@@ -49,6 +50,7 @@ export function checksOf(a: Calc): Check[] {
   if (kzBad.length) out.push({ k: 'bad', t: 'Короткое замыкание: автомат может не отключить ' + kzBad.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + ' за 0,4 с. Сократите линию.', groups: kzBad.map(x => x.l.id) });
   else if (act.length && !kzNo.length) out.push({ k: 'ok', t: 'Короткое замыкание в конце каждой линии отключается за 0,4 с (ТКП 339-2022, п. 4.3.5.4). Петля питающей сети ' + fmt(c.zs, 2) + ' Ом задана вами, проверьте её.' });
   else if (kzNo.length) out.push({ k: 'warn', t: 'Короткое замыкание не проверено для ' + kzNo.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + ': не задана длина.', groups: kzNo.map(x => x.l.id) });
+  out.push(...houseChecks(a));
   const gr = a.rows.filter(x => !x.r.empty && x.r.status !== 'ok' && !kzBad.includes(x));
   if (gr.length) out.push({ k: gr.some(x => x.r.status === 'bad') ? 'bad' : 'warn', t: 'Замечания в ' + plural(gr.length, ['группе', 'группах', 'группах']) + ' ' + gr.map(x => 'Г' + (a.rows.indexOf(x) + 1)).join(', ') + '. Подробности в карточке группы.', groups: gr.map(x => x.l.id) });
   return out;

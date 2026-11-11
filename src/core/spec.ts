@@ -6,6 +6,7 @@ import { vrRating } from './calc';
 import { weakSpec } from './weak';
 import { floorSpec } from './floor';
 import { supplySpec } from './supplies';
+import { houseSpec } from './house';
 
 export function buildSpec(a: Calc): SpecItem[] {
   const c = a.c;
@@ -17,7 +18,7 @@ export function buildSpec(a: Calc): SpecItem[] {
     const n = c.supply === 3 ? 3 : 1;
     items.push({ name: 'Реле контроля напряжения ' + (vr ? vr + ' А' : '63 А с контактором'), qty: n + ' шт', note: (n > 1 ? 'по одному на фазу; ' : '') + (vr ? 'номинал не меньше вводного автомата' : 'ток ввода больше 63 А, реле управляет контактором'), n, unit: 'шт' });
   }
-  if (a.inIn && c.spd) items.push({ name: 'УЗИП тип 2 ' + (c.supply === 3 ? '3P+N' : '1P+N'), qty: '1 шт', note: 'после вводного автомата; защиту УЗИП выполнить по паспорту изготовителя', n: 1, unit: 'шт' });
+  if (a.inIn && c.spd) items.push({ name: 'УЗИП тип ' + (c.house ? '1+2 ' : '2 ') + (c.supply === 3 ? '3P+N' : '1P+N'), qty: '1 шт', note: 'после вводного автомата; защиту УЗИП выполнить по паспорту изготовителя', n: 1, unit: 'шт' });
   const dev = new Map<string, { name: string; n: number; g: string[] }>();
   a.uzos.forEach(u => {
     const k = uzoName(u);
@@ -48,6 +49,7 @@ export function buildSpec(a: Calc): SpecItem[] {
   items.push({ name: 'Шина N (нулевая)', qty: nN + ' шт', note: a.uzos.length ? 'своя на каждое УЗО: ' + a.uzos.map(u => u.zone).join(', ') : '', n: nN, unit: 'шт' });
   items.push({ name: 'Шина PE (заземления)', qty: '1 шт', note: '', n: 1, unit: 'шт' });
   if (a.boxes > 0) items.push({ name: 'Коробка распределительная ' + BOX_NAME[c.box], qty: a.boxes + ' шт', note: 'по одной на группу с отводами', n: a.boxes, unit: 'шт' });
+  items.push(...houseSpec(a));
   items.push(...supplySpec(a));
   if (a.floor) items.push(...floorSpec(a.floor));
   if (a.weak) items.push(...weakSpec(a.weak));
