@@ -3,9 +3,10 @@ import type { CSSProperties, JSX, KeyboardEvent as ReactKeyEvent, TouchEvent as 
 import '../styles/onboarding.css';
 import { Button } from './kit';
 import { plural } from '../core/format';
-import { IconBolt, IconBulb, IconCheck, IconClose, IconDoc, IconDone, IconFolder, IconList, IconNet, IconPanel, IconRooms, IconSocket } from './Icons';
-import { ONBOARDING_CHAPTERS, ONBOARDING_STEPS, TOUR_SCENE, chapterProgress, chapterStart, chapterSteps, clampStep, minutesFor, targetsFor } from '../features/onboarding/model';
-import type { TourChapter, TourIcon, TourScene } from '../features/onboarding/model';
+import { IconBolt, IconBulb, IconCamera, IconCheck, IconClose, IconDoc, IconDone, IconFolder, IconInfo, IconList, IconMeter, IconNet, IconPanel, IconRooms, IconShare, IconSocket } from './Icons';
+import { TOUR_MODE, TOUR_SCENE, chapterProgress, chapterStart, chapterSteps, clampStep, minutesFor, stepsFor, targetsFor } from '../features/onboarding/model';
+import type { TourChapter, TourIcon, TourMode, TourScene } from '../features/onboarding/model';
+import { ONBOARDING_CHAPTERS, ONBOARDING_STEPS } from '../features/onboarding/steps';
 import { markOnboardingDone, saveStep, savedStep } from '../features/onboarding/storage';
 import { EDGE, NARROW, needsScroll, placeCard, spotBox } from '../features/onboarding/placement';
 import type { Box, CardPlace } from '../features/onboarding/placement';
@@ -18,14 +19,15 @@ const ICON: Record<TourIcon, () => JSX.Element> = {
   group: () => <IconList />,
   editor: () => <IconSocket />,
   network: () => <IconNet />,
+  fit: () => <IconMeter />,
   rooms: () => <IconRooms />,
   panel: () => <IconPanel />,
+  wiring: () => <IconCamera />,
   work: () => <IconCheck />,
   report: () => <IconDoc />,
+  tiers: () => <IconShare />,
   projects: () => <IconFolder />
 };
-
-const TOTAL = ONBOARDING_STEPS.length;
 
 const visibleTarget = (selectors: readonly string[]): HTMLElement | null => {
   for (const selector of selectors) {
@@ -68,47 +70,51 @@ function Board() {
   );
 }
 
-export function Onboarding({ onScene, onClose, onFinish, chapter: startChapter }: { onScene: (scene: TourScene) => void; onClose: () => void; onFinish?: (choice: TourFinish) => void; chapter?: TourChapter }) {
-  const [resume] = useState(() => savedStep(TOTAL));
-  const [phase, setPhase] = useState<Phase>(startChapter ? 'step' : 'welcome');
-  const [step, setStep] = useState(() => (startChapter ? chapterStart(startChapter) : 0));
+export function Onboarding({ onScene, onClose, onFinish, chapter: startChapter, mode = TOUR_MODE.FULL }: { onScene: (scene: TourScene) => void; onClose: () => void; onFinish?: (choice: TourFinish) => void; chapter?: TourChapter; mode?: TourMode }) {
+  const fresh = mode === TOUR_MODE.FRESH;
+  const steps = stepsFor(ONBOARDING_STEPS, mode);
+  const total = steps.length;
+  const [resume] = useState(() => (fresh ? null : savedStep(total)));
+  const [phase, setPhase] = useState<Phase>(startChapter || fresh ? 'step' : 'welcome');
+  const [step, setStep] = useState(() => (startChapter && !fresh ? Math.max(0, chapterStart(steps, startChapter)) : 0));
   const [target, setTarget] = useState<Box | null>(null);
   const [place, setPlace] = useState<CardPlace>({ mode: 'center' });
+  const [cardSize, setCardSize] = useState({ width: 0, height: 0 });
   const root = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLElement>(null);
   const primary = useRef<HTMLButtonElement>(null);
   const touch = useRef<number | null>(null);
-  const current = ONBOARDING_STEPS[step];
+  const current = steps[step];
   const scene: TourScene = phase === 'step' ? current.scene : TOUR_SCENE.HOME;
   const targets = phase === 'step' ? targetsFor(current, window.innerWidth < NARROW) : null;
 
   const close = useCallback((keepStep: boolean) => {
     markOnboardingDone();
-    saveStep(keepStep ? step : null);
+    if (!fresh) saveStep(keepStep ? step : null);
     onClose();
-  }, [onClose, step]);
+  }, [onClose, step, fresh]);
 
   const finish = (choice: TourFinish) => {
     markOnboardingDone();
-    saveStep(null);
+    if (!fresh) saveStep(null);
     onClose();
     onFinish?.(choice);
   };
 
   const go = (i: number) => {
     setPhase('step');
-    setStep(clampStep(i));
+    setStep(clampStep(steps, i));
   };
   const next = () => {
     if (phase === 'welcome') go(resume ?? 0);
     else if (phase === 'finish') finish('stay');
-    else if (step === TOTAL - 1) setPhase('finish');
+    else if (step === total - 1) setPhase('finish');
     else setStep(step + 1);
   };
   const back = () => {
-    if (phase === 'finish') go(TOTAL - 1);
+    if (phase === 'finish') go(total - 1);
     else if (phase === 'step' && step > 0) setStep(step - 1);
-    else if (phase === 'step') setPhase('welcome');
+    else if (phase === 'step' && !fresh) setPhase('welcome');
   };
 
   useEffect(() => {
@@ -180,7 +186,15 @@ export function Onboarding({ onScene, onClose, onFinish, chapter: startChapter }
     const size = el ? { width: el.offsetWidth, height: el.offsetHeight } : { width: 0, height: 0 };
     const p = placeCard(phase === 'step' ? target : null, view(), size);
     setPlace(prev => (prev.mode === p.mode && prev.side === p.side && prev.left === p.left && prev.top === p.top && prev.arrow === p.arrow ? prev : p));
-  }, [target, phase, step]);
+  }, [target, phase, step, cardSize]);
+
+  useEffect(() => {
+    const el = card.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => setCardSize(prev => (prev.width === el.offsetWidth && prev.height === el.offsetHeight ? prev : { width: el.offsetWidth, height: el.offsetHeight })));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [phase]);
 
   const onKey = (e: ReactKeyEvent<HTMLDivElement>) => {
     const tag = (e.target as HTMLElement).tagName;
@@ -228,7 +242,7 @@ export function Onboarding({ onScene, onClose, onFinish, chapter: startChapter }
 
   const spot = phase === 'step' ? spotBox(target, view()) : null;
   const cardStyle: CSSProperties | undefined = place.mode === 'float' ? { left: place.left, top: place.top, '--arrow': place.arrow + 'px' } as CSSProperties : undefined;
-  const progress = chapterProgress(step);
+  const progress = chapterProgress(ONBOARDING_CHAPTERS, steps, step);
   const chapter = ONBOARDING_CHAPTERS.find(c => c.id === current.chapter);
 
   return (
@@ -240,14 +254,14 @@ export function Onboarding({ onScene, onClose, onFinish, chapter: startChapter }
           <button className="tour-x" type="button" aria-label="Закрыть обучение" onClick={() => close(false)}><IconClose /></button>
           <Board />
           <h2 id="tour-title">{resume ? 'С возвращением в обучение' : 'Добро пожаловать в Ampli'}</h2>
-          <p id="tour-text">Ampli считает электропроводку квартиры по нормам РБ: кабели, автоматы, УЗО, щиток и документы для сдачи объекта.</p>
+          <p id="tour-text">Ampli считает электропроводку квартиры или частного дома по нормам РБ: кабели, автоматы, УЗО, щиток и документы для сдачи объекта.</p>
           <ol className="tour-chapters" aria-label="Что покажем">
             {ONBOARDING_CHAPTERS.map((c, i) => (
               <li key={c.id}>
-                <button type="button" className="tour-ch" onClick={() => go(chapterStart(c.id))}>
+                <button type="button" className="tour-ch" onClick={() => go(chapterStart(steps, c.id))}>
                   <span className="tour-ch-n" aria-hidden="true">{i + 1}</span>
                   <span className="tour-ch-t"><b><span className="vh">Начать с раздела </span>{c.title}</b><small>{c.text}</small></span>
-                  <span className="tour-ch-c" aria-hidden="true">{chapterSteps(c.id)} {plural(chapterSteps(c.id), ['шаг', 'шага', 'шагов'])}</span>
+                  <span className="tour-ch-c" aria-hidden="true">{chapterSteps(steps, c.id)} {plural(chapterSteps(steps, c.id), ['шаг', 'шага', 'шагов'])}</span>
                 </button>
               </li>
             ))}
@@ -255,7 +269,7 @@ export function Onboarding({ onScene, onClose, onFinish, chapter: startChapter }
           <div className="tour-actions">
             <Button variant="ghost" onClick={() => close(false)}>Пропустить</Button>
             {resume && <Button onClick={() => go(0)}>Сначала</Button>}
-            <Button ref={primary} variant="primary" onClick={next}>{resume ? 'Продолжить с шага ' + (resume + 1) : 'Начать · ' + minutesFor(TOTAL) + ' мин'}</Button>
+            <Button ref={primary} variant="primary" onClick={next}>{resume ? 'Продолжить с шага ' + (resume + 1) : 'Начать · ' + minutesFor(total) + ' мин'}</Button>
           </div>
           <p className="tour-keys" aria-hidden="true"><kbd>←</kbd><kbd>→</kbd> листать · <kbd>Esc</kbd> закрыть</p>
         </section>
@@ -265,8 +279,8 @@ export function Onboarding({ onScene, onClose, onFinish, chapter: startChapter }
         <section ref={card} className={'tour-card tour-step' + (place.side ? ' side-' + place.side : '')} style={cardStyle} role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-text" {...swipe}>
           <div className="tour-top">
             <span className="tour-ico" aria-hidden="true">{ICON[current.icon]()}</span>
-            <span className="tour-chap">{chapter?.title}</span>
-            <span className="tour-num" aria-hidden="true">{step + 1} из {TOTAL}</span>
+            <span className="tour-chap">{fresh ? 'Новое · ' : ''}{chapter?.title}</span>
+            <span className="tour-num" aria-hidden="true">{step + 1} из {total}</span>
             <button className="tour-x" type="button" aria-label="Закрыть обучение" onClick={() => close(true)}><IconClose /></button>
           </div>
           <div key={step} className="tour-body">
@@ -274,7 +288,7 @@ export function Onboarding({ onScene, onClose, onFinish, chapter: startChapter }
             <p id="tour-text">{current.text}</p>
             {current.tip && <p className="tour-tip"><IconBulb /><span>{current.tip}</span></p>}
           </div>
-          <div className="tour-prog" role="progressbar" aria-label="Прогресс обучения" aria-valuemin={1} aria-valuemax={TOTAL} aria-valuenow={step + 1} aria-valuetext={'Шаг ' + (step + 1) + ' из ' + TOTAL}>
+          <div className="tour-prog" role="progressbar" aria-label="Прогресс обучения" aria-valuemin={1} aria-valuemax={total} aria-valuenow={step + 1} aria-valuetext={'Шаг ' + (step + 1) + ' из ' + total}>
             {progress.map(c => (
               <span key={c.id} className={'tour-seg' + (c.current ? ' on' : '')} style={{ flexGrow: c.total }}>
                 <i style={{ width: (c.done / c.total * 100) + '%' }} />
@@ -283,10 +297,10 @@ export function Onboarding({ onScene, onClose, onFinish, chapter: startChapter }
           </div>
           <div className="tour-actions">
             <button className="link tour-skip" type="button" onClick={() => close(true)}>Пропустить</button>
-            <Button onClick={back} aria-label={step === 0 ? 'Назад к приветствию' : 'Назад'}>Назад</Button>
-            <Button ref={primary} variant="primary" onClick={next}>{step === TOTAL - 1 ? 'Завершить' : 'Далее'}</Button>
+            {!(fresh && step === 0) && <Button onClick={back} aria-label={step === 0 ? 'Назад к приветствию' : 'Назад'}>Назад</Button>}
+            <Button ref={primary} variant="primary" onClick={next}>{step === total - 1 ? 'Завершить' : 'Далее'}</Button>
           </div>
-          <span className="vh" aria-live="polite">{'Шаг ' + (step + 1) + ' из ' + TOTAL + ': ' + current.title}</span>
+          <span className="vh" aria-live="polite">{'Шаг ' + (step + 1) + ' из ' + total + ': ' + current.title}</span>
         </section>
       )}
 
@@ -294,15 +308,22 @@ export function Onboarding({ onScene, onClose, onFinish, chapter: startChapter }
         <section ref={card} key="finish" className="tour-card tour-hero tour-done" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-text">
           <button className="tour-x" type="button" aria-label="Закрыть обучение" onClick={() => finish('stay')}><IconClose /></button>
           <span className="tour-badge" aria-hidden="true"><IconDone /></span>
-          <h2 id="tour-title">Готово, основное вы знаете</h2>
-          <p id="tour-text">Создайте свой объект: отметьте комнаты, и Ampli соберёт группы. Или ещё посмотрите пример двухкомнатной квартиры.</p>
+          <h2 id="tour-title">{fresh ? 'Теперь вы знаете всё новое' : 'Готово, основное вы знаете'}</h2>
+          <p id="tour-text">{fresh ? 'Полное обучение всегда можно пройти заново из шапки.' : 'Создайте свой объект: отметьте комнаты, и Ampli соберёт группы. Или ещё посмотрите пример двухкомнатной квартиры.'}</p>
           <ul className="tour-hints">
             <li><kbd>?</kbd><span>в шапке снова откроет обучение</span></li>
-            <li><kbd>Ctrl</kbd><kbd>K</kbd><span>быстрый поиск любой команды</span></li>
+            <li><kbd className="tour-i"><IconInfo /></kbd><span>у поля объяснит, откуда значение</span></li>
+            <li className="tour-kb"><kbd>Ctrl</kbd><kbd>K</kbd><span>быстрый поиск любой команды</span></li>
           </ul>
           <div className="tour-actions">
-            <Button variant="ghost" onClick={() => finish('stay')}>Остаться в примере</Button>
-            <Button ref={primary} variant="primary" onClick={() => finish('create')}>Создать свой проект</Button>
+            {fresh ? (
+              <Button ref={primary} variant="primary" onClick={() => finish('stay')}>Понятно</Button>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => finish('stay')}>Остаться в примере</Button>
+                <Button ref={primary} variant="primary" onClick={() => finish('create')}>Создать свой проект</Button>
+              </>
+            )}
           </div>
         </section>
       )}

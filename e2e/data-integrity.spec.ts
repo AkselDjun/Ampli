@@ -176,3 +176,66 @@ test('blocks a stale tab from overwriting a newer project revision', async ({ pa
   await expect(stale.locator('.rows .row').first()).toContainText('Изменение из первой вкладки');
   await stale.close();
 });
+
+test('restores group photos and wiring traces from a backup in a clean browser context', async ({ page, browser, isMobile }) => {
+  test.skip(isMobile, 'The backup payload is device-independent; desktop covers the browser API once.');
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEklEQVR4nGP4z8CAFWEXHbQSACj/P8Fu7N9hAAAAAElFTkSuQmCC', 'base64');
+  const openPhotos = async (p: Page) => {
+    await p.locator('.rows .row').first().click();
+    const fold = p.getByRole('button', { name: /Замеры и фото/ });
+    if ((await fold.getAttribute('aria-expanded')) !== 'true') await fold.click();
+  };
+
+  await page.goto('/');
+  await page.locator('.rows .row').first().click();
+  await page.getByRole('textbox', { name: 'Название группы' }).fill('Свет со скрытой проводкой');
+  await openPhotos(page);
+  await page.getByRole('radio', { name: 'Стена' }).check();
+  await page.getByTestId('photo-input-line').setInputFiles({ name: 'wall.png', mimeType: 'image/png', buffer: png });
+  await expect(page.getByRole('img', { name: 'Стена' })).toBeVisible();
+  await page.getByRole('button', { name: 'Разметить трассы' }).click();
+  const marking = page.getByRole('dialog', { name: 'Разметка трасс' });
+  const wall = marking.getByRole('img', { name: /Фото стены/ });
+  const box = await wall.boundingBox();
+  expect(box).not.toBeNull();
+  if (box) {
+    await page.mouse.click(box.x + box.width * 0.2, box.y + box.height * 0.2);
+    await page.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.2);
+    await page.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.7);
+  }
+  await marking.getByRole('button', { name: 'Сохранить' }).click();
+  await expect(page.getByRole('button', { name: 'Трассы: 1' })).toBeVisible();
+
+  const sheet = await openProjects(page);
+  await sheet.getByRole('textbox', { name: 'Название' }).fill('Проект с фото стены');
+  await sheet.getByRole('tab', { name: 'Обмен и данные' }).click();
+  const downloadPromise = page.waitForEvent('download');
+  await sheet.getByRole('button', { name: 'Сохранить резервную копию' }).click();
+  const path = await (await downloadPromise).path();
+  expect(path).not.toBeNull();
+
+  const cleanContext = await browser.newContext();
+  await cleanContext.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
+  const clean = await cleanContext.newPage();
+  await clean.goto(new URL('/', page.url()).href);
+  let restored = await openProjects(clean);
+  await restored.getByRole('tab', { name: 'Обмен и данные' }).click();
+  await restored.locator('input[type="file"]').setInputFiles(path as string);
+  await expect(clean.getByText('Восстановлено проектов: 1')).toBeVisible();
+  await restored.getByRole('tab', { name: 'Проекты' }).click();
+  await restored.locator('.pj-open', { hasText: 'Проект с фото стены' }).click();
+
+  const check = async () => {
+    await openPhotos(clean);
+    const img = clean.getByRole('img', { name: 'Стена' });
+    await expect(img).toBeVisible();
+    await expect.poll(() => img.evaluate(el => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await expect(clean.getByRole('button', { name: 'Трассы: 1' })).toBeVisible();
+  };
+  await check();
+  await clean.reload();
+  restored = await openProjects(clean);
+  await restored.locator('.pj-open', { hasText: 'Проект с фото стены' }).click();
+  await check();
+  await cleanContext.close();
+});

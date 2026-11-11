@@ -1,5 +1,7 @@
 export const ONBOARDING_KEY = 'ampli-onboarding-v1';
 export const ONBOARDING_STEP_KEY = 'ampli-onboarding-step';
+export const ONBOARDING_FRESH_KEY = 'ampli-onboarding-fresh';
+export const ONBOARDING_REVISION = '2';
 
 const read = (key: string): string | null => {
   try {
@@ -24,6 +26,15 @@ export function onboardingPending(): boolean {
 
 export function markOnboardingDone(): void {
   write(ONBOARDING_KEY, 'done');
+  markFreshSeen();
+}
+
+export function freshPending(): boolean {
+  return read(ONBOARDING_KEY) === 'done' && read(ONBOARDING_FRESH_KEY) !== ONBOARDING_REVISION;
+}
+
+export function markFreshSeen(): void {
+  write(ONBOARDING_FRESH_KEY, ONBOARDING_REVISION);
 }
 
 export function savedStep(total: number): number | null {

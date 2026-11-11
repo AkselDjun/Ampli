@@ -11,7 +11,8 @@ import { defaultCfg, mkLine } from '../../core/templates';
 import { KEY } from '../../store/storage';
 import { cur, init, reducer } from '../../store/reducer';
 import { chapterHintPending, markChapterHint } from '../../features/onboarding/storage';
-import { ONBOARDING_STEPS, TOUR_CHAPTER, chapterStart } from '../../features/onboarding/model';
+import { TOUR_CHAPTER, chapterStart } from '../../features/onboarding/model';
+import { ONBOARDING_STEPS } from '../../features/onboarding/steps';
 import { currentToast } from '../../ui/toast';
 import type { Cfg, Line, Project } from '../../core/types';
 import { byLabel, toastText, wide } from './util';
@@ -154,7 +155,7 @@ describe('chapter hints', () => {
 
   it('starts the tour right at the chapter', () => {
     render(<Onboarding chapter={TOUR_CHAPTER.HANDOVER} onScene={() => undefined} onClose={() => undefined} />);
-    expect(document.querySelector('.tour [role="dialog"] h2')?.textContent).toBe(ONBOARDING_STEPS[chapterStart(TOUR_CHAPTER.HANDOVER)].title);
+    expect(document.querySelector('.tour [role="dialog"] h2')?.textContent).toBe(ONBOARDING_STEPS[chapterStart(ONBOARDING_STEPS, TOUR_CHAPTER.HANDOVER)].title);
   });
 
   it('offers the documents tour once on the first visit to the report', () => {
@@ -165,7 +166,7 @@ describe('chapter hints', () => {
     expect(toastText()).toContain('Впервые в документах');
     expect(currentToast()?.label).toBe('Показать');
     act(() => currentToast()?.run?.());
-    expect(document.querySelector('.tour [role="dialog"] h2')?.textContent).toBe(ONBOARDING_STEPS[chapterStart(TOUR_CHAPTER.HANDOVER)].title);
+    expect(document.querySelector('.tour [role="dialog"] h2')?.textContent).toBe(ONBOARDING_STEPS[chapterStart(ONBOARDING_STEPS, TOUR_CHAPTER.HANDOVER)].title);
     expect(chapterHintPending(TOUR_CHAPTER.HANDOVER)).toBe(false);
   });
 

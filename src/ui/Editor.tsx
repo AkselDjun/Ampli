@@ -182,12 +182,14 @@ export function Editor({
         {r && (
           <>
             {mini && !r.empty && r.In && document.getElementById('ab-sub') && createPortal(
-              <button type="button" className={'ed-mini ' + r.status} aria-label={'Г' + (idx + 1) + ': ' + speak + '. Показать расчёт'} onClick={() => resRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}>
+              <button type="button" className={'ed-mini ' + r.status} onClick={() => resRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}>
+                <span className="vh">{'Г' + (idx + 1) + ': '}</span>
                 <i className="dot" aria-hidden="true">{r.status === 'ok' ? '' : '!'}</i>
                 <Flash v={fmt(r.I, 1) + NB + 'А'} />
                 <Flash v={r.curve + r.In} />
                 <Flash v={fs(r.S as number) + NB + 'мм²'} />
                 <Flash v={'ΔU ' + fmt(r.drop, 1) + NB + '%'} />
+                <span className="vh">{', ' + STATUS[r.status].toLowerCase() + '. Показать расчёт'}</span>
               </button>,
               document.getElementById('ab-sub') as HTMLElement
             )}

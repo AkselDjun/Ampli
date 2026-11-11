@@ -9,7 +9,7 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173/',
     trace: 'retain-on-failure',
-    launchOptions: process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {}
+    launchOptions: { env: { ...process.env, LC_ALL: 'C.UTF-8' }, ...(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {}) }
   },
   projects: [
     { name: 'phone', testIgnore: /perf\.spec/, use: { ...devices['Pixel 7'] } },

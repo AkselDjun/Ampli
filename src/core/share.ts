@@ -37,6 +37,8 @@ const slimProject = (p: Project) => ({
   checks: p.checks,
   proto: p.proto,
   work: p.work,
+  acts: p.acts,
+  old: p.old,
   floor: p.floor?.map(r => ({ ...r, id: undefined })),
   weak: p.weak ? { ...p.weak, pts: p.weak.pts.map(q => ({ ...q, id: undefined })) } : undefined
 });

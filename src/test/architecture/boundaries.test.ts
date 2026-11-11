@@ -64,4 +64,11 @@ describe('architecture boundaries', () => {
     expect(seen.has('src/ui/App.tsx')).toBe(true);
     for (const lazy of ['fflate', 'src/core/share.ts', 'src/ui/Palette.tsx', 'src/ui/Assumptions.tsx', 'src/core/assumptions.ts']) expect(seen.has(lazy), lazy).toBe(false);
   });
+
+  it('keeps the texts of the tour out of the first screen', () => {
+    const eager = import.meta.glob<string>(['../../ui/App.tsx', '../../app/*.{ts,tsx}', '../../features/onboarding/{model,storage,placement}.ts'], { query: '?raw', import: 'default', eager: true });
+    for (const [file, source] of Object.entries(eager)) expect(importsFrom(source).filter(path => path.endsWith('/steps') || path.endsWith('onboarding/steps')), file).toEqual([]);
+    const onboarding = import.meta.glob<string>('../../ui/Onboarding.tsx', { query: '?raw', import: 'default', eager: true })['../../ui/Onboarding.tsx'];
+    expect(importsFrom(onboarding)).toContain('../features/onboarding/steps');
+  });
 });

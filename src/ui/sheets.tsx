@@ -48,7 +48,7 @@ export function NetSheet({
   const c = cfgN(p.cfg);
   return (
     <Sheet open={open} onClose={onClose} title="Параметры сети" tourId="network">
-      <div className="f">
+      <div className="f" data-tour="object">
         <span className="lbl-row"><span className="lbl" id="l-obj">Объект</span><Tip label="О режиме частного дома">Частный дом: ввод СИП от опоры, разделение PEN на вводе, повторное заземление, УЗИП тип 1+2 и уличные группы.</Tip></span>
         <Seg<string> name="obj" labelledBy="l-obj" value={c.house ? 'house' : 'flat'} items={[['flat', 'Квартира'], ['house', 'Частный дом']]} onChange={v => dispatch({ t: 'cfg', field: 'obj', value: v === 'house' ? 'house' : '' })} />
       </div>
@@ -70,7 +70,7 @@ export function NetSheet({
         <span className="lbl" id="l-sup">Питание</span>
         <Seg<number> name="sup" labelledBy="l-sup" value={c.supply} items={[[1, '1 фаза · 230 В'], [3, '3 фазы · 400 В']]} onChange={v => dispatch({ t: 'cfg', field: 'supply', value: v })} />
       </div>
-      <div className="f">
+      <div className="f" data-tour="alloc">
         <span className="lbl-row"><span className="lbl">Выделенная мощность, кВт</span><Tip label="О выделенной мощности">{'Из технических условий на ' + (c.house ? 'дом' : 'квартиру') + '. С ней сравнивается расчётная мощность в табло вверху.'}</Tip></span>
         <Stepper value={p.cfg.alloc} d={1} min={1} step={0.5} label="Выделенная мощность, кВт" onChange={v => dispatch({ t: 'cfg', field: 'alloc', value: v })} onStep={d => dispatch({ t: 'cfgStep', field: 'alloc', d })} err={cfgErr('alloc', p.cfg.alloc)} errId="e-cfg-alloc" />
         <Err e={cfgErr('alloc', p.cfg.alloc)} id="e-cfg-alloc" />

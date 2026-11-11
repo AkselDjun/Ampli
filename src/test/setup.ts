@@ -42,6 +42,7 @@ beforeEach(() => {
   Object.defineProperty(globalThis, 'localStorage', { value: window.localStorage, configurable: true, writable: true });
   localStorage.setItem('ampli-listby', 'no');
   localStorage.setItem('ampli-onboarding-v1', 'done');
+  localStorage.setItem('ampli-onboarding-fresh', '2');
   resetPhotoCache();
   resetProjectDb();
   (globalThis as { indexedDB: IDBFactory }).indexedDB = new IDBFactory();
