@@ -209,7 +209,7 @@ export const GroupList = memo(function GroupList({
               <IconChev className="chev" />
             </button>
           )}
-          <div className="nf-pair">
+          <div className={'nf-pair' + (floorSummary(p.floor) || weakSummary(p.weak) ? '' : ' compact')}>
             <button className="netfold" type="button" onClick={onOpenFloor}>
               <IconHeat />
               <span className="nf-main">Тёплый пол<span className="vh">: </span><small>{floorLabel}</small></span>
@@ -233,7 +233,7 @@ export const GroupList = memo(function GroupList({
         <h2>Группы линий</h2>
         <span className="hist">
           {count > 1 && (
-            <button className={'lv-t' + (byRoom ? ' on' : '')} type="button" aria-pressed={byRoom} data-tip="Сгруппировать по помещениям" onClick={() => setByRoom(!byRoom)}>
+            <button className={'lv-t lv-keep' + (byRoom ? ' on' : '')} type="button" aria-pressed={byRoom} data-tip="Сгруппировать по помещениям" onClick={() => setByRoom(!byRoom)}>
               <IconRooms />
               <span>По помещениям</span>
             </button>

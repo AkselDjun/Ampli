@@ -1491,3 +1491,10 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
   .pm-in input{height:44px;font-size:var(--t-xl)}
   .pm-note{font-size:var(--t-sm)}
 }
+@media (max-width:420px){
+  .list-head{flex-wrap:wrap}
+  .list-head .hist{flex-wrap:wrap;justify-content:flex-end}
+  .row .chev{display:none}
+}
+.nf-pair.compact .netfold{min-height:44px;padding-block:var(--s-1-5)}
+.nf-pair.compact .nf-main small{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
