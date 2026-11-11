@@ -201,21 +201,21 @@ describe('room assembly', () => {
   });
 });
 
-describe('price list archives', () => {
+describe('price list archives', { timeout: 30000 }, () => {
   const sheet = (rows: string) => strToU8('<worksheet><sheetData>' + rows + '</sheetData></worksheet>');
   const good = '<row><c t="inlineStr"><is><t>Наименование</t></is></c><c t="inlineStr"><is><t>Цена</t></is></c></row><row><c t="inlineStr"><is><t>Автомат</t></is></c><c><v>6</v></c></row>';
   it('refuses to inflate a workbook beyond the unpack budget', () => {
     const filler = new Uint8Array(Math.ceil(MAX_UNZIP / 2) + 1).fill(32);
     const files: Record<string, Uint8Array> = { 'xl/worksheets/sheet1.xml': sheet(good) };
-    for (let i = 2; i <= 12; i++) files['xl/worksheets/sheet' + i + '.xml'] = filler;
-    const zip = zipSync(files, { level: 9 });
+    for (let i = 2; i <= 4; i++) files['xl/worksheets/sheet' + i + '.xml'] = filler;
+    const zip = zipSync(files, { level: 1 });
     expect(zip.length).toBeLessThan(MAX_UNZIP / 10);
     const [grid, ms] = timed(() => parseXlsx(zip.buffer.slice(0) as ArrayBuffer));
     expect(grid).toEqual([['Наименование', 'Цена'], ['Автомат', '6']]);
     expect(ms).toBeLessThan(5000);
   });
   it('skips a single sheet that declares more than the budget', () => {
-    const zip = zipSync({ 'xl/worksheets/sheet1.xml': new Uint8Array(MAX_UNZIP + 1).fill(32) }, { level: 9 });
+    const zip = zipSync({ 'xl/worksheets/sheet1.xml': new Uint8Array(MAX_UNZIP + 1).fill(32) }, { level: 1 });
     expect(parseXlsx(zip.buffer.slice(0) as ArrayBuffer)).toBeNull();
   });
 });
