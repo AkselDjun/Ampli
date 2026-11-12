@@ -498,6 +498,7 @@ export function ReportSheet({
         <h3 className="sec-t">Схема щитка</h3>
         <Button size="sm" onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
       </div>
+      <p className="muted schem-hint">Схема шире экрана: листайте её вбок или поверните телефон. Для печати есть лист А3.</p>
       <div className="schem-wrap" role="region" aria-label="Однолинейная схема, прокручивается" tabIndex={0}><Schematic a={a} /></div>
       <details className="bd-help a3-prev">
         <summary>Лист А3 со штампом</summary>

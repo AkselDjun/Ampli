@@ -1,3 +1,4 @@
+.schem-hint{display:none;margin:0 0 var(--s-2);font-size:var(--t-sm)}
 .schem-wrap:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .schem{display:block;width:100%;height:auto;max-width:640px;color:var(--ink)}
@@ -224,7 +225,8 @@ button.bd-b:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 }
 
 @media (--tablet){
-  .schem-wrap{padding:var(--s-2);-webkit-overflow-scrolling:touch}
+  .schem-wrap{padding:var(--s-2);-webkit-overflow-scrolling:touch;background:linear-gradient(to right,var(--surface) 40%,transparent) left center/32px 100% no-repeat local,linear-gradient(to left,var(--surface) 40%,transparent) right center/32px 100% no-repeat local,radial-gradient(farthest-side at 0 50%,rgba(0,0,0,.18),transparent) left center/12px 100% no-repeat scroll,radial-gradient(farthest-side at 100% 50%,rgba(0,0,0,.18),transparent) right center/12px 100% no-repeat scroll,var(--surface)}
+  .schem-hint{display:block}
   .schem-wrap .schem{width:640px;max-width:none}
 }
 
