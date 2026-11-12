@@ -30,7 +30,7 @@ import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
 import { DrawingA3 } from './parts';
 import type { PrintMode } from './WorkSheet';
-import { Button, Field } from './kit';
+import { Button, DataTable, Field, MoneyInput } from './kit';
 import { APP_VERSION, NORMS_EDITION } from '../core/version';
 import { MAX_IMPORT_BYTES, lastBackup, restorePhotos, validateBackup } from '../store/backup';
 import { isEvLine } from '../core/ev';
@@ -447,56 +447,46 @@ export function ReportSheet({
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <TabPanel scope="rep" id="groups" cur={tab} lazy>
       <h3 className="sec-t">Группы линий</h3>
-      <div className="tablewrap" role="region" aria-label="Таблица групп" tabIndex={0}>
-        <table className="gtab">
-          <thead>
-            <tr>
-              <th>Гр.</th><th>Название</th>{three && <th>Фаза</th>}<th className="num">Установл., Вт</th><th className="num">Ток, А</th><th>Защита</th><th>Кабель</th><th className="num" title="Потеря напряжения">Потеря U, %</th><th>Статус</th>
+      <DataTable label="Таблица групп" className="gtab" head={<><th>Гр.</th><th>Название</th>{three && <th>Фаза</th>}<th className="num">Установл., Вт</th><th className="num">Ток, А</th><th>Защита</th><th>Кабель</th><th className="num" title="Потеря напряжения">Потеря U, %</th><th>Статус</th></>} foot={(
+        <tr>
+          <td className="c-t" colSpan={three ? 3 : 2}>Всего</td>
+          <td className="num c-m" data-k="Установлено">{fmt(a.sumInst, 0)}<span className="dt-u"> Вт</span></td>
+          <td className="num c-m" data-k="Ток">{fmt(a.Itot, 1)}<span className="dt-u"> А</span></td>
+          <td colSpan={4} className="c-v">Расчётная мощность {fmt(a.P / 1000, 1)} кВт</td>
+        </tr>
+      )}>
+        {a.rows.map((x, i) => {
+          const r = x.r;
+          const head = (
+            <>
+              <td className="mono c-k">Г{i + 1}</td>
+              <td className="c-t">{x.l.name}</td>
+              {three && <td className="mono c-m" data-k="Фаза">{r.three ? '3Ф' : (x.l.phase === '3' ? '3Ф' : x.l.phase)}</td>}
+            </>
+          );
+          if (r.empty) {
+            return (
+              <tr key={x.l.id}>
+                {head}
+                <td className="num c-x">0</td>
+                <td className="num c-x">—</td>
+                <td colSpan={4} className="muted c-m">нет приборов</td>
+              </tr>
+            );
+          }
+          return (
+            <tr key={x.l.id}>
+              {head}
+              <td className="num c-m">{fmt(r.pInst, 0)}<span className="dt-u"> Вт</span></td>
+              <td className="num c-m">{fmt(r.I, 1)}<span className="dt-u"> А</span></td>
+              <td className="mono c-v">{r.In ? protName(r) : '—'}</td>
+              <td className="mono c-m">{r.In ? cableName(r) : '—'}</td>
+              <td className="num c-m" data-k="ΔU">{r.In ? fmt(r.drop, 1) : '—'}<span className="dt-u"> %</span></td>
+              <td className="c-s">{r.status === 'ok' ? <span className="st-ok">{STATUS.ok}</span> : <span className={'pill ' + r.status}>{STATUS[r.status]}</span>}</td>
             </tr>
-          </thead>
-          <tbody>
-            {a.rows.map((x, i) => {
-              const r = x.r;
-              const head = (
-                <>
-                  <td className="mono t-no" data-label="Гр.">Г{i + 1}</td>
-                  <td className="t-name" data-label="Название">{x.l.name}</td>
-                  {three && <td className="mono g-ph" data-label="Фаза">{r.three ? '3Ф' : (x.l.phase === '3' ? '3Ф' : x.l.phase)}</td>}
-                </>
-              );
-              if (r.empty) {
-                return (
-                  <tr key={x.l.id}>
-                    {head}
-                    <td className="num" data-label="Установл., Вт">0</td>
-                    <td className="num" data-label="Ток, А">—</td>
-                    <td colSpan={4} className="muted">нет приборов</td>
-                  </tr>
-                );
-              }
-              return (
-                <tr key={x.l.id}>
-                  {head}
-                  <td className="num g-pw" data-label="Установл., Вт">{fmt(r.pInst, 0)}</td>
-                  <td className="num g-i" data-label="Ток, А">{fmt(r.I, 1)}</td>
-                  <td className="mono g-pr" data-label="Защита">{r.In ? protName(r) : '—'}</td>
-                  <td className="mono g-cb" data-label="Кабель">{r.In ? cableName(r) : '—'}</td>
-                  <td className="num g-du" data-label="Потеря напряжения, %">{r.In ? fmt(r.drop, 1) : '—'}</td>
-                  <td className="g-st" data-label="Статус"><span className={'pill ' + r.status}>{STATUS[r.status]}</span></td>
-                </tr>
-              );
-            })}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colSpan={three ? 3 : 2}>Всего</td>
-              <td className="num" data-label="Установлено, Вт">{fmt(a.sumInst, 0)}</td>
-              <td className="num" data-label="Ток, А">{fmt(a.Itot, 1)}</td>
-              <td colSpan={4} className="mono">Расчётная мощность {fmt(a.P / 1000, 1)} кВт</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+          );
+        })}
+      </DataTable>
       </TabPanel>
       <TabPanel scope="rep" id="scheme" cur={tab} lazy>
       <h3 className="sec-t">Схема щитка</h3>
@@ -520,31 +510,24 @@ export function ReportSheet({
         </div>
       )}
       <h3 className="sec-t">Спецификация</h3>
-      <div className="tablewrap" role="region" aria-label="Спецификация" tabIndex={0}>
-        <table className="t2 spec-t">
-          <thead>
-            <tr><th>Позиция</th><th className="num">Количество</th><th>Примечание</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></tr>
-          </thead>
-          <tbody>
-            {est.rows.map(({ item, sum }, i) => (
-              <tr key={i}>
-                <td className="t-name">{item.name}</td>
-                <td className="num sp-q" data-label="Количество">{item.qty}</td>
-                <td className="sp-n" data-label="Примечание">{item.note || '—'}</td>
-                <td className="num sp-p" data-label="Цена, BYN">
-                  <input className="price-in" type="text" inputMode="decimal" min={0} step={0.01} placeholder="цена" aria-label={'Цена: ' + item.name} {...errAttrs(fieldErr('price', lib.prices[item.name]), 'e-pr-' + i)} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
-                  <Err e={fieldErr('price', lib.prices[item.name])} id={'e-pr-' + i} />
-                </td>
-                <td className="num sp-s" data-label="Сумма, BYN">{sum === null ? '—' : fmt(sum, 2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="est">
-        <span>Материалы</span>
-        <span className="mono">{est.total > 0 ? fmt(est.total, 2) + ' BYN' : '—'}</span>
-      </div>
+      <DataTable label="Спецификация" className="spec-t" head={<><th>Позиция</th><th className="num">Количество</th><th className="num">Цена</th><th className="num">Сумма, BYN</th></>} foot={(
+        <tr>
+          <td className="c-t" colSpan={3}>Материалы</td>
+          <td className={'num c-v' + (est.total > 0 ? '' : ' muted')}>{est.total > 0 ? fmt(est.total, 2) + ' BYN' : 'цены не заданы'}</td>
+        </tr>
+      )}>
+        {est.rows.map(({ item, sum }, i) => (
+          <tr key={i}>
+            <td className="c-t">{item.name}{item.note && <small className="dt-note">{item.note}</small>}</td>
+            <td className="num c-m">{item.qty}</td>
+            <td className="num c-v">
+              <MoneyInput placeholder="цена" aria-label={'Цена: ' + item.name} {...errAttrs(fieldErr('price', lib.prices[item.name]), 'e-pr-' + i)} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
+              <Err e={fieldErr('price', lib.prices[item.name])} id={'e-pr-' + i} />
+            </td>
+            <td className={'num c-m' + (sum === null ? ' dt-nil' : '')} data-k="Сумма">{sum === null ? '—' : fmt(sum, 2)}</td>
+          </tr>
+        ))}
+      </DataTable>
       {est.missing > 0 && Object.keys(lib.prices).length > 0 && <p className="muted">Для {est.missing} поз. цена или количество не заданы, они не входят в итог.</p>}
       <LaborTable p={p} a={a} dispatch={dispatch} />
       <Totals {...totals(a, p, lib.prices, lib.labor)} />

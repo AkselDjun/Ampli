@@ -52,7 +52,7 @@ describe('Labour estimate in the report', () => {
     expect(lib().labor.switch).toBe(10);
     expect(stored().list[0].work).toEqual({ switch: 5 });
     const row = byLabel(d, 'Цена: Установка выключателя').closest('tr') as HTMLElement;
-    expect(row.querySelector('td[data-label="Сумма, BYN"]')?.textContent).toBe('50,00');
+    expect(row.querySelector('td.lb-sum')?.textContent).toBe('50,00');
     change(byLabel(d, 'Цена: Шина N (нулевая)'), '7');
     expect(d.querySelector('.tot-all dd')?.textContent).toBe('78,00 BYN');
     change(qty, '');

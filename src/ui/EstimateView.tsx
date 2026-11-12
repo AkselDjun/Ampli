@@ -7,7 +7,7 @@ import { dfmt, fmt, plural } from '../core/format';
 import { Toaster } from './common';
 import { Totals } from './Labor';
 import { toast, toastOk } from './toast';
-import { Button } from './kit';
+import { Button, DataTable } from './kit';
 import { markPrices, tierEstimates } from '../core/tiers';
 import type { TierDef, TierId } from '../core/tiers';
 import { TierCards } from './Tiers';
@@ -87,43 +87,29 @@ export function EstimateView({ data, onClose }: { data: EstimateShare; onClose: 
         {works.length > 0 && (
           <>
             <h2>Работы</h2>
-            <div className="tablewrap" role="region" aria-label="Работы" tabIndex={0}>
-              <table className="t2">
-                <thead>
-                  <tr><th>Работа</th><th className="num">Количество</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></tr>
-                </thead>
-                <tbody>
-                  {works.map(r => (
-                    <tr key={r.def.key}>
-                      <td className="t-name">{r.def.name}</td>
-                      <td className="num" data-label="Количество">{unitQty(r.qty, r.def.unit)}</td>
-                      <td className="num" data-label="Цена, BYN">{fmt(r.price as number, 2)}</td>
-                      <td className="num" data-label="Сумма, BYN">{fmt(r.sum as number, 2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable label="Работы" head={<><th>Работа</th><th className="num">Количество</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></>}>
+              {works.map(r => (
+                <tr key={r.def.key}>
+                  <td className="c-t">{r.def.name}</td>
+                  <td className="num c-m">{unitQty(r.qty, r.def.unit)}</td>
+                  <td className="num c-m" data-k="Цена">{fmt(r.price as number, 2)}</td>
+                  <td className="num c-v">{fmt(r.sum as number, 2)}</td>
+                </tr>
+              ))}
+            </DataTable>
           </>
         )}
         <h2>Материалы</h2>
-        <div className="tablewrap" role="region" aria-label="Материалы" tabIndex={0}>
-          <table className="t2">
-            <thead>
-              <tr><th>Позиция</th><th className="num">Количество</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></tr>
-            </thead>
-            <tbody>
-              {est.rows.map(({ item, price, sum }, i) => (
-                <tr key={i}>
-                  <td className="t-name">{item.name}</td>
-                  <td className="num" data-label="Количество">{item.qty}</td>
-                  <td className="num" data-label="Цена, BYN">{price === null ? '—' : fmt(price, 2)}</td>
-                  <td className="num" data-label="Сумма, BYN">{sum === null ? '—' : fmt(sum, 2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable label="Материалы" head={<><th>Позиция</th><th className="num">Количество</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></>}>
+          {est.rows.map(({ item, price, sum }, i) => (
+            <tr key={i}>
+              <td className="c-t">{item.name}</td>
+              <td className="num c-m">{item.qty}</td>
+              <td className={'num c-m' + (price === null ? ' dt-nil' : '')} data-k="Цена">{price === null ? 'нет цены' : fmt(price, 2)}</td>
+              <td className={'num c-v' + (sum === null ? ' dt-nil' : '')}>{sum === null ? '—' : fmt(sum, 2)}</td>
+            </tr>
+          ))}
+        </DataTable>
         {est.missing > 0 && <p className="pp-note">Для {est.missing} поз. не задана цена или количество, они не входят в итог.</p>}
         <p className="pp-note">Смета составлена в Ampli по расчёту щитка. Количество кабеля дано с запасом 10 %, точный расход уточняется по месту.</p>
         <div className="owner-act">
