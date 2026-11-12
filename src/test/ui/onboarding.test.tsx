@@ -14,7 +14,7 @@ import { toastText } from './util';
 import { currentToast } from '../../ui/toast';
 
 const TOTAL = ONBOARDING_STEPS.length;
-const VIEW: Partial<Record<TourScene, string>> = { [TOUR_SCENE.ESTIMATE]: 'report' };
+const VIEW: Partial<Record<TourScene, string>> = { [TOUR_SCENE.ESTIMATE]: 'report', [TOUR_SCENE.PANEL]: 'work' };
 const WELCOME = 'Добро пожаловать в Ampli';
 const tour = (): HTMLElement => {
   const el = document.querySelector<HTMLElement>('.tour [role="dialog"]');
@@ -61,6 +61,7 @@ describe('first-run onboarding in the app', () => {
       expect(tour().querySelector('[aria-live="polite"]')).toHaveTextContent('Шаг ' + (i + 1) + ' из ' + TOTAL + ': ' + s.title);
       if (s.scene === TOUR_SCENE.EDITOR || s.scene === TOUR_SCENE.WIRING) expect(screen.getByLabelText('Редактор группы')).toBeInTheDocument();
       else if (s.scene !== TOUR_SCENE.HOME) await waitFor(() => expect(document.querySelector(`[data-tour-view="${VIEW[s.scene] ?? s.scene}"]`)).toBeVisible());
+      if (s.scene === TOUR_SCENE.PANEL) await waitFor(() => expect(screen.getByRole('tab', { name: /^Замеры/ })).toHaveAttribute('aria-selected', 'true'));
       if (s.scene === TOUR_SCENE.ESTIMATE) await waitFor(() => expect(screen.getByRole('tab', { name: 'Смета' })).toHaveAttribute('aria-selected', 'true'));
       if (s.scene === TOUR_SCENE.REPORT) await waitFor(() => expect(screen.getByRole('tab', { name: 'Группы' })).toHaveAttribute('aria-selected', 'true'));
       if (s.tip) expect(tour()).toHaveTextContent(s.tip);
@@ -99,7 +100,7 @@ describe('first-run onboarding in the app', () => {
     const hello = await screen.findByRole('dialog', { name: WELCOME });
     await user.click(within(hello).getByRole('button', { name: /^Начать с раздела Монтаж/ }));
     expect(title()).toBe(ONBOARDING_STEPS.find(s => s.chapter === 'build')?.title);
-    await waitFor(() => expect(document.querySelector('[data-tour-view="panel"]')).toBeVisible());
+    await waitFor(() => expect(document.querySelector('[data-tour-view="work"] .pmb-box')).toBeVisible());
     await user.click(within(tour()).getByRole('button', { name: 'Назад' }));
     expect(title()).toBe(ONBOARDING_STEPS.find(s => s.id === 'rooms')?.title);
   });

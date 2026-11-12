@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { App } from '../../ui/App';
-import { PanelMode } from '../../ui/PanelMode';
+import { MeasBoard } from '../../ui/MeasBoard';
 import { Onboarding } from '../../ui/Onboarding';
 import { Totals } from '../../ui/Totals';
 import { LISTBY_KEY } from '../../ui/prefs';
@@ -98,8 +98,8 @@ describe('measuring on the board with the keyboard', () => {
   it('moves through the fields on Enter and then to the next group', () => {
     raf();
     const p = proj(lines());
-    render(<PanelMode open onClose={() => undefined} a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} />);
-    const d = document.querySelector('.sheet-panel') as HTMLElement;
+    render(<MeasBoard open a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} />);
+    const d = document.querySelector('.mb') as HTMLElement;
     expect(d.querySelector('.pm .no')?.textContent).toBe('Г1');
     const ins = Array.from(d.querySelectorAll<HTMLInputElement>('.pm-in input'));
     expect(ins.length).toBeGreaterThan(1);
@@ -119,8 +119,8 @@ describe('measuring on the board with the keyboard', () => {
   it('stays on the last group after the last field', () => {
     raf();
     const p = proj(lines());
-    render(<PanelMode open onClose={() => undefined} a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} />);
-    const d = document.querySelector('.sheet-panel') as HTMLElement;
+    render(<MeasBoard open a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} />);
+    const d = document.querySelector('.mb') as HTMLElement;
     const devs = d.querySelectorAll<HTMLElement>('button.pmb-dev');
     fireEvent.click(devs[devs.length - 1]);
     const ins = Array.from(d.querySelectorAll<HTMLInputElement>('.pm-in input'));
@@ -134,8 +134,8 @@ describe('measuring on the board with the keyboard', () => {
     const ls = lines();
     ls[1].meas = { zs: '0.2' };
     const p = proj(ls);
-    render(<PanelMode open onClose={() => undefined} a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} />);
-    const d = document.querySelector('.sheet-panel') as HTMLElement;
+    render(<MeasBoard open a={calcAll(p.lines, p.cfg)} dispatch={vi.fn()} />);
+    const d = document.querySelector('.mb') as HTMLElement;
     expect(d.querySelector('.pm .no')?.textContent).toBe('Г1');
     fireEvent.click(within(d).getByRole('button', { name: 'К неизмеренной: Г3' }));
     expect(d.querySelector('.pm .no')?.textContent).toBe('Г3');

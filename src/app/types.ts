@@ -16,7 +16,6 @@ export const APP_SHEET = {
   LIBRARY: 'lib',
   COMPARE: 'cmp',
   ROOMS: 'rooms',
-  PANEL: 'panel',
   SHOP: 'shop',
   OLD_WIRING: 'old',
   FLOOR: 'floor',

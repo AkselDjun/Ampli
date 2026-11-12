@@ -38,7 +38,7 @@ test('runs the main flows without policy violations', async ({ page }) => {
   await expect(page.locator('.rows .row').first()).toBeVisible();
   await page.locator('.rows .row').first().click();
   await page.keyboard.press('Escape');
-  for (const s of ['Отчёт и спецификация', 'Режим «На щитке»', 'Мои данные', 'Параметры сети', 'Тёплый пол', 'Слаботочка: интернет, ТВ, камеры']) {
+  for (const s of ['Отчёт и спецификация', 'Замеры на щитке', 'Мои данные', 'Параметры сети', 'Тёплый пол', 'Слаботочка: интернет, ТВ, камеры']) {
     await palette(page, s);
     await page.waitForTimeout(300);
     await page.keyboard.press('Escape');

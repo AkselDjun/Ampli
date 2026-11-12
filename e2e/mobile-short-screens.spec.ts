@@ -9,7 +9,7 @@ const start = async (page: Page) => {
 
 const panelMode = async (page: Page) => {
   await page.keyboard.press('Control+k');
-  await page.getByRole('combobox', { name: 'Найти действие или группу' }).fill('Режим «На щитке»');
+  await page.getByRole('combobox', { name: 'Найти действие или группу' }).fill('Замеры на щитке');
   await page.keyboard.press('Enter');
   const sheet = page.locator('[role="dialog"]:visible').last();
   await expect(sheet.locator('.pm')).toBeVisible();

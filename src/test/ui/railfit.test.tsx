@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 import { fitCols, railCells } from '../../ui/railfit';
 import { PanelPane } from '../../ui/Side';
-import { PanelMode } from '../../ui/PanelMode';
+import { MeasBoard } from '../../ui/MeasBoard';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
@@ -57,7 +57,7 @@ describe('rail in a narrow container', () => {
     expect((document.querySelector('.rail') as HTMLElement).dataset.rc).toBe('18');
     unmount();
     w.mockReturnValue(290);
-    render(<PanelMode open onClose={() => undefined} a={a} dispatch={vi.fn()} />);
+    render(<MeasBoard open a={a} dispatch={vi.fn()} />);
     expect((document.querySelector('.pmb-rail') as HTMLElement).dataset.rc).toBe('6');
     expect(document.querySelectorAll('button.pmb-dev').length).toBe(14);
   });

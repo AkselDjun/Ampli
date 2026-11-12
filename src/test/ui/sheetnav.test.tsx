@@ -46,19 +46,19 @@ describe('back arrow between sheets', () => {
     expect(dlg('Параметры сети').querySelector('.sheet-back')).toBeNull();
   });
 
-  it('closes the whole chain with the cross and starts fresh next time', () => {
+  it('keeps measurements inside the acceptance sheet without a second window', () => {
     render(<App />);
     fireEvent.click(nav().getByRole('button', { name: /Приёмка/ }));
-    fireEvent.click(screen.getByRole('tab', { name: 'Замеры' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Ввести на щитке' }));
-    expect(isOpen('На щитке')).toBe(true);
-    expect(within(dlg('На щитке')).getByRole('button', { name: 'Назад: Монтаж и приёмка' })).toBeTruthy();
-    fireEvent.click(within(dlg('На щитке')).getByRole('button', { name: 'Закрыть' }));
-    expect(isOpen('На щитке')).toBe(false);
+    fireEvent.click(screen.getByRole('tab', { name: /^Замеры/ }));
+    expect(dlg('Монтаж и приёмка').querySelector('.pmb-box')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Ввести на щитке' })).toBeNull();
+    fireEvent.click(within(dlg('Монтаж и приёмка')).getByRole('button', { name: 'Закрыть' }));
     expect(isOpen('Монтаж и приёмка')).toBe(false);
     fireEvent.click(nav().getByRole('button', { name: /Щиток/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
-    expect(dlg('На щитке').querySelector('.sheet-back')).toBeNull();
+    expect(isOpen('Монтаж и приёмка')).toBe(true);
+    expect(screen.getByRole('tab', { name: /^Замеры/ })).toHaveAttribute('aria-selected', 'true');
+    expect(dlg('Монтаж и приёмка').querySelector('.sheet-back')).toBeNull();
   });
 
   it('opens compare from totals and chains projects to my data', () => {

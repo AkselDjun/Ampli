@@ -11,7 +11,6 @@ export const SHEET_TITLE: Readonly<Record<AppSheet, string>> = {
   [APP_SHEET.LIBRARY]: 'Мои данные',
   [APP_SHEET.COMPARE]: 'Сравнение',
   [APP_SHEET.ROOMS]: 'Комнаты',
-  [APP_SHEET.PANEL]: 'На щитке',
   [APP_SHEET.SHOP]: 'Где купить',
   [APP_SHEET.OLD_WIRING]: 'Старая проводка',
   [APP_SHEET.FLOOR]: 'Тёплый пол',
@@ -21,7 +20,7 @@ export const SHEET_TITLE: Readonly<Record<AppSheet, string>> = {
 const TOUR_SHEET: Partial<Record<TourScene, AppSheet>> = {
   [TOUR_SCENE.NETWORK]: APP_SHEET.NETWORK,
   [TOUR_SCENE.ROOMS]: APP_SHEET.ROOMS,
-  [TOUR_SCENE.PANEL]: APP_SHEET.PANEL,
+  [TOUR_SCENE.PANEL]: APP_SHEET.WORK,
   [TOUR_SCENE.WORK]: APP_SHEET.WORK,
   [TOUR_SCENE.REPORT]: APP_SHEET.REPORT,
   [TOUR_SCENE.ESTIMATE]: APP_SHEET.REPORT,

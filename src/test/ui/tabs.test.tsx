@@ -58,7 +58,7 @@ describe('sheets use tabs and one panel at a time', () => {
   };
   const cases: [string, string, string[]][] = [
     ['Отчёт', 'Отчёт и спецификация', ['Группы', 'Схема', 'Смета', 'Основания']],
-    ['Приёмка', 'Монтаж и приёмка', ['Чек-лист 0/10', 'Замеры', 'Документы']]
+    ['Приёмка', 'Монтаж и приёмка', ['Чек-лист 0/10', 'Замеры 0/14', 'Документы']]
   ];
   cases.forEach(([opener, title, labels]) => {
     it(title + ' has tabs and shows only one panel', () => {

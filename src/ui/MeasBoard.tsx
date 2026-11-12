@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { Calc } from '../core/types';
 import { fmt } from '../core/format';
 import { ROWLEN } from '../core/norms';
@@ -7,7 +8,7 @@ import { VERDICT, protocolRows } from '../core/protocol';
 import type { ProtoRow } from '../core/protocol';
 import { cableName } from '../core/protection';
 import type { Action, MeasField } from '../store/reducer';
-import { Err, Sheet, errAttrs } from './common';
+import { Err, errAttrs } from './common';
 import { fieldErr } from '../core/limits';
 import { shortName } from './Side';
 import { Button } from './kit';
@@ -21,9 +22,16 @@ const FIELDS: { f: MeasField; label: string; unit: string; step: number }[] = [
 
 const STRIP: Record<string, [string, string]> = { in: ['Ввод', 'вся квартира'], uzo: ['УЗО', ''], spd: ['УЗИП', 'перенапряж.'], vr: ['Реле U', 'напряжение'], prio: ['Приор.', 'нагрузка'], rcd: ['', ''], mcb: ['', ''] };
 
+const measText = (r: ProtoRow): string => [
+  r.zs === null ? '' : 'петля ' + fmt(r.zs, 2) + ' Ом, ток КЗ ' + fmt(r.ik as number, 0) + ' А из нужных ' + fmt(r.need, 0) + ' А',
+  r.ins === null ? '' : 'изоляция ' + fmt(r.ins, 2) + ' МОм',
+  r.leak === null ? '' : 'утечка ' + fmt(r.leak, 1) + ' / ' + fmt(r.leakLim, 1) + ' мА',
+  r.rcdT === null ? '' : 'УЗО ' + fmt(r.rcdT, 0) + ' / ' + fmt(r.rcdLim, 0) + ' мс'
+].filter(Boolean).join(' · ');
+
 const pillOf = (v: ProtoRow['verdict']): string => (v === 'ok' ? 'ok' : (v === 'bad' ? 'bad' : 'none'));
 
-export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClose: () => void; a: Calc; dispatch: (x: Action) => void }) {
+export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: Calc; dispatch: (x: Action) => void; children?: ReactNode }) {
   const rows = protocolRows(a);
   const byNo = new Map(rows.map(r => [r.no, r]));
   const noOf = (lid: string): string => 'Г' + (a.rows.findIndex(x => x.l.id === lid) + 1);
@@ -75,14 +83,10 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
   };
   const plate = (key: string) => <div key={key} className="pmb-dev pmb-free" aria-hidden="true"><span className="pmb-strip" /><span className="pmb-blank" /></div>;
   return (
-    <Sheet open={open} onClose={onClose} title="На щитке" tourId="panel" tip="Щиток показан так же, как он собран: нажмите на автомат и введите замеры. Цвет рычажка: зелёный соответствует, красный не соответствует, серый ещё не измерено.">
+    <div className="mb">
       {rows.length === 0 && <p className="muted">Добавьте группы с приборами, они появятся здесь.</p>}
       {rows.length > 0 && (
         <>
-          <div className="pmb-top">
-            <span><b>{done}</b> из {rows.length} групп измерено</span>
-            <span className="pmb-leg"><i className="v-ok" />соответствует <i className="v-bad" />нет <i className="v-none" />не измерено</span>
-          </div>
           <div className="pmb-box">
             <div className="pmb-rail" ref={railRef} data-rc={cols} style={{ ['--rc' as string]: cols }}>
               {a.devs.map((d, i) => {
@@ -132,6 +136,10 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
               })}
               {Array.from({ length: free }, (_, i) => plate('f' + i))}
             </div>
+          </div>
+          <div className="pmb-top">
+            <span><b>{done}</b> из {rows.length} групп измерено</span>
+            <span className="pmb-leg"><i className="v-ok" />соответствует <i className="v-bad" />нет <i className="v-none" />не измерено</span>
           </div>
         </>
       )}
@@ -187,6 +195,30 @@ export function PanelMode({ open, onClose, a, dispatch }: { open: boolean; onClo
           {done < 3 && <p className="pm-kb muted">Кнопка «Далее» на клавиатуре или Enter переходит к следующему полю, после последнего к следующей группе.</p>}
         </section>
       )}
-    </Sheet>
+      {rows.length > 0 && (
+        <details className="bd-help mb-list">
+          <summary>Результаты списком</summary>
+          <ul className="ms-list">
+            {rows.map(row => {
+              const lid = a.rows[Number(row.no.slice(1)) - 1]?.l.id;
+              const k = lid ? order.indexOf(lid) : -1;
+              return (
+                <li key={row.no}>
+                  <button type="button" className={'ms-r' + (lid === cur ? ' sel' : '')} aria-pressed={lid === cur} disabled={k < 0} onClick={() => go(k, true)}>
+                    <span className="ms-no">{row.no}</span>
+                    <span className="ms-main">
+                      <b>{row.prot}</b>
+                      <small>{measText(row) || row.name}</small>
+                    </span>
+                    <span className={'pill ' + (row.verdict === 'ok' ? 'ok' : (row.verdict === 'bad' ? 'bad' : 'warn'))}>{VERDICT[row.verdict]}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </details>
+      )}
+      {children}
+    </div>
   );
 }

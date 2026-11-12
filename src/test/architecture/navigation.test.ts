@@ -11,7 +11,7 @@ describe('typed app navigation', () => {
   it('maps onboarding scenes to the real sheets they demonstrate', () => {
     expect(sheetForTourScene(TOUR_SCENE.NETWORK)).toBe(APP_SHEET.NETWORK);
     expect(sheetForTourScene(TOUR_SCENE.ROOMS)).toBe(APP_SHEET.ROOMS);
-    expect(sheetForTourScene(TOUR_SCENE.PANEL)).toBe(APP_SHEET.PANEL);
+    expect(sheetForTourScene(TOUR_SCENE.PANEL)).toBe(APP_SHEET.WORK);
     expect(sheetForTourScene(TOUR_SCENE.WORK)).toBe(APP_SHEET.WORK);
     expect(sheetForTourScene(TOUR_SCENE.REPORT)).toBe(APP_SHEET.REPORT);
     expect(sheetForTourScene(TOUR_SCENE.ESTIMATE)).toBe(APP_SHEET.REPORT);

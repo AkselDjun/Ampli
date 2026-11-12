@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { PanelPane } from '../../ui/Side';
-import { PanelMode } from '../../ui/PanelMode';
+import { MeasBoard } from '../../ui/MeasBoard';
 import { PrintDoc } from '../../ui/PrintDoc';
 import { DrawingA3 } from '../../ui/DrawingA3';
 import { calcAll } from '../../core/calc';
@@ -65,7 +65,7 @@ describe('board, stickers, drawing and report', () => {
 
   it('labels the extra modules in the measuring board', () => {
     const p = proj({ vr: 'on', spd: 'on' });
-    render(<PanelMode open onClose={() => undefined} a={calcAll(p.lines, p.cfg)} dispatch={() => undefined} />);
+    render(<MeasBoard open a={calcAll(p.lines, p.cfg)} dispatch={() => undefined} />);
     const strips = Array.from(document.querySelectorAll('.pmb-dev.k-vr .pmb-strip, .pmb-dev.k-spd .pmb-strip')).map(e => e.textContent);
     expect(strips).toEqual(['Реле Uнапряжение', 'УЗИПперенапряж.']);
   });
