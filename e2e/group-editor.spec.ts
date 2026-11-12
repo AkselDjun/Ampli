@@ -35,6 +35,12 @@ test('orders the group card by how often each part is used', async ({ page }) =>
   expect([...ys].sort((a, b) => a - b)).toEqual(ys);
 });
 
+test('shows no empty extras section for a lighting group', async ({ page }) => {
+  const ed = await openGroup(page, 'Свет: комнаты');
+  await expect(fold(ed, 'Замеры и фото')).toBeVisible();
+  await expect(fold(ed, 'Дополнительно')).toHaveCount(0);
+});
+
 test('keeps the calculation details in one folded row', async ({ page }) => {
   const ed = await openGroup(page, 'Варочная');
   const why = fold(ed, 'Как посчитано');
