@@ -60,7 +60,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
 .meter{height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden}
 .meter i{display:block;height:100%;background:var(--accent);border-radius:4px;transition:width .25s}
-.meter i.warn{background:var(--warn)}
+.meter i.warn{background:var(--warn-mark)}
 .meter i.bad{background:var(--bad)}
 
 .data-row{display:flex;flex-wrap:wrap;gap:var(--s-3);padding-top:var(--s-1)}

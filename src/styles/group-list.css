@@ -28,7 +28,7 @@
 .brk.rcd{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .brk-load{position:absolute;left:var(--s-1-5);right:var(--s-1-5);bottom:2px;height:3px;border-radius:2px;background:color-mix(in srgb,currentcolor 18%,transparent);overflow:hidden}
 .brk-load>i{display:block;height:100%;border-radius:inherit;background:currentcolor;opacity:.55}
-.brk-load.warn>i{background:var(--warn);opacity:1}
+.brk-load.warn>i{background:var(--warn-mark);opacity:1}
 .brk.rcd::before{background:var(--accent-ink);opacity:.75}
 .row .chev{width:18px;height:18px;color:var(--ink-2)}
 .adders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-2)}

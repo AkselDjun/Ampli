@@ -25,7 +25,7 @@
 .dev-free::before{display:none}
 .gl-bar{grid-column:1/-1;height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden}
 .gl-bar i{display:block;height:100%;border-radius:5px;background:var(--accent)}
-.gl-bar i.warn{background:var(--warn)}
+.gl-bar i.warn{background:var(--warn-mark)}
 .gl-bar i.bad{background:var(--bad)}
 .legend{display:flex;flex-wrap:wrap;gap:var(--s-1-5) var(--s-4);margin-top:var(--s-3);font-size:var(--t-s);color:var(--ink-2)}
 .legend span{display:inline-flex;align-items:center;gap:var(--s-1-5)}
