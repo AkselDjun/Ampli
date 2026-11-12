@@ -146,7 +146,7 @@ input:hover:not(:focus),select:hover:not(:focus){border-color:var(--ink-2)}
 .seg{padding:var(--s-1);gap:var(--s-0-5);border:0;border-radius:var(--r-m);background:var(--surface-2)}
 .seg span{border-radius:var(--r-s);padding:var(--s-3) var(--s-2);transition:background-color var(--dur-fast) ease,color var(--dur-fast) ease,box-shadow var(--dur-fast) ease}
 .seg label+label span{border-left:0}
-.seg input:checked+span{background:var(--surface);color:var(--ink);box-shadow:var(--sh-1)}
+.seg input:checked+span{background:var(--seg-on);color:var(--ink);box-shadow:var(--sh-1)}
 .seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:1px}
 .step{border-radius:var(--r-m)}
 
