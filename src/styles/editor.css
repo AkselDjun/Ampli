@@ -35,7 +35,7 @@
 .grid3{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);gap:var(--s-3)}
 .apps{display:grid;gap:var(--s-3)}
 .app{display:grid;grid-template-columns:minmax(0,1fr) 120px 140px 44px;gap:var(--s-2);align-items:center}
-.app-h span{font-size:var(--t-sm);font-weight:500;color:var(--ink-2)}
+.app-h span{font-size:var(--t-sm);font-weight:500;color:var(--ink-2);white-space:nowrap}
 .a-w,.a-n{display:flex;flex-direction:column;gap:var(--s-1);min-width:0}
 .a-lbl{display:none}
 
@@ -128,7 +128,7 @@
   .a-br .fld{max-width:50%}
 }
 
-.app{grid-template-columns:minmax(0,1fr) 104px 116px 84px 32px;gap:var(--s-1-5)}
+.app{grid-template-columns:minmax(0,1fr) 96px 116px 96px 32px;gap:var(--s-1-5)}
 .app .step{grid-template-columns:34px minmax(0,1fr) 34px}
 @media (--tablet){
   .app{grid-template-columns:minmax(0,1.3fr) minmax(0,1.15fr) minmax(0,.45fr) 40px;grid-template-areas:"name name name del" "w n br br";gap:var(--s-2) var(--s-1-5);padding:var(--s-2)}

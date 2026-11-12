@@ -162,3 +162,7 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
   .ab-edit>.btn{flex:none;min-height:44px}
 }
 @media (--upto-359){.ed-mini b:nth-of-type(4){display:none}}
+.ab-tw .ab-title{transition:opacity var(--dur-fast) ease}
+.ab-tw:not(:has(.ed-mini)) .ab-title{opacity:0;visibility:hidden}
+.ab-kbd{display:none;padding:0 var(--s-1-5);border:1px solid var(--line);border-radius:var(--r-xs);background:var(--surface-2);color:var(--ink-2);font:inherit;font-size:var(--t-xs);font-weight:500;line-height:1.6}
+@media (--wide){.ab-find{color:var(--ink-2)} .ab-kbd{display:inline-block}}

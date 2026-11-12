@@ -8,6 +8,7 @@ export interface Cmd {
   group: string;
   hint?: string;
   words?: string;
+  late?: boolean;
   run: () => void;
 }
 
@@ -15,7 +16,7 @@ const norm = (t: string): string => t.toLowerCase().replace(/ё/g, 'е');
 
 export function filterCmds(cmds: Cmd[], q: string): Cmd[] {
   const parts = norm(q).split(/\s+/).filter(Boolean);
-  if (!parts.length) return cmds;
+  if (!parts.length) return [...cmds.filter(c => !c.late), ...cmds.filter(c => c.late)];
   return cmds.filter(c => {
     const hay = norm(c.label + ' ' + (c.words ?? '') + ' ' + (c.hint ?? ''));
     return parts.every(p => hay.includes(p));
