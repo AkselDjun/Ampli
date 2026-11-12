@@ -20,6 +20,7 @@
   --bg:#EDF0F3;
   --surface:#FFFFFF;
   --surface-2:#E5EAEE;
+  --seg-on:#FFFFFF;
   --field:#F4F6F8;
   --ink:#0E1822;
   --ink-2:#52626E;
@@ -143,6 +144,7 @@
     --bg:#0D141B;
     --surface:#15202A;
     --surface-2:#1F2B37;
+    --seg-on:#3A4E62;
     --field:#101923;
     --ink:#E6ECF1;
     --ink-2:#9AA9B7;
@@ -194,6 +196,7 @@
   --bg:#0D141B;
   --surface:#15202A;
   --surface-2:#1F2B37;
+  --seg-on:#3A4E62;
   --field:#101923;
   --ink:#E6ECF1;
   --ink-2:#9AA9B7;

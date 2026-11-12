@@ -40,6 +40,13 @@ describe('design tokens', () => {
     for (const k of darkMedia.keys()) expect(light.has(k), k).toBe(true);
   });
 
+  it('lifts the selected segment above its track in both themes', () => {
+    const lum = (h: string) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)).reduce((a, v) => a + v, 0);
+    expect(lum(light.get('--seg-on') as string)).toBeGreaterThan(lum(light.get('--surface-2') as string));
+    expect(lum(darkMedia.get('--seg-on') as string)).toBeGreaterThan(lum(darkMedia.get('--surface-2') as string));
+    expect(app).toContain('.seg input:checked+span{background:var(--seg-on)');
+  });
+
   it('defines every custom property the app uses', () => {
     const defined = new Set([...light.keys(), ...decls(app).keys(), ...runtime]);
     const missing = new Set<string>();
