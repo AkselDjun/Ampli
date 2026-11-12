@@ -1,10 +1,24 @@
+import { useEffect } from 'react';
 import type { ComponentType } from 'react';
+import { toast } from './toast';
 
 const all: (() => Promise<unknown>)[] = [];
+
+export const PART_FAIL_TEXT = 'Не удалось загрузить раздел. Проверьте интернет и откройте его ещё раз. Если приложение обновилось, перезагрузите страницу.';
+
+function PartFailed({ onGone }: { onGone: () => void }) {
+  useEffect(() => {
+    toast(PART_FAIL_TEXT, { tone: 'bad', label: 'Перезагрузить', run: () => window.location.reload() });
+    return onGone;
+  }, [onGone]);
+  return null;
+}
 
 export function part<P extends object>(load: () => Promise<ComponentType<P>>): ComponentType<P> & { preload: () => Promise<ComponentType<P>> } {
   let C: ComponentType<P> | undefined;
   let wait: Promise<ComponentType<P>> | undefined;
+  let pending: Promise<void> | undefined;
+  let failed = false;
   const preload = () => {
     if (!wait) {
       wait = load().then(x => (C = x));
@@ -12,8 +26,19 @@ export function part<P extends object>(load: () => Promise<ComponentType<P>>): C
     }
     return wait;
   };
+  const attempt = (): Promise<void> => {
+    if (!pending) {
+      pending = preload().then(
+        () => { pending = undefined; },
+        () => { pending = undefined; failed = true; }
+      );
+    }
+    return pending;
+  };
+  const retry = () => { failed = false; };
   function Part(props: P) {
-    if (!C) throw preload();
+    if (!C && failed) return <PartFailed onGone={retry} />;
+    if (!C) throw attempt();
     const X = C;
     return <X {...props} />;
   }

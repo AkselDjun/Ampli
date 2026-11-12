@@ -29,7 +29,7 @@ import { oldStarted, oldVerdict } from '../core/oldwire';
 import { IncomingSheet } from './IncomingSheet';
 import { hasLink, readEstimateHash, readOwnerHash, readShareHash } from '../core/links';
 import type { EstimateShare } from '../core/links';
-import { getCodec, loadCodec } from './linkCodec';
+import { LINK_FAIL_TEXT, getCodec, loadCodec } from './linkCodec';
 import { uniqName } from '../core/project';
 import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
@@ -329,7 +329,7 @@ export function App() {
         return;
       }
       if (hasLink(window.location.hash)) {
-        void loadCodec().then(m => { if (live) apply(m, true); });
+        void loadCodec().then(m => { if (live) apply(m, true); }, () => { if (live) toastBad(LINK_FAIL_TEXT); });
         return;
       }
       if (full) {
