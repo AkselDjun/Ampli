@@ -14,8 +14,13 @@ const openProjects = async (page: Page) => {
   return sheet;
 };
 
+const quiet = () => {
+  localStorage.setItem('ampli-onboarding-v1', 'done');
+  localStorage.setItem('ampli-onboarding-fresh', '2');
+};
+
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
+  await page.addInitScript(quiet);
 });
 
 test('exports a project, imports it as an independent copy and keeps both after reload', async ({ page }) => {
@@ -138,7 +143,7 @@ test('restores a downloaded backup in a clean browser context', async ({ page, b
   expect(path).not.toBeNull();
 
   const cleanContext = await browser.newContext();
-  await cleanContext.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
+  await cleanContext.addInitScript(quiet);
   const clean = await cleanContext.newPage();
   await clean.goto(new URL('/', page.url()).href);
   sheet = await openProjects(clean);
@@ -215,7 +220,7 @@ test('restores group photos and wiring traces from a backup in a clean browser c
   expect(path).not.toBeNull();
 
   const cleanContext = await browser.newContext();
-  await cleanContext.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
+  await cleanContext.addInitScript(quiet);
   const clean = await cleanContext.newPage();
   await clean.goto(new URL('/', page.url()).href);
   let restored = await openProjects(clean);

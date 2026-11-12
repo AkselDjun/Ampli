@@ -114,15 +114,16 @@ export function App() {
   }, [p.lines, setSheet]);
   const [tourChapter, setTourChapter] = useState<TourChapter | undefined>(undefined);
   const [tourMode, setTourMode] = useState<TourMode>(TOUR_MODE.FULL);
-  const [freshAsk] = useState(() => !tourOpen && !incoming && !shared && !owner && freshPending());
+  const [freshAsk, setFreshAsk] = useState(() => !tourOpen && !incoming && !shared && !owner && freshPending());
   useEffect(() => {
-    if (!freshAsk) return;
+    if (!freshAsk || sheet) return;
     const t = window.setTimeout(() => {
       markFreshSeen();
+      setFreshAsk(false);
       toast('В Ampli новое: частный дом, укладка в мощность, карта проводки и смета в трёх вариантах.', { label: 'Показать', run: () => { setSheet(null); setTourMode(TOUR_MODE.FRESH); setTourOpen(true); } });
     }, 1500);
     return () => window.clearTimeout(t);
-  }, [freshAsk, setSheet]);
+  }, [freshAsk, sheet, setSheet]);
   useEffect(() => {
     const ch = sheet === APP_SHEET.WORK ? TOUR_CHAPTER.BUILD : (sheet === APP_SHEET.REPORT ? TOUR_CHAPTER.HANDOVER : null);
     if (!ch || tourOpen || onboardingPending() || !chapterHintPending(ch)) return;

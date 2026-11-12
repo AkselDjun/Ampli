@@ -346,6 +346,24 @@ describe('what is new for those who already know Ampli', () => {
     expect(localStorage.getItem(ONBOARDING_KEY)).toBe('done');
   });
 
+  it('waits until open windows are closed so the offer does not replace their messages', async () => {
+    veteran();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      render(<App />);
+      fireEvent.click(screen.getAllByRole('button', { name: /Проекты/ })[0]);
+      const sheet = screen.getByRole('dialog', { name: 'Проекты' });
+      act(() => { vi.advanceTimersByTime(2000); });
+      expect(toastText() ?? '').not.toContain('В Ampli новое');
+      expect(localStorage.getItem(ONBOARDING_FRESH_KEY)).toBeNull();
+      fireEvent.click(within(sheet).getByRole('button', { name: 'Закрыть' }));
+      act(() => { vi.advanceTimersByTime(2000); });
+      expect(toastText()).toContain('В Ampli новое');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('stays quiet for new users, after the offer and for shared links', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     const quiet = () => {
