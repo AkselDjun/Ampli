@@ -156,11 +156,11 @@ test('restores a downloaded backup in a clean browser context', async ({ page, b
 test('blocks a stale tab from overwriting a newer project revision', async ({ page, context, isMobile }) => {
   test.skip(isMobile, 'The storage race is browser-wide; desktop covers it once.');
   await page.goto('/');
-  await expect(page.locator('.save-indicator')).toContainText('сохранено');
+  await expect(page.locator('.save-indicator')).toContainText('Сохранено');
   const stale = await context.newPage();
   await stale.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
   await stale.goto('/');
-  await expect(stale.locator('.save-indicator')).toContainText('сохранено');
+  await expect(stale.locator('.save-indicator')).toContainText('Сохранено');
 
   const before = await page.evaluate(() => localStorage.getItem('ampli-project-revision'));
   await page.locator('.rows .row').first().click();
