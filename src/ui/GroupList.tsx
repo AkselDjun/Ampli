@@ -243,7 +243,7 @@ export const GroupList = memo(function GroupList({
             </button>
           )}
           {byRoom && jumbled && (
-            <button className="lv-t lv-keep" type="button" data-tip="Номера групп пойдут подряд по помещениям, как на щитке" onClick={onRenumber}>
+            <button className="lv-link" type="button" data-tip="Номера групп пойдут подряд по помещениям, как на щитке" onClick={onRenumber}>
               <span>Номера по порядку</span>
             </button>
           )}

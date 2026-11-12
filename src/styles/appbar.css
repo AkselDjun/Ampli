@@ -135,7 +135,7 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
   button.kpis>div{padding:0 var(--s-1)}
   button.kpis b{font-size:var(--t-m)}
 }
-@media (--upto-359){button.kpis .kp-in{display:none}}
+@media (--upto-359){.ab-main .brand{display:none}}
 @media (prefers-reduced-motion:reduce){
   .tot-pop{animation:none}
   .kp-chev{transition:none}
