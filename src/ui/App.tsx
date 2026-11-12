@@ -43,6 +43,8 @@ import { useSheetStack } from '../app/useSheetStack';
 import { AppHeader } from '../app/AppHeader';
 import { AppTabs } from '../app/AppTabs';
 import { sheetForTourScene } from '../app/navigation';
+import { readSheetHash, sheetHash } from '../app/deepLink';
+import type { SheetId } from '../app/types';
 import { TOUR_CHAPTER, TOUR_MODE, TOUR_SCENE } from '../features/onboarding/model';
 import type { TourChapter, TourMode, TourScene } from '../features/onboarding/model';
 
@@ -390,6 +392,38 @@ export function App() {
   };
 
   const closeSheet = useCallback(() => setSheet(null), [setSheet]);
+  const writeHash = useCallback((id: SheetId, tab?: string) => {
+    const cur = window.location.hash;
+    const next = sheetHash(id, tab);
+    if (next === cur || (!next && !readSheetHash(cur))) return;
+    try {
+      window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search + next);
+    } catch (e) {
+      void e;
+    }
+  }, []);
+  useEffect(() => {
+    if (!sheetHash(sheet)) writeHash(null);
+  }, [sheet, writeHash]);
+  const onRepTab = useCallback((t: string) => writeHash(APP_SHEET.REPORT, t), [writeHash]);
+  const onWorkTab = useCallback((t: string) => writeHash(APP_SHEET.WORK, t), [writeHash]);
+  const onShopShown = useCallback(() => writeHash(APP_SHEET.SHOP), [writeHash]);
+  const bootLink = useRef(tourOpen ? null : readSheetHash(window.location.hash));
+  useEffect(() => {
+    const open = (link: ReturnType<typeof readSheetHash>) => {
+      if (!link) return;
+      if (link.tab && link.sheet === APP_SHEET.REPORT) setRepWant({ tab: link.tab, n: Date.now() });
+      if (link.tab && link.sheet === APP_SHEET.WORK) setWorkWant({ tab: link.tab, n: Date.now() });
+      setSheet(link.sheet);
+    };
+    const t = window.setTimeout(() => open(bootLink.current), 0);
+    const onHash = () => open(readSheetHash(window.location.hash));
+    window.addEventListener('hashchange', onHash);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener('hashchange', onHash);
+    };
+  }, [setSheet, writeHash]);
   const goEdit = () => {
     if (isWide()) return;
     scrollPos.current = window.scrollY;
@@ -631,12 +665,12 @@ export function App() {
         <Hold open={sheet === APP_SHEET.LIBRARY}><LibSheet open={sheet === APP_SHEET.LIBRARY} onClose={closeSheet} /></Hold>
         <Hold open={sheet === APP_SHEET.COMPARE}><CompareSheet open={sheet === APP_SHEET.COMPARE} onClose={closeSheet} p={p} a={a} /></Hold>
         <Hold open={sheet === APP_SHEET.ROOMS}><RoomsSheet open={sheet === APP_SHEET.ROOMS} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
-        <Hold open={sheet === APP_SHEET.REPORT}><ReportSheet open={sheet === APP_SHEET.REPORT} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onShop={() => pushSheet(APP_SHEET.SHOP)} dispatch={dispatch} want={repWant} /></Hold>
+        <Hold open={sheet === APP_SHEET.REPORT}><ReportSheet open={sheet === APP_SHEET.REPORT} onClose={closeSheet} p={p} a={a} onPrint={doPrint} onShop={() => pushSheet(APP_SHEET.SHOP)} dispatch={dispatch} want={repWant} onTab={onRepTab} /></Hold>
         <Hold open={pal} eager><Palette open={pal} onClose={() => setPal(false)} cmds={cmds} /></Hold>
-        <Hold open={sheet === APP_SHEET.SHOP}><ShopSheet open={sheet === APP_SHEET.SHOP} onClose={closeSheet} a={a} /></Hold>
+        <Hold open={sheet === APP_SHEET.SHOP}><ShopSheet open={sheet === APP_SHEET.SHOP} onClose={closeSheet} a={a} onShown={onShopShown} /></Hold>
         <Toaster />
         <HoverTips />
-        <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} want={workWant} /></Hold>
+        <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} want={workWant} onTab={onWorkTab} /></Hold>
         </SheetNavContext.Provider>
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
         <Hold open={tourOpen}>{tourOpen && <Onboarding onScene={onTourScene} onClose={closeTour} onFinish={finishTour} chapter={tourChapter} mode={tourMode} />}</Hold>

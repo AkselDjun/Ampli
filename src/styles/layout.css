@@ -54,7 +54,16 @@
   .tabs button[aria-current="page"]{box-shadow:inset 0 2px 0 var(--accent)}
   .badge{top:4px;left:auto;right:calc(50% - 44px)}
   #app[data-view="groups"] .col-list{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .tabs{transition:transform var(--dur) ease}
+  .tabs.hide{transform:translateY(100%)}
+  .tabs.hide:focus-within{transform:none}
+  .proj-box{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .proj-box .netchips{border-top:0;border-left:1px solid var(--line)}
+  .proj-box .projbar,.proj-box .netfold{min-height:48px;padding-block:var(--s-1)}
+  .proj-box .pb-sub,.proj-box .nf-main small{display:none}
+  #app[data-view="groups"] .addmenu.fab{bottom:calc(60px + env(safe-area-inset-bottom,0px))}
 }
+@media (--narrow) and (max-height:500px) and (prefers-reduced-motion:reduce){.tabs{transition:none}}
 @media (--above-tablet) and (--narrow){
   .workspace{height:calc(100vh - var(--bar) - env(safe-area-inset-top,0px));height:calc(100dvh - var(--bar) - env(safe-area-inset-top,0px));display:grid;grid-template-columns:350px minmax(0,1fr);gap:var(--gap);padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
   .main-col{display:contents}
