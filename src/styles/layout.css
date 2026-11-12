@@ -60,3 +60,12 @@
   .badge{top:4px;left:auto;right:calc(50% - 44px)}
   #app[data-view="groups"] .col-list{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 }
+@media (--above-tablet) and (--narrow){
+  .workspace{height:calc(100vh - var(--bar) - env(safe-area-inset-top,0px));height:calc(100dvh - var(--bar) - env(safe-area-inset-top,0px));display:grid;grid-template-columns:350px minmax(0,1fr);gap:var(--gap);padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  .main-col{display:contents}
+  #app[data-view="groups"] .col-edit,#app[data-view="edit"] .col-list{display:grid}
+  #app[data-view="groups"] .col-list,#app[data-view="edit"] .col-list,.col-edit{overflow-y:auto;min-height:0;scrollbar-width:thin;padding-bottom:var(--s-3);margin-bottom:0}
+  #app[data-view="panel"] .col-res{grid-column:1/-1;overflow-y:auto;min-height:0}
+  #app[data-view="edit"] .tabs{display:grid}
+  #app[data-view="edit"] .workspace{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+}

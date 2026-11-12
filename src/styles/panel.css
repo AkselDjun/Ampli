@@ -98,7 +98,7 @@ button.dev:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .rail .dev{justify-content:flex-start;padding-top:var(--s-5)}
 button.dev{padding-top:var(--s-5)}
 .dev-cap{position:absolute;left:3px;right:3px;bottom:8px;min-height:22px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding:var(--s-0-5);border-radius:2px;background:var(--hw-label);color:var(--hw-label-ink);font:500 var(--t-2xs)/1.15 var(--font-body);text-align:center;font-style:normal;overflow-wrap:break-word;word-break:normal;-webkit-hyphens:auto;hyphens:auto}
-.dev-cap:empty{display:none}
+.dev-cap:empty,.dev-cap.sm:empty{display:none}
 .dev-cap.sm{left:2px;right:2px;padding:var(--s-0-5) 0;display:flex;align-items:center;justify-content:center;white-space:nowrap;font:700 var(--t-2xs)/1.15 var(--font-num);font-variant-numeric:tabular-nums}
 .dev-uzo{background:var(--hw-rcd-body);color:var(--hw-rcd);border:1.5px solid var(--hw-rcd)}
 .dev-uzo::before{background:var(--hw-rcd)}
