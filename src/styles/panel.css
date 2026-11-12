@@ -282,6 +282,14 @@ button.dev.sel{outline:3px solid var(--accent);outline-offset:2px;z-index:2}
   .pm-in input{height:44px;font-size:var(--t-xl)}
   .pm-note{font-size:var(--t-sm)}
 }
+@media (--tablet) and (max-height:760px){
+  .pm-in input:placeholder-shown~.pm-norm{display:none}
+  .pm-kb{display:none}
+}
+@media (--narrow) and (max-height:500px){
+  .pm{position:static;margin:0;border-width:2px;border-radius:var(--r-l);box-shadow:none}
+  .pm-note{display:none}
+}
 .bd-fold>summary{display:flex;align-items:center;min-height:44px;color:var(--accent);font-weight:600;cursor:pointer}
 @media (--desktop){.bd-fold>summary{display:none}}
 @media (--narrow){.bd-help summary{min-height:44px;padding-block:0}}
