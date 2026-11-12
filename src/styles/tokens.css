@@ -20,6 +20,7 @@
   --bg:#EDF0F3;
   --surface:#FFFFFF;
   --surface-2:#E5EAEE;
+  --seg-on:#FFFFFF;
   --field:#F4F6F8;
   --ink:#0E1822;
   --ink-2:#52626E;
@@ -32,6 +33,7 @@
   --ok-soft:#DCF0E4;
   --warn:#8F5200;
   --warn-soft:#FAEBCF;
+  --warn-mark:#D97706;
   --bad:#B3261E;
   --bad-soft:#F8DDDA;
   --scrim:rgba(8,16,24,0.5);
@@ -61,6 +63,7 @@
   --disp-warn:#F2B24C;
   --disp-bad:#FF8A80;
   --disp-link:#9CC3FF;
+  --toast-edge:transparent;
   --dev-body:linear-gradient(180deg,#fff,#e9edf0);
   --dev-ink:#0E1822;
   --dev-edge:#aeb8bf;
@@ -143,6 +146,7 @@
     --bg:#0D141B;
     --surface:#15202A;
     --surface-2:#1F2B37;
+    --seg-on:#3A4E62;
     --field:#101923;
     --ink:#E6ECF1;
     --ink-2:#9AA9B7;
@@ -155,6 +159,7 @@
     --ok-soft:#15301F;
     --warn:#E8A94A;
     --warn-soft:#3A2C12;
+    --warn-mark:#F5A524;
     --bad:#F08A82;
     --bad-soft:#3B1B19;
     --scrim:rgba(0,0,0,0.6);
@@ -173,6 +178,7 @@
     --ty-power-soft:#3A1A2C;
     --ty-power-ink:#F383C2;
     --disp-bg:#070C11;
+    --toast-edge:#3B4D5E;
     --dev-body:linear-gradient(180deg,#2b3946,#1d2833);
     --dev-ink:#E6ECF1;
     --dev-edge:#3b4a58;
@@ -194,6 +200,7 @@
   --bg:#0D141B;
   --surface:#15202A;
   --surface-2:#1F2B37;
+  --seg-on:#3A4E62;
   --field:#101923;
   --ink:#E6ECF1;
   --ink-2:#9AA9B7;
@@ -206,6 +213,7 @@
   --ok-soft:#15301F;
   --warn:#E8A94A;
   --warn-soft:#3A2C12;
+  --warn-mark:#F5A524;
   --bad:#F08A82;
   --bad-soft:#3B1B19;
   --scrim:rgba(0,0,0,0.6);
@@ -224,6 +232,7 @@
   --ty-power-soft:#3A1A2C;
   --ty-power-ink:#F383C2;
   --disp-bg:#070C11;
+  --toast-edge:#3B4D5E;
   --dev-body:linear-gradient(180deg,#2b3946,#1d2833);
   --dev-ink:#E6ECF1;
   --dev-edge:#3b4a58;

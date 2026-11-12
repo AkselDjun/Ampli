@@ -72,6 +72,7 @@
 .tot .tot-all{border-top:1px solid var(--line);padding-top:var(--s-2);margin-top:var(--s-0-5)}
 .tot .tot-all dt{color:var(--ink);font-weight:700}
 .tot .tot-all dd{font-size:var(--t-xl);font-weight:700}
+.tot .tot-all dd.tot-none{font-size:var(--t-m);font-weight:600;color:var(--ink-2)}
 
 @media (--wide){
   .ab-btn{width:auto;padding:0 var(--s-4)}
@@ -92,6 +93,7 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
 .kpis.st-warn .kp-meter i{background:var(--disp-warn)}
 .kpis.st-bad .kp-meter i{background:var(--disp-bad)}
 .kpis.st-bad b:first-of-type{color:var(--disp-bad)}
+.kpis b.kp-none{color:var(--disp-bad);text-shadow:none}
 .tot-pop{position:absolute;z-index:var(--z-pop);top:calc(100% + 8px);right:0;width:360px;display:grid;gap:var(--s-3);padding:var(--pad);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);box-shadow:var(--sh-2,0 8px 28px rgba(0,0,0,.18));animation:pop .16s ease-out}
 @keyframes pop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .tp-head{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3)}
@@ -122,12 +124,15 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
 .kp-s{display:none}
 @media (--phone){
   button.kpis{padding:var(--s-1-5) var(--s-1) var(--s-2) var(--s-0-5)}
+  button.kpis>div{padding:0 var(--s-1-5)}
+  button.kpis b{font-size:var(--t-m)}
+  .ab-main{gap:var(--s-2)}
   .kp-chev{display:none}
   .kp-l,.kp-u{display:none}
   .kp-s{display:inline}
 }
 @media (--upto-380){
-  button.kpis>div{padding:0 var(--s-1-5)}
+  button.kpis>div{padding:0 var(--s-1)}
   button.kpis b{font-size:var(--t-m)}
 }
 @media (--upto-359){button.kpis .kp-in{display:none}}

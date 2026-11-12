@@ -40,6 +40,13 @@ describe('design tokens', () => {
     for (const k of darkMedia.keys()) expect(light.has(k), k).toBe(true);
   });
 
+  it('lifts the selected segment above its track in both themes', () => {
+    const lum = (h: string) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)).reduce((a, v) => a + v, 0);
+    expect(lum(light.get('--seg-on') as string)).toBeGreaterThan(lum(light.get('--surface-2') as string));
+    expect(lum(darkMedia.get('--seg-on') as string)).toBeGreaterThan(lum(darkMedia.get('--surface-2') as string));
+    expect(app).toContain('.seg input:checked+span{background:var(--seg-on)');
+  });
+
   it('defines every custom property the app uses', () => {
     const defined = new Set([...light.keys(), ...decls(app).keys(), ...runtime]);
     const missing = new Set<string>();
@@ -48,6 +55,14 @@ describe('design tokens', () => {
     }
     expect(Object.keys(files).length).toBeGreaterThan(50);
     expect([...missing]).toEqual([]);
+  });
+
+  it('keeps warning marks apart from the brown phase L1 in both themes', () => {
+    const rgb = (h: string) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+    const gap = (a: string, b: string) => Math.hypot(...rgb(a).map((v, i) => v - rgb(b)[i]));
+    expect(gap(light.get('--warn-mark') as string, light.get('--l1') as string)).toBeGreaterThan(60);
+    expect(gap(darkMedia.get('--warn-mark') as string, darkMedia.get('--l1') as string)).toBeGreaterThan(60);
+    for (const sel of ['.brk-load.warn>i', '.meter i.warn', '.gl-bar i.warn']) expect(app).toContain(sel + '{background:var(--warn-mark)');
   });
 
   it('keeps raw colors out of component styles', () => {

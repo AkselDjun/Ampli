@@ -18,7 +18,7 @@ export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, o
         </div>
         <div className="ab-main">
           <h1 className="brand"><Brand /><span>Ampli</span></h1>
-          <span className="save-indicator" aria-live="polite">{saveStatus === 'saving' ? 'Проекты: сохранение…' : saveStatus === 'saved' ? 'Проекты: сохранено' : saveStatus === 'conflict' ? 'Конфликт вкладок' : 'Ошибка сохранения проектов'}</span>
+          <span className="save-indicator" aria-live="polite">{saveStatus === 'saving' ? 'Сохранение…' : saveStatus === 'saved' ? 'Сохранено' : saveStatus === 'conflict' ? 'Конфликт вкладок' : 'Ошибка сохранения проектов'}</span>
           <div className="hud" data-tour="summary">
             <Totals a={calc} onNet={onNetwork} onCompare={onCompare} />
             <Checks a={calc} onGroup={onGroup} onFix={onCheckFix} />

@@ -214,6 +214,7 @@ export function Editor({
             {fix && (
               <FixBar
                 fix={fix}
+                bad={r.status === 'bad'}
                 onApply={() => {
                   if (!fix.act) return;
                   if (fix.act.k === 'len') dispatch({ t: 'lineField', field: 'len', value: fix.act.len });

@@ -51,12 +51,14 @@ export function totals(a: Calc, p: Project, prices: Record<string, number>, labo
   return { materials, works: le.total, total: grandTotal(materials, le.total), le };
 }
 
+const money = (v: number): string => (v > 0 ? fmt(v, 2) + ' BYN' : '—');
+
 export function Totals({ materials, works, total }: { materials: number; works: number; total: number }) {
   return (
     <dl className="tot">
-      <div><dt>Материалы</dt><dd className="mono">{fmt(materials, 2)} BYN</dd></div>
-      <div><dt>Работы</dt><dd className="mono">{fmt(works, 2)} BYN</dd></div>
-      <div className="tot-all"><dt>Итого</dt><dd className="mono">{fmt(total, 2)} BYN</dd></div>
+      <div><dt>Материалы</dt><dd className="mono">{money(materials)}</dd></div>
+      <div><dt>Работы</dt><dd className="mono">{money(works)}</dd></div>
+      <div className="tot-all"><dt>Итого</dt><dd className={total > 0 ? 'mono' : 'tot-none'}>{total > 0 ? money(total) : 'цены не заданы'}</dd></div>
     </dl>
   );
 }

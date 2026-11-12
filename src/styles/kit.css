@@ -54,13 +54,14 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
 .chips{display:flex;flex-wrap:wrap;gap:var(--s-2)}
 .chip{flex:none;min-height:40px;padding:0 var(--s-4);border-radius:999px;border:1px solid var(--line);background:var(--field);font-size:var(--t-m);font-weight:600;cursor:pointer;white-space:nowrap}
+a.chip{color:var(--ink);text-decoration:none}
 .chip:hover{border-color:var(--accent);color:var(--accent)}
 .chip:active{background:var(--accent-soft)}
 .chip.custom{border-style:dashed;color:var(--accent)}
 
 .meter{height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden}
 .meter i{display:block;height:100%;background:var(--accent);border-radius:4px;transition:width .25s}
-.meter i.warn{background:var(--warn)}
+.meter i.warn{background:var(--warn-mark)}
 .meter i.bad{background:var(--bad)}
 
 .data-row{display:flex;flex-wrap:wrap;gap:var(--s-3);padding-top:var(--s-1)}
@@ -145,7 +146,7 @@ input:hover:not(:focus),select:hover:not(:focus){border-color:var(--ink-2)}
 .seg{padding:var(--s-1);gap:var(--s-0-5);border:0;border-radius:var(--r-m);background:var(--surface-2)}
 .seg span{border-radius:var(--r-s);padding:var(--s-3) var(--s-2);transition:background-color var(--dur-fast) ease,color var(--dur-fast) ease,box-shadow var(--dur-fast) ease}
 .seg label+label span{border-left:0}
-.seg input:checked+span{background:var(--surface);color:var(--ink);box-shadow:var(--sh-1)}
+.seg input:checked+span{background:var(--seg-on);color:var(--ink);box-shadow:var(--sh-1)}
 .seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:1px}
 .step{border-radius:var(--r-m)}
 
@@ -162,7 +163,7 @@ input:hover:not(:focus),select:hover:not(:focus){border-color:var(--ink-2)}
 .btn.primary:hover{filter:none;background:color-mix(in srgb,var(--accent) 88%,var(--ink))}
 
 .toast-zone:empty{display:none}
-.toast{z-index:var(--z-toast);gap:var(--s-3);padding:var(--s-2) var(--s-1-5) var(--s-2) var(--s-4);width:max-content;max-width:min(520px,calc(100vw - 32px));border-radius:var(--r-m);background:var(--disp-bg);color:var(--disp-ink);box-shadow:var(--sh-2);line-height:1.35;animation:toast-in var(--dur-quick) var(--ease-out)}
+.toast{z-index:var(--z-toast);gap:var(--s-3);padding:var(--s-2) var(--s-1-5) var(--s-2) var(--s-4);width:max-content;max-width:min(520px,calc(100vw - 32px));border-radius:var(--r-m);background:var(--disp-bg);color:var(--disp-ink);border:1px solid var(--toast-edge);box-shadow:var(--sh-2);line-height:1.35;animation:toast-in var(--dur-quick) var(--ease-out)}
 .toast-t{flex:1;min-width:0}
 .toast-i{width:20px;height:20px;flex:none}
 .toast.ok .toast-i{color:var(--disp-lit)}

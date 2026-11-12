@@ -167,7 +167,7 @@ export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: C
                   aria-label={r.no + ': ' + fd.label + ', ' + fd.unit}
                   enterKeyHint="next"
                   onKeyDown={onEnter}
-                  placeholder={hint(fd.f)}
+                  placeholder={'норма ' + hint(fd.f)}
                   {...errAttrs(fieldErr(fd.f, (x.l.meas ?? {})[fd.f]), 'e-pm-' + fd.f)}
                   value={String((x.l.meas ?? {})[fd.f] ?? '')}
                   onChange={e => {
