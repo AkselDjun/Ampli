@@ -227,3 +227,11 @@ input:hover:not(:focus),select:hover:not(:focus){border-color:var(--ink-2)}
   .tabbar{gap:0;padding:var(--s-1-5) var(--s-2) 0}
   .tabbar-b{flex:1 1 auto;padding:0 var(--s-2);font-size:var(--t-sm)}
 }
+@media (--narrow){
+  .btn{max-width:100%;padding-block:var(--s-1-5);line-height:1.25;white-space:normal;text-wrap:balance}
+  .btn.sm{min-height:44px;padding-block:var(--s-1-5)}
+}
+@media (pointer:coarse){
+  .tip-b{position:relative}
+  .tip-b::after{content:"";position:absolute;inset:-10px -10px -2px}
+}
