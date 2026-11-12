@@ -8,6 +8,7 @@ import type { Action } from '../store/reducer';
 import { toastOk } from './toast';
 import { ArmButton, Err, Sheet, errAttrs } from './common';
 import { asLabel, fieldErr } from '../core/limits';
+import { IconClose } from './Icons';
 import { Button, IconButton } from './kit';
 import { Mic } from './parts';
 import { parseRooms } from '../core/roomtext';
@@ -72,7 +73,7 @@ export function RoomsSheet({
                   <option value="s">Розетка</option>
                   <option value="p">Мощный</option>
                 </select>
-                <IconButton label="Удалить прибор" onClick={() => dispatch({ t: 'roomAppDel', rid: r.id, aid: ap.id })}>×</IconButton>
+                <IconButton label="Удалить прибор" onClick={() => dispatch({ t: 'roomAppDel', rid: r.id, aid: ap.id })}><IconClose /></IconButton>
                 <Err e={we && asLabel('Мощность', we)} id={'e-rw-' + ap.id} />
                 <Err e={ne && asLabel('Количество', ne)} id={'e-rn-' + ap.id} />
               </div>

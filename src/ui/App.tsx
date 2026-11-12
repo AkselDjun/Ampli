@@ -115,20 +115,37 @@ export function App() {
   const [tourChapter, setTourChapter] = useState<TourChapter | undefined>(undefined);
   const [tourMode, setTourMode] = useState<TourMode>(TOUR_MODE.FULL);
   const [freshAsk] = useState(() => !tourOpen && !incoming && !shared && !owner && freshPending());
+  const freshDone = useRef(false);
+  const busy = sheet !== null || (view === APP_VIEW.EDITOR && !isWide());
   useEffect(() => {
-    if (!freshAsk) return;
+    if (!freshAsk || freshDone.current || busy) return;
     const t = window.setTimeout(() => {
+      freshDone.current = true;
       markFreshSeen();
       toast('В Ampli новое: частный дом, укладка в мощность, карта проводки и смета в трёх вариантах.', { label: 'Показать', run: () => { setSheet(null); setTourMode(TOUR_MODE.FRESH); setTourOpen(true); } });
     }, 1500);
     return () => window.clearTimeout(t);
-  }, [freshAsk, setSheet]);
+  }, [freshAsk, busy, setSheet]);
+  const [hintCh, setHintCh] = useState<TourChapter | null>(null);
   useEffect(() => {
     const ch = sheet === APP_SHEET.WORK ? TOUR_CHAPTER.BUILD : (sheet === APP_SHEET.REPORT ? TOUR_CHAPTER.HANDOVER : null);
     if (!ch || tourOpen || onboardingPending() || !chapterHintPending(ch)) return;
-    markChapterHint(ch);
-    toast(ch === TOUR_CHAPTER.BUILD ? 'Впервые в монтаже? Покажем щиток, карту проводки и чек-лист за минуту.' : 'Впервые в документах? Покажем схему и смету в трёх вариантах за минуту.', { label: 'Показать', run: () => { setTourChapter(ch); setTourOpen(true); } });
+    const t = window.setTimeout(() => {
+      markChapterHint(ch);
+      setHintCh(ch);
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [sheet, tourOpen]);
+  const hintOn = hintCh !== null && ((hintCh === TOUR_CHAPTER.BUILD && sheet === APP_SHEET.WORK) || (hintCh === TOUR_CHAPTER.HANDOVER && sheet === APP_SHEET.REPORT));
+  const sheetNav = useMemo(() => (hintOn && hintCh ? {
+    ...nav,
+    hint: {
+      text: hintCh === TOUR_CHAPTER.BUILD ? 'Впервые в монтаже? Покажем щиток, карту проводки и чек-лист за минуту.' : 'Впервые в документах? Покажем схему и смету в трёх вариантах за минуту.',
+      label: 'Показать',
+      run: () => { setHintCh(null); setTourChapter(hintCh); setTourOpen(true); },
+      close: () => setHintCh(null)
+    }
+  } : nav), [hintOn, hintCh, nav]);
   const closeTour = useCallback(() => {
     setTourChapter(undefined);
     setTourMode(TOUR_MODE.FULL);
@@ -592,7 +609,7 @@ export function App() {
           onReport={() => setSheet(APP_SHEET.REPORT)}
         />
 
-        <SheetNavContext.Provider value={nav}>
+        <SheetNavContext.Provider value={sheetNav}>
         <Hold open={sheet === APP_SHEET.NETWORK}><NetSheet open={sheet === APP_SHEET.NETWORK} onClose={closeSheet} p={p} dispatch={dispatch} onOld={() => pushSheet(APP_SHEET.OLD_WIRING)} oldLabel={oldLabel} /></Hold>
         <Hold open={sheet === APP_SHEET.FLOOR}><FloorSheet open={sheet === APP_SHEET.FLOOR} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
         <Hold open={sheet === APP_SHEET.WEAK}><WeakSheet open={sheet === APP_SHEET.WEAK} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>

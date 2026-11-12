@@ -37,7 +37,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .step button{border:0;background:transparent;font-size:var(--t-2xl);line-height:1;color:var(--ink);cursor:pointer;padding:0}
 .step button:active{background:var(--surface-2)}
 .step input{border:0;border-radius:0;border-inline:1px solid var(--line);text-align:center;padding:0;height:100%;background:transparent}
-.icon-btn{flex:none;width:44px;height:44px;border:0;background:transparent;color:var(--ink-2);border-radius:var(--r-m);font-size:var(--t-3xl);line-height:1;cursor:pointer;padding:0}
+.icon-btn{flex:none;display:inline-grid;place-items:center;width:44px;height:44px;border:0;background:transparent;color:var(--ink-2);border-radius:var(--r-m);font-size:var(--t-3xl);line-height:1;cursor:pointer;padding:0}
+.icon-btn svg{width:20px;height:20px}
 .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
 .pill{display:inline-flex;align-items:center;gap:var(--s-1-5);font-size:var(--t-s);font-weight:600;padding:var(--s-1) var(--s-3);border-radius:999px;white-space:nowrap;flex:none}
 .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}

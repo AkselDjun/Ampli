@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { MeasBoard } from '../../ui/MeasBoard';
 import { Onboarding } from '../../ui/Onboarding';
@@ -13,7 +13,6 @@ import { cur, init, reducer } from '../../store/reducer';
 import { chapterHintPending, markChapterHint } from '../../features/onboarding/storage';
 import { TOUR_CHAPTER, chapterStart } from '../../features/onboarding/model';
 import { ONBOARDING_STEPS } from '../../features/onboarding/steps';
-import { currentToast } from '../../ui/toast';
 import type { Cfg, Line, Project } from '../../core/types';
 import { byLabel, toastText, wide } from './util';
 import { stored } from '../stored';
@@ -158,24 +157,25 @@ describe('chapter hints', () => {
     expect(document.querySelector('.tour [role="dialog"] h2')?.textContent).toBe(ONBOARDING_STEPS[chapterStart(ONBOARDING_STEPS, TOUR_CHAPTER.HANDOVER)].title);
   });
 
-  it('offers the documents tour once on the first visit to the report', () => {
+  it('offers the documents tour once on the first visit to the report', async () => {
     localStorage.removeItem('ampli-chapter-hint-handover');
     render(<App />);
     const nav = screen.getByRole('navigation', { name: 'Разделы' });
     fireEvent.click(within(nav).getByRole('button', { name: /Отчёт/ }));
-    expect(toastText()).toContain('Впервые в документах');
-    expect(currentToast()?.label).toBe('Показать');
-    act(() => currentToast()?.run?.());
+    await waitFor(() => expect(document.querySelector('.sheet:not([hidden]) .sheet-hint')).not.toBeNull());
+    const hint = document.querySelector('.sheet:not([hidden]) .sheet-hint') as HTMLElement;
+    expect(hint.textContent).toContain('Впервые в документах');
+    fireEvent.click(within(hint).getByRole('button', { name: 'Показать' }));
     expect(document.querySelector('.tour [role="dialog"] h2')?.textContent).toBe(ONBOARDING_STEPS[chapterStart(ONBOARDING_STEPS, TOUR_CHAPTER.HANDOVER)].title);
     expect(chapterHintPending(TOUR_CHAPTER.HANDOVER)).toBe(false);
   });
 
-  it('stays quiet when the hint was already shown', () => {
+  it('stays quiet when the hint was already shown', async () => {
     markChapterHint(TOUR_CHAPTER.HANDOVER);
     const { unmount } = render(<App />);
-    const before = currentToast()?.id;
     fireEvent.click(within(screen.getByRole('navigation', { name: 'Разделы' })).getByRole('button', { name: /Отчёт/ }));
-    expect(currentToast()?.id).toBe(before);
+    await new Promise(r => setTimeout(r, 10));
+    expect(document.querySelector('.sheet-hint')).toBeNull();
     unmount();
   });
 });
