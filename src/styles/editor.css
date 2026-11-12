@@ -142,6 +142,10 @@
 .ed{padding:var(--pad);gap:var(--pad)}
 @media (--tablet){.app{padding:var(--s-2)}}
 @media (--upto-420){
+  .apps:not(.no-br) .app{grid-template-columns:minmax(78px,1fr) 100px minmax(52px,.6fr) 40px;grid-template-areas:"name name name del" "w n br br"}
+  .apps:not(.no-br) .a-lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+@media (--upto-359){
   .apps:not(.no-br) .app{grid-template-columns:minmax(0,1fr) minmax(96px,1fr) 40px;grid-template-areas:"name name del" "w n n" "br . ."}
 }
 

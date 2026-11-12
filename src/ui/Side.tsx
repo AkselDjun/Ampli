@@ -31,14 +31,6 @@ export const Summary = memo(function Summary({ a, onBalance, solo = false }: { a
 
 const EXTRA: Record<string, [string, string]> = { spd: ['УЗИП', 'Защита от перенапряжений'], vr: ['Реле U', 'Реле контроля напряжения'], prio: ['Приоритет', 'Реле приоритета нагрузки'] };
 
-export function shortName(t: string): string {
-  const w = (t.trim().split(/[\s,:;]+/)[0] ?? '').replace(/[^\p{L}\d-]/gu, '');
-  if (w.length <= 6) return w;
-  let cut = w.slice(0, 5);
-  while (cut.length > 3 && /[аеёиоуыэюяaeiouy]$/i.test(cut)) cut = cut.slice(0, -1);
-  return cut + '.';
-}
-
 type ModProps = {
   d: Device;
   i: number;
@@ -143,7 +135,7 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
             {a.devs.map((d, i) => {
               const lid = d.lid;
               const k = lid ? lids.indexOf(lid) : -1;
-              const cap = lid ? (d.mod === 1 ? shortName(nameOf[d.sub.split(' ')[0]]) : nameOf[d.sub.split(' ')[0]]) : '';
+              const cap = lid && d.mod > 1 ? nameOf[d.sub.split(' ')[0]] : '';
               return (
                 <Fragment key={d.lid ?? d.kind + i}>
                   {Array.from({ length: gapBefore[i] }, (_, g) => <div key={'g' + g} className="dev dev-free" data-tip="Резерв" aria-hidden="true" />)}

@@ -10,7 +10,6 @@ import { cableName, inPoles } from '../core/protection';
 import type { Action, MeasField } from '../store/reducer';
 import { Err, errAttrs } from './common';
 import { fieldErr } from '../core/limits';
-import { shortName } from './Side';
 import { Button } from './kit';
 
 const FIELDS: { f: MeasField; label: string; unit: string; step: number }[] = [
@@ -123,7 +122,7 @@ export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: C
                       data-tip={no + ' ' + name}
                       onClick={() => setPick(lid)}
                     >
-                      <span className="pmb-strip"><b>{no}</b>{' '}<span>{d.mod > 1 ? name : shortName(name)}</span></span>{' '}
+                      <span className="pmb-strip"><b>{no}</b>{d.mod > 1 && <>{' '}<span>{name}</span></>}</span>{' '}
                       <span className="pmb-scr" />
                       <span className="pmb-rate">{d.label}</span>{' '}
                       <span className={'pmb-lever v-' + pr.verdict} />

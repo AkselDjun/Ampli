@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { App } from '../../ui/App';
-import { PanelPane, shortName } from '../../ui/Side';
+import { PanelPane } from '../../ui/Side';
 import { Schematic } from '../../ui/Schematic';
 import { PrintDoc } from '../../ui/PrintDoc';
 import { PassportBody } from '../../ui/Passport';
@@ -28,11 +28,11 @@ const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const rows = () => Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
 
 describe('panel board in RCD mode', () => {
-  it('captions every module and has no device glossary', () => {
+  it('captions RCDs and the input, numbers single breakers and has no device glossary', () => {
     const p = proj(lines(), { prot: 'rcd' });
     render(<PanelPane a={calcAll(p.lines, p.cfg)} />);
     const caps = Array.from(document.querySelectorAll('.rail .dev-cap')).map(e => e.textContent);
-    expect(caps).toEqual(['Ввод', 'Комнаты', 'Свет', 'Розет.', 'Ванная', 'Стир.']);
+    expect(caps).toEqual(['Ввод', 'Комнаты', '', '', 'Ванная', '']);
     expect(document.querySelectorAll('.rail .dev-uzo').length).toBe(2);
     const legend = document.querySelector('.legend') as HTMLElement;
     expect(legend.textContent).toContain('УЗО');
@@ -195,15 +195,17 @@ describe('owner passport body', () => {
   });
 });
 
-describe('short captions for single-module breakers', () => {
-  it('abbreviates long first words on a consonant', () => {
-    expect(shortName('Освещение')).toBe('Освещ.');
-    expect(shortName('Розетки: кухня')).toBe('Розет.');
-    expect(shortName('Кондиционер')).toBe('Конд.');
-    expect(shortName('Стиральная машина')).toBe('Стир.');
-    expect(shortName('Бойлер')).toBe('Бойлер');
-    expect(shortName('Плита и духовка')).toBe('Плита');
-    expect(shortName('')).toBe('');
+describe('captions on single-module breakers', () => {
+  it('shows the group number and type colour and keeps the name for the tooltip and the card', () => {
+    const lines = [mkLine('Освещение гостиной', 'light', 10, [['Люстра', 100, 1]]), mkLine('Плита', 'power', 5, [['Электроплита', 7000, 1]])];
+    const a = calcAll(lines, { ...defaultCfg(), prot: 'rcd' });
+    const { container, unmount } = render(<PanelPane a={a} />);
+    const first = container.querySelector('.rail .dev[data-lid="' + lines[0].id + '"]') as HTMLElement;
+    expect(first.querySelector('i')?.textContent).toBe('Г1');
+    expect(first.querySelector('.dev-cap')?.textContent).toBe('');
+    expect(first.getAttribute('data-tip')).toContain('Освещение гостиной');
+    expect(first.getAttribute('data-t')).toBe('light');
+    unmount();
   });
 });
 
