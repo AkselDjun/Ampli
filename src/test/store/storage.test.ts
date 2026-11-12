@@ -201,3 +201,46 @@ describe('list helpers', () => {
     expect(changes([a, b], [b])).toEqual({ put: [], del: [a.id] });
   });
 });
+
+describe('project database connection', () => {
+  const capture = () => {
+    const real = indexedDB.open.bind(indexedDB);
+    const reqs: IDBOpenDBRequest[] = [];
+    const spy = vi.spyOn(indexedDB, 'open').mockImplementation((name: string, version?: number) => {
+      const r = real(name, version);
+      reqs.push(r);
+      return r;
+    });
+    return { reqs, spy };
+  };
+
+  it('reopens the database when the browser has closed the connection', async () => {
+    resetProjectDb();
+    const { reqs, spy } = capture();
+    const a = sampleProject();
+    const b = sampleProject();
+    await writeProjects([a], []);
+    reqs[0].result.close();
+    await writeProjects([b], []);
+    expect((await readProjects()).map(p => p.id).sort()).toEqual([a.id, b.id].sort());
+    expect(reqs.length).toBe(2);
+    spy.mockRestore();
+  });
+
+  it('lets a newer version of the app upgrade the database while this tab is open', async () => {
+    resetProjectDb();
+    const { reqs, spy } = capture();
+    await writeProjects([sampleProject()], []);
+    spy.mockRestore();
+    const upgraded = await new Promise<boolean>(resolve => {
+      const r = indexedDB.open('ampli-projects', 2);
+      r.onsuccess = () => {
+        r.result.close();
+        resolve(true);
+      };
+      r.onblocked = () => resolve(false);
+    });
+    expect(upgraded).toBe(true);
+    expect(reqs.length).toBe(1);
+  });
+});

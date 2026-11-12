@@ -125,6 +125,7 @@ export function saveBoot(cur: Project, order: string[]): boolean {
 }
 
 let dbp: Promise<IDBDatabase> | null = null;
+let conn: IDBDatabase | null = null;
 
 function db(): Promise<IDBDatabase> {
   if (!dbp) {
@@ -135,7 +136,16 @@ function db(): Promise<IDBDatabase> {
       }
       const r = indexedDB.open(DB_NAME, DB_VERSION);
       r.onupgradeneeded = () => r.result.createObjectStore(STORE);
-      r.onsuccess = () => resolve(r.result);
+      r.onsuccess = () => {
+        const d = r.result;
+        conn = d;
+        d.onclose = () => forget(d);
+        d.onversionchange = () => {
+          d.close();
+          forget(d);
+        };
+        resolve(d);
+      };
       r.onerror = () => reject(r.error);
     });
     dbp.catch(() => {
@@ -145,8 +155,28 @@ function db(): Promise<IDBDatabase> {
   return dbp;
 }
 
+
+function forget(d: IDBDatabase): void {
+  if (conn === d) {
+    conn = null;
+    dbp = null;
+  }
+}
+
+async function tx(mode: IDBTransactionMode): Promise<IDBTransaction> {
+  const d = await db();
+  try {
+    return d.transaction(STORE, mode);
+  } catch (e) {
+    void e;
+    forget(d);
+    return (await db()).transaction(STORE, mode);
+  }
+}
+
 export function resetProjectDb(): void {
   dbp = null;
+  conn = null;
 }
 
 const done = (t: IDBTransaction): Promise<void> =>
@@ -157,8 +187,7 @@ const done = (t: IDBTransaction): Promise<void> =>
   });
 
 export async function readProjects(): Promise<Project[]> {
-  const d = await db();
-  const t = d.transaction(STORE, 'readonly');
+  const t = await tx('readonly');
   const all = t.objectStore(STORE).getAll();
   await done(t);
   keepPremigration(all.result as unknown[]);
@@ -167,8 +196,7 @@ export async function readProjects(): Promise<Project[]> {
 
 export async function writeProjects(put: Project[], del: string[], clear = false): Promise<void> {
   if (!put.length && !del.length && !clear) return;
-  const d = await db();
-  const t = d.transaction(STORE, 'readwrite');
+  const t = await tx('readwrite');
   const s = t.objectStore(STORE);
   if (clear) s.clear();
   put.forEach(p => s.put(p, p.id));
@@ -208,8 +236,7 @@ export async function writeProjectsChecked(put: Project[], del: string[], expect
 }
 
 export async function clearProjects(): Promise<void> {
-  const d = await db();
-  const t = d.transaction(STORE, 'readwrite');
+  const t = await tx('readwrite');
   t.objectStore(STORE).clear();
   await done(t);
 }
