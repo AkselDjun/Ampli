@@ -245,7 +245,7 @@ export const GroupList = memo(function GroupList({
           )}
         </span>
       </div>
-      <AddMenu down onAdd={onAdd} onRooms={onRooms} />
+      <AddMenu down onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />
       <div className="rows">
         {count ? (
           groups.map((g, gi) => (
@@ -298,7 +298,7 @@ export const GroupList = memo(function GroupList({
           </div>
         )}
       </div>
-      <AddMenu fab onAdd={onAdd} onRooms={onRooms} />
+      <AddMenu fab onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />
     </section>
   );
 });

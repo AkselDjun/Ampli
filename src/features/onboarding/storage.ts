@@ -57,3 +57,13 @@ export function chapterHintPending(chapter: string): boolean {
 export function markChapterHint(chapter: string): void {
   write(HINT_KEY + chapter, 'shown');
 }
+
+const SAMPLE_HINT_KEY = 'ampli-sample-hint';
+
+export function sampleHintPending(): boolean {
+  return read(SAMPLE_HINT_KEY) === null;
+}
+
+export function markSampleHint(): void {
+  write(SAMPLE_HINT_KEY, 'shown');
+}

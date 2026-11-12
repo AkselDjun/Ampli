@@ -6,7 +6,7 @@ import { blank, sample } from '../core/templates';
 import { cur, init, reducer } from '../store/reducer';
 import { TYPES } from '../core/norms';
 import { HoverTips, Toaster } from './common';
-import { toast, toastBad, toastOk } from './toast';
+import { toast, toastBad, toastOk, toastUndo } from './toast';
 import { backupDue, keepData, snoozeBackup } from '../store/backup';
 import { exportBackup } from './download';
 import { BOOT_KEY, REVISION_KEY, changes, dropLegacy, loadBoot, mergeLists, ProjectConflictError, readProjects, saveBoot, saveStore, tabId, writeProjectsChecked } from '../store/storage';
@@ -35,7 +35,7 @@ import type { Project } from '../core/types';
 import type { PrintMode } from './WorkSheet';
 import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
-import { chapterHintPending, freshPending, markChapterHint, markFreshSeen, onboardingPending } from '../features/onboarding/storage';
+import { chapterHintPending, freshPending, markChapterHint, markFreshSeen, markSampleHint, onboardingPending, sampleHintPending } from '../features/onboarding/storage';
 import type { TourFinish } from './Onboarding';
 import { APP_SHEET, APP_VIEW } from '../app/types';
 import type { AppView, ReportRequest, SaveStatus } from '../app/types';
@@ -411,7 +411,24 @@ export function App() {
   const openWeak = useStable(() => setSheet(APP_SHEET.WEAK));
   const openMeas = useStable(() => { setWorkWant({ tab: 'meas', n: Date.now() }); setSheet(APP_SHEET.WORK); });
   const openRooms = useStable(() => setSheet(APP_SHEET.ROOMS));
-  const onBlank = useStable(() => { dispatch({ t: 'replace', content: blank() }); toastOk('Проект очищен'); });
+  const onBlank = useStable(() => {
+    const was = { sample: !!p.sample, cfg: p.cfg, lines: p.lines };
+    const name = p.name;
+    dispatch({ t: 'replace', content: blank() });
+    toastUndo('Проект очищен', () => {
+      dispatch({ t: 'replace', content: was });
+      dispatch({ t: 'meta', field: 'name', value: name });
+    });
+  });
+  const sampleOpen = !!p.sample && !viewOnly && !tourOpen;
+  useEffect(() => {
+    if (!sampleOpen || freshAsk || !sampleHintPending() || !window.matchMedia('(max-width:760px)').matches) return;
+    const t = window.setTimeout(() => {
+      markSampleHint();
+      toast('Это пример двухкомнатной квартиры. Нажмите на группу, чтобы изменить её.', { label: 'Начать с нуля', run: onBlank });
+    }, 1200);
+    return () => window.clearTimeout(t);
+  }, [sampleOpen, freshAsk, onBlank]);
   const onSample = useStable(() => { dispatch({ t: 'replace', content: sample() }); toastOk('Загружен пример'); });
   const onCheckFix = useStable((f: CheckFix) => (f === 'net' ? setSheet(APP_SHEET.NETWORK) : dispatch({ t: 'cfg', field: 'supply', value: f === 'phase3' ? 3 : 1 })));
   const openRep = (t: string) => {
