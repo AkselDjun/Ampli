@@ -111,7 +111,7 @@ const GroupRow = memo(function GroupRow({
         <button type="button" className="ra-b" tabIndex={-1} aria-label={'Копировать группу Г' + (i + 1)} data-tip="Копировать (Ctrl+D)" onClick={() => onCopy(x.l.id)}><IconCopy /></button>
         <button type="button" className="ra-b del" tabIndex={-1} aria-label={'Удалить группу Г' + (i + 1)} data-tip="Удалить (Delete)" onClick={() => onDelete(x.l.id)}><IconTrash /></button>
       </div>
-      {fix && <FixBar fix={fix} onApply={() => fix.act && onFix(x.l.id, fix.act)} />}
+      {fix && <FixBar fix={fix} bad={x.r.status === 'bad'} onApply={() => fix.act && onFix(x.l.id, fix.act)} />}
     </div>
   );
 }, sameRow);
