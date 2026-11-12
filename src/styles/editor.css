@@ -141,6 +141,9 @@
 
 .ed{padding:var(--pad);gap:var(--pad)}
 @media (--tablet){.app{padding:var(--s-2)}}
+@media (--upto-420){
+  .apps:not(.no-br) .app{grid-template-columns:minmax(0,1fr) minmax(96px,1fr) 40px;grid-template-areas:"name name del" "w n n" "br . ."}
+}
 
 .ms-list{list-style:none;margin:0;padding:0;display:grid;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);overflow:hidden}
 .ms-r{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:var(--s-0-5) var(--s-3);padding:10px var(--s-3);border-top:1px solid var(--line)}
