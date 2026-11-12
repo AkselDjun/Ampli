@@ -144,7 +144,7 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
 
 #rep-tp-estimate .tot{position:sticky;bottom:calc(-1 * var(--pad));z-index:2;margin:0 calc(-1 * var(--pad)) calc(-1 * var(--pad));padding:var(--s-3) var(--pad);border-width:1px 0 0;border-radius:0;box-shadow:0 -6px 18px rgba(14,24,34,.1)}
 
-.ab-tw{flex:1;min-width:0;display:grid;align-content:center}
+.ab-tw{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);align-content:center}
 .ab-tw .ab-title{line-height:1.25}
 .ab-sub:empty{display:none}
 .ab-tw:has(.ed-mini) .ab-title{font-size:var(--t-l)}
@@ -152,3 +152,8 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
 .ab-btn:active{transform:scale(.97)}
 @media (prefers-reduced-motion:reduce){.ab-btn:active{transform:none}}
 #rep-tp-estimate>.tot{max-width:none}
+@media (--narrow){
+  .ab-btn{height:44px}
+  .ab-edit>.btn{flex:none;min-height:44px}
+}
+@media (--upto-359){.ed-mini b:nth-of-type(4){display:none}}
