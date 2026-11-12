@@ -106,10 +106,11 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
     const vals: string[] = [label(r) + (k + 1), r.curve + r.In + (r.arc ? ' УЗДП' : '')];
     if (labels.some(l => l[0] === 'Дифф. ток, мА')) vals.push(r.rcbo ? r.ma + (r.rcdA ? ', тип A' : '') : (zoneOf[k] !== null ? 'QD' + ((zoneOf[k] as number) + 1) + ' / ' + a.uzos[zoneOf[k] as number].ma + (a.uzos[zoneOf[k] as number].typeA ? ', тип A' : '') : '—'));
     if (three) vals.push(r.three ? 'L1–L3' : o.x.l.phase);
-    vals.push('ВВГнг(А)-LS', (r.three ? 5 : 3) + '×' + fs(r.S as number), r.cable > 0 ? fmt(r.cable, 0) : '—', fmt(r.pInst / 1000, 2), fmt(r.I, 1), fmt(r.drop, 1), 'Г' + (o.i + 1));
+    vals.push(r.cab, (r.three ? 5 : 3) + '×' + fs(r.S as number), r.cable > 0 ? fmt(r.cable, 0) : '—', fmt(r.pInst / 1000, 2), fmt(r.I, 1), fmt(r.drop, 1), 'Г' + (o.i + 1));
     return vals;
   };
   const inLabel = a.inIn ? (three ? '4P ' : '2P ') + 'C' + a.inIn : '—';
+  const boardName = c.house ? 'Щиток дома ЩК' : 'Щиток квартирный ЩК';
   const inCab = a.inS ? inCableName(c, a.inS) : IN_CABLE[c.inCable];
   const date = new Date();
   const dd = String(date.getDate()).padStart(2, '0') + '.' + String(date.getMonth() + 1).padStart(2, '0') + '.' + String(date.getFullYear()).slice(2);
@@ -133,11 +134,11 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
   return (
     <svg key={pg} className="a3" viewBox={'0 0 ' + W + ' ' + H} width={W + 'mm'} height={H + 'mm'} role="img" aria-label="Принципиальная схема распределительной сети" fill="none" stroke="#000" strokeWidth="0.35" fontFamily="'Golos Text', Arial, sans-serif">
       <rect x={FX} y={FY} width={FR - FX} height={FB - FY} strokeWidth="0.7" />
-      <text x={TX0} y="14" {...t} fontSize="3.2" fontWeight="700">Щиток квартирный ЩК</text>
+      <text x={TX0} y="14" {...t} fontSize="3.2" fontWeight="700">{boardName}</text>
       <text x={TX0} y="19" {...t} fontSize="2.4">{three ? '~3 × 400/230 В, 50 Гц' : '~230 В, 50 Гц'}</text>
       {first ? (
         <>
-          <text x={TX0} y="27" {...t} fontSize="2.4">От этажного щита ЩЭ</text>
+          <text x={TX0} y="27" {...t} fontSize="2.4">{c.house ? 'От ВРУ или ящика учёта' : 'От этажного щита ЩЭ'}</text>
           <path d={'M' + (TX0 + 6) + ' 29V33'} strokeWidth="0.5" />
           <Breaker x={TX0 + 6} y={33} h={14} diff={false} />
           <text x={TX0 + 10} y="39" {...t} fontSize="2.4" fontWeight="700">QF0</text>
@@ -228,7 +229,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
         <text x={TX0} y={tableBottom + 25} {...t} fontSize="2.8" fontWeight="700">Примечания</text>
         {[
           '1. Схема выполнена по ГОСТ 21.613-2014. Расчёт по ТКП 339-2022 с изм. № 1 и СН 4.04.01-2019.',
-          '2. Групповые линии выполнить кабелем ВВГнг(А)-LS с медными жилами, прокладка ' + (c.method === 'wall' ? 'скрытая.' : 'открытая.'),
+          '2. Групповые линии выполнить кабелем ' + IN_CABLE[c.grpCable] + ' с медными жилами, прокладка ' + (c.method === 'wall' ? 'скрытая.' : 'открытая.'),
           '3. Шины N и PE в щитке раздельные' + (a.uzos.length ? ', у каждого УЗО своя шина N.' : '.') + ' Объединять N и PE после разделения не допускается.',
           '4. Длины кабелей указаны с учётом отводов от распределительных коробок, уточняются по месту.',
           ...(heatNo.length ? ['5. Водонагреватели и приборы отопления (' + heatNo.join(', ') + ') подключить отдельными линиями, неразъёмно, без вилки и розетки (СН 4.04.01-2019, п. 14.4).'] : [])
@@ -253,7 +254,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
         <text x={SX + 1} y={SY + 48.9} {...t} fontSize="2.2">Утв.</text>
         <text x={SX + 125} y={SY + 9.5} {...t} fontSize="4" textAnchor="middle">{drawCode(now)}</text>
         {objName.map((ln, j) => <text key={j} x={SX + 125} y={SY + 22 + (j - (objName.length - 1) / 2) * 4} {...t} fontSize="3" textAnchor="middle">{ln}</text>)}
-        <text x={SX + 100} y={SY + 40} {...t} fontSize="2.8" textAnchor="middle">Щиток квартирный ЩК.</text>
+        <text x={SX + 100} y={SY + 40} {...t} fontSize="2.8" textAnchor="middle">{boardName}.</text>
         <text x={SX + 100} y={SY + 44.5} {...t} fontSize="2.8" textAnchor="middle">Принципиальная схема</text>
         <text x={SX + 100} y={SY + 49} {...t} fontSize="2.8" textAnchor="middle">распределительной сети</text>
         {['Стадия', 'Лист', 'Листов'].map((h, k) => <text key={h} x={SX + [142.5, 157.5, 175][k]} y={SY + 33.8} {...t} fontSize="2.2" textAnchor="middle">{h}</text>)}

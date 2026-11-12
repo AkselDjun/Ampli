@@ -63,11 +63,24 @@ describe('documents of one project agree with each other', () => {
     const sheet = Array.from(document.querySelectorAll('svg.a3 text')).map(e => e.textContent).join(' ');
     expect(sheet).toContain('УЗИП тип 1+2');
     expect(sheet).not.toMatch(/УЗИП( FV1)? тип 2/);
+    expect(sheet).toContain('Щиток дома ЩК');
+    expect(sheet).not.toContain('этажного щита');
     unmount();
     render(<PrintDoc p={p} a={a} mode="report" />);
     const text = document.body.textContent ?? '';
     expect(text).toContain('УЗИП тип 1+2 после вводного автомата');
     expect(text).not.toContain('УЗИП тип 2');
+  });
+
+  it('draws the group cable brand that the spec buys', () => {
+    render(<DrawingA3 p={p} a={a} company="" />);
+    const sheet = Array.from(document.querySelectorAll('svg.a3 text')).map(e => e.textContent).join(' ');
+    const brand = groups[0].r.cab;
+    expect(brand).toBe('NYM');
+    expect(spec.some(i => i.name.startsWith(brand + ' '))).toBe(true);
+    expect(sheet).toContain('кабелем ' + brand + ' с медными жилами');
+    expect(sheet).not.toContain('ВВГнг(А)-LS 3×');
+    expect(sheet.split(brand).length - 1).toBeGreaterThanOrEqual(groups.length);
   });
 
   it('fits the panel modules into the panel that is bought', () => {
