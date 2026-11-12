@@ -97,12 +97,12 @@ test('prepares a Viber and Telegram message for the client estimate link', async
   await noSideScroll(page);
 });
 
-test('enters a measurement in panel mode', async ({ page }) => {
+test('enters a measurement on the panel inside the acceptance sheet', async ({ page }) => {
   await page.goto('/');
   await page.keyboard.press('Control+k');
-  await page.getByRole('combobox', { name: 'Найти действие или группу' }).fill('На щитке');
+  await page.getByRole('combobox', { name: 'Найти действие или группу' }).fill('Замеры на щитке');
   await page.keyboard.press('Enter');
-  const sheet = page.getByRole('dialog', { name: 'На щитке' });
+  const sheet = page.getByRole('dialog', { name: 'Монтаж и приёмка' });
   await expect(sheet).toBeVisible();
   await sheet.locator('.pmb-dev.k-mcb, .pmb-dev.k-rcd').first().click();
   const card = sheet.locator('section.pm');

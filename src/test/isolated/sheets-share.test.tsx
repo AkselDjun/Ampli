@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { App } from '../../ui/App';
-import { PanelMode } from '../../ui/PanelMode';
+import { MeasBoard } from '../../ui/MeasBoard';
 import { IncomingSheet } from '../../ui/IncomingSheet';
 import { Sheet } from '../../ui/common';
 import { KEY } from '../../store/storage';
@@ -42,13 +42,14 @@ describe('Sheet props', () => {
   });
 });
 
-describe('PanelMode', () => {
+describe('MeasBoard', () => {
   it('opens from the header and updates verdicts while typing', () => {
     render(<App />);
-    expect(isOpen('На щитке')).toBe(false);
+    expect(isOpen('Монтаж и приёмка')).toBe(false);
     fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
-    expect(isOpen('На щитке')).toBe(true);
-    const d = dlg('На щитке');
+    expect(isOpen('Монтаж и приёмка')).toBe(true);
+    const d = dlg('Монтаж и приёмка');
+    expect(within(d).getByRole('tab', { name: /^Замеры/, hidden: true })).toHaveAttribute('aria-selected', 'true');
     expect(d.querySelectorAll('button.pmb-dev').length).toBeGreaterThan(3);
     const first = d.querySelector('.pm') as HTMLElement;
     expect(first.querySelector('.no')?.textContent).toBe('Г1');
@@ -67,21 +68,21 @@ describe('PanelMode', () => {
     expect(first.querySelector('.pill')?.textContent).toBe('Не соответствует');
     expect(stored().list[0].lines[0].meas.ins).toBe('0.1');
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(isOpen('На щитке')).toBe(false);
+    expect(isOpen('Монтаж и приёмка')).toBe(false);
   });
   it('shows the empty state and skips unmatched rows', () => {
     const a = calcAll([], defaultCfg());
-    render(<PanelMode open onClose={() => undefined} a={a} dispatch={() => undefined} />);
-    expect(dlg('На щитке').textContent).toContain('Добавьте группы');
-    expect(dlg('На щитке').querySelectorAll('.pmb-dev').length).toBe(0);
-    expect(dlg('На щитке').querySelector('.pm')).toBeNull();
+    render(<MeasBoard open a={a} dispatch={() => undefined} />);
+    expect(document.body.textContent).toContain('Добавьте группы');
+    expect(document.body.querySelectorAll('.pmb-dev').length).toBe(0);
+    expect(document.body.querySelector('.pm')).toBeNull();
   });
   it('shows no cable name when the protection is missing', () => {
     const l = mkLine('Пустая', 'socket', 10, [['Чайник', 2200, 1]]);
     const a = calcAll([l], defaultCfg());
     const dispatch = vi.fn();
-    render(<PanelMode open onClose={() => undefined} a={a} dispatch={dispatch} />);
-    change(byLabel(dlg('На щитке'), 'Г1: Утечка, мА'), '2');
+    render(<MeasBoard open a={a} dispatch={dispatch} />);
+    change(byLabel(document.body, 'Г1: Утечка, мА'), '2');
     expect(dispatch).toHaveBeenCalledWith({ t: 'lineMeasAt', id: l.id, field: 'leak', value: '2' });
   });
 });
@@ -393,7 +394,7 @@ describe('RCD trip time measurement', () => {
   it('is entered in panel mode and shows in the acceptance list', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
-    const d = dlg('На щитке');
+    const d = dlg('Монтаж и приёмка');
     const first = d.querySelector('.pm') as HTMLElement;
     change(byLabel(d, 'Г1: Отключение УЗО, мс'), '28');
     expect(first.querySelector('.pill')?.textContent).toBe('Соответствует');
@@ -404,11 +405,9 @@ describe('RCD trip time measurement', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     fireEvent.click(screen.getAllByRole('button', { name: /Приёмка/ })[0]);
     const w = dlg('Монтаж и приёмка');
-    fireEvent.click(within(w).getByRole('tab', { name: 'Замеры', hidden: true }));
+    fireEvent.click(within(w).getByRole('tab', { name: /^Замеры/, hidden: true }));
     const row = w.querySelector('.ms-r') as HTMLElement;
     expect(row.querySelector('small')?.textContent).toBe('УЗО 700 / 500 мс');
     expect(row.querySelector('.pill')?.textContent).toBe('Не соответствует');
-    fireEvent.click(within(w).getByRole('button', { name: 'Ввести на щитке', hidden: true }));
-    expect(isOpen('На щитке')).toBe(true);
   });
 });

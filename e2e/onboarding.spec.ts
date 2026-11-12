@@ -4,7 +4,7 @@ import { ONBOARDING_STEPS } from '../src/features/onboarding/steps';
 
 const TOTAL = ONBOARDING_STEPS.length;
 const FRESH = ONBOARDING_STEPS.filter(s => s.fresh);
-const VIEW: Record<string, string> = { estimate: 'report' };
+const VIEW: Record<string, string> = { estimate: 'report', panel: 'work' };
 const card = (page: Page) => page.locator('.tour [role="dialog"]');
 const heading = (page: Page) => card(page).locator('h2');
 

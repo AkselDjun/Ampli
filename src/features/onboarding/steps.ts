@@ -76,8 +76,8 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     icon: 'panel',
     title: 'Щиток как настоящий',
     text: 'Аппараты стоят по рядам, как на DIN-рейке. Нажмите на автомат, чтобы записать замеры по его линии.',
-    targets: ['[data-tour-view="panel"] .pmb-box', '[data-tour-view="panel"]'],
-    compactTargets: ['[data-tour-view="panel"] .pmb-dev.sel', '[data-tour-view="panel"] .pmb-box']
+    targets: ['[data-tour-view="work"] .pmb-dev.sel', '[data-tour-view="work"] .pmb-box', '[data-tour-view="work"]'],
+    compactTargets: ['[data-tour-view="work"] .pmb-dev.sel', '[data-tour-view="work"] .pmb-box']
   },
   {
     id: 'wiring',
@@ -96,7 +96,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     scene: TOUR_SCENE.WORK,
     icon: 'work',
     title: 'Чек-лист монтажа и приёмка',
-    text: 'Отмечайте сделанное по шагам, чтобы ничего не пропустить. Во вкладках протокол замеров, паспорт щитка и акты.',
+    text: 'Отмечайте сделанное по шагам, чтобы ничего не пропустить. Во вкладках замеры на щитке с протоколом, паспорт щитка и акты.',
     targets: ['[data-tour-view="work"] .tabbar', '[data-tour-view="work"]']
   },
   {

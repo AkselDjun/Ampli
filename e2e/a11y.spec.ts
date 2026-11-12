@@ -43,9 +43,11 @@ for (const scheme of ['light', 'dark'] as const) {
       }
     });
 
-    test('panel mode', async ({ page }) => {
-      await palette(page, 'Режим «На щитке»');
-      await expect(page.getByRole('dialog', { name: 'На щитке' })).toBeVisible();
+    test('measurements on the panel', async ({ page }) => {
+      await palette(page, 'Замеры на щитке');
+      const sheet = page.getByRole('dialog', { name: 'Монтаж и приёмка' });
+      await expect(sheet.locator('.pmb-box')).toBeVisible();
+      await sheet.locator('summary', { hasText: 'Результаты списком' }).click();
       expect(await scan(page)).toEqual([]);
     });
 

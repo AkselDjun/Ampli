@@ -31,6 +31,11 @@
 .legend span{display:inline-flex;align-items:center;gap:var(--s-1-5)}
 .legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
 
+.mb{display:grid;gap:var(--s-3);min-width:0}
+.mb>.bd-help{margin:0}
+@media (--narrow) and (max-height:760px){.mb .pmb-top{display:none}}
+.mb>.pm:not(:last-child){margin-bottom:0}
+.mb-list[open] .ms-list{margin-top:var(--s-2)}
 .pm-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--s-3)}
 .pm{border:1px solid var(--line);border-radius:var(--r-l);padding:var(--s-4);background:var(--surface);display:grid;gap:var(--s-3)}
 .pm.bad{border-color:var(--bad)}

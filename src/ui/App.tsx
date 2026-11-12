@@ -23,7 +23,7 @@ import { GroupList } from './GroupList';
 import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
 import { SheetNavContext } from './sheetnav';
-import { CompareSheet, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PanelMode, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
+import { CompareSheet, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { IncomingSheet } from './IncomingSheet';
@@ -68,6 +68,7 @@ export function App() {
   const [printing, setPrinting] = useState(false);
   const [pal, setPal] = useState(false);
   const [repWant, setRepWant] = useState<ReportRequest | undefined>(undefined);
+  const [workWant, setWorkWant] = useState<ReportRequest | undefined>(undefined);
   const scrollPos = useRef(0);
   const [incoming, setIncoming] = useState<Project | null>(() => {
     const h = readShareHash(window.location.hash);
@@ -107,6 +108,7 @@ export function App() {
     } else {
       setView(APP_VIEW.GROUPS);
       if (scene === TOUR_SCENE.REPORT || scene === TOUR_SCENE.ESTIMATE) setRepWant({ tab: scene === TOUR_SCENE.ESTIMATE ? 'estimate' : 'groups', n: Date.now() });
+      if (scene === TOUR_SCENE.PANEL || scene === TOUR_SCENE.WORK) setWorkWant({ tab: scene === TOUR_SCENE.PANEL ? 'meas' : 'check', n: Date.now() });
       setSheet(sheetForTourScene(scene));
     }
   }, [p.lines, setSheet]);
@@ -122,7 +124,7 @@ export function App() {
     return () => window.clearTimeout(t);
   }, [freshAsk, setSheet]);
   useEffect(() => {
-    const ch = sheet === APP_SHEET.PANEL || sheet === APP_SHEET.WORK ? TOUR_CHAPTER.BUILD : (sheet === APP_SHEET.REPORT ? TOUR_CHAPTER.HANDOVER : null);
+    const ch = sheet === APP_SHEET.WORK ? TOUR_CHAPTER.BUILD : (sheet === APP_SHEET.REPORT ? TOUR_CHAPTER.HANDOVER : null);
     if (!ch || tourOpen || onboardingPending() || !chapterHintPending(ch)) return;
     markChapterHint(ch);
     toast(ch === TOUR_CHAPTER.BUILD ? 'Впервые в монтаже? Покажем щиток, карту проводки и чек-лист за минуту.' : 'Впервые в документах? Покажем схему и смету в трёх вариантах за минуту.', { label: 'Показать', run: () => { setTourChapter(ch); setTourOpen(true); } });
@@ -407,6 +409,7 @@ export function App() {
   const openOld = useStable(() => setSheet(APP_SHEET.OLD_WIRING));
   const openFloor = useStable(() => setSheet(APP_SHEET.FLOOR));
   const openWeak = useStable(() => setSheet(APP_SHEET.WEAK));
+  const openMeas = useStable(() => { setWorkWant({ tab: 'meas', n: Date.now() }); setSheet(APP_SHEET.WORK); });
   const openRooms = useStable(() => setSheet(APP_SHEET.ROOMS));
   const onBlank = useStable(() => { dispatch({ t: 'replace', content: blank() }); toastOk('Проект очищен'); });
   const onSample = useStable(() => { dispatch({ t: 'replace', content: sample() }); toastOk('Загружен пример'); });
@@ -430,7 +433,7 @@ export function App() {
     { id: 'shop', group: 'Документы', label: 'Где купить', words: 'магазин прайс закупка', run: () => setSheet(APP_SHEET.SHOP) },
     { id: 'cmp', group: 'Документы', label: 'Сравнить варианты', words: 'что если', run: () => setSheet(APP_SHEET.COMPARE) },
     { id: 'work', group: 'Монтаж', label: 'Монтаж и приёмка', words: 'чек-лист протокол паспорт', run: () => setSheet(APP_SHEET.WORK) },
-    { id: 'panel', group: 'Монтаж', label: 'Режим «На щитке»', words: 'замеры', run: () => setSheet(APP_SHEET.PANEL) },
+    { id: 'panel', group: 'Монтаж', label: 'Замеры на щитке', words: 'режим на щитке протокол петля изоляция узо', run: openMeas },
     { id: 'proto', group: 'Монтаж', label: 'Печать протокола замеров', words: 'pdf', run: () => doPrint('proto') },
     { id: 'pass', group: 'Монтаж', label: 'Печать паспорта для владельца', words: 'pdf', run: () => doPrint('passport') },
     { id: 'hidden', group: 'Монтаж', label: 'Печать акта скрытых работ', words: 'pdf освидетельствование штробы', run: () => doPrint('hidden') },
@@ -516,7 +519,7 @@ export function App() {
           onGroup={pick}
           onCheckFix={onCheckFix}
           onTour={() => { setSheet(null); setTourOpen(true); }}
-          onPanel={() => setSheet(APP_SHEET.PANEL)}
+          onPanel={openMeas}
           onWork={() => setSheet(APP_SHEET.WORK)}
           onReport={() => setSheet(APP_SHEET.REPORT)}
           onCompare={() => setSheet(APP_SHEET.COMPARE)}
@@ -586,8 +589,7 @@ export function App() {
         <Hold open={sheet === APP_SHEET.SHOP}><ShopSheet open={sheet === APP_SHEET.SHOP} onClose={closeSheet} a={a} /></Hold>
         <Toaster />
         <HoverTips />
-        <Hold open={sheet === APP_SHEET.PANEL}><PanelMode open={sheet === APP_SHEET.PANEL} onClose={closeSheet} a={a} dispatch={dispatch} /></Hold>
-        <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} onBoard={() => pushSheet(APP_SHEET.PANEL)} /></Hold>
+        <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} want={workWant} /></Hold>
         </SheetNavContext.Provider>
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={declineIncoming} />
         <Hold open={tourOpen}>{tourOpen && <Onboarding onScene={onTourScene} onClose={closeTour} onFinish={finishTour} chapter={tourChapter} mode={tourMode} />}</Hold>

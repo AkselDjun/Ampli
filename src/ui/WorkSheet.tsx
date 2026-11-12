@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import type { Calc, Project } from '../core/types';
-import { fmt, plural, ymd } from '../core/format';
+import { plural, ymd } from '../core/format';
 import { CHECK_ITEMS, progress } from '../core/checklist';
-import { VERDICT, protocolRows } from '../core/protocol';
+import { protocolRows } from '../core/protocol';
+import { MeasBoard } from './MeasBoard';
 import type { Action } from '../store/reducer';
 import { Sheet, TabPanel, Tabs } from './common';
 import { ShareBlock } from './ShareBlock';
@@ -16,7 +17,7 @@ import { Button, Field, IconButton } from './kit';
 export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3' | 'hidden' | 'wiring' | 'accept' | 'old';
 
 export function WorkSheet({
-  open, onClose, p, a, dispatch, onPrint, onBoard
+  open, onClose, p, a, dispatch, onPrint, want
 }: {
   open: boolean;
   onClose: () => void;
@@ -24,9 +25,14 @@ export function WorkSheet({
   a: Calc;
   dispatch: (x: Action) => void;
   onPrint: (m: PrintMode | PrintMode[]) => void;
-  onBoard: () => void;
+  want?: { tab: string; n: number };
 }) {
-  const [tab, setTab] = useState('check');
+  const [tab, setTab] = useState(want ? want.tab : 'check');
+  const [wantSeen, setWantSeen] = useState(want);
+  if (want !== wantSeen) {
+    setWantSeen(want);
+    if (want) setTab(want.tab);
+  }
   const checks = p.checks ?? {};
   const pr = progress(p.checks);
   const rows = protocolRows(a);
@@ -53,7 +59,7 @@ export function WorkSheet({
   ];
   const chosen = docs.map(d => d.m).filter(m => pack.includes(m) && (m !== 'wiring' || walls > 0));
   return (
-    <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" tourId="work" bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Замеры вводятся в карточке группы, раздел «Замеры и фото», или в режиме «На щитке». По ним проверяются КЗ, УЗО и изоляция.">
+    <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" tourId="work" bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: rows.length ? 'Замеры ' + done + '/' + rows.length : 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Во вкладке «Замеры» щиток показан так же, как он собран: нажмите на автомат и введите замеры. Цвет рычажка: зелёный соответствует, красный не соответствует, серый ещё не измерено. Те же значения есть в карточке группы.">
       <TabPanel scope="wk" id="check" cur={tab}>
       <div className="wk-prog">
         <span><b>{pr.done}</b> из {pr.total} пунктов выполнено</span>
@@ -73,38 +79,16 @@ export function WorkSheet({
       </ul>
       </TabPanel>
       <TabPanel scope="wk" id="meas" cur={tab}>
-      <details className="bd-help proto-d">
-        <summary>Данные протокола{proto.date || proto.by || proto.device ? ': ' + [proto.date ? ymd(proto.date) : '', proto.by, proto.device].filter(Boolean).join(', ') : ''}</summary>
-      <div className="meta-grid">
-        <Field id="pDate" label="Дата замеров"><input id="pDate" type="date" value={proto.date} onChange={e => dispatch({ t: 'proto', field: 'date', value: e.target.value })} /></Field>
-        <Field id="pBy" label="Измерения выполнил"><input id="pBy" type="text" maxLength={80} autoComplete="off" value={proto.by} onChange={e => dispatch({ t: 'proto', field: 'by', value: e.target.value })} /></Field>
-        <Field id="pDev" label="Прибор, номер, поверка" wide><input id="pDev" type="text" maxLength={120} autoComplete="off" value={proto.device} onChange={e => dispatch({ t: 'proto', field: 'device', value: e.target.value })} /></Field>
-      </div>
-      </details>
-      <div className="ms-head">
-        <h3 className="sec-t">Результаты по группам</h3>
-        <Button variant="primary" size="sm" onClick={onBoard}>Ввести на щитке</Button>
-      </div>
-      <ul className="ms-list">
-        {rows.map(r => {
-          const vals = [
-            r.zs === null ? '' : 'петля ' + fmt(r.zs, 2) + ' Ом, ток КЗ ' + fmt(r.ik as number, 0) + ' А из нужных ' + fmt(r.need, 0) + ' А',
-            r.ins === null ? '' : 'изоляция ' + fmt(r.ins, 2) + ' МОм',
-            r.leak === null ? '' : 'утечка ' + fmt(r.leak, 1) + ' / ' + fmt(r.leakLim, 1) + ' мА',
-            r.rcdT === null ? '' : 'УЗО ' + fmt(r.rcdT, 0) + ' / ' + fmt(r.rcdLim, 0) + ' мс'
-          ].filter(Boolean);
-          return (
-            <li className="ms-r" key={r.no}>
-              <span className="ms-no">{r.no}</span>
-              <span className="ms-main">
-                <b>{r.prot}</b>
-                <small>{vals.length ? vals.join(' · ') : r.name}</small>
-              </span>
-              <span className={'pill ' + (r.verdict === 'ok' ? 'ok' : (r.verdict === 'bad' ? 'bad' : 'warn'))}>{VERDICT[r.verdict]}</span>
-            </li>
-          );
-        })}
-      </ul>
+      <MeasBoard open={open} a={a} dispatch={dispatch}>
+        <details className="bd-help proto-d">
+          <summary>Данные протокола{proto.date || proto.by || proto.device ? ': ' + [proto.date ? ymd(proto.date) : '', proto.by, proto.device].filter(Boolean).join(', ') : ''}</summary>
+        <div className="meta-grid">
+          <Field id="pDate" label="Дата замеров"><input id="pDate" type="date" value={proto.date} onChange={e => dispatch({ t: 'proto', field: 'date', value: e.target.value })} /></Field>
+          <Field id="pBy" label="Измерения выполнил"><input id="pBy" type="text" maxLength={80} autoComplete="off" value={proto.by} onChange={e => dispatch({ t: 'proto', field: 'by', value: e.target.value })} /></Field>
+          <Field id="pDev" label="Прибор, номер, поверка" wide><input id="pDev" type="text" maxLength={120} autoComplete="off" value={proto.device} onChange={e => dispatch({ t: 'proto', field: 'device', value: e.target.value })} /></Field>
+        </div>
+        </details>
+      </MeasBoard>
       </TabPanel>
       <TabPanel scope="wk" id="docs" cur={tab}>
       <h3 className="sec-t">Комплект для сдачи</h3>

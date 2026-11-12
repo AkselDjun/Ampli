@@ -28,7 +28,6 @@ const byId = (id: string): OnboardingStep => {
 const SHEET_VIEW: Record<string, string> = {
   [APP_SHEET.NETWORK]: 'network',
   [APP_SHEET.ROOMS]: 'rooms',
-  [APP_SHEET.PANEL]: 'panel',
   [APP_SHEET.WORK]: 'work',
   [APP_SHEET.REPORT]: 'report',
   [APP_SHEET.PROJECTS]: 'projects'
