@@ -71,3 +71,19 @@ for (const width of [320, 375, 430]) {
     });
   }
 }
+
+for (const width of [320, 375]) {
+  test.describe(`appliance rows at ${width} px`, () => {
+    test.use({ viewport: { width, height: 800 }, reducedMotion: 'reduce' });
+
+    test('keeps the quantity stepper readable and large enough to tap', async ({ page }) => {
+      const ed = await openGroup(page, 'Свет: комнаты');
+      const qty = ed.getByRole('textbox', { name: 'Количество' }).first();
+      await qty.scrollIntoViewIfNeeded();
+      const box = await qty.boundingBox();
+      expect(box?.width ?? 0).toBeGreaterThanOrEqual(40);
+      const res = await new AxeBuilder({ page }).include('#editor .apps').withRules(['target-size']).analyze();
+      expect(res.violations.map(v => v.id)).toEqual([]);
+    });
+  });
+}
