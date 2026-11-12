@@ -537,7 +537,7 @@ export function ReportSheet({
       </div>
       <div className="est">
         <span>Материалы</span>
-        <span className="mono">{fmt(est.total, 2)} BYN</span>
+        <span className="mono">{est.total > 0 ? fmt(est.total, 2) + ' BYN' : '—'}</span>
       </div>
       {est.missing > 0 && Object.keys(lib.prices).length > 0 && <p className="muted">Для {est.missing} поз. цена или количество не заданы, они не входят в итог.</p>}
       <LaborTable p={p} a={a} dispatch={dispatch} />
