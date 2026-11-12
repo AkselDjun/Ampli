@@ -142,6 +142,9 @@ export function Editor({
   const nPhotos = photos.filter(ph => ph.line === l.id).length;
   const measSum = [nMeas ? nMeas + ' ' + plural(nMeas, ['замер', 'замера', 'замеров']) : '', nPhotos ? nPhotos + ' фото' : ''].filter(Boolean).join(', ');
   const moreSum = [a.c.rcdMode ? '' : (l.zone?.trim() ?? ''), l.out ? 'на улице' : (l.type !== 'light' ? (l.wet ? 'особо опасные условия' : 'обычные условия') : ''), l.prio === 'p' ? 'приоритет реле' : (l.prio === 's' ? 'отключается реле приоритета' : '')].filter(Boolean).join(', ');
+  const moreZone = !a.c.rcdMode;
+  const morePrio = l.type === 'power';
+  const moreCond = a.c.house || l.type !== 'light';
   const zones = Array.from(new Set([...a.rows.map(y => (y.l.zone ?? '').trim()).filter(Boolean), ...ZONES]));
   const hasBr = !!r && r.len > pn(l.len, 0);
   const showBr = brOn || l.apps.some(ap => pn(ap.br, 0) > 0);
@@ -428,42 +431,44 @@ export function Editor({
             </div>
           )}
         </div>
-        <div className="blk fold-in">
-          <button className="why-t" type="button" aria-expanded={moreOpen} onClick={() => setMoreOpen(!moreOpen)}>
-            <span>Дополнительно</span>
-            <small className="muted">{moreSum}</small>
-            <IconDown />
-          </button>
-          <div className="fold-in-b" hidden={!moreOpen}>
-            {!a.c.rcdMode && (
-              <label className="blk">
-                <span className="lbl">Помещение</span>
-                <input className="ed-zone" list={'zones-' + l.id} aria-label="Помещение группы" placeholder="Например, кухня" maxLength={60} value={l.zone ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'zone', value: e.target.value })} />
-                <datalist id={'zones-' + l.id}>
-                  {zones.map(z => <option key={z} value={z} />)}
-                </datalist>
-                <small className="muted len-note">Подпись группы на щитке, бирках и в паспорте.</small>
-              </label>
-            )}
-            {l.type === 'power' && (
-              <div className="blk">
-                <span className="lbl">Реле приоритета нагрузки</span>
-                <Seg<string> name={'pr-' + l.id} value={l.prio ?? ''} items={[['', 'Нет'], ['p', 'Приоритетная'], ['s', 'Отключается']]} onChange={v => dispatch({ t: 'prio', set: { [l.id]: v === 'p' || v === 's' ? v : '' } })} />
-              </div>
-            )}
-            {a.c.house ? (
-              <div className="blk">
-                <span className="lbl">Условия</span>
-                <Seg<string> name={'w-' + l.id} value={l.out ? 'out' : (l.wet ? 'wet' : 'dry')} items={[['dry', 'Обычные'], ['wet', 'Особо опасные'], ['out', 'На улице']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet', out: v === 'out' })} />
-              </div>
-            ) : l.type !== 'light' && (
-              <div className="blk">
-                <span className="lbl">Условия</span>
-                <Seg<string> name={'w-' + l.id} value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычные'], ['wet', 'Вне помещения или особо опасные']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet' })} />
-              </div>
-            )}
+        {(moreZone || morePrio || moreCond) && (
+          <div className="blk fold-in">
+            <button className="why-t" type="button" aria-expanded={moreOpen} onClick={() => setMoreOpen(!moreOpen)}>
+              <span>Дополнительно</span>
+              <small className="muted">{moreSum}</small>
+              <IconDown />
+            </button>
+            <div className="fold-in-b" hidden={!moreOpen}>
+              {moreZone && (
+                <label className="blk">
+                  <span className="lbl">Помещение</span>
+                  <input className="ed-zone" list={'zones-' + l.id} aria-label="Помещение группы" placeholder="Например, кухня" maxLength={60} value={l.zone ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'zone', value: e.target.value })} />
+                  <datalist id={'zones-' + l.id}>
+                    {zones.map(z => <option key={z} value={z} />)}
+                  </datalist>
+                  <small className="muted len-note">Подпись группы на щитке, бирках и в паспорте.</small>
+                </label>
+              )}
+              {morePrio && (
+                <div className="blk">
+                  <span className="lbl">Реле приоритета нагрузки</span>
+                  <Seg<string> name={'pr-' + l.id} value={l.prio ?? ''} items={[['', 'Нет'], ['p', 'Приоритетная'], ['s', 'Отключается']]} onChange={v => dispatch({ t: 'prio', set: { [l.id]: v === 'p' || v === 's' ? v : '' } })} />
+                </div>
+              )}
+              {a.c.house ? (
+                <div className="blk">
+                  <span className="lbl">Условия</span>
+                  <Seg<string> name={'w-' + l.id} value={l.out ? 'out' : (l.wet ? 'wet' : 'dry')} items={[['dry', 'Обычные'], ['wet', 'Особо опасные'], ['out', 'На улице']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet', out: v === 'out' })} />
+                </div>
+              ) : moreCond && (
+                <div className="blk">
+                  <span className="lbl">Условия</span>
+                  <Seg<string> name={'w-' + l.id} value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычные'], ['wet', 'Вне помещения или особо опасные']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet' })} />
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
         <div className="blk meas fold-in">
           <button className="why-t" type="button" aria-expanded={measOpen} onClick={() => setMeasOpen(!measOpen)}>
             <span>Замеры и фото</span>

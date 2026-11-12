@@ -145,6 +145,8 @@ describe('Editor folds', () => {
   it('summarise hidden settings and measurements', () => {
     wide(true);
     render(<App />);
+    expect(within(ed()).queryByRole('button', { name: /Дополнительно/ })).toBeNull();
+    fireEvent.click(Array.from(document.querySelectorAll<HTMLElement>('.rows .row')).find(x => x.textContent?.includes('Варочная')) as HTMLElement);
     const more = within(ed()).getByRole('button', { name: /Дополнительно/ });
     expect(more).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(more);
