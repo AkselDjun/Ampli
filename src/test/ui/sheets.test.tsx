@@ -16,7 +16,7 @@ const open = (title: string) => {
     click(list(), '+ Добавить группу');
     click(list(), 'Из комнат');
   }
-  else click(document.querySelector('nav.tabs') as HTMLElement, title === 'Монтаж и приёмка' ? /Приёмка/ : /Отчёт/);
+  else click(document.querySelector('nav.tabs') as HTMLElement, title === 'Приёмка' ? /Приёмка/ : /Отчёт/);
   return dlg(title);
 };
 

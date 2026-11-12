@@ -181,7 +181,7 @@ describe('print with photos', () => {
     wide(true);
     render(<App />);
     click(nav(), /Приёмка/);
-    click(dlg('Монтаж и приёмка'), 'Печать протокола');
+    click(dlg('Приёмка'), 'Печать протокола');
     await waitFor(() => expect(document.querySelector('.pd-photo img')).toBeTruthy());
     await waitFor(() => expect(window.print).toHaveBeenCalledTimes(1), { timeout: 5000 });
     vi.mocked(window.print).mockClear();
@@ -195,14 +195,14 @@ describe('print with photos', () => {
   it('waits for images to load before printing', async () => {
     await setup(true);
     vi.useFakeTimers();
-    click(dlg('Монтаж и приёмка'), 'Печать протокола');
+    click(dlg('Приёмка'), 'Печать протокола');
     await act(async () => { await vi.advanceTimersByTimeAsync(60); });
     expect(window.print).toHaveBeenCalledTimes(1);
   });
   it('gives up waiting after the deadline', async () => {
     await setup(false);
     vi.useFakeTimers();
-    click(dlg('Монтаж и приёмка'), 'Печать протокола');
+    click(dlg('Приёмка'), 'Печать протокола');
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
     expect(window.print).not.toHaveBeenCalled();
     await act(async () => { await vi.advanceTimersByTimeAsync(2500); });
@@ -213,7 +213,7 @@ describe('print with photos', () => {
     render(<App />);
     click(nav(), /Приёмка/);
     vi.useFakeTimers();
-    click(dlg('Монтаж и приёмка'), 'Печать протокола');
+    click(dlg('Приёмка'), 'Печать протокола');
     await act(async () => { await vi.advanceTimersByTimeAsync(60); });
     expect(window.print).toHaveBeenCalledTimes(1);
     expect(document.querySelector('.pd-photo')).toBeNull();

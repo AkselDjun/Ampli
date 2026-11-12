@@ -172,7 +172,7 @@ export function reducer(s: State, a: Action): State {
       const parts = splitApps(src, a.mode);
       if (!parts || !parts.move.length) return s;
       const moved: Line = {
-        ...mkLine(a.mode === 'largest' ? (parts.move[0].name || 'Мощный прибор') : (src.name || 'Без названия') + ' (2)', a.mode === 'largest' ? 'power' : src.type, pn(src.len, 15), [], src.phase),
+        ...mkLine(a.mode === 'largest' ? (parts.move[0].name || 'Силовая') : (src.name || 'Без названия') + ' (2)', a.mode === 'largest' ? 'power' : src.type, pn(src.len, 15), [], src.phase),
         wet: src.wet,
         ...(src.out ? { out: true } : {}),
         apps: parts.move.map(x => ({ ...x, id: nid() }))

@@ -7,7 +7,7 @@ export const SHEET_TITLE: Readonly<Record<AppSheet, string>> = {
   [APP_SHEET.NETWORK]: 'Параметры сети',
   [APP_SHEET.PROJECTS]: 'Проекты',
   [APP_SHEET.REPORT]: 'Отчёт и спецификация',
-  [APP_SHEET.WORK]: 'Монтаж и приёмка',
+  [APP_SHEET.WORK]: 'Приёмка',
   [APP_SHEET.LIBRARY]: 'Мои данные',
   [APP_SHEET.COMPARE]: 'Сравнение',
   [APP_SHEET.ROOMS]: 'Комнаты',

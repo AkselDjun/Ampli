@@ -458,7 +458,7 @@ export function App() {
     { id: 'print', group: 'Документы', label: 'Печать отчёта в PDF', words: 'pdf распечатать', run: () => doPrint('report') },
     { id: 'shop', group: 'Документы', label: 'Где купить', words: 'магазин прайс закупка', run: () => setSheet(APP_SHEET.SHOP) },
     { id: 'cmp', group: 'Документы', label: 'Сравнить варианты', words: 'что если', run: () => setSheet(APP_SHEET.COMPARE) },
-    { id: 'work', group: 'Монтаж', label: 'Монтаж и приёмка', words: 'чек-лист протокол паспорт', run: () => setSheet(APP_SHEET.WORK) },
+    { id: 'work', group: 'Монтаж', label: 'Приёмка', words: 'монтаж чек-лист протокол паспорт', run: () => setSheet(APP_SHEET.WORK) },
     { id: 'panel', group: 'Монтаж', label: 'Замеры на щитке', words: 'режим на щитке протокол петля изоляция узо', run: openMeas },
     { id: 'proto', group: 'Монтаж', label: 'Печать протокола замеров', words: 'pdf', run: () => doPrint('proto') },
     { id: 'pass', group: 'Монтаж', label: 'Печать паспорта для владельца', words: 'pdf', run: () => doPrint('passport') },

@@ -41,17 +41,17 @@ describe('projects window', () => {
     let d = openProjects();
     click(d, 'Начать с нуля');
     click(d, 'Нажмите ещё раз');
-    expect(stored().list[0].lines.every(l => l.apps.every(a => !Number(a.w)))).toBe(true);
+    expect(stored().list[0].lines.every((l: Line) => l.apps.every(ap => !Number(ap.w)))).toBe(true);
     expect(toastText()).toContain('Проект очищен');
     act(() => currentToast()?.run?.());
-    expect(stored().list[0].lines.map(l => l.name)).toEqual(['Свет', 'Розетки']);
+    expect(stored().list[0].lines.map((l: Line) => l.name)).toEqual(['Свет', 'Розетки']);
     expect(stored().list[0].name).toBe('Квартира Иванова');
     d = openProjects();
     click(d, 'Загрузить пример');
     click(d, 'Нажмите ещё раз');
     expect(toastText()).toContain('Загружен пример');
     act(() => currentToast()?.run?.());
-    expect(stored().list[0].lines.map(l => l.name)).toEqual(['Свет', 'Розетки']);
+    expect(stored().list[0].lines.map((l: Line) => l.name)).toEqual(['Свет', 'Розетки']);
   });
 });
 

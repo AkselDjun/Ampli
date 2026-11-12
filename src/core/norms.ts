@@ -54,7 +54,7 @@ export interface TypeDef {
 export const TYPES: Record<LineType, TypeDef> = {
   light: { label: 'Освещение', short: 'Свет', minS: 1.5, minIn: 10, curve: 'B', rcd: true, tag: 'l' },
   socket: { label: 'Розетки', short: 'Розетки', minS: 2.5, minIn: 16, curve: 'C', rcd: true, tag: 's' },
-  power: { label: 'Мощный прибор', short: 'Мощный', minS: 2.5, minIn: 10, curve: 'C', rcd: true, tag: 'p' }
+  power: { label: 'Силовая', short: 'Силовая', minS: 2.5, minIn: 10, curve: 'C', rcd: true, tag: 'p' }
 };
 
 export const TYPE_KEYS = Object.keys(TYPES) as LineType[];

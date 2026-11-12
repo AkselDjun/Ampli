@@ -102,7 +102,7 @@ test('enters a measurement on the panel inside the acceptance sheet', async ({ p
   await page.keyboard.press('Control+k');
   await page.getByRole('combobox', { name: 'Найти действие или группу' }).fill('Замеры на щитке');
   await page.keyboard.press('Enter');
-  const sheet = page.getByRole('dialog', { name: 'Монтаж и приёмка' });
+  const sheet = page.getByRole('dialog', { name: 'Приёмка' });
   await expect(sheet).toBeVisible();
   await sheet.locator('.pmb-dev.k-mcb, .pmb-dev.k-rcd').first().click();
   const card = sheet.locator('section.pm');

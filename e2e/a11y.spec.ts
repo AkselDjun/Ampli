@@ -45,7 +45,7 @@ for (const scheme of ['light', 'dark'] as const) {
 
     test('measurements on the panel', async ({ page }) => {
       await palette(page, 'Замеры на щитке');
-      const sheet = page.getByRole('dialog', { name: 'Монтаж и приёмка' });
+      const sheet = page.getByRole('dialog', { name: 'Приёмка' });
       await expect(sheet.locator('.pmb-box')).toBeVisible();
       await sheet.locator('summary', { hasText: 'Результаты списком' }).click();
       expect(await scan(page)).toEqual([]);

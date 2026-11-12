@@ -191,13 +191,13 @@ describe('AddMenu', () => {
     expect(screen.queryByRole('menu')).toBeNull();
     await user.click(toggle());
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getAllByRole('menuitem').map(x => x.getAttribute('aria-label'))).toEqual(['Освещение', 'Розетки', 'Мощный прибор', 'Из комнат']);
+    expect(screen.getAllByRole('menuitem').map(x => x.getAttribute('aria-label'))).toEqual(['Освещение', 'Розетки', 'Силовая', 'Из комнат']);
     expect(screen.getByRole('menuitem', { name: 'Освещение' }).textContent).toContain('B10, 1,5 мм²');
     await user.click(toggle());
     expect(screen.queryByRole('menu')).toBeNull();
     expect(document.querySelector('.addmenu')).toHaveClass('down');
   });
-  it.each([['Освещение', 'light'], ['Розетки', 'socket'], ['Мощный прибор', 'power']])('picking %s adds %s and closes', async (label, type) => {
+  it.each([['Освещение', 'light'], ['Розетки', 'socket'], ['Силовая', 'power']])('picking %s adds %s and closes', async (label, type) => {
     const user = userEvent.setup();
     const { onAdd } = setup();
     await user.click(toggle());
@@ -356,7 +356,7 @@ describe('GroupList', () => {
     await user.click(screen.getByRole('menuitem', { name: 'Из комнат' }));
     expect(h.onRooms).toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Добавить группу' }));
-    await user.click(screen.getByRole('menuitem', { name: 'Мощный прибор' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Силовая' }));
     expect(h.onAdd).toHaveBeenCalledWith('power');
   });
   it('applies a row fix through onFix with the line id', async () => {
@@ -552,10 +552,10 @@ describe('App flows', () => {
     render(<App />);
     const n0 = rowsOf().length;
     await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
-    await user.click(screen.getByRole('menuitem', { name: 'Мощный прибор' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Силовая' }));
     expect(rowsOf().length).toBe(n0 + 1);
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'groups');
-    expect(screen.getByRole('status')).toHaveTextContent('Добавлена группа: Мощный прибор');
+    expect(screen.getByRole('status')).toHaveTextContent('Добавлена группа: Силовая');
     await user.click(screen.getByRole('button', { name: 'Открыть' }));
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'edit');
     expect(document.querySelector('.toast')).toBeNull();

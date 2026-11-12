@@ -131,7 +131,7 @@ describe('App', () => {
     expect(isOpen('Сравнение вариантов')).toBe(true);
     fireEvent.keyDown(document, { key: 'Escape' });
     click(nav, /Приёмка/);
-    expect(isOpen('Монтаж и приёмка')).toBe(true);
+    expect(isOpen('Приёмка')).toBe(true);
     fireEvent.keyDown(document, { key: 'Escape' });
     click(bar, /Приёмка/);
     fireEvent.keyDown(document, { key: 'Escape' });

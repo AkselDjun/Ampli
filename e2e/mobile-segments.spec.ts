@@ -60,7 +60,7 @@ test.describe('with wider glyphs', () => {
   test('keeps the group type words whole on a 320 px phone', async ({ page }) => {
     await page.addStyleTag({ content: '*{letter-spacing:.6px !important}' });
     await page.locator('.rows .row').filter({ hasText: 'Варочная' }).first().click();
-    await expect(page.getByRole('radiogroup').filter({ hasText: 'Мощный' }).first()).toBeVisible();
+    await expect(page.getByRole('radiogroup').filter({ hasText: 'Силовая' }).first()).toBeVisible();
     expect(await brokenWords(page)).toEqual([]);
   });
 });

@@ -51,7 +51,7 @@ test('gives every text field and select one size on every screen', async ({ page
   await palette(page, 'Смета: работы и материалы');
   all.push(...(await measure(page, 'estimate')));
 
-  await palette(page, 'Монтаж и приёмка');
+  await palette(page, 'Приёмка');
   const work = page.locator('[role="dialog"]:visible').last();
   await work.getByRole('tab', { name: 'Замеры' }).click();
   await work.locator('summary', { hasText: 'Данные протокола' }).click();

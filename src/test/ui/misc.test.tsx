@@ -18,7 +18,7 @@ describe('WorkSheet', () => {
     vi.useFakeTimers();
     render(<App />);
     click(nav(), /Приёмка/);
-    const d = dlg('Монтаж и приёмка');
+    const d = dlg('Приёмка');
     const boxes = d.querySelectorAll<HTMLInputElement>('.ck input');
     expect(boxes.length).toBeGreaterThan(3);
     fireEvent.click(boxes[0]);
@@ -57,7 +57,7 @@ describe('WorkSheet', () => {
     fireEvent.click(document.querySelectorAll<HTMLElement>('.rows .row')[2]);
     change(byLabel(ed, 'Замер петли фаза-нуль, Ом'), '0.9');
     click(nav(), /Приёмка/);
-    const d = dlg('Монтаж и приёмка');
+    const d = dlg('Приёмка');
     expect(d.querySelectorAll('.pill.ok').length).toBeGreaterThan(0);
     expect(d.querySelectorAll('.pill.bad, .pill.warn').length).toBeGreaterThan(0);
     act(() => { window.dispatchEvent(new Event('beforeprint')); });

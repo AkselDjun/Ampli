@@ -428,7 +428,7 @@ describe('small window fixes', () => {
   it('keeps one primary action on the documents tab of acceptance', () => {
     render(<App />);
     fireEvent.click(screen.getAllByRole('button', { name: /Приёмка/ })[0]);
-    const d = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Монтаж и приёмка') as HTMLElement;
+    const d = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Приёмка') as HTMLElement;
     expect(d.querySelectorAll('#wk-tp-docs .btn.primary').length).toBe(1);
   });
 });
