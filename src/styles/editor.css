@@ -184,3 +184,6 @@
 .tips-fold>summary svg{width:16px;height:16px;transition:transform var(--dur-fast)}
 .tips-fold[open]>summary svg{transform:rotate(180deg)}
 .tips-fold>.notes{margin-top:var(--s-1)}
+.grid3>.f>.lbl{flex:1 0 auto;display:flex;align-items:flex-end}
+.photos,.photo-add{min-width:0}
+@media (--upto-359){.seg[data-n="5"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}}
