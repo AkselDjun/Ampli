@@ -109,13 +109,20 @@ describe('RoomsSheet', () => {
     expect(rooms.length).toBe(3);
     const r = rooms[0] as HTMLElement;
     change(byLabel(r, 'Название комнаты'), 'Зал');
-    const sel = r.querySelector('.room-tools select') as HTMLSelectElement;
-    change(sel, '0');
-    change(sel, '18');
-    change(sel, '19');
-    change(sel, '9');
-    change(sel, '4');
-    change(sel, '');
+    const pick = (q: string, name: RegExp) => {
+      click(r, '+ Прибор из списка');
+      change(byLabel(r, 'Найти прибор для комнаты Зал'), q);
+      fireEvent.click(Array.from(r.querySelectorAll<HTMLElement>('.pick li button')).find(b => name.test(b.textContent ?? '')) as HTMLElement);
+    };
+    pick('', /./);
+    pick('чайн', /Чайник/);
+    pick('водонагр', /Водонагреватель/);
+    pick('люстр', /Люстра/);
+    click(r, '+ Прибор из списка');
+    change(byLabel(r, 'Найти прибор для комнаты Зал'), 'абракадабра');
+    expect(r.querySelector('.pick-none')).not.toBeNull();
+    click(r, '+ Прибор из списка');
+    expect(r.querySelector('.pick')).toBeNull();
     fireEvent.click(Array.from(r.querySelectorAll('.room-tools button')).find(b => b.textContent === '+ Свой прибор') as HTMLElement);
     const apps = r.querySelectorAll('.room-app');
     expect(apps.length).toBeGreaterThan(3);

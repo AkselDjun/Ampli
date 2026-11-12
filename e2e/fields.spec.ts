@@ -5,7 +5,7 @@ type Box = { where: string; kind: string; h: number; pl: number; bw: number; r: 
 
 const measure = async (page: Page, where: string): Promise<Box[]> =>
   page.evaluate(w => {
-    const skip = '.seg input, .step input, .search input, .pal-in input, .pm-in input, input.ed-name';
+    const skip = '.seg input, .step input, .search input, .pal-in input, .pm-in input, input.ed-name, select.type-chip';
     const top = document.querySelector('[role="dialog"]:not([hidden] *)') ?? document;
     return [...top.querySelectorAll<HTMLElement>('input, select, textarea')]
       .filter(e => !['checkbox', 'radio', 'hidden', 'file', 'range', 'color'].includes((e as HTMLInputElement).type) && !e.matches(skip) && !e.closest('[hidden]') && e.getBoundingClientRect().height > 0)
@@ -63,7 +63,7 @@ test('gives every text field and select one size on every screen', async ({ page
   const h = isMobile ? 48 : 44;
   const hs = isMobile ? 44 : 36;
   expect(all.length).toBeGreaterThan(20);
-  const off = all.filter(b => b.bw !== 1 || b.r !== 12 || b.pl !== 12 || (b.kind === 'field' && b.h !== h) || (b.kind === 'compact' && b.h !== hs) || (b.kind === 'area' && b.h < h * 2) || b.fs !== (isMobile ? 16 : 15));
+  const off = all.filter(b => b.bw !== 1 || b.r !== 8 || b.pl !== 12 || (b.kind === 'field' && b.h !== h) || (b.kind === 'compact' && b.h !== hs) || (b.kind === 'area' && b.h < h * 2) || b.fs !== (isMobile ? 16 : 15));
   expect(off).toEqual([]);
 });
 

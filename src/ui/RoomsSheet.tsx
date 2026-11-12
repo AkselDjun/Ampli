@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useId, useMemo, useState } from 'react';
 import type { Project, RoomApp } from '../core/types';
 import { PRESETS } from '../core/norms';
 import { ROOM_PRESETS, assemble, makeRoom } from '../core/rooms';
@@ -8,10 +8,55 @@ import type { Action } from '../store/reducer';
 import { toastOk } from './toast';
 import { ArmButton, Err, Sheet, errAttrs } from './common';
 import { asLabel, fieldErr } from '../core/limits';
-import { IconClose } from './Icons';
+import { IconClose, IconSearch } from './Icons';
 import { Button, IconButton } from './kit';
 import { Mic } from './parts';
 import { parseRooms } from '../core/roomtext';
+
+const tagOf = (tags: string): RoomApp['tag'] => (tags.includes('l') ? 'l' : (tags.includes('p') && !tags.includes('s') ? 'p' : 's'));
+const PICK_GROUPS: [RoomApp['tag'], string][] = [['l', 'Свет'], ['s', 'Розетки'], ['p', 'Мощные приборы']];
+const norm = (t: string): string => t.toLowerCase().replace(/ё/g, 'е').trim();
+
+function PresetPicker({ room, onPick }: { room: string; onPick: (name: string, w: number, tag: RoomApp['tag']) => void }) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const id = useId();
+  const hit = PRESETS.filter(pr => !norm(q) || norm(pr[0]).includes(norm(q)));
+  return (
+    <>
+      <Button aria-expanded={open} aria-controls={id} onClick={() => { setOpen(!open); setQ(''); }}>+ Прибор из списка</Button>
+      {open && (
+        <div className="pick" id={id}>
+          <div className="search">
+            <IconSearch />
+            <input type="search" autoFocus aria-label={'Найти прибор для комнаты ' + room} placeholder="Найти прибор" value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } }} />
+          </div>
+          <div className="pick-list">
+            {PICK_GROUPS.map(([tag, title]) => {
+              const items = hit.filter(pr => tagOf(pr[2]) === tag);
+              return items.length > 0 && (
+                <section key={tag} className="pick-g" aria-label={title}>
+                  <h4 className={'pick-h t-' + tag}>{title}</h4>
+                  <ul>
+                    {items.map(pr => (
+                      <li key={pr[0]}>
+                        <button type="button" onClick={() => { onPick(pr[0], pr[1], tag); setOpen(false); }}>
+                          <span>{pr[0]}</span>
+                          <span className="muted">{pr[1]} Вт</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
+            {hit.length === 0 && <p className="muted pick-none">Такого прибора нет в списке. Добавьте его кнопкой «+ Свой прибор».</p>}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 export function RoomsSheet({
   open, onClose, p, dispatch
@@ -68,7 +113,7 @@ export function RoomsSheet({
                 <input aria-label="Название прибора" placeholder="Прибор" value={ap.name} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'name', value: e.target.value })} />
                 <span className="fld" data-sfx="Вт"><input aria-label="Мощность, Вт" type="text" inputMode="numeric" min={0} placeholder="0" {...errAttrs(we, 'e-rw-' + ap.id)} value={String(ap.w)} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'w', value: e.target.value })} /></span>
                 <span className="fld" data-sfx="шт"><input aria-label="Количество" type="text" inputMode="numeric" min={1} {...errAttrs(ne, 'e-rn-' + ap.id)} value={String(ap.n)} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'n', value: e.target.value })} /></span>
-                <select aria-label="Тип нагрузки" value={ap.tag} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'tag', value: e.target.value })}>
+                <select className={'type-chip t-' + ap.tag} aria-label="Тип нагрузки" value={ap.tag} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'tag', value: e.target.value })}>
                   <option value="l">Свет</option>
                   <option value="s">Розетка</option>
                   <option value="p">Мощный</option>
@@ -80,13 +125,7 @@ export function RoomsSheet({
             );
           })}
           <div className="room-tools">
-            <select aria-label={'Добавить прибор в комнату ' + r.name} value="" onChange={e => {
-              const pr = PRESETS[Number(e.target.value)];
-              if (pr) addApp(r.id, { id: nid(), name: pr[0], w: pr[1], n: 1, tag: (pr[2].includes('l') ? 'l' : (pr[2].includes('p') && !pr[2].includes('s') ? 'p' : 's')) });
-            }}>
-              <option value="">+ Прибор из списка</option>
-              {PRESETS.map((pr, i) => <option key={pr[0]} value={i}>{pr[0]}, {pr[1]} Вт</option>)}
-            </select>
+            <PresetPicker room={r.name} onPick={(name, w, tag) => addApp(r.id, { id: nid(), name, w, n: 1, tag })} />
             <Button onClick={() => addApp(r.id, { id: nid(), name: '', w: '', n: 1, tag: 's' })}>+ Свой прибор</Button>
           </div>
         </section>

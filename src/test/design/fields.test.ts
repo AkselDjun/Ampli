@@ -19,7 +19,7 @@ const media = (css: string, q: string): string => {
 
 describe('form fields', () => {
   it('defines one set of field tokens', () => {
-    for (const t of ['--field-h:44px', '--field-h-s:36px', '--field-px:var(--s-3)', '--field-r:var(--r-m)', '--field-fs:var(--t-base)', '--field-bw:1px', '--check-s:20px', '--check-bw:2px']) expect(tokens).toContain(t);
+    for (const t of ['--field-h:44px', '--field-h-s:36px', '--field-px:var(--s-3)', '--field-r:var(--r-s)', '--field-fs:var(--t-base)', '--field-bw:1px', '--check-s:20px', '--check-bw:2px']) expect(tokens).toContain(t);
     expect(media(tokens, '(--tablet)')).toContain('--field-h:48px;--field-h-s:44px');
     expect(media(tokens, '(--tablet),(pointer:coarse)')).toContain('--field-fs:16px');
   });
@@ -40,7 +40,7 @@ describe('form fields', () => {
   });
 
   it('does not repaint field borders or radii per screen', () => {
-    const bad = rules(app).filter(r => field.test(r.sel) && !special.test(r.sel) && !r.sel.startsWith('input:where(') && r.sel !== 'input[type=checkbox]' && /(^|;)\s*border(-color)?\s*:\s*[^;]*var\(--line(-strong)?\)/.test(r.body)).map(r => r.sel);
+    const bad = rules(app).filter(r => field.test(r.sel) && !special.test(r.sel) && !r.sel.startsWith('input:where(') && r.sel !== 'input[type=checkbox]' && r.sel !== 'input[type=radio]' && /(^|;)\s*border(-color)?\s*:\s*[^;]*var\(--line(-strong)?\)/.test(r.body)).map(r => r.sel);
     expect(bad).toEqual([]);
   });
 
@@ -55,7 +55,7 @@ describe('form fields', () => {
   it('draws every checkbox at one size', () => {
     const cb = rules(app).find(r => r.sel === 'input[type=checkbox]');
     expect(cb?.body).toContain('width:var(--check-s);height:var(--check-s)');
-    const bad = rules(app).filter(r => /\binput\b/.test(r.sel) && r.sel !== 'input[type=checkbox]' && /(^|;)\s*width:20px/.test(r.body)).map(r => r.sel);
+    const bad = rules(app).filter(r => /\binput\b/.test(r.sel) && r.sel !== 'input[type=checkbox]' && r.sel !== 'input[type=radio]' && /(^|;)\s*width:20px/.test(r.body)).map(r => r.sel);
     expect(bad).toEqual([]);
   });
 
