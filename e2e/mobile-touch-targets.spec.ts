@@ -31,7 +31,7 @@ test.beforeEach(async ({ page, isMobile }) => {
 
 test('keeps every button inside the screen and at least 44 px high on a 320 px phone', async ({ page }) => {
   const all = [...(await buttons(page))];
-  for (const a of ['Собрать группы из комнат', 'Однолинейная схема', 'Проекты', 'Монтаж и приёмка']) {
+  for (const a of ['Собрать группы из комнат', 'Однолинейная схема', 'Проекты', 'Приёмка']) {
     await open(page, a);
     all.push(...(await buttons(page)));
   }

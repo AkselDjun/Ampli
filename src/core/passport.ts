@@ -1,6 +1,6 @@
 import type { Calc } from './types';
 import { fmt, pn } from './format';
-import { protName } from './protection';
+import { inName, protName } from './protection';
 
 export interface PassItem {
   name: string;
@@ -69,9 +69,8 @@ export function passportRows(a: Calc): PassRow[] {
 }
 
 export function passportInput(a: Calc): PassInput {
-  const three = a.c.supply === 3;
   return {
-    text: a.inIn ? 'Вводной автомат ' + (three ? '4P' : '2P') + ' C' + a.inIn : 'Вводной автомат не подобран',
+    text: a.inIn ? 'Вводной автомат ' + inName(a.c, a.inIn) : 'Вводной автомат не подобран',
     allocKw: a.c.alloc,
     pKw: Math.round(a.P / 100) / 10
   };

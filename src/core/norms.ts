@@ -10,6 +10,7 @@ export const IZ: Record<'wall' | 'open', Record<1 | 3, number[]>> = {
 };
 
 export const RHO = 0.0225;
+export const RHO_20 = 0.0175;
 export const RHO_HOT_K = 1.5;
 export const ALL_STEPS = [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
 export const TRIP_MULT: Record<string, number> = { B: 5, C: 10 };
@@ -18,7 +19,8 @@ export const KZ_TIME = 0.4;
 export const SINGLE_INPUT_KW = 12;
 export const INS_MIN_MOHM = 0.5;
 export const LEAK_FRACTION = 1 / 3;
-export const rcdTripMs = (ma: number): number => (ma > 30 ? 2000 : (ma > 10 ? 500 : 5000));
+export const rcdTripMs = (ma: number): number => (ma > 30 ? 500 : 300);
+export const RCD_STD_REF = 'ГОСТ IEC 61008-1 и ГОСТ IEC 61009-1, табл. 1';
 export const LEAK_PER_M_MA = 0.01;
 export const LEAK_PER_A_MA = 0.4;
 export const SIZES = [12, 18, 24, 36, 48, 72];
@@ -52,7 +54,7 @@ export interface TypeDef {
 export const TYPES: Record<LineType, TypeDef> = {
   light: { label: 'Освещение', short: 'Свет', minS: 1.5, minIn: 10, curve: 'B', rcd: true, tag: 'l' },
   socket: { label: 'Розетки', short: 'Розетки', minS: 2.5, minIn: 16, curve: 'C', rcd: true, tag: 's' },
-  power: { label: 'Мощный прибор', short: 'Мощный', minS: 2.5, minIn: 10, curve: 'C', rcd: true, tag: 'p' }
+  power: { label: 'Силовая', short: 'Силовая', minS: 2.5, minIn: 10, curve: 'C', rcd: true, tag: 'p' }
 };
 
 export const TYPE_KEYS = Object.keys(TYPES) as LineType[];
@@ -66,6 +68,6 @@ export const PRESETS: [string, number, string][] = [
   ['Светильник', 60, 'l'], ['Люстра', 180, 'l'], ['LED-лента', 14, 'l'], ['Зарядка электромобиля', 7400, 'p']
 ];
 
-export const STATUS = { ok: 'Норма', warn: 'Проверьте', bad: 'Не подходит' } as const;
+export const STATUS = { ok: 'Норма', warn: 'Совет', bad: 'Нарушение' } as const;
 
 export const CLIMITS: Record<string, [number, number]> = { ko: [0.3, 1], k: [0.5, 1], alloc: [1, 500], zs: [0.05, 2], feeder: [0, 3], margin: [1, 1.5], sip: [0, 500], rz: [0, 500] };

@@ -14,8 +14,13 @@ const openProjects = async (page: Page) => {
   return sheet;
 };
 
+const quiet = () => {
+  localStorage.setItem('ampli-onboarding-v1', 'done');
+  localStorage.setItem('ampli-onboarding-fresh', '2');
+};
+
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
+  await page.addInitScript(quiet);
 });
 
 test('exports a project, imports it as an independent copy and keeps both after reload', async ({ page }) => {
@@ -109,7 +114,7 @@ test('persists edited calculation data and measurements after reload', async ({ 
   await page.getByRole('textbox', { name: 'Название группы' }).fill('Проверка сохранения');
   await page.getByRole('textbox', { name: 'Мощность, Вт' }).first().fill('3500');
   await palette(page, 'Замеры на щитке');
-  const panel = page.getByRole('dialog', { name: 'Монтаж и приёмка' });
+  const panel = page.getByRole('dialog', { name: 'Приёмка' });
   await panel.locator('.pmb-dev.k-mcb, .pmb-dev.k-rcd').first().click();
   await panel.locator('section.pm input[inputmode="decimal"]').first().fill('0,4');
   await expect.poll(() => page.evaluate(() => localStorage.getItem('ampli-project-revision'))).not.toBe(before);
@@ -117,7 +122,7 @@ test('persists edited calculation data and measurements after reload', async ({ 
   await page.reload();
   await expect(page.locator('.rows .row').first()).toContainText('Проверка сохранения');
   await palette(page, 'Замеры на щитке');
-  const restored = page.getByRole('dialog', { name: 'Монтаж и приёмка' });
+  const restored = page.getByRole('dialog', { name: 'Приёмка' });
   await restored.locator('.pmb-dev.k-mcb, .pmb-dev.k-rcd').first().click();
   await expect(restored.locator('section.pm input[inputmode="decimal"]').first()).toHaveValue('0,4');
 });
@@ -138,7 +143,7 @@ test('restores a downloaded backup in a clean browser context', async ({ page, b
   expect(path).not.toBeNull();
 
   const cleanContext = await browser.newContext();
-  await cleanContext.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
+  await cleanContext.addInitScript(quiet);
   const clean = await cleanContext.newPage();
   await clean.goto(new URL('/', page.url()).href);
   sheet = await openProjects(clean);
@@ -215,7 +220,7 @@ test('restores group photos and wiring traces from a backup in a clean browser c
   expect(path).not.toBeNull();
 
   const cleanContext = await browser.newContext();
-  await cleanContext.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
+  await cleanContext.addInitScript(quiet);
   const clean = await cleanContext.newPage();
   await clean.goto(new URL('/', page.url()).href);
   let restored = await openProjects(clean);

@@ -50,15 +50,15 @@ describe('back arrow between sheets', () => {
     render(<App />);
     fireEvent.click(nav().getByRole('button', { name: /Приёмка/ }));
     fireEvent.click(screen.getByRole('tab', { name: /^Замеры/ }));
-    expect(dlg('Монтаж и приёмка').querySelector('.pmb-box')).toBeTruthy();
+    expect(dlg('Приёмка').querySelector('.pmb-box')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Ввести на щитке' })).toBeNull();
-    fireEvent.click(within(dlg('Монтаж и приёмка')).getByRole('button', { name: 'Закрыть' }));
-    expect(isOpen('Монтаж и приёмка')).toBe(false);
+    fireEvent.click(within(dlg('Приёмка')).getByRole('button', { name: 'Закрыть' }));
+    expect(isOpen('Приёмка')).toBe(false);
     fireEvent.click(nav().getByRole('button', { name: /Щиток/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
-    expect(isOpen('Монтаж и приёмка')).toBe(true);
+    expect(isOpen('Приёмка')).toBe(true);
     expect(screen.getByRole('tab', { name: /^Замеры/ })).toHaveAttribute('aria-selected', 'true');
-    expect(dlg('Монтаж и приёмка').querySelector('.sheet-back')).toBeNull();
+    expect(dlg('Приёмка').querySelector('.sheet-back')).toBeNull();
   });
 
   it('opens compare from totals and chains projects to my data', () => {

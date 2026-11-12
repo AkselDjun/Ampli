@@ -114,7 +114,7 @@ export function App() {
   }, [p.lines, setSheet]);
   const [tourChapter, setTourChapter] = useState<TourChapter | undefined>(undefined);
   const [tourMode, setTourMode] = useState<TourMode>(TOUR_MODE.FULL);
-  const [freshAsk] = useState(() => !tourOpen && !incoming && !shared && !owner && freshPending());
+  const [freshAsk, setFreshAsk] = useState(() => !tourOpen && !incoming && !shared && !owner && freshPending());
   const freshDone = useRef(false);
   const busy = sheet !== null || (view === APP_VIEW.EDITOR && !isWide());
   useEffect(() => {
@@ -122,6 +122,7 @@ export function App() {
     const t = window.setTimeout(() => {
       freshDone.current = true;
       markFreshSeen();
+      setFreshAsk(false);
       toast('В Ampli новое: частный дом, укладка в мощность, карта проводки и смета в трёх вариантах.', { label: 'Показать', run: () => { setSheet(null); setTourMode(TOUR_MODE.FRESH); setTourOpen(true); } });
     }, 1500);
     return () => window.clearTimeout(t);
@@ -449,7 +450,15 @@ export function App() {
     }, 1200);
     return () => window.clearTimeout(t);
   }, [sampleOpen, freshAsk, onBlank]);
-  const onSample = useStable(() => { dispatch({ t: 'replace', content: sample() }); toastOk('Загружен пример'); });
+  const onSample = useStable(() => {
+    const was = { sample: !!p.sample, cfg: p.cfg, lines: p.lines };
+    const name = p.name;
+    dispatch({ t: 'replace', content: sample() });
+    toastUndo('Загружен пример', () => {
+      dispatch({ t: 'replace', content: was });
+      dispatch({ t: 'meta', field: 'name', value: name });
+    });
+  });
   const onCheckFix = useStable((f: CheckFix) => (f === 'net' ? setSheet(APP_SHEET.NETWORK) : dispatch({ t: 'cfg', field: 'supply', value: f === 'phase3' ? 3 : 1 })));
   const openRep = (t: string) => {
     setRepWant({ tab: t, n: Date.now() });
@@ -469,7 +478,7 @@ export function App() {
     { id: 'print', group: 'Документы', label: 'Печать отчёта в PDF', words: 'pdf распечатать', run: () => doPrint('report') },
     { id: 'shop', group: 'Документы', label: 'Где купить', words: 'магазин прайс закупка', run: () => setSheet(APP_SHEET.SHOP) },
     { id: 'cmp', group: 'Документы', label: 'Сравнить варианты', words: 'что если', run: () => setSheet(APP_SHEET.COMPARE) },
-    { id: 'work', group: 'Монтаж', label: 'Монтаж и приёмка', words: 'чек-лист протокол паспорт', run: () => setSheet(APP_SHEET.WORK) },
+    { id: 'work', group: 'Монтаж', label: 'Приёмка', words: 'монтаж чек-лист протокол паспорт', run: () => setSheet(APP_SHEET.WORK) },
     { id: 'panel', group: 'Монтаж', label: 'Замеры на щитке', words: 'режим на щитке протокол петля изоляция узо', run: openMeas },
     { id: 'proto', group: 'Монтаж', label: 'Печать протокола замеров', words: 'pdf', run: () => doPrint('proto') },
     { id: 'pass', group: 'Монтаж', label: 'Печать паспорта для владельца', words: 'pdf', run: () => doPrint('passport') },
@@ -618,7 +627,7 @@ export function App() {
         <Hold open={sheet === APP_SHEET.FLOOR}><FloorSheet open={sheet === APP_SHEET.FLOOR} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
         <Hold open={sheet === APP_SHEET.WEAK}><WeakSheet open={sheet === APP_SHEET.WEAK} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
         <Hold open={sheet === APP_SHEET.OLD_WIRING}><OldSheet open={sheet === APP_SHEET.OLD_WIRING} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} /></Hold>
-        <Hold open={sheet === APP_SHEET.PROJECTS}><ProjectsSheet open={sheet === APP_SHEET.PROJECTS} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet(APP_SHEET.LIBRARY)} /></Hold>
+        <Hold open={sheet === APP_SHEET.PROJECTS}><ProjectsSheet open={sheet === APP_SHEET.PROJECTS} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet(APP_SHEET.LIBRARY)} onBlank={onBlank} onSample={onSample} /></Hold>
         <Hold open={sheet === APP_SHEET.LIBRARY}><LibSheet open={sheet === APP_SHEET.LIBRARY} onClose={closeSheet} /></Hold>
         <Hold open={sheet === APP_SHEET.COMPARE}><CompareSheet open={sheet === APP_SHEET.COMPARE} onClose={closeSheet} p={p} a={a} /></Hold>
         <Hold open={sheet === APP_SHEET.ROOMS}><RoomsSheet open={sheet === APP_SHEET.ROOMS} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>

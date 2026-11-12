@@ -101,7 +101,7 @@ describe('board, stickers, drawing and report', () => {
     const p = { ...newProject({ cfg: { ...defaultCfg(), vr: 'on', ko: 1, prot: 'rcd' }, lines: [...lines(), ...big], sample: false }, 'Т') };
     render(<DrawingA3 p={p} a={calcAll(p.lines, p.cfg)} company="" />);
     const t = Array.from(document.querySelectorAll('svg.a3 text')).map(e => e.textContent).join(' ');
-    expect(t).toContain('через контактор.');
+    expect(t).toMatch(/через контактор KM1 [24]P \d+ А\./);
     expect(t).toMatch(/QD\d \/ 30, тип A/);
     expect(t).toMatch(/\d+ А, 30 мА, тип A/);
   });

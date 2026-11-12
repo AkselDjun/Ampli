@@ -162,7 +162,7 @@ describe('documents', () => {
     localStorage.setItem(KEY, JSON.stringify({ cur: empty.id, list: [empty] }));
     const { unmount } = render(<App />);
     click(document.querySelector('nav.tabs') as HTMLElement, /Приёмка/);
-    const d = dlg('Монтаж и приёмка');
+    const d = dlg('Приёмка');
     fireEvent.click(within(d).getByRole('tab', { name: 'Документы', hidden: true }));
     expect((btn(d, /\|Печать комплекта/) as HTMLButtonElement).disabled).toBe(true);
     expect(d.textContent).toContain('В проекте нет групп');
@@ -172,7 +172,7 @@ describe('documents', () => {
     localStorage.setItem(KEY, JSON.stringify({ cur: bad.id, list: [bad] }));
     render(<App />);
     click(document.querySelector('nav.tabs') as HTMLElement, /Приёмка/);
-    const d2 = dlg('Монтаж и приёмка');
+    const d2 = dlg('Приёмка');
     fireEvent.click(within(d2).getByRole('tab', { name: 'Документы', hidden: true }));
     expect(d2.textContent).toContain('в протоколе 1 группа не соответствует');
   });

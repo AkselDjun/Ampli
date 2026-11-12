@@ -37,7 +37,7 @@ describe('lines', () => {
   it('adds a line of a given type and selects it', () => {
     const s = run(mk(), { t: 'addLine', type: 'power' });
     expect(lines(s)).toHaveLength(15);
-    expect(selLine(s).name).toBe('Мощный прибор');
+    expect(selLine(s).name).toBe('Силовая');
     expect(selLine(s).apps).toEqual([]);
     expect(cur(s).sample).toBe(false);
   });

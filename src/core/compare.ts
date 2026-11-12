@@ -1,6 +1,7 @@
 import type { Calc, Line, Project } from './types';
 import { calcAll } from './calc';
 import { mkLine } from './templates';
+import { inName } from './protection';
 
 export interface Addon {
   id: string;
@@ -31,12 +32,12 @@ export interface CompareRow {
 const kw = (w: number): string => (w / 1000).toLocaleString('ru-RU', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' кВт';
 
 export function compareRows(now: Calc, alt: Calc): CompareRow[] {
-  const inName = (c: Calc): string => (c.inIn ? (c.c.supply === 3 ? '4P' : '2P') + ' C' + c.inIn : '—');
+  const inLabel = (c: Calc): string => inName(c.c, c.inIn);
   const need3 = (c: Calc): string => (c.hint3 ? 'нужен трёхфазный' : (c.c.supply === 3 ? 'трёхфазный' : 'однофазный'));
   return [
     { label: 'Расчётная мощность', now: kw(now.P), alt: kw(alt.P), worse: alt.P > now.P ? true : (alt.P < now.P ? false : null) },
     { label: 'Ток ввода', now: Math.round(now.Itot) + ' А', alt: Math.round(alt.Itot) + ' А', worse: alt.Itot > now.Itot ? true : (alt.Itot < now.Itot ? false : null) },
-    { label: 'Вводной автомат', now: inName(now), alt: inName(alt), worse: (alt.inIn ?? 0) > (now.inIn ?? 0) ? true : ((alt.inIn ?? 0) < (now.inIn ?? 0) ? false : null) },
+    { label: 'Вводной автомат', now: inLabel(now), alt: inLabel(alt), worse: (alt.inIn ?? 0) > (now.inIn ?? 0) ? true : ((alt.inIn ?? 0) < (now.inIn ?? 0) ? false : null) },
     { label: 'Ввод', now: need3(now), alt: need3(alt), worse: alt.hint3 && !now.hint3 ? true : (!alt.hint3 && now.hint3 ? false : null) },
     { label: 'Щиток', now: now.size + ' мод.', alt: alt.size + ' мод.', worse: alt.size > now.size ? true : (alt.size < now.size ? false : null) },
     { label: 'Групп с замечаниями', now: String(now.issues), alt: String(alt.issues), worse: alt.issues > now.issues ? true : (alt.issues < now.issues ? false : null) },

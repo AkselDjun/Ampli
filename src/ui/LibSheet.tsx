@@ -18,7 +18,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
   const nPrices = Object.keys(lib.prices).length;
   const [theme, setTheme] = useTheme();
   return (
-    <Sheet open={open} onClose={onClose} title="Мои данные" kind="panel" footer={<DoneFoot onDone={onClose} status="Хранится на этом устройстве" />} bar={<Tabs scope="lib" label="Разделы данных" cur={tab} onChange={setTab} items={[{ id: 'brand', label: 'Реквизиты' }, { id: 'tpl', label: 'Шаблоны и цены' }, { id: 'view', label: 'Оформление' }]} />}>
+    <Sheet open={open} onClose={onClose} title="Мои данные" kind="panel" tip="Реквизиты, логотип, подпись, шаблоны и цены хранятся на этом устройстве и подставляются во все сметы и документы." footer={<DoneFoot onDone={onClose} status="Хранится на этом устройстве" />} bar={<Tabs scope="lib" label="Разделы данных" cur={tab} onChange={setTab} items={[{ id: 'brand', label: 'Реквизиты' }, { id: 'tpl', label: 'Шаблоны и цены' }, { id: 'view', label: 'Оформление' }]} />}>
       <TabPanel scope="lib" id="brand" cur={tab}>
       <h3 className="sec-t">Реквизиты для отчёта<Tip>Печатаются в шапке отчёта, сметы, актов и паспорта. Хранятся только на этом устройстве и не уходят в ссылку на проект.</Tip></h3>
       <div className="meta-grid">

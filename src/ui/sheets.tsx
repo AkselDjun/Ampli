@@ -2,7 +2,7 @@ import type { JSX } from 'react';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import type { Calc, Project } from '../core/types';
 import type { TplKey } from '../core/templates';
-import { TPL_LIST, TPL_NAME, blank, contentFor, sample } from '../core/templates';
+import { TPL_LIST, TPL_NAME, contentFor } from '../core/templates';
 import { MAX_PROJECTS, cfgErr, fieldErr } from '../core/limits';
 import { cfgN } from '../core/calc';
 import { BOX_NAME, IN_CABLE } from '../core/norms';
@@ -159,7 +159,7 @@ export function NetSheet({
 }
 
 export function ProjectsSheet({
-  open, onClose, state, p, dispatch, onLib
+  open, onClose, state, p, dispatch, onLib, onBlank, onSample
 }: {
   open: boolean;
   onClose: () => void;
@@ -167,6 +167,8 @@ export function ProjectsSheet({
   p: Project;
   dispatch: (a: Action) => void;
   onLib: () => void;
+  onBlank: () => void;
+  onSample: () => void;
 }) {
   const { lib, dispatch: libDispatch } = useLib();
   const [tplOpen, setTplOpen] = useState(false);
@@ -263,18 +265,6 @@ export function ProjectsSheet({
       </>
     )} bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся только в этом браузере. Чтобы перенести проект на другое устройство, сохраните его в файл или отправьте ссылкой.">
       <TabPanel scope="pj" id="main" cur={tab}>
-      <h3 className="sec-t">Текущий проект</h3>
-      <div className="meta-grid">
-        <Field id="mName" label="Название" wide><input id="mName" ref={nameRef} type="text" autoComplete="off" maxLength={80} value={p.name} onChange={e => dispatch({ t: 'meta', field: 'name', value: e.target.value })} /></Field>
-        <Field id="mAddr" label="Объект, адрес" wide><input id="mAddr" type="text" autoComplete="off" maxLength={120} value={p.address} onChange={e => dispatch({ t: 'meta', field: 'address', value: e.target.value })} /></Field>
-        <Field id="mClient" label="Заказчик"><input id="mClient" type="text" autoComplete="off" maxLength={80} value={p.client} onChange={e => dispatch({ t: 'meta', field: 'client', value: e.target.value })} /></Field>
-        <Field id="mAuthor" label="Исполнитель"><input id="mAuthor" type="text" autoComplete="off" maxLength={80} value={p.author} onChange={e => dispatch({ t: 'meta', field: 'author', value: e.target.value })} /></Field>
-      </div>
-      <div className="data-row pj-reset">
-        <span className="muted">Заменить группы текущего проекта:</span>
-        <ArmButton variant="ghost" size="sm" label="Загрузить пример" onRun={() => { dispatch({ t: 'replace', content: sample() }); onClose(); }} />
-        <ArmButton variant="ghost" size="sm" label="Начать с нуля" onRun={() => { dispatch({ t: 'replace', content: blank() }); onClose(); }} />
-      </div>
       <div className="sec-row">
         <h3 className="sec-t">Все проекты</h3>
         <span className="muted">{n} {plural(n, ['проект', 'проекта', 'проектов'])}</span>
@@ -323,6 +313,18 @@ export function ProjectsSheet({
             </div>
           </>
         )}
+      </div>
+      <h3 className="sec-t">Текущий проект</h3>
+      <div className="meta-grid">
+        <Field id="mName" label="Название" wide><input id="mName" ref={nameRef} type="text" autoComplete="off" maxLength={80} value={p.name} onChange={e => dispatch({ t: 'meta', field: 'name', value: e.target.value })} /></Field>
+        <Field id="mAddr" label="Объект, адрес" wide><input id="mAddr" type="text" autoComplete="off" maxLength={120} value={p.address} onChange={e => dispatch({ t: 'meta', field: 'address', value: e.target.value })} /></Field>
+        <Field id="mClient" label="Заказчик"><input id="mClient" type="text" autoComplete="off" maxLength={80} value={p.client} onChange={e => dispatch({ t: 'meta', field: 'client', value: e.target.value })} /></Field>
+        <Field id="mAuthor" label="Исполнитель"><input id="mAuthor" type="text" autoComplete="off" maxLength={80} value={p.author} onChange={e => dispatch({ t: 'meta', field: 'author', value: e.target.value })} /></Field>
+      </div>
+      <div className="data-row pj-reset">
+        <span className="muted">Заменить группы текущего проекта:</span>
+        <ArmButton variant="ghost" size="sm" label="Загрузить пример" onRun={() => { onSample(); onClose(); }} />
+        <ArmButton variant="ghost" size="sm" label="Начать с нуля" onRun={() => { onBlank(); onClose(); }} />
       </div>
       </TabPanel>
       <TabPanel scope="pj" id="share" cur={tab}>
@@ -425,6 +427,7 @@ export function ReportSheet({
   const three = a.c.supply === 3;
   const { lib, dispatch: libDispatch } = useLib();
   const est = estimate(buildSpec(a), lib.prices);
+  const empty = !a.rows.some(x => x.r.In);
   const [tab, setTab] = useState(want ? want.tab : 'groups');
   const [wantSeen, setWantSeen] = useState(want);
   if (want !== wantSeen) {
@@ -435,17 +438,18 @@ export function ReportSheet({
     <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" sub={p.name || 'Без названия'} footer={tab === 'scheme' ? (
       <>
         <span className="foot-st">Лист А3 по ГОСТ 21.613</span>
-        <Button variant="primary" onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
+        <Button variant="primary" disabled={empty} onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
       </>
     ) : (
       <>
-        <span className="foot-st" />
-        <Button onClick={copy}>Скопировать отчёт</Button>
-        <Button variant="primary" onClick={() => onPrint('report')}>Печать / PDF</Button>
+        <span className="foot-st">{empty ? 'Добавьте группу с приборами, чтобы напечатать отчёт' : ''}</span>
+        <Button disabled={empty} onClick={copy}>Скопировать отчёт</Button>
+        <Button variant="primary" disabled={empty} onClick={() => onPrint('report')}>Печать / PDF</Button>
       </>
     )} bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Основания' }]} />}>
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <TabPanel scope="rep" id="groups" cur={tab} lazy>
+      {empty && <div className="empty rep-empty">В проекте пока нет групп с приборами. Добавьте группу, и здесь появятся таблица, схема и смета.</div>}
       <h3 className="sec-t">Группы линий</h3>
       <DataTable label="Таблица групп" className="gtab" head={<><th>Гр.</th><th>Название</th>{three && <th>Фаза</th>}<th className="num">Установл., Вт</th><th className="num">Ток, А</th><th>Защита</th><th>Кабель</th><th className="num" title="Потеря напряжения">Потеря U, %</th><th>Статус</th></>} foot={(
         <tr>
@@ -490,6 +494,7 @@ export function ReportSheet({
       </TabPanel>
       <TabPanel scope="rep" id="scheme" cur={tab} lazy>
       <h3 className="sec-t">Схема щитка</h3>
+      <p className="muted schem-hint">Схема шире экрана: листайте её вбок или поверните телефон. Для печати есть лист А3 в подвале.</p>
       <div className="schem-wrap" role="region" aria-label="Однолинейная схема, прокручивается" tabIndex={0}><Schematic a={a} /></div>
       <details className="bd-help a3-prev">
         <summary>Лист А3 со штампом</summary>
@@ -521,7 +526,7 @@ export function ReportSheet({
             <td className="c-t">{item.name}{item.note && <small className="dt-note">{item.note}</small>}</td>
             <td className="num c-m">{item.qty}</td>
             <td className="num c-v">
-              <MoneyInput placeholder="цена" aria-label={'Цена: ' + item.name} {...errAttrs(fieldErr('price', lib.prices[item.name]), 'e-pr-' + i)} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
+              <MoneyInput placeholder="0,00" aria-label={'Цена: ' + item.name} {...errAttrs(fieldErr('price', lib.prices[item.name]), 'e-pr-' + i)} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
               <Err e={fieldErr('price', lib.prices[item.name])} id={'e-pr-' + i} />
             </td>
             <td className={'num c-m' + (sum === null ? ' dt-nil' : '')} data-k="Сумма">{sum === null ? '—' : fmt(sum, 2)}</td>

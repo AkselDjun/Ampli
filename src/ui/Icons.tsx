@@ -73,7 +73,9 @@ export const IconBolt = make(0, <path d="M13 2 5 13h6l-1 9 8-11h-6z" />);
 export const IconMeter = make(0, (
   <>
     <rect x="5" y="2.5" width="14" height="19" rx="2.5" />
-    <path d="M8.5 6.5h7v4h-7zM9 15h.01M12 15h.01M15 15h.01M9 18h6" />
+    <path d="M8.5 5.5h7v3.5h-7zM9.5 15.5a2.5 2.5 0 1 1 5 0M12 15.5l1.5-1.8" />
+    <circle cx="9.5" cy="19" r=".6" />
+    <circle cx="14.5" cy="19" r=".6" />
   </>
 ));
 export const IconPanel = make(0, (

@@ -59,7 +59,7 @@ export function WorkSheet({
   ];
   const chosen = docs.map(d => d.m).filter(m => pack.includes(m) && (m !== 'wiring' || walls > 0));
   return (
-    <Sheet open={open} onClose={onClose} title="Монтаж и приёмка" tourId="work" sub={p.name || 'Без названия'} footer={tab === 'meas' ? undefined : (
+    <Sheet open={open} onClose={onClose} title="Приёмка" tourId="work" sub={p.name || 'Без названия'} footer={tab === 'meas' ? undefined : (
       <>
         <span className="foot-st">Чек-лист <b>{pr.done}/{pr.total}</b>{rows.length ? <>, замеры <b>{done}/{rows.length}</b></> : null}</span>
         {tab === 'docs'

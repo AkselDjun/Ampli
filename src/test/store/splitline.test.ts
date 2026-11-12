@@ -33,7 +33,7 @@ describe('splitLine', () => {
     const l = mkLine('Розетки', 'socket', 12, [['', 3500, 1], ['b', 100, 1]]);
     l.wet = true;
     const s = run(stateWith([l]), { t: 'splitLine', mode: 'largest' });
-    expect(cur(s).lines[1].name).toBe('Мощный прибор');
+    expect(cur(s).lines[1].name).toBe('Силовая');
     expect(cur(s).lines[1].wet).toBe(true);
   });
   it('half balances appliances into a second line named with (2)', () => {

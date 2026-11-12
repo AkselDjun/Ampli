@@ -121,7 +121,7 @@ export function RoomsSheet({
                 <select className={'type-chip t-' + ap.tag} aria-label="Тип нагрузки" value={ap.tag} onChange={e => dispatch({ t: 'roomAppField', rid: r.id, aid: ap.id, field: 'tag', value: e.target.value })}>
                   <option value="l">Свет</option>
                   <option value="s">Розетка</option>
-                  <option value="p">Мощный</option>
+                  <option value="p">Силовая</option>
                 </select>
                 <IconButton label="Удалить прибор" onClick={() => dispatch({ t: 'roomAppDel', rid: r.id, aid: ap.id })}><IconClose /></IconButton>
                 <Err e={we && asLabel('Мощность', we)} id={'e-rw-' + ap.id} />

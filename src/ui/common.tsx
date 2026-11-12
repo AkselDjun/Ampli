@@ -16,6 +16,8 @@ export function segStacks(labels: string[]): boolean {
   return word * labels.length > 30 || full > 24;
 }
 
+export const segAsList = (labels: string[]): boolean => (labels.length >= 4 && labels.join('').length > 24) || segStacks(labels);
+
 export function Seg<T extends string | number>({
   name, value, items, onChange, labelledBy
 }: {
@@ -25,9 +27,9 @@ export function Seg<T extends string | number>({
   onChange: (v: T) => void;
   labelledBy?: string;
 }) {
-  const stack = segStacks(items.map(i => i[1]));
+  const list = segAsList(items.map(i => i[1]));
   return (
-    <div className={stack ? 'rlist' : 'seg'} role="radiogroup" aria-labelledby={labelledBy} data-n={items.length} data-stack={stack ? '' : undefined}>
+    <div className={list ? 'radios' : 'seg'} role="radiogroup" aria-labelledby={labelledBy} data-n={items.length}>
       {items.map(([v, label]) => (
         <label key={String(v)}>
           <input type="radio" name={name} value={String(v)} checked={String(value) === String(v)} onChange={() => onChange(v)} />

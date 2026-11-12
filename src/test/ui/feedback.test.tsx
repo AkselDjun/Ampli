@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { App } from '../../ui/App';
-import { PanelPane, shortName } from '../../ui/Side';
+import { PanelPane } from '../../ui/Side';
 import { Schematic } from '../../ui/Schematic';
 import { PrintDoc } from '../../ui/PrintDoc';
 import { PassportBody } from '../../ui/Passport';
@@ -28,11 +28,11 @@ const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const rows = () => Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
 
 describe('panel board in RCD mode', () => {
-  it('captions every module and has no device glossary', () => {
+  it('captions RCDs and the input, numbers single breakers and has no device glossary', () => {
     const p = proj(lines(), { prot: 'rcd' });
     render(<PanelPane a={calcAll(p.lines, p.cfg)} />);
     const caps = Array.from(document.querySelectorAll('.rail .dev-cap')).map(e => e.textContent);
-    expect(caps).toEqual(['Ввод', 'Комнаты', 'Свет', 'Розет.', 'Ванная', 'Стир.']);
+    expect(caps).toEqual(['Ввод', 'Комнаты', '', '', 'Ванная', '']);
     expect(document.querySelectorAll('.rail .dev-uzo').length).toBe(2);
     const legend = document.querySelector('.legend') as HTMLElement;
     expect(legend.textContent).toContain('УЗО');
@@ -158,7 +158,7 @@ describe('editor fields from the electricians', () => {
     boot();
     click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
     const d = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Параметры сети') as HTMLElement;
-    expect(d.querySelector('input[name="box"]')?.closest('.seg')?.getAttribute('data-n')).toBe('4');
+    expect(d.querySelector('input[name="box"]')?.closest('.radios')?.getAttribute('data-n')).toBe('4');
     fireEvent.click(d.querySelector('input[name="prot"][value="rcd"]') as HTMLElement);
     fireEvent.keyDown(document, { key: 'Escape' });
     fireEvent.click(rows()[0]);
@@ -195,15 +195,17 @@ describe('owner passport body', () => {
   });
 });
 
-describe('short captions for single-module breakers', () => {
-  it('abbreviates long first words on a consonant', () => {
-    expect(shortName('Освещение')).toBe('Освещ.');
-    expect(shortName('Розетки: кухня')).toBe('Розет.');
-    expect(shortName('Кондиционер')).toBe('Конд.');
-    expect(shortName('Стиральная машина')).toBe('Стир.');
-    expect(shortName('Бойлер')).toBe('Бойлер');
-    expect(shortName('Плита и духовка')).toBe('Плита');
-    expect(shortName('')).toBe('');
+describe('captions on single-module breakers', () => {
+  it('shows the group number and type colour and keeps the name for the tooltip and the card', () => {
+    const lines = [mkLine('Освещение гостиной', 'light', 10, [['Люстра', 100, 1]]), mkLine('Плита', 'power', 5, [['Электроплита', 7000, 1]])];
+    const a = calcAll(lines, { ...defaultCfg(), prot: 'rcd' });
+    const { container, unmount } = render(<PanelPane a={a} />);
+    const first = container.querySelector('.rail .dev[data-lid="' + lines[0].id + '"]') as HTMLElement;
+    expect(first.querySelector('i')?.textContent).toBe('Г1');
+    expect(first.querySelector('.dev-cap')?.textContent).toBe('');
+    expect(first.getAttribute('data-tip')).toContain('Освещение гостиной');
+    expect(first.getAttribute('data-t')).toBe('light');
+    unmount();
   });
 });
 
@@ -263,7 +265,7 @@ describe('panel mode as a real board', () => {
     expect(d.querySelector('.pm .no')?.textContent).toBe('Г2');
     expect(d.querySelector('.pm-prot')?.textContent).toContain('Комнаты');
     expect(byLabel(d, 'Г2: Изоляция, МОм').placeholder).toBe('норма от 0,5');
-    expect(byLabel(d, 'Г2: Отключение УЗО, мс').placeholder).toBe('норма до 500');
+    expect(byLabel(d, 'Г2: Отключение УЗО, мс').placeholder).toBe('норма до 300');
     expect(byLabel(d, 'Г2: Петля фаза-нуль, Ом').placeholder).toMatch(/^норма до \d+,\d{2}$/);
     expect(byLabel(d, 'Г2: Утечка, мА').placeholder).toBe('норма до 10,0');
   });
@@ -309,7 +311,7 @@ describe('apartment totals in the header', () => {
     expect(b).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(b);
     const pop = document.getElementById('tot-pop') as HTMLElement;
-    expect(pop.textContent).toContain('Укладывается');
+    expect(pop.textContent).toContain('Норма');
     expect(pop.textContent).toContain('Установлено');
     expect(pop.textContent).toContain('2P C50');
     expect(pop.textContent).toContain('ВВГнг(А)-LS 3×');
@@ -330,7 +332,7 @@ describe('apartment totals in the header', () => {
     const mk = (w: number, alloc = 15, supply = 1) => calcAll(w ? [mkLine('A', 'power', 5, [['x', w, 1]])] : [], { ...defaultCfg(), alloc, supply });
     expect(allocState(mk(0))).toEqual({ pct: 0, k: 'ok', text: 'Нет нагрузки' });
     expect(allocState(mk(2000)).k).toBe('ok');
-    expect(allocState(mk(2000)).text).toBe('Укладывается');
+    expect(allocState(mk(2000)).text).toBe('Норма');
     expect(allocState(mk(13000, 10, 3)).k).toBe('warn');
     const bad = allocState(mk(20000, 10, 3));
     expect(bad.k).toBe('bad');
@@ -385,7 +387,7 @@ describe('compact estimate and measurements', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /Отчёт/ })[0]);
     fireEvent.click(screen.getByRole('tab', { name: 'Смета' }));
     const inp = document.querySelector('.spec-t .price-in') as HTMLInputElement;
-    expect(inp.placeholder).toBe('цена');
+    expect(inp.placeholder).toBe('0,00');
     expect(document.querySelector('#rep-tp-estimate .tot')).toBeTruthy();
   });
 });
@@ -428,7 +430,7 @@ describe('small window fixes', () => {
   it('keeps one primary action on the documents tab of acceptance', () => {
     render(<App />);
     fireEvent.click(screen.getAllByRole('button', { name: /Приёмка/ })[0]);
-    const d = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Монтаж и приёмка') as HTMLElement;
+    const d = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Приёмка') as HTMLElement;
     fireEvent.click(within(d).getByRole('tab', { name: 'Документы' }));
     expect(d.querySelectorAll('#wk-tp-docs .btn.primary').length).toBe(0);
     const prim = Array.from(d.querySelectorAll<HTMLElement>('.btn.primary')).filter(b => !b.closest('[hidden]'));

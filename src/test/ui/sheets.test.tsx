@@ -4,6 +4,8 @@ import { App } from '../../ui/App';
 import { LIB_KEY } from '../../store/lib';
 import { btn, byLabel, change, click, dlg, isOpen, wide, toastText } from './util';
 import { stored } from '../stored';
+import { markChapterHint } from '../../features/onboarding/storage';
+import { TOUR_CHAPTER } from '../../features/onboarding/model';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -16,7 +18,7 @@ const open = (title: string) => {
     click(list(), '+ Добавить группу');
     click(list(), 'Из комнат');
   }
-  else click(document.querySelector('nav.tabs') as HTMLElement, title === 'Монтаж и приёмка' ? /Приёмка/ : /Отчёт/);
+  else click(document.querySelector('nav.tabs') as HTMLElement, title === 'Приёмка' ? /Приёмка/ : /Отчёт/);
   return dlg(title);
 };
 
@@ -273,6 +275,7 @@ describe('ReportSheet', () => {
   it('falls back to a selectable textarea when clipboard fails and clears status', async () => {
     vi.useFakeTimers();
     Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.reject(new Error('x')) }, configurable: true });
+    markChapterHint(TOUR_CHAPTER.HANDOVER);
     render(<App />);
     const d = open('Отчёт и спецификация');
     click(d, 'Скопировать отчёт');
