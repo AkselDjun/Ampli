@@ -21,7 +21,6 @@
   .workspace{height:calc(100vh - var(--bar) - env(safe-area-inset-top,0px));height:calc(100dvh - var(--bar) - env(safe-area-inset-top,0px));padding-block:var(--s-4);display:grid;grid-template-columns:350px minmax(0,1fr);gap:var(--s-5)}
   .col-list,.main-col{overflow-y:auto;min-height:0;scrollbar-width:thin;padding-bottom:var(--s-3)}
   .main-col{display:block}
-  .col-edit{margin-bottom:var(--s-5)}
 }
 @media (--wide-l){
   .workspace{grid-template-columns:350px minmax(0,1fr) 400px}

@@ -9,7 +9,7 @@
 
   --bar:56px;
 
-  --field-h:44px;--field-h-s:36px;--field-px:var(--s-3);--field-r:var(--r-m);--field-fs:var(--t-base);--field-bw:1px;--check-s:20px;--check-bw:2px;
+  --field-h:44px;--field-h-s:36px;--field-px:var(--s-3);--field-r:var(--r-s);--field-fs:var(--t-base);--field-bw:1px;--check-s:20px;--check-bw:2px;
   --gutter:16px;--gap:16px;--pad:16px;
 
   --dur-fast:.15s;--dur-quick:.18s;--dur:.2s;
@@ -21,7 +21,7 @@
   --surface:#FFFFFF;
   --surface-2:#E5EAEE;
   --seg-on:#FFFFFF;
-  --field:#F4F6F8;
+  --field:#FFFFFF;
   --ink:#0E1822;
   --ink-2:#52626E;
   --line:#D3DBE1;

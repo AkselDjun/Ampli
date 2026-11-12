@@ -14,7 +14,7 @@
 .brand{display:flex;align-items:center;gap:var(--s-3);font-weight:700;font-size:var(--t-l);letter-spacing:-0.01em;white-space:nowrap}
 .kpis{display:flex;gap:22px;margin-left:auto}
 .kpis b{display:block;font-family:var(--font-num);font-size:var(--t-l);font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.25}
-.ab-btn{display:flex;align-items:center;gap:var(--s-2);height:40px;padding:0 var(--s-3);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);font-weight:600;font-size:var(--t-m);cursor:pointer;white-space:nowrap}
+.ab-btn{display:flex;align-items:center;gap:var(--s-2);height:40px;padding:0 var(--s-3);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);font-weight:600;font-size:var(--t-m);cursor:pointer;white-space:nowrap;transition:border-color var(--dur-fast) ease,background-color var(--dur-fast) ease,box-shadow var(--dur-fast) ease,transform .1s ease}
 .ab-btn:hover{border-color:var(--ink-2)}
 .ab-btn svg{width:20px;height:20px}
 
@@ -44,9 +44,6 @@
 .kpis>div:first-of-type{border-left:0}
 .kpis .lbl{color:var(--disp-dim);font-size:var(--t-xs);font-weight:500;letter-spacing:0.02em}
 .kpis b{color:var(--disp-lit);font-size:var(--t-l);text-shadow:0 0 12px rgba(127,224,176,0.35)}
-
-.ab-btn{transition:border-color var(--dur-fast) ease,background-color var(--dur-fast) ease,box-shadow var(--dur-fast) ease,transform .1s ease}
-.ab-btn:active{transform:scale(0.98)}
 .ab-btn{border-radius:var(--r-m);box-shadow:var(--sh-1)}
 
 @media (--tablet){
@@ -54,7 +51,6 @@
   .kpis>div{padding:0 10px}
   .kpis b{font-size:var(--t-base)}
 }
-@media (prefers-reduced-motion:reduce){.ab-btn:active{transform:none}}
 @media (--upto-380){
   .ab-main{gap:var(--s-2)}
   .kpis>div{padding:0 7px}
@@ -118,7 +114,6 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
 @media (--tablet){
   button.kpis{padding:var(--s-1-5) 26px var(--s-2) var(--s-0-5)}
   button.kpis>div{padding:0 var(--s-2)}
-  .kp-chev{right:6px}
   .kp-of{display:none}
 }
 .kp-s{display:none}
@@ -150,7 +145,6 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
 #rep-tp-estimate .tot{position:sticky;bottom:calc(-1 * var(--pad));z-index:2;margin:0 calc(-1 * var(--pad)) calc(-1 * var(--pad));padding:var(--s-3) var(--pad);border-width:1px 0 0;border-radius:0;box-shadow:0 -6px 18px rgba(14,24,34,.1)}
 
 .ab-tw{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);align-content:center}
-.ab-tw .ab-title{line-height:1.25}
 .ab-sub:empty{display:none}
 .ab-tw:has(.ed-mini) .ab-title{font-size:var(--t-l)}
 .ab-btn{transition:transform .08s ease,background-color var(--dur-fast) ease,border-color var(--dur-fast) ease,box-shadow var(--dur-fast) ease}
@@ -162,7 +156,7 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
   .ab-edit>.btn{flex:none;min-height:44px}
 }
 @media (--upto-359){.ed-mini b:nth-of-type(4){display:none}}
-.ab-tw .ab-title{transition:opacity var(--dur-fast) ease}
+.ab-tw .ab-title{line-height:1.25;transition:opacity var(--dur-fast) ease}
 .ab-tw:not(:has(.ed-mini)) .ab-title{opacity:0;visibility:hidden}
 .ab-kbd{display:none;padding:0 var(--s-1-5);border:1px solid var(--line);border-radius:var(--r-xs);background:var(--surface-2);color:var(--ink-2);font:inherit;font-size:var(--t-xs);font-weight:500;line-height:1.6}
 @media (--wide){.ab-find{color:var(--ink-2)} .ab-kbd{display:inline-block}}

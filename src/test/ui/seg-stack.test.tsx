@@ -18,10 +18,12 @@ describe('segmented control on narrow phones', () => {
     expect(segStacks(['Подобрать', 'Бетон, кирпич', 'Гипсокартон', 'Накладные IP54'])).toBe(false);
   });
 
-  it('marks the radio group so the layout can stack it', () => {
+  it('shows long options as a radio list and short ones as a segment', () => {
     const { container, rerender } = render(<Seg name="a" value="" items={[['', 'Нет'], ['p', 'Приоритетная'], ['s', 'Отключается']]} onChange={vi.fn()} />);
-    expect(container.querySelector('.seg')).toHaveAttribute('data-stack');
+    expect(container.querySelector('.rlist')).toHaveAttribute('data-stack');
+    expect(container.querySelector('.seg')).toBeNull();
     rerender(<Seg name="a" value="l" items={[['l', 'Свет'], ['s', 'Розетки']]} onChange={vi.fn()} />);
     expect(container.querySelector('.seg')).not.toHaveAttribute('data-stack');
+    expect(container.querySelector('.rlist')).toBeNull();
   });
 });

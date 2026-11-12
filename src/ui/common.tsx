@@ -25,8 +25,9 @@ export function Seg<T extends string | number>({
   onChange: (v: T) => void;
   labelledBy?: string;
 }) {
+  const stack = segStacks(items.map(i => i[1]));
   return (
-    <div className="seg" role="radiogroup" aria-labelledby={labelledBy} data-n={items.length} data-stack={segStacks(items.map(i => i[1])) ? '' : undefined}>
+    <div className={stack ? 'rlist' : 'seg'} role="radiogroup" aria-labelledby={labelledBy} data-n={items.length} data-stack={stack ? '' : undefined}>
       {items.map(([v, label]) => (
         <label key={String(v)}>
           <input type="radio" name={name} value={String(v)} checked={String(value) === String(v)} onChange={() => onChange(v)} />
