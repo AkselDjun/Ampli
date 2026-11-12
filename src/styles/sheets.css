@@ -336,8 +336,9 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
 .pfit{margin:var(--s-2) 0 var(--s-4);padding:var(--s-3);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
 .pfit .sec-t{margin-top:0}
 .pfit-lead{margin:0 0 var(--s-2);color:var(--ink-2)}
-.pfit-list{margin:0;padding:0;list-style:none;display:grid;gap:var(--s-2)}
-.pfit-o{display:grid;gap:var(--s-1);justify-items:start;padding:var(--s-2) var(--s-3);border-radius:var(--r-m);background:var(--surface-2)}
+.pfit-list{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-2)}
+.pfit-o{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-1);justify-items:start;padding:var(--s-2) var(--s-3);border-radius:var(--r-m);background:var(--surface-2)}
 .pfit-o.ok small{color:var(--ok)}
-.pfit-now{display:grid;gap:var(--s-2);justify-items:start;margin-top:var(--s-3)}
+.pfit-now{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-2);justify-items:start;margin-top:var(--s-3)}
 .pfit-now p{margin:0}
+.pfit-lead,.pfit-o>span,.pfit-now p{max-width:100%;overflow-wrap:anywhere}
