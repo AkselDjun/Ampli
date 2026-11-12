@@ -197,6 +197,10 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
   if (r.load > LOAD_WARN) r.tips.push('Автомат загружен на ' + fmt(r.load * 100, 0) + ' %. В плотно собранном щитке автоматы нагреваются и могут отключаться раньше номинала: задайте запас по автомату в параметрах сети.');
   const plain = STD.find(x => x >= Math.max(I * c.margin, t.minIn));
   if (longMin && plain !== undefined && plain < LONG_MIN_IN) r.tips.push('Автомат не меньше ' + LONG_MIN_IN + ' А для стиральной, сушильной и посудомоечной машины, водонагревателя: длительная нагрузка с нагревателем.');
+  if (r.rcd && r.ma === 10 && r.In > RCD10_MAX_IN) {
+    r.status = r.status === 'bad' ? 'bad' : 'warn';
+    r.notes.push((r.rcbo ? 'Дифавтоматы' : 'УЗО') + ' на 10 мА выпускаются на ток до ' + RCD10_MAX_IN + ' А, а группе нужен автомат ' + r.In + ' А. Разделите нагрузку на несколько групп' + (c.supply === 3 && l.type === 'power' && !three ? ' или переведите прибор на трёхфазную группу' : '') + '.');
+  }
   if (l.type === 'socket' && r.In > 16) {
     r.status = r.status === 'bad' ? 'bad' : 'warn';
     r.notes.push('Для розеточной группы это много. Вынесите мощные приборы в отдельные линии.');

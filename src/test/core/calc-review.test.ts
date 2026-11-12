@@ -181,3 +181,30 @@ describe('stored projects', () => {
     expect([l.apps[1].cos, l.apps[1].alt]).toEqual([undefined, undefined]);
   });
 });
+
+describe('10 mA protection above 40 A', () => {
+  const sauna = (kw: number, phase: 'L1' | '3' = 'L1') => ({ ...mkLine('Сауна', 'power', 10, [['Электрокаменка', kw * 1000, 1]], phase), wet: true, zone: 'Баня' });
+  const warned = (r: { notes: string[] }) => r.notes.some(n => n.includes('на 10 мА выпускаются на ток до 40 А'));
+
+  it('warns when a wet group needs a breaker above 40 A under an RCD', () => {
+    const a = calcAll([sauna(11)], { ...defaultCfg(), prot: 'rcd', alloc: 20 });
+    expect(a.rows[0].r.In).toBe(50);
+    expect(a.rows[0].r.status).toBe('warn');
+    expect(warned(a.rows[0].r)).toBe(true);
+    expect(a.rows[0].r.notes.join(' ')).toContain('УЗО на 10 мА');
+  });
+
+  it('warns for a 10 mA RCBO above 40 A and offers three phases where they exist', () => {
+    const one = calcAll([sauna(11)], { ...defaultCfg(), prot: 'rcbo', alloc: 20 });
+    expect(warned(one.rows[0].r)).toBe(true);
+    expect(one.rows[0].r.notes.join(' ')).toContain('Дифавтоматы на 10 мА');
+    expect(one.rows[0].r.notes.join(' ')).not.toContain('трёхфазную');
+    const three = calcAll([sauna(11)], { ...defaultCfg(), supply: 3, prot: 'rcbo', alloc: 20 });
+    expect(three.rows[0].r.notes.join(' ')).toContain('переведите прибор на трёхфазную группу');
+  });
+
+  it('stays quiet up to 40 A and for dry rooms', () => {
+    expect(warned(calcAll([sauna(8)], { ...defaultCfg(), prot: 'rcd' }).rows[0].r)).toBe(false);
+    expect(warned(calcAll([{ ...sauna(11), wet: false }], { ...defaultCfg(), prot: 'rcd', alloc: 20 }).rows[0].r)).toBe(false);
+  });
+});
