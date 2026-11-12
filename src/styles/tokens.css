@@ -61,6 +61,7 @@
   --disp-warn:#F2B24C;
   --disp-bad:#FF8A80;
   --disp-link:#9CC3FF;
+  --toast-edge:transparent;
   --dev-body:linear-gradient(180deg,#fff,#e9edf0);
   --dev-ink:#0E1822;
   --dev-edge:#aeb8bf;
@@ -173,6 +174,7 @@
     --ty-power-soft:#3A1A2C;
     --ty-power-ink:#F383C2;
     --disp-bg:#070C11;
+    --toast-edge:#3B4D5E;
     --dev-body:linear-gradient(180deg,#2b3946,#1d2833);
     --dev-ink:#E6ECF1;
     --dev-edge:#3b4a58;
@@ -224,6 +226,7 @@
   --ty-power-soft:#3A1A2C;
   --ty-power-ink:#F383C2;
   --disp-bg:#070C11;
+  --toast-edge:#3B4D5E;
   --dev-body:linear-gradient(180deg,#2b3946,#1d2833);
   --dev-ink:#E6ECF1;
   --dev-edge:#3b4a58;

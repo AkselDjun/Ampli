@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { HoverTips, Toaster } from '../../ui/common';
 import { currentToast, dismissToast, toast, toastBad, toastLife, toastOk, toastUndo } from '../../ui/toast';
@@ -58,10 +58,10 @@ describe('Toaster', () => {
     render(<Toaster />);
     act(() => toastOk('Готово'));
     const card = document.querySelector('.toast') as HTMLElement;
-    fireEvent.mouseEnter(card);
+    fireEvent.pointerEnter(card, { pointerType: 'mouse' });
     act(() => { vi.advanceTimersByTime(9000); });
     expect(currentToast()?.text).toBe('Готово');
-    fireEvent.mouseLeave(card);
+    fireEvent.pointerLeave(card, { pointerType: 'mouse' });
     fireEvent.focus(card);
     act(() => { vi.advanceTimersByTime(9000); });
     expect(currentToast()?.text).toBe('Готово');
@@ -69,6 +69,23 @@ describe('Toaster', () => {
     act(() => { vi.advanceTimersByTime(4400); });
     expect(currentToast()?.text).toBe('Готово');
     act(() => { vi.advanceTimersByTime(200); });
+    expect(currentToast()).toBeNull();
+  });
+});
+
+describe('Toaster on a touch screen', () => {
+  afterEach(() => {
+    act(() => dismissToast());
+    vi.useRealTimers();
+  });
+  it('closes by itself after a tap near the card', () => {
+    vi.useFakeTimers();
+    render(<Toaster />);
+    act(() => toast('В Ampli новое', { label: 'Показать', run: () => undefined }));
+    const card = document.querySelector('.toast') as HTMLElement;
+    fireEvent.pointerEnter(card, { pointerType: 'touch' });
+    fireEvent.mouseEnter(card);
+    act(() => { vi.advanceTimersByTime(8100); });
     expect(currentToast()).toBeNull();
   });
 });
