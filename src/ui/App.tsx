@@ -262,7 +262,7 @@ export function App() {
         if (error instanceof ProjectConflictError) {
           conflict.current = true;
           if (mounted.current) setSaveStatus('conflict');
-          try { localStorage.removeItem(BOOT_KEY); } catch { /* storage may be unavailable */ }
+          try { localStorage.removeItem(BOOT_KEY); } catch (e) { void e; }
           toastBad('Проект изменён в другой вкладке. Обновите страницу перед продолжением работы.');
           return;
         }
