@@ -44,7 +44,7 @@ describe('Labour estimate in the report', () => {
     render(<App />);
     const d = openEstimate();
     expect(d.textContent).toContain('Работы');
-    expect(d.querySelector('.tot-all dd')?.textContent).toBe('0,00 BYN');
+    expect(d.querySelector('.tot-all dd')?.textContent).toBe('цены не заданы');
     const qty = byLabel(d, 'Количество: Установка выключателя');
     expect(qty.placeholder).toBe('0');
     change(qty, '5');

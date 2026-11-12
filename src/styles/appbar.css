@@ -72,6 +72,7 @@
 .tot .tot-all{border-top:1px solid var(--line);padding-top:var(--s-2);margin-top:var(--s-0-5)}
 .tot .tot-all dt{color:var(--ink);font-weight:700}
 .tot .tot-all dd{font-size:var(--t-xl);font-weight:700}
+.tot .tot-all dd.tot-none{font-size:var(--t-m);font-weight:600;color:var(--ink-2)}
 
 @media (--wide){
   .ab-btn{width:auto;padding:0 var(--s-4)}
