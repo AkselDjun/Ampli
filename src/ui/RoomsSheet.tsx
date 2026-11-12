@@ -79,7 +79,12 @@ export function RoomsSheet({
     if (r.rooms.length) setText(r.skipped.join('\n'));
   };
   return (
-    <Sheet open={open} onClose={onClose} title="Комнаты" tourId="rooms" tip="Опишите комнаты и приборы, группы соберутся сами: свет и розетки по комнатам, мощные приборы отдельными линиями. Потом группы можно поправить вручную.">
+    <Sheet open={open} onClose={onClose} title="Комнаты" tourId="rooms" footer={(
+      <>
+        <span className="foot-st">{rooms.length ? rooms.length + ' ' + plural(rooms.length, ['комната', 'комнаты', 'комнат']) : 'Комнат пока нет'}</span>
+        <ArmButton variant="primary" label={'Собрать группы: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])} armedLabel="Заменить текущие группы?" disabled={planned === 0} onRun={() => { dispatch({ t: 'assemble' }); onClose(); toastOk('Собрано из комнат: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])); }} />
+      </>
+    )} tip="Опишите комнаты и приборы, группы соберутся сами: свет и розетки по комнатам, мощные приборы отдельными линиями. Потом группы можно поправить вручную.">
       <div className="chips room-add">
         {ROOM_PRESETS.map(r => (
           <button key={r.key} className="chip" type="button" onClick={() => dispatch({ t: 'roomAdd', room: makeRoom(r) })}>+ {r.title}</button>
@@ -130,9 +135,6 @@ export function RoomsSheet({
           </div>
         </section>
       ))}
-      <div className="copy-row">
-        <ArmButton variant="primary" label={'Собрать группы: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])} armedLabel="Заменить текущие группы?" disabled={planned === 0} onRun={() => { dispatch({ t: 'assemble' }); onClose(); toastOk('Собрано из комнат: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])); }} />
-      </div>
     </Sheet>
   );
 }

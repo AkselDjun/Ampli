@@ -35,7 +35,13 @@ export function TraceSheet({ photo, url, onSave, onClose }: { photo: Photo; url:
   };
   const ready = list.filter(x => x.pts.length >= 4);
   return (
-    <Sheet open onClose={onClose} title="Разметка трасс" tip="Нажимайте на фото по ходу кабеля: от коробки или щитка до розетки. С включёнными прямыми углами каждый отрезок идёт строго по горизонтали или вертикали, как кабель в штробе.">
+    <Sheet open onClose={onClose} title="Разметка трасс" footer={(
+      <>
+        <span className="foot-st">Готовых трасс: <b>{ready.length}</b></span>
+        <Button variant="ghost" onClick={onClose}>Отмена</Button>
+        <Button variant="primary" onClick={done}>Сохранить</Button>
+      </>
+    )} tip="Нажимайте на фото по ходу кабеля: от коробки или щитка до розетки. С включёнными прямыми углами каждый отрезок идёт строго по горизонтали или вертикали, как кабель в штробе.">
       <div className="tr-wrap" onPointerDown={tap} role="img" aria-label={'Фото стены, трасс: ' + ready.length}>
         <img src={url} alt="" draggable={false} />
         <TraceOverlay traces={list} cur={cur} />
@@ -58,10 +64,6 @@ export function TraceSheet({ photo, url, onSave, onClose }: { photo: Photo; url:
           </li>
         ))}
       </ol>
-      <div className="tr-act">
-        <Button variant="primary" onClick={done}>Сохранить</Button>
-        <Button variant="ghost" onClick={onClose}>Отмена</Button>
-      </div>
     </Sheet>
   );
 }

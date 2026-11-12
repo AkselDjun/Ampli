@@ -3,7 +3,7 @@ import { OLD_EMPTY, OLD_SIGNS, oldVerdict } from '../core/oldwire';
 import type { OldKey } from '../core/oldwire';
 import type { Action } from '../store/reducer';
 import { plural } from '../core/format';
-import { ArmButton, Seg, Sheet } from './common';
+import { ArmButton, DoneFoot, Seg, Sheet } from './common';
 import { IconAlert, IconDone } from './Icons';
 import type { PrintMode } from './WorkSheet';
 import { Button } from './kit';
@@ -54,7 +54,7 @@ export function OldSheet({ open, onClose, p, a, dispatch, onPrint }: { open: boo
   const bad = v.findings.filter(f => f.k === 'bad').length;
   const warn = v.findings.filter(f => f.k === 'warn').length;
   return (
-    <Sheet open={open} onClose={onClose} title="Старая проводка" tip="Обследование проводки перед ремонтом: что можно оставить, что заменить и что сделать с PE и УЗО. Выводы со ссылками на ТКП 339-2022, СН 4.04.01-2019, ПУЭ и ГОСТ 30331.15. Пометка «практика» означает совет без прямой нормы.">
+    <Sheet open={open} onClose={onClose} title="Старая проводка" kind="panel" footer={<DoneFoot onDone={onClose} status={v.label} />} tip="Обследование проводки перед ремонтом: что можно оставить, что заменить и что сделать с PE и УЗО. Выводы со ссылками на ТКП 339-2022, СН 4.04.01-2019, ПУЭ и ГОСТ 30331.15. Пометка «практика» означает совет без прямой нормы.">
       <div className={'ow-head k-' + v.status}>
         <span className={'pill ' + pillK(v.status)}>{v.label}</span>
         <span className="muted">{v.status === 'none' ? 'Ответьте на вопросы ниже, вывод появится сразу' : [bad ? bad + ' ' + plural(bad, ['замечание', 'замечания', 'замечаний']) : '', warn ? warn + ' ' + plural(warn, ['условие', 'условия', 'условий']) : ''].filter(Boolean).join(', ') || 'Замечаний нет'}</span>
