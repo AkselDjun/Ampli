@@ -9,7 +9,7 @@
 .nl-items span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nl-items small{display:block;font-size:var(--t-s);font-weight:500;color:var(--ink-2)}
 .netline .chev{width:18px;height:18px;color:var(--ink-2)}
-.sample{font-size:var(--t-sm);color:var(--ink-2);background:transparent;border:1px dashed var(--line);padding:var(--s-2) var(--s-3);border-radius:var(--r-m);line-height:1.4}
+.sample{font-size:var(--t-sm);color:var(--ink-2);background:var(--surface-2);border:0;padding:var(--s-2) var(--s-3);border-radius:var(--r-m);line-height:1.4}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:var(--s-4);display:grid;gap:var(--s-3)}
 .kpi-top{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s-2);flex-wrap:wrap}
 .kpi-top b{font-family:var(--font-num);font-size:var(--t-2xl);font-weight:700;font-variant-numeric:tabular-nums}
@@ -220,7 +220,7 @@
 .start-b:active,.start-ty:active,.lv-t:active,.fab-b:active{transform:scale(.97)}
 .row:active,.zone-h button:active,.netfold:active,.projbar:active{transform:scale(.99)}
 @media (prefers-reduced-motion:reduce){.start-b:active,.start-ty:active,.lv-t:active,.fab-b:active,.row:active,.zone-h button:active,.netfold:active,.projbar:active{transform:none}}
-.nf-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--line)}
+.nf-pair{display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column;border-top:1px solid var(--line)}
 .nf-pair .netfold{padding-inline:var(--s-3) var(--s-2);gap:var(--s-2)}
 .nf-pair .netfold+.netfold{border-left:1px solid var(--line)}
 .nf-pair .netfold .chev{display:none}
@@ -237,8 +237,6 @@
   .list-head .hist{flex-wrap:wrap;justify-content:flex-end}
   .row .chev{display:none}
 }
-.nf-pair.compact .netfold{min-height:44px;padding-block:var(--s-1-5)}
-.nf-pair.compact .nf-main small{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (--tablet){.pb-name{display:block;white-space:nowrap;text-overflow:ellipsis}}
 @media (--upto-420){
   .list-head .hist{display:flex;flex:1 1 100%;flex-wrap:wrap;gap:var(--s-2);margin-left:0;justify-content:flex-start}
@@ -255,6 +253,5 @@
 .am-pair .am-ic{width:28px;height:28px;border-radius:8px;color:var(--ink-2)}
 .am-pair .am-ic svg{width:18px;height:18px}
 @media (--tablet){
-  .nf-pair.compact{display:none}
   .sample{display:none}
 }

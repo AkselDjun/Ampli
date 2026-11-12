@@ -182,8 +182,6 @@ export const GroupList = memo(function GroupList({
     ...(c.spd ? [['УЗИП', 'УЗИП'] as [string, string]] : []),
     ...(c.afdd !== 'off' ? [['УЗДП', c.afdd === 'sock' ? 'УЗДП на розетки' : 'УЗДП на группы'] as [string, string]] : [])
   ];
-  const floorLabel = floorSummary(p.floor) || 'мат, кабель, плёнка';
-  const weakLabel = weakSummary(p.weak) || 'интернет, ТВ, камеры';
   return (
     <section className="col col-list" id="groups" tabIndex={-1} aria-label="Группы линий">
       <div className="proj-box">
@@ -209,18 +207,24 @@ export const GroupList = memo(function GroupList({
               <IconChev className="chev" />
             </button>
           )}
-          <div className={'nf-pair' + (floorSummary(p.floor) || weakSummary(p.weak) ? '' : ' compact')}>
-            <button className="netfold" type="button" onClick={onOpenFloor}>
-              <IconHeat />
-              <span className="nf-main">Тёплый пол<span className="vh">: </span><small>{floorLabel}</small></span>
-              <IconChev className="chev" />
-            </button>
-            <button className="netfold" type="button" onClick={onOpenWeak}>
-              <IconLan />
-              <span className="nf-main">Слаботочка<span className="vh">: </span><small>{weakLabel}</small></span>
-              <IconChev className="chev" />
-            </button>
-          </div>
+          {(floorSummary(p.floor) || weakSummary(p.weak)) && (
+            <div className="nf-pair">
+              {floorSummary(p.floor) && (
+                <button className="netfold" type="button" onClick={onOpenFloor}>
+                  <IconHeat />
+                  <span className="nf-main">Тёплый пол<span className="vh">: </span><small>{floorSummary(p.floor)}</small></span>
+                  <IconChev className="chev" />
+                </button>
+              )}
+              {weakSummary(p.weak) && (
+                <button className="netfold" type="button" onClick={onOpenWeak}>
+                  <IconLan />
+                  <span className="nf-main">Слаботочка<span className="vh">: </span><small>{weakSummary(p.weak)}</small></span>
+                  <IconChev className="chev" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
       {p.sample && (
