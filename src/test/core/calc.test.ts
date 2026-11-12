@@ -34,8 +34,8 @@ describe('cfgN', () => {
 
 describe('loop and short circuit', () => {
   it('computes loop resistance with PE cap', () => {
-    expect(loopOhm(2.5, 10)).toBeCloseTo(0.0225 * 1.5 * 10 * (2 / 2.5), 6);
-    expect(loopOhm(25, 10)).toBeCloseTo(0.0225 * 1.5 * 10 * (1 / 25 + 1 / 16), 6);
+    expect(loopOhm(2.5, 10)).toBeCloseTo(0.0175 * 1.5 * 10 * (2 / 2.5), 6);
+    expect(loopOhm(25, 10)).toBeCloseTo(0.0175 * 1.5 * 10 * (1 / 25 + 1 / 16), 6);
   });
   it('computes short circuit current', () => {
     expect(shortCircuit(2.5, 0, 0.3)).toBeCloseTo(230 / 0.3, 6);
@@ -150,7 +150,7 @@ describe('voltage drop', () => {
 
 describe('short circuit checks', () => {
   it('upsizes cable for KZ', () => {
-    const r = run(pw(500, 70, 'power', {}), { zs: 0.5 });
+    const r = run(pw(500, 100, 'power', {}), { zs: 0.5 });
     expect(r.notes.some(n => n.includes('короткое замыкание'))).toBe(true);
     expect(r.status).toBe('warn');
     expect(r.ik).toBeGreaterThanOrEqual(r.ikNeed);

@@ -6,11 +6,10 @@ import { ROWLEN } from '../core/norms';
 import { railCells, useFitCols } from './railfit';
 import { VERDICT, protocolRows } from '../core/protocol';
 import type { ProtoRow } from '../core/protocol';
-import { cableName } from '../core/protection';
+import { cableName, inPoles } from '../core/protection';
 import type { Action, MeasField } from '../store/reducer';
 import { Err, errAttrs } from './common';
 import { fieldErr } from '../core/limits';
-import { shortName } from './Side';
 import { Button } from './kit';
 
 const FIELDS: { f: MeasField; label: string; unit: string; step: number }[] = [
@@ -87,6 +86,10 @@ export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: C
       {rows.length === 0 && <p className="muted">Добавьте группы с приборами, они появятся здесь.</p>}
       {rows.length > 0 && (
         <>
+          <div className="pmb-top">
+            <span><b>{done}</b> из {rows.length} групп измерено</span>
+            <span className="pmb-leg"><i className="v-ok" />соответствует <i className="v-bad" />нет <i className="v-none" />не измерено</span>
+          </div>
           <div className="pmb-box">
             <div className="pmb-rail" ref={railRef} data-rc={cols} style={{ ['--rc' as string]: cols }}>
               {a.devs.map((d, i) => {
@@ -101,7 +104,7 @@ export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: C
                         <span className="pmb-scr" />
                         <span className="pmb-rate">{d.label}</span>
                         <span className="pmb-lever v-in" />
-                        <span className="pmb-sub">{d.kind === 'in' ? (a.c.supply === 3 ? '4P' : '2P') : d.sub}</span>
+                        <span className="pmb-sub">{d.kind === 'in' ? inPoles(a.c) : d.sub}</span>
                         <span className="pmb-scr" />
                       </div>
                     </Fragment>
@@ -123,7 +126,7 @@ export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: C
                       data-tip={no + ' ' + name}
                       onClick={() => setPick(lid)}
                     >
-                      <span className="pmb-strip"><b>{no}</b>{' '}<span>{d.mod > 1 ? name : shortName(name)}</span></span>{' '}
+                      <span className="pmb-strip"><b>{no}</b>{d.mod > 1 && <>{' '}<span>{name}</span></>}</span>{' '}
                       <span className="pmb-scr" />
                       <span className="pmb-rate">{d.label}</span>{' '}
                       <span className={'pmb-lever v-' + pr.verdict} />
@@ -136,10 +139,6 @@ export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: C
               })}
               {Array.from({ length: free }, (_, i) => plate('f' + i))}
             </div>
-          </div>
-          <div className="pmb-top">
-            <span><b>{done}</b> из {rows.length} групп измерено</span>
-            <span className="pmb-leg"><i className="v-ok" />соответствует <i className="v-bad" />нет <i className="v-none" />не измерено</span>
           </div>
         </>
       )}

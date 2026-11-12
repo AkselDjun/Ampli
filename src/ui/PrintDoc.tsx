@@ -5,7 +5,7 @@ import { ROWLEN, STATUS } from '../core/norms';
 import { buildSpec, estimate } from '../core/spec';
 import { grandTotal, laborEstimate, unitQty } from '../core/labor';
 import { useLib } from '../store/LibContext';
-import { cableName, inCableName, protName, spdType } from '../core/protection';
+import { cableName, inCableName, inOf, protName, spdType, vrContactor } from '../core/protection';
 import { dropText } from '../core/report';
 import { Schematic } from './Schematic';
 import { Assumptions } from './Assumptions';
@@ -167,8 +167,8 @@ function StickersDoc({ p, a }: { p: Project; a: Calc }) {
     const g = fixed ? '' : d.sub.split(' ')[0];
     const line = g ? a.rows[Number(g.slice(1)) - 1] : undefined;
     const k = fixed ? d.kind : (line?.l.type ?? 'socket');
-    const nm = d.kind === 'in' ? 'Вся квартира' : (d.kind === 'uzo' ? (d.zone ?? '') : (d.kind === 'spd' ? 'Защита от перенапряжений' : (d.kind === 'vr' ? 'Контроль напряжения' : (d.kind === 'prio' ? (d.sub === 'приоритет' ? 'Приоритет нагрузки' : 'Отключение ' + d.sub) : (line?.l.name || '')))));
-    rows[rows.length - 1].push({ d, k, no: d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (d.kind === 'spd' ? 'УЗИП' : (d.kind === 'vr' ? 'Реле U' : (d.kind === 'prio' ? d.label : g)))), nm });
+    const nm = d.kind === 'in' ? 'Вся квартира' : (d.kind === 'uzo' ? (d.zone ?? '') : (d.kind === 'spd' ? 'Защита от перенапряжений' : (d.kind === 'vr' ? (vrContactor(d) ? 'Отключение ввода' : 'Контроль напряжения') : (d.kind === 'prio' ? (d.sub === 'приоритет' ? 'Приоритет нагрузки' : 'Отключение ' + d.sub) : (line?.l.name || '')))));
+    rows[rows.length - 1].push({ d, k, no: d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (d.kind === 'spd' ? 'УЗИП' : (d.kind === 'vr' ? (vrContactor(d) ? 'КМ' : 'Реле U') : (d.kind === 'prio' ? d.label : g)))), nm });
   });
   return (
     <>
@@ -513,7 +513,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
       </table>
       <h2>Ввод и щиток</h2>
       <p>
-        Вводной автомат: {a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—'}{a.inS ? ', кабель ввода ' + inCableName(c, a.inS) : ''}. Защита групп: {c.rcdMode ? 'УЗО на помещение и автоматы, у каждого УЗО своя шина N' : 'дифавтомат на каждую группу'}{a.rows.some(x => x.r.rcd && x.r.rcdA && !x.r.empty) ? ', тип A для групп с электроникой' : ''}{a.rows.some(x => x.r.arc && !x.r.empty) ? '; УЗДП на ' + (c.afdd === 'sock' ? 'розеточные группы' : 'однофазные группы') : ''}.{a.devs.some(d => d.kind === 'vr') ? ' Реле контроля напряжения после вводного автомата.' : ''}{a.devs.some(d => d.kind === 'spd') ? ' УЗИП тип ' + spdType(c) + ' после вводного автомата.' : ''} Щиток на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}, занято {a.modSum}.
+        Вводной автомат: {inOf(a)}{a.inS ? ', кабель ввода ' + inCableName(c, a.inS) : ''}. Защита групп: {c.rcdMode ? 'УЗО на помещение и автоматы, у каждого УЗО своя шина N' : 'дифавтомат на каждую группу'}{a.rows.some(x => x.r.rcd && x.r.rcdA && !x.r.empty) ? ', тип A для групп с электроникой' : ''}{a.rows.some(x => x.r.arc && !x.r.empty) ? '; УЗДП на ' + (c.afdd === 'sock' ? 'розеточные группы' : 'однофазные группы') : ''}.{a.devs.some(d => d.kind === 'vr') ? ' Реле контроля напряжения после вводного автомата.' : ''}{a.devs.some(d => d.kind === 'spd') ? ' УЗИП тип ' + spdType(c) + ' после вводного автомата.' : ''} Щиток на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}, занято {a.modSum}.
       </p>
       {a.phases && (
         <p>Токи по фазам: L1 {fmt(a.phases.L1, 1)} А, L2 {fmt(a.phases.L2, 1)} А, L3 {fmt(a.phases.L3, 1)} А; перекос {fmt(a.imb, 0)} %.</p>

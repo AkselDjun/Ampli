@@ -45,10 +45,10 @@ describe('Sheet props', () => {
 describe('MeasBoard', () => {
   it('opens from the header and updates verdicts while typing', () => {
     render(<App />);
-    expect(isOpen('Монтаж и приёмка')).toBe(false);
+    expect(isOpen('Приёмка')).toBe(false);
     fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
-    expect(isOpen('Монтаж и приёмка')).toBe(true);
-    const d = dlg('Монтаж и приёмка');
+    expect(isOpen('Приёмка')).toBe(true);
+    const d = dlg('Приёмка');
     expect(within(d).getByRole('tab', { name: /^Замеры/, hidden: true })).toHaveAttribute('aria-selected', 'true');
     expect(d.querySelectorAll('button.pmb-dev').length).toBeGreaterThan(3);
     const first = d.querySelector('.pm') as HTMLElement;
@@ -68,7 +68,7 @@ describe('MeasBoard', () => {
     expect(first.querySelector('.pill')?.textContent).toBe('Не соответствует');
     expect(stored().list[0].lines[0].meas.ins).toBe('0.1');
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(isOpen('Монтаж и приёмка')).toBe(false);
+    expect(isOpen('Приёмка')).toBe(false);
   });
   it('shows the empty state and skips unmatched rows', () => {
     const a = calcAll([], defaultCfg());
@@ -331,7 +331,7 @@ describe('Owner passport', () => {
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     render(<App />);
     click(nav(), /Приёмка/);
-    click(dlg('Монтаж и приёмка'), 'Печать паспорта');
+    click(dlg('Приёмка'), 'Печать паспорта');
     const doc = document.querySelector('.printdoc') as HTMLElement;
     expect(doc.querySelector('h1')?.textContent).toBe('Паспорт электрощита');
     expect(doc.textContent).toContain('Спальня');
@@ -344,7 +344,7 @@ describe('Owner passport', () => {
     const write = clip();
     render(<App />);
     click(nav(), /Приёмка/);
-    const d = dlg('Монтаж и приёмка');
+    const d = dlg('Приёмка');
     await act(async () => { click(d, /Ссылка для владельца/); });
     expect(write.mock.calls[0][0]).toContain('#o=v1.');
     expect(within(d).queryByRole('button', { name: 'QR-код' })).toBeNull();
@@ -394,20 +394,20 @@ describe('RCD trip time measurement', () => {
   it('is entered in panel mode and shows in the acceptance list', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
-    const d = dlg('Монтаж и приёмка');
+    const d = dlg('Приёмка');
     const first = d.querySelector('.pm') as HTMLElement;
     change(byLabel(d, 'Г1: Отключение УЗО, мс'), '28');
     expect(first.querySelector('.pill')?.textContent).toBe('Соответствует');
-    expect(first.querySelector('.pm-note')?.textContent).toContain('УЗО до 500 мс');
+    expect(first.querySelector('.pm-note')?.textContent).toContain('УЗО до 300 мс');
     change(byLabel(d, 'Г1: Отключение УЗО, мс'), '700');
     expect(first.querySelector('.pill')?.textContent).toBe('Не соответствует');
     expect(stored().list[0].lines[0].meas.rcd).toBe('700');
     fireEvent.keyDown(document, { key: 'Escape' });
     fireEvent.click(screen.getAllByRole('button', { name: /Приёмка/ })[0]);
-    const w = dlg('Монтаж и приёмка');
+    const w = dlg('Приёмка');
     fireEvent.click(within(w).getByRole('tab', { name: /^Замеры/, hidden: true }));
     const row = w.querySelector('.ms-r') as HTMLElement;
-    expect(row.querySelector('small')?.textContent).toBe('УЗО 700 / 500 мс');
+    expect(row.querySelector('small')?.textContent).toBe('УЗО 700 / 300 мс');
     expect(row.querySelector('.pill')?.textContent).toBe('Не соответствует');
   });
 });

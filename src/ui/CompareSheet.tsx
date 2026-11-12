@@ -12,8 +12,18 @@ export function CompareSheet({ open, onClose, p, a }: { open: boolean; onClose: 
   const alt = useMemo(() => variantCalc(p, excluded, addons), [p, excluded, addons]);
   const rows = compareRows(a, alt);
   const changed = excluded.length + addons.length > 0;
+  const diff = changed ? rows.filter(r => r.now !== r.alt) : [];
   return (
     <Sheet open={open} onClose={onClose} title="Сравнение вариантов" tip="Отметьте, что убрать или добавить, и сравните ввод и щиток. Сам проект не меняется.">
+      <div className="cmp-sum" role="status" aria-live="polite">
+        {!changed ? <span className="muted">Отметьте ниже, что убрать или добавить: здесь появится, что изменится.</span> : diff.length === 0 ? <span>Ввод и щиток не меняются.</span> : (
+          <ul>
+            {diff.map(r => (
+              <li key={r.label}><span className="cmp-l">{r.label}</span> <span className="num">{r.now}</span> → <b className={'num cmp ' + (r.worse === true ? 'worse' : (r.worse === false ? 'better' : ''))}>{r.alt}</b></li>
+            ))}
+          </ul>
+        )}
+      </div>
       <h3 className="sec-t">Убрать из расчёта</h3>
       <ul className="ck">
         {p.lines.map((l, i) => (
@@ -43,7 +53,7 @@ export function CompareSheet({ open, onClose, p, a }: { open: boolean; onClose: 
           </thead>
           <tbody>
             {rows.map(r => (
-              <tr key={r.label}>
+              <tr key={r.label} className={changed && r.now === r.alt ? 'cmp-same' : undefined}>
                 <td className="t-name">{r.label}</td>
                 <td className="num" data-label="Сейчас">{r.now}</td>
                 <td className="num" data-label="Вариант">

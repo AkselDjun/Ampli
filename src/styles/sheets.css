@@ -342,3 +342,8 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
 .pfit-now{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-2);justify-items:start;margin-top:var(--s-3)}
 .pfit-now p{margin:0}
 .pfit-lead,.pfit-o>span,.pfit-now p{max-width:100%;overflow-wrap:anywhere}
+.cmp-sum{position:sticky;top:calc(-1 * var(--s-4));z-index:2;margin:0 0 var(--s-4);padding:var(--s-3) var(--s-4);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface-2);box-shadow:0 6px 12px -10px rgba(0,0,0,.3)}
+.cmp-sum ul{list-style:none;margin:0;padding:0;display:grid;gap:var(--s-1)}
+.cmp-sum li{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--s-1-5)}
+.cmp-l{color:var(--ink-2);font-size:var(--t-sm)}
+.t2 tr.cmp-same td{color:var(--ink-2);opacity:.7}

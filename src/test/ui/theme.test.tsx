@@ -67,7 +67,7 @@ describe('theme', () => {
     fireEvent.click(dark);
     expect(root().dataset.theme).toBe('dark');
     expect(dark).toBeChecked();
-    fireEvent.click(screen.getByRole('radio', { name: 'Как в системе' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Авто' }));
     expect(root().dataset.theme).toBeUndefined();
     expect(d.textContent).toContain('Тема оформления');
     fireEvent.keyDown(document, { key: 'Escape' });

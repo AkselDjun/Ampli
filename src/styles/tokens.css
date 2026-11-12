@@ -9,7 +9,7 @@
 
   --bar:56px;
 
-  --field-h:44px;--field-h-s:36px;--field-px:var(--s-3);--field-r:var(--r-m);--field-fs:var(--t-base);--field-bw:1px;--check-s:20px;
+  --field-h:44px;--field-h-s:36px;--field-px:var(--s-3);--field-r:var(--r-m);--field-fs:var(--t-base);--field-bw:1px;--check-s:20px;--check-bw:1.5px;--check-edge:var(--line-strong);--check-mark-w:10px;--check-mark-h:6px;--check-mark-bw:2px;
   --gutter:16px;--gap:16px;--pad:16px;
 
   --dur-fast:.15s;--dur-quick:.18s;--dur:.2s;

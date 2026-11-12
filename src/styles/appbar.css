@@ -162,3 +162,7 @@ button.kpis b small{font-size:var(--t-s);font-weight:500;color:var(--disp-dim);t
   .ab-edit>.btn{flex:none;min-height:44px}
 }
 @media (--upto-359){.ed-mini b:nth-of-type(4){display:none}}
+@media (--above-tablet) and (--narrow){
+  #app[data-view="edit"] .ab-main{display:flex}
+  #app[data-view="edit"] .ab-edit{display:none}
+}

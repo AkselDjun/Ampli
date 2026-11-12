@@ -11,7 +11,7 @@ export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, o
         <div className="ab-edit">
           <button className="ab-back" type="button" onClick={onBack} aria-label="Назад к группам"><IconBack /></button>
           <div className="ab-tw">
-            <h1 className="ab-title">{selected ? 'Г' + (selectedIndex + 1) + ' ' + (selected.name || 'Без названия') : ''}</h1>
+            <h1 className="ab-title">{selected ? 'Группа ' + (selectedIndex + 1) : ''}</h1>
             <div id="ab-sub" className="ab-sub" />
           </div>
           <Button variant="primary" size="sm" onClick={onBack}>Готово</Button>
@@ -24,11 +24,11 @@ export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, o
             <Checks a={calc} onGroup={onGroup} onFix={onCheckFix} />
           </div>
           <button className="ab-btn tour-help" type="button" data-tip="Обучение" aria-label="Открыть обучение" onClick={onTour}>?</button>
-          <button className="ab-btn" type="button" data-tour="panel" data-tip="Замеры на щитке" aria-label="Замеры на щитке" onClick={onPanel}>
+          <button className="ab-btn" type="button" data-tour="panel" data-tip="Приёмка: замеры на щитке" aria-label="Замеры на щитке" onClick={onPanel}>
             <IconMeter />
             <span className="ab-txt">Замеры</span>
           </button>
-          <button className="ab-btn desk" type="button" data-tour="work" data-tip="Монтаж и приёмка" onClick={onWork}>
+          <button className="ab-btn desk" type="button" data-tour="work" data-tip="Приёмка" onClick={onWork}>
             <IconCheck />
             <span className="ab-txt">Приёмка</span>
           </button>

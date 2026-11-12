@@ -9,7 +9,7 @@
 .nl-items span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nl-items small{display:block;font-size:var(--t-s);font-weight:500;color:var(--ink-2)}
 .netline .chev{width:18px;height:18px;color:var(--ink-2)}
-.sample{font-size:var(--t-sm);color:var(--ink-2);background:transparent;border:1px dashed var(--line);padding:var(--s-2) var(--s-3);border-radius:var(--r-m);line-height:1.4}
+.sample{font-size:var(--t-sm);color:var(--ink-2);background:var(--surface-2);border:0;padding:var(--s-2) var(--s-3);border-radius:var(--r-m);line-height:1.4}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:var(--s-4);display:grid;gap:var(--s-3)}
 .kpi-top{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s-2);flex-wrap:wrap}
 .kpi-top b{font-family:var(--font-num);font-size:var(--t-2xl);font-weight:700;font-variant-numeric:tabular-nums}

@@ -18,7 +18,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
   const nPrices = Object.keys(lib.prices).length;
   const [theme, setTheme] = useTheme();
   return (
-    <Sheet open={open} onClose={onClose} title="Мои данные" bar={<Tabs scope="lib" label="Разделы данных" cur={tab} onChange={setTab} items={[{ id: 'brand', label: 'Реквизиты' }, { id: 'tpl', label: 'Шаблоны и цены' }, { id: 'view', label: 'Оформление' }]} />}>
+    <Sheet open={open} onClose={onClose} title="Мои данные" tip="Реквизиты, логотип, подпись, шаблоны и цены хранятся на этом устройстве и подставляются во все сметы и документы." bar={<Tabs scope="lib" label="Разделы данных" cur={tab} onChange={setTab} items={[{ id: 'brand', label: 'Реквизиты' }, { id: 'tpl', label: 'Шаблоны и цены' }, { id: 'view', label: 'Оформление' }]} />}>
       <TabPanel scope="lib" id="brand" cur={tab}>
       <h3 className="sec-t">Реквизиты для отчёта</h3>
       <div className="meta-grid">
@@ -78,7 +78,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
       <TabPanel scope="lib" id="view" cur={tab}>
       <h3 className="sec-t" id="themeT">Тема оформления</h3>
       <Seg<Theme> name="theme" labelledBy="themeT" value={theme} onChange={setTheme} items={(Object.keys(THEME_LABEL) as Theme[]).map(k => [k, THEME_LABEL[k]])} />
-      <p className="muted">«Как в системе» следует настройке телефона или компьютера. Выбор хранится на этом устройстве.</p>
+      <p className="muted">«Авто» следует настройке телефона или компьютера. Выбор хранится на этом устройстве.</p>
       <h3 className="sec-t">О программе</h3>
       <p className="muted">Ampli {APP_VERSION}. Нормы: {NORMS_EDITION}, сверено {NORMS_CHECKED}.</p>
       <p><a className="link" href={CHANGELOG_URL} target="_blank" rel="noopener noreferrer">Что нового</a></p>

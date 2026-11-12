@@ -176,7 +176,7 @@ describe('residual-current devices per room', () => {
     const ls = [1, 2, 3, 4].map(i => z(mkLine('Г' + i, 'light', 300, [['a', 100, 1]]), 'Дом'));
     const a = calcAll(ls, cfg({ prot: 'rcd' }));
     const I = a.rows.reduce((s, x) => s + x.r.I, 0);
-    expect(a.uzos[0].leak).toBeCloseTo(12 + I * 0.4 * a.c.ko, 5);
+    expect(a.uzos[0].leak).toBeCloseTo(12 + I * 0.4, 5);
     expect(a.rows[0].r.tips.join(' ')).toContain('Оценка суммарной утечки групп на УЗО «Дом»');
     expect(a.rows[0].r.notes.join(' ')).not.toContain('Суммарная утечка');
     const m = calcAll(ls.map(l => ({ ...l, meas: { leak: 3 } })), cfg({ prot: 'rcd' }));

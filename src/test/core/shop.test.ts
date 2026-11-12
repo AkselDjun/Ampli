@@ -119,6 +119,13 @@ describe('surge protector type and cable brand', () => {
     expect(bestOffers(it_('УЗИП тип 2 1P+N'), offers).map(o => o.price)).toEqual([40, 150]);
   });
 
+  it('takes the cable price only from the same brand', () => {
+    const offers = [{ name: 'Кабель NYM 3х2,5', price: 2.1, src: 'a' }, { name: 'ВВГнг(А)-LS 3х2,5', price: 1.6, src: 'a' }, { name: 'ВВГнг(А)-FRLS 3х2,5', price: 2.9, src: 'a' }, { name: 'Кабель 3х2,5', price: 1.2, src: 'a' }];
+    expect(bestOffers(it_('ВВГнг(А)-LS 3×2,5'), offers).map(o => o.price)).toEqual([1.2, 1.6]);
+    expect(bestOffers(it_('NYM 3×2,5'), offers).map(o => o.price)).toEqual([1.2, 2.1]);
+    expect(bestOffers(it_('ВВГнг(А)-FRLS 3×2,5'), offers).map(o => o.price)).toEqual([1.2, 2.9]);
+  });
+
   it('keeps the group cable brand in the search query', () => {
     expect(shopQuery(it_('NYM 3×2,5'))).toBe('NYM 3х2,5');
     expect(shopQuery(it_('ВВГнг(А)-FRLS 3×1,5'))).toBe('ВВГнг-FRLS 3х1,5');

@@ -34,12 +34,12 @@ describe('appPower and canSplit', () => {
 
 describe('maxLenFor', () => {
   it('finds a shorter working length', () => {
-    const l = line('power', 400, [ap('a', 3500, 1)]);
+    const l = line('power', 600, [ap('a', 3500, 1)]);
     const c = cfg();
     expect(calcLine(l, c).status).toBe('bad');
     const L = maxLenFor(l, c) as number;
     expect(L).toBeGreaterThan(0);
-    expect(L).toBeLessThan(400);
+    expect(L).toBeLessThan(600);
     const ok = calcLine({ ...l, len: L }, c);
     expect(ok.status).not.toBe('bad');
     expect(calcLine({ ...l, len: L + 1 }, c).status).toBe('bad');
@@ -90,7 +90,7 @@ describe('fixFor', () => {
     expect(fix(line('light', 10, [ap('a', 100, 1)], { meas: { leak: 2, ins: 100, zs: 0.2 } }))).toBeNull();
   });
   it('bad line shortens using maxLenFor', () => {
-    const l = line('power', 400, [ap('a', 3500, 1)]);
+    const l = line('power', 600, [ap('a', 3500, 1)]);
     const f = fix(l);
     const L = maxLenFor(l, cfg()) as number;
     expect(f?.act).toEqual({ k: 'len', len: L });
