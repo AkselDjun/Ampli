@@ -36,7 +36,7 @@ export const Totals = memo(function Totals({ a, onNet, onCompare }: { a: Calc; o
         <span className="vh">{title + ': ' + fmt(a.P / 1000, 1) + ' из ' + fmt(c.alloc, 1) + ' кВт, ' + st.text + '. '}</span>
         <div><span className="lbl"><span className="kp-l">Мощность</span><span className="kp-s">кВт</span></span><b>{a.P > 0 ? fmt(a.P / 1000, 1) : '—'}<small className="kp-of">/{fmt(c.alloc, 0)}</small><small className="kp-u"> кВт</small></b></div>
         <div><span className="lbl">{three ? 'Фаза' : 'Ток'}</span><b>{a.Itot > 0 ? fmt(a.Itot, 0) + ' А' : '—'}</b></div>
-        <div className="kp-in"><span className="lbl">Ввод</span><b>{a.inIn ? 'C' + a.inIn : '—'}</b></div>
+        <div className="kp-in"><span className="lbl">Ввод</span><b className={!a.inIn && a.P > 0 ? 'kp-none' : undefined}>{a.inIn ? 'C' + a.inIn : '—'}</b></div>
         <IconDown className="kp-chev" />
         <i className="kp-meter" aria-hidden="true"><i style={{ width }} /></i>
       </button>
