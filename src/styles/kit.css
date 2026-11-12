@@ -11,7 +11,15 @@
 .why-t:focus-visible,.btn:focus-visible,.chip:focus-visible,.step button:focus-visible,.icon-btn:focus-visible,input:focus-visible,select:focus-visible,.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 input:where(:not([type=checkbox],[type=radio],[type=range],[type=file],[type=color])),select,textarea{font:inherit;font-size:var(--field-fs);line-height:1.3;color:var(--ink);background:var(--field);border:var(--field-bw) solid var(--line-strong);border-radius:var(--field-r);padding:0 var(--field-px);height:var(--field-h);width:100%;min-width:0}
-input[type=checkbox]{width:var(--check-s);height:var(--check-s);margin:0;flex:none;accent-color:var(--accent);cursor:pointer}
+input[type=checkbox]{-webkit-appearance:none;appearance:none;display:inline-grid;place-content:center;width:var(--check-s);height:var(--check-s);margin:0;flex:none;border:2px solid var(--line-strong);border-radius:var(--r-xs);background:var(--surface);cursor:pointer;transition:background-color var(--dur-fast) ease,border-color var(--dur-fast) ease}
+input[type=checkbox]::after{content:"";width:5px;height:10px;margin-top:-2px;border:solid var(--accent-ink);border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);transition:transform var(--dur-fast) var(--ease-out)}
+input[type=checkbox]:hover{border-color:var(--ink-2)}
+input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+input[type=checkbox]:checked::after{transform:rotate(45deg) scale(1)}
+input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=checkbox]:disabled{opacity:.45;cursor:not-allowed}
+select{-webkit-appearance:none;appearance:none;padding-right:calc(var(--field-px) + 24px);background-image:linear-gradient(45deg,transparent 50%,var(--ink-2) 50%),linear-gradient(135deg,var(--ink-2) 50%,transparent 50%);background-position:calc(100% - 19px) 50%,calc(100% - 14px) 50%;background-size:5px 5px;background-repeat:no-repeat;cursor:pointer;text-overflow:ellipsis}
+select:disabled{opacity:.55;cursor:not-allowed}
 textarea{display:block;height:auto;min-height:calc(var(--field-h) * 2);padding:var(--s-3) var(--field-px);line-height:1.4;resize:vertical}
 input[inputmode=decimal],input[inputmode=numeric]{font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .f{display:flex;flex-direction:column;gap:var(--s-1-5);min-width:0}
