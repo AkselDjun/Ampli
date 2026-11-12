@@ -348,8 +348,8 @@ export function Toaster() {
     <div
       key={t.id}
       className={'toast ' + t.tone}
-      onMouseEnter={() => setHold(true)}
-      onMouseLeave={() => setHold(false)}
+      onPointerEnter={e => { if (e.pointerType === 'mouse') setHold(true); }}
+      onPointerLeave={e => { if (e.pointerType === 'mouse') setHold(false); }}
       onFocus={() => setHold(true)}
       onBlur={() => setHold(false)}
     >
