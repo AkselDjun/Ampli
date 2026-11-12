@@ -112,3 +112,20 @@ test('enters a measurement in panel mode', async ({ page }) => {
   await expect(field).toHaveValue('0,4');
   await noSideScroll(page);
 });
+
+test.describe('toast with an action on a 320 px phone', () => {
+  test.use({ viewport: { width: 320, height: 640 }, reducedMotion: 'reduce' });
+
+  test('keeps the message wide and puts the action under it', async ({ page }) => {
+    await page.goto('/');
+    await expect(rows(page).first()).toBeVisible();
+    await page.locator('nav.tabs').getByRole('button', { name: 'Отчёт' }).click();
+    const toastCard = page.locator('.toast').filter({ has: page.locator('.toast-a') });
+    await expect(toastCard).toBeVisible();
+    const text = await toastCard.locator('.toast-t').boundingBox();
+    const action = await toastCard.locator('.toast-a').boundingBox();
+    expect(text?.width ?? 0).toBeGreaterThanOrEqual(200);
+    expect(action?.y ?? 0).toBeGreaterThan((text?.y ?? 0) + (text?.height ?? 0) - 4);
+    await noSideScroll(page);
+  });
+});
