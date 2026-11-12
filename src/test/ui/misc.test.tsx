@@ -97,7 +97,7 @@ describe('RoomsSheet', () => {
     click(list(), '+ Добавить группу');
     click(list(), 'Из комнат');
     const d = dlg('Комнаты');
-    const asm = () => Array.from(d.querySelectorAll('.copy-row .btn'))[0] as HTMLButtonElement;
+    const asm = () => d.querySelector('.sheet-foot .btn') as HTMLButtonElement;
     expect(asm().disabled).toBe(true);
     expect(d.textContent).toContain('Комнат пока нет');
     const presets = d.querySelectorAll<HTMLElement>('.room-add .chip');

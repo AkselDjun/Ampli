@@ -17,7 +17,7 @@ import { IconChev, IconDownload, IconWire } from './Icons';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
 import { Assumptions } from './Assumptions';
-import { ArmButton, Err, Seg, errAttrs, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
+import { ArmButton, DoneFoot, Err, Seg, errAttrs, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
 import { Schematic } from './Schematic';
 import { toast, toastBad, toastOk } from './toast';
 import { IOS_STEPS, install, usePwa } from './pwa';
@@ -47,7 +47,7 @@ export function NetSheet({
 }) {
   const c = cfgN(p.cfg);
   return (
-    <Sheet open={open} onClose={onClose} title="Параметры сети" tourId="network">
+    <Sheet open={open} onClose={onClose} title="Параметры сети" tourId="network" kind="panel" sub={p.name || 'Без названия'} footer={<DoneFoot onDone={onClose} status="Расчёт обновляется сразу" />}>
       <div className="f" data-tour="object">
         <span className="lbl-row"><span className="lbl" id="l-obj">Объект</span><Tip label="О режиме частного дома">Частный дом: ввод СИП от опоры, разделение PEN на вводе, повторное заземление, УЗИП тип 1+2 и уличные группы.</Tip></span>
         <Seg<string> name="obj" labelledBy="l-obj" value={c.house ? 'house' : 'flat'} items={[['flat', 'Квартира'], ['house', 'Частный дом']]} onChange={v => dispatch({ t: 'cfg', field: 'obj', value: v === 'house' ? 'house' : '' })} />
@@ -256,7 +256,12 @@ export function ProjectsSheet({
   };
   const n = state.list.length;
   return (
-    <Sheet open={open} onClose={onClose} title="Проекты" tourId="projects" bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся только в этом браузере. Чтобы перенести проект на другое устройство, сохраните его в файл или отправьте ссылкой.">
+    <Sheet open={open} onClose={onClose} title="Проекты" tourId="projects" kind="panel" side="left" footer={(
+      <>
+        <span className="foot-st">{n} {plural(n, ['проект', 'проекта', 'проектов'])} на этом устройстве</span>
+        <Button variant="primary" aria-expanded={tplOpen} aria-controls="tpl" onClick={() => { setTab('main'); setTplOpen(!tplOpen); if (!tplOpen) setTimeout(() => document.getElementById('tpl')?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }), 0); }}>+ Новый проект</Button>
+      </>
+    )} bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся только в этом браузере. Чтобы перенести проект на другое устройство, сохраните его в файл или отправьте ссылкой.">
       <TabPanel scope="pj" id="main" cur={tab}>
       <h3 className="sec-t">Текущий проект</h3>
       <div className="meta-grid">
@@ -288,9 +293,6 @@ export function ProjectsSheet({
             </div>
           );
         })}
-      </div>
-      <div className="data-row">
-        <Button variant="primary" aria-expanded={tplOpen} aria-controls="tpl" onClick={() => setTplOpen(!tplOpen)}>+ Новый проект</Button>
       </div>
       <div className="tpl" id="tpl" hidden={!tplOpen}>
         <span className="lbl" id="l-stove">Плита</span>
@@ -430,13 +432,20 @@ export function ReportSheet({
     if (want) setTab(want.tab);
   }
   return (
-    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Основания' }]} />}>
-      <TabPanel scope="rep" id="groups" cur={tab} lazy>
-      <div className="copy-row">
-        <Button variant="primary" onClick={() => onPrint('report')}>Печать / PDF</Button>
+    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" sub={p.name || 'Без названия'} footer={tab === 'scheme' ? (
+      <>
+        <span className="foot-st">Лист А3 по ГОСТ 21.613</span>
+        <Button variant="primary" onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
+      </>
+    ) : (
+      <>
+        <span className="foot-st" />
         <Button onClick={copy}>Скопировать отчёт</Button>
-      </div>
+        <Button variant="primary" onClick={() => onPrint('report')}>Печать / PDF</Button>
+      </>
+    )} bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Основания' }]} />}>
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
+      <TabPanel scope="rep" id="groups" cur={tab} lazy>
       <h3 className="sec-t">Группы линий</h3>
       <div className="tablewrap" role="region" aria-label="Таблица групп" tabIndex={0}>
         <table className="gtab">
@@ -490,10 +499,7 @@ export function ReportSheet({
       </div>
       </TabPanel>
       <TabPanel scope="rep" id="scheme" cur={tab} lazy>
-      <div className="sec-row">
-        <h3 className="sec-t">Схема щитка</h3>
-        <Button size="sm" onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
-      </div>
+      <h3 className="sec-t">Схема щитка</h3>
       <div className="schem-wrap" role="region" aria-label="Однолинейная схема, прокручивается" tabIndex={0}><Schematic a={a} /></div>
       <details className="bd-help a3-prev">
         <summary>Лист А3 со штампом</summary>

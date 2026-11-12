@@ -47,7 +47,7 @@ describe('Where to buy', () => {
       expect(a.rel).toContain('noopener');
     });
     expect(d.querySelector('.shop-offer')).toBeNull();
-    expect(d.querySelector('.shop-foot')).toBeNull();
+    expect(d.querySelector('.sheet-foot')).toBeNull();
   });
 
   it('loads a price list, finds the cheapest match and applies the prices to the estimate', async () => {
@@ -65,7 +65,7 @@ describe('Where to buy', () => {
     expect(d.querySelector('.pl-list')?.textContent).toContain('opt');
     expect(JSON.parse(localStorage.getItem(PL_KEY) as string)).toHaveLength(1);
     expect(toastText()).toMatch(/Загружено позиций: 5/);
-    const foot = d.querySelector('.shop-foot') as HTMLElement;
+    const foot = d.querySelector('.sheet-foot') as HTMLElement;
     expect(foot.textContent).toMatch(/Найдено цен/);
     const select = d.querySelector('select[aria-label^="Вариант для"]') as HTMLSelectElement;
     expect(select).toBeTruthy();
@@ -84,7 +84,7 @@ describe('Where to buy', () => {
     await upload(d, csv('просто;текст\nещё;строка'));
     await waitFor(() => expect(toastText()).toMatch(/нет колонок/));
     await upload(d, csv('Наименование;Цена\nРозетка;5'));
-    await waitFor(() => expect(d.querySelector('.shop-foot')).toBeTruthy());
+    await waitFor(() => expect(d.querySelector('.sheet-foot')).toBeTruthy());
     expect(d.querySelectorAll('.shop-offer .muted')[0].textContent).toMatch(/не найдено/);
     expect(within(d).getByRole('button', { name: 'Подставить в смету' })).toBeDisabled();
   });
@@ -96,7 +96,7 @@ describe('Where to buy', () => {
     await waitFor(() => expect(d.querySelector('.pl-list')).toBeTruthy());
     click(d, 'Удалить прайс шины');
     expect(d.querySelector('.pl-list')).toBeNull();
-    expect(d.querySelector('.shop-foot')).toBeNull();
+    expect(d.querySelector('.sheet-foot')).toBeNull();
     expect(JSON.parse(localStorage.getItem(PL_KEY) as string)).toEqual([]);
   });
 

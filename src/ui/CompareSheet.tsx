@@ -13,7 +13,13 @@ export function CompareSheet({ open, onClose, p, a }: { open: boolean; onClose: 
   const rows = compareRows(a, alt);
   const changed = excluded.length + addons.length > 0;
   return (
-    <Sheet open={open} onClose={onClose} title="Сравнение вариантов" tip="Отметьте, что убрать или добавить, и сравните ввод и щиток. Сам проект не меняется.">
+    <Sheet open={open} onClose={onClose} title="Сравнение вариантов" footer={(
+      <>
+        <span className="foot-st" role="status">{changed ? 'Отличий от проекта: ' + (excluded.length + addons.length) : 'Отметьте, что убрать или добавить'}</span>
+        <Button variant="ghost" disabled={!changed} onClick={() => { setExcluded([]); setAddons([]); }}>Сбросить</Button>
+        <Button variant="primary" onClick={onClose}>Готово</Button>
+      </>
+    )} tip="Отметьте, что убрать или добавить, и сравните ввод и щиток. Сам проект не меняется.">
       <h3 className="sec-t">Убрать из расчёта</h3>
       <ul className="ck">
         {p.lines.map((l, i) => (
@@ -55,9 +61,6 @@ export function CompareSheet({ open, onClose, p, a }: { open: boolean; onClose: 
         </table>
       </div>
       {changed && alt.hint3 && <p className="muted">В варианте расчётная нагрузка {fmt(alt.P / 1000, 1)} кВт больше 12 кВт: по СН 4.04.01-2019, п. 9.12 нужен трёхфазный ввод.</p>}
-      <div className="data-row">
-        <Button variant="ghost" disabled={!changed} onClick={() => { setExcluded([]); setAddons([]); }}>Сбросить</Button>
-      </div>
     </Sheet>
   );
 }

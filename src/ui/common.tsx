@@ -5,7 +5,7 @@ import { IconAlert, IconBack, IconClose, IconDone, IconDown, IconInfo } from './
 import { useSheetNav } from './sheetnav';
 import { currentToast, dismissToast, subscribeToast, toastLife } from './toast';
 import { haptic } from './haptic';
-import { buttonClass } from './kit';
+import { Button, buttonClass } from './kit';
 import type { ButtonSize, ButtonVariant } from './kit';
 import type { FieldErr } from '../core/limits';
 
@@ -218,6 +218,29 @@ export function TabPanel({ scope, id, cur, lazy = false, children }: { scope: st
 }
 
 const STACK: object[] = [];
+
+export type SheetKind = 'dialog' | 'panel' | 'screen';
+
+export function DoneFoot({ onDone, status = 'Изменения сохраняются сразу' }: { onDone: () => void; status?: ReactNode }) {
+  return (
+    <>
+      <span className="foot-st" role="status">{status}</span>
+      <Button variant="primary" onClick={onDone}>Готово</Button>
+    </>
+  );
+}
+
+const DOCK_Q = '(min-width:1000px)';
+const subMq = (q: string) => (cb: () => void) => {
+  if (typeof window.matchMedia !== 'function') return () => undefined;
+  const m = window.matchMedia(q);
+  m.addEventListener?.('change', cb);
+  return () => m.removeEventListener?.('change', cb);
+};
+const getMq = (q: string) => () => typeof window.matchMedia === 'function' && window.matchMedia(q).matches;
+const subDock = subMq(DOCK_Q);
+const getDock = getMq(DOCK_Q);
+export const useDocked = (): boolean => useSyncExternalStore(subDock, getDock, () => false);
 const SCROLL = new Map<string, number>();
 const BACK = { on: false };
 const OUT_MS = 150;
@@ -237,9 +260,13 @@ const quiet = (panel: HTMLElement): (() => void) => {
 };
 
 export function Sheet({
-  open, onClose, title, compact, tip, bar, historyLayer = true, tourId, children
+  open, onClose, title, compact, tip, bar, historyLayer = true, tourId, kind = 'screen', side = 'right', sub, footer, children
 }: {
   compact?: boolean;
+  kind?: SheetKind;
+  side?: 'left' | 'right';
+  sub?: ReactNode;
+  footer?: ReactNode;
   bar?: ReactNode;
   open: boolean;
   onClose: () => void;
@@ -259,6 +286,8 @@ export function Sheet({
   const dy = useRef(0);
   const titleRef = useRef(title);
   const id = useId();
+  const docked = useDocked();
+  const live = kind === 'panel' && docked;
   const [leaving, setLeaving] = useState(false);
   const [was, setWas] = useState(open);
   if (was !== open) {
@@ -274,7 +303,7 @@ export function Sheet({
     titleRef.current = title;
   });
   const trap = (e: ReactKeyEvent<HTMLDivElement>) => {
-    if (e.key !== 'Tab') return;
+    if (e.key !== 'Tab' || live) return;
     const all = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')).filter(el => !el.closest('[hidden]') && el.getClientRects().length > 0 && !(el instanceof HTMLInputElement && el.type === 'radio' && !el.checked));
     const first = all[0];
     const end = all[all.length - 1];
@@ -314,8 +343,8 @@ export function Sheet({
     const body = bodyRef.current;
     if (body) body.scrollTop = BACK.on ? SCROLL.get(ttl) ?? 0 : 0;
     BACK.on = false;
-    document.documentElement.style.overflow = 'hidden';
-    const unquiet = panelRef.current ? quiet(panelRef.current) : () => undefined;
+    if (!live) document.documentElement.style.overflow = 'hidden';
+    const unquiet = panelRef.current && !live ? quiet(panelRef.current) : () => undefined;
     headRef.current?.focus({ preventScroll: true });
     const key = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && STACK[STACK.length - 1] === me) onClose();
@@ -331,13 +360,16 @@ export function Sheet({
       const o = opener.current;
       if (o instanceof HTMLElement && document.contains(o)) o.focus();
     };
-  }, [open, onClose]);
+  }, [open, onClose, live]);
   return (
-    <div className={'sheet' + (leaving ? ' out' : '')} hidden={!open} inert={leaving || undefined} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div ref={panelRef} className={'sheet-panel' + (compact ? ' compact' : '') + (bar ? '' : ' fit')} role="dialog" aria-modal="true" aria-labelledby={id} data-tour-view={tourId} onKeyDown={trap}>
+    <div className={'sheet' + (leaving ? ' out' : '') + (live ? ' live' : '')} data-kind={kind} data-side={kind === 'panel' ? side : undefined} hidden={!open} inert={leaving || undefined} onClick={e => !live && e.target === e.currentTarget && onClose()}>
+      <div ref={panelRef} className={'sheet-panel' + (compact ? ' compact' : '') + (bar && kind === 'screen' ? '' : ' fit')} role="dialog" aria-modal={live ? undefined : true} aria-labelledby={id} data-tour-view={tourId} onKeyDown={trap}>
         <div className="sheet-head" {...drag}>
           {nav.back && <button className="sheet-back" type="button" onClick={() => { BACK.on = true; nav.back?.(); }} aria-label={'Назад: ' + nav.to} data-tip={'Назад: ' + nav.to}><IconBack /></button>}
-          <h2 id={id} ref={headRef} tabIndex={-1}>{title}</h2>
+          <div className="sheet-tw">
+            <h2 id={id} ref={headRef} tabIndex={-1}>{title}</h2>
+            {sub && <p className="sheet-sub">{sub}</p>}
+          </div>
           {tip && <Tip>{tip}</Tip>}
           <button className="sheet-close" type="button" onClick={onClose} aria-label="Закрыть"><IconClose /></button>
         </div>
@@ -350,6 +382,7 @@ export function Sheet({
           </div>
         )}
         <div className="sheet-body" ref={bodyRef}>{children}</div>
+        {footer && <div className="sheet-foot">{footer}</div>}
       </div>
     </div>
   );
