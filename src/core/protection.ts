@@ -1,4 +1,4 @@
-import type { CfgN, Device, LineResult, Uzo } from './types';
+import type { Calc, CfgN, Device, LineResult, Uzo } from './types';
 import { IN_CABLE } from './norms';
 import { fs } from './format';
 
@@ -25,6 +25,8 @@ export const inCableName = (c: CfgN, s: number): string => IN_CABLE[c.inCable] +
 export const inPoles = (c: Pick<CfgN, 'supply'>): string => (c.supply === 3 ? '4P' : '2P');
 
 export const inName = (c: Pick<CfgN, 'supply'>, inIn: number | null | undefined, none = '—'): string => (inIn ? inPoles(c) + ' C' + inIn : none);
+
+export const inOf = (a: Pick<Calc, 'c' | 'inIn' | 'P'>): string => inName(a.c, a.inIn, a.P > 0 ? 'не подобран, см. замечания' : '—');
 
 export const vrContactor = (d: Pick<Device, 'kind' | 'sub'>): boolean => d.kind === 'vr' && d.sub === 'контактор';
 

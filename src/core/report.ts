@@ -1,7 +1,7 @@
 import type { Calc, Project } from './types';
 import { fmt, plural } from './format';
 import { buildSpec, estimate } from './spec';
-import { cableName, inCableName, inName, protName, uzoName } from './protection';
+import { cableName, inCableName, inOf, protName, uzoName } from './protection';
 
 export const dropText = (drop: number, feeder = 0): string =>
   drop > 0 ? 'не более ' + fmt(drop, 0) + ' %' : fmt(3 - feeder, 1).replace(',0', '') + ' % освещение, ' + fmt(5 - feeder, 1).replace(',0', '') + ' % прочие (СН 4.04.01-2019, п. 9.14' + (feeder > 0 ? ', за вычетом ' + fmt(feeder, 1) + ' % до щитка' : '') + ')';
@@ -31,7 +31,7 @@ export function reportText(p: Project, a: Calc, prices: Record<string, number> =
   out.push('');
   out.push('Установленная мощность: ' + fmt(a.sumInst / 1000, 1) + ' кВт');
   out.push('Расчётная мощность: ' + fmt(a.P / 1000, 1) + ' кВт, ток ' + fmt(a.Itot, 0) + ' А');
-  out.push('Вводной автомат: ' + inName(c, a.inIn) + (a.inS ? ', кабель ' + inCableName(c, a.inS) : ''));
+  out.push('Вводной автомат: ' + inOf(a) + (a.inS ? ', кабель ' + inCableName(c, a.inS) : ''));
   out.push('Защита групп: ' + (c.rcdMode ? 'УЗО на помещение и автоматы' : 'дифавтомат на каждую группу'));
   a.uzos.forEach(u => out.push(uzoName(u) + ': ' + u.zone + ' (' + u.groups.map(g => 'Г' + (g + 1)).join(', ') + '), своя шина N'));
   if (a.phases) out.push('Фазы: L1 ' + fmt(a.phases.L1, 1) + ' А, L2 ' + fmt(a.phases.L2, 1) + ' А, L3 ' + fmt(a.phases.L3, 1) + ' А');

@@ -1,6 +1,6 @@
 import type { Calc, Row, Uzo } from '../core/types';
 import { fmt } from '../core/format';
-import { cableName, inCableName, inName } from '../core/protection';
+import { cableName, inCableName, inOf } from '../core/protection';
 
 const cut = (t: string, n: number): string => (t.length > n ? t.slice(0, n - 1) + '…' : t);
 
@@ -27,7 +27,7 @@ export function Schematic({ a }: { a: Calc }) {
   const step = 50;
   const h = top + Math.max(1, entries.length) * step + 8;
   const bus = 60;
-  const inLabel = inName(c, a.inIn);
+  const inLabel = inOf(a);
   const inCable = a.inS ? inCableName(c, a.inS) : '';
   const t = { fill: 'currentColor', stroke: 'none' } as const;
   const lastTop = (() => {

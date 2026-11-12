@@ -537,7 +537,7 @@ export function Editor({
           </div>
         )}
         <div className="ed-end">
-          <Button onClick={() => { dispatch({ t: 'dupLine' }); toastOk('Создана копия группы'); }}>Копировать группу</Button>
+          <Button onClick={() => { dispatch({ t: 'dupLine' }); toastOk('Создана копия группы'); }} aria-label="Копировать группу">Копировать</Button>
           <ArmButton variant="danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); toastOk('Группа удалена'); }} />
         </div>
       </div>

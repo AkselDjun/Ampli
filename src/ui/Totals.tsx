@@ -18,7 +18,7 @@ export function allocState(a: Calc): AllocState {
   if (a.P <= 0) return { pct: 0, k: 'ok', text: 'Нет нагрузки' };
   if (pct > 100) return { pct, k: 'bad', text: 'Превышение на ' + fmt((a.P - alloc) / 1000, 1) + ' кВт' };
   if (pct >= 90) return { pct, k: 'warn', text: 'На пределе' };
-  return { pct, k: 'ok', text: 'Укладывается' };
+  return { pct, k: 'ok', text: 'Норма' };
 }
 
 export const Totals = memo(function Totals({ a, onNet, onCompare }: { a: Calc; onNet: () => void; onCompare?: () => void }) {

@@ -42,7 +42,7 @@ import type { AppView, ReportRequest, SaveStatus } from '../app/types';
 import { useSheetStack } from '../app/useSheetStack';
 import { AppHeader } from '../app/AppHeader';
 import { AppTabs } from '../app/AppTabs';
-import { sheetForTourScene } from '../app/navigation';
+import { SHEET_TITLE, sheetForTourScene } from '../app/navigation';
 import { TOUR_CHAPTER, TOUR_MODE, TOUR_SCENE } from '../features/onboarding/model';
 import type { TourChapter, TourMode, TourScene } from '../features/onboarding/model';
 
@@ -126,9 +126,15 @@ export function App() {
   }, [freshAsk, sheet, setSheet]);
   useEffect(() => {
     const ch = sheet === APP_SHEET.WORK ? TOUR_CHAPTER.BUILD : (sheet === APP_SHEET.REPORT ? TOUR_CHAPTER.HANDOVER : null);
-    if (!ch || tourOpen || onboardingPending() || !chapterHintPending(ch)) return;
-    markChapterHint(ch);
-    toast(ch === TOUR_CHAPTER.BUILD ? 'Впервые в монтаже? Покажем щиток, карту проводки и чек-лист за минуту.' : 'Впервые в документах? Покажем схему и смету в трёх вариантах за минуту.', { label: 'Показать', run: () => { setTourChapter(ch); setTourOpen(true); } });
+    if (!ch || !sheet || tourOpen || onboardingPending() || !chapterHintPending(ch)) return;
+    const title = SHEET_TITLE[sheet];
+    const shown = () => [...document.querySelectorAll('[role="dialog"] h2')].some(h => h.textContent === title);
+    const t = window.setTimeout(() => {
+      if (!shown()) return;
+      markChapterHint(ch);
+      toast(ch === TOUR_CHAPTER.BUILD ? 'Впервые в монтаже? Покажем щиток, карту проводки и чек-лист за минуту.' : 'Впервые в документах? Покажем схему и смету в трёх вариантах за минуту.', { label: 'Показать', run: () => { setTourChapter(ch); setTourOpen(true); } });
+    }, 400);
+    return () => window.clearTimeout(t);
   }, [sheet, tourOpen]);
   const closeTour = useCallback(() => {
     setTourChapter(undefined);

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { MeasBoard } from '../../ui/MeasBoard';
 import { Onboarding } from '../../ui/Onboarding';
@@ -158,12 +158,12 @@ describe('chapter hints', () => {
     expect(document.querySelector('.tour [role="dialog"] h2')?.textContent).toBe(ONBOARDING_STEPS[chapterStart(ONBOARDING_STEPS, TOUR_CHAPTER.HANDOVER)].title);
   });
 
-  it('offers the documents tour once on the first visit to the report', () => {
+  it('offers the documents tour once on the first visit to the report', async () => {
     localStorage.removeItem('ampli-chapter-hint-handover');
     render(<App />);
     const nav = screen.getByRole('navigation', { name: 'Разделы' });
     fireEvent.click(within(nav).getByRole('button', { name: /Отчёт/ }));
-    expect(toastText()).toContain('Впервые в документах');
+    await waitFor(() => expect(toastText()).toContain('Впервые в документах'));
     expect(currentToast()?.label).toBe('Показать');
     act(() => currentToast()?.run?.());
     expect(document.querySelector('.tour [role="dialog"] h2')?.textContent).toBe(ONBOARDING_STEPS[chapterStart(ONBOARDING_STEPS, TOUR_CHAPTER.HANDOVER)].title);

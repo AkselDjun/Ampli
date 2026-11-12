@@ -31,7 +31,8 @@ describe('App', () => {
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'edit');
     await user.click(screen.getByRole('button', { name: 'Копировать группу' }));
     expect(rowsOf().length).toBe(n0 + 2);
-    expect(document.querySelector('.ab-title')?.textContent).toContain('копия');
+    expect(document.querySelector('.ab-title')?.textContent).toMatch(/^Группа \d+$/);
+    expect((document.querySelector('.ed-name') as HTMLInputElement).value).toContain('копия');
     const del = screen.getByRole('button', { name: 'Удалить группу' });
     await user.click(del);
     expect(del).toHaveTextContent('Нажмите ещё раз, чтобы удалить');

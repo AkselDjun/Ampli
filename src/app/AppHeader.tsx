@@ -11,7 +11,7 @@ export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, o
         <div className="ab-edit">
           <button className="ab-back" type="button" onClick={onBack} aria-label="Назад к группам"><IconBack /></button>
           <div className="ab-tw">
-            <h1 className="ab-title">{selected ? 'Г' + (selectedIndex + 1) + ' ' + (selected.name || 'Без названия') : ''}</h1>
+            <h1 className="ab-title">{selected ? 'Группа ' + (selectedIndex + 1) : ''}</h1>
             <div id="ab-sub" className="ab-sub" />
           </div>
           <Button variant="primary" size="sm" onClick={onBack}>Готово</Button>

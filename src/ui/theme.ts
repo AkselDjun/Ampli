@@ -3,7 +3,7 @@ import { useSyncExternalStore } from 'react';
 export type Theme = 'auto' | 'light' | 'dark';
 
 export const THEME_KEY = 'ampli-theme';
-export const THEME_LABEL: Record<Theme, string> = { auto: 'Как в системе', light: 'Светлая', dark: 'Тёмная' };
+export const THEME_LABEL: Record<Theme, string> = { auto: 'Авто', light: 'Светлая', dark: 'Тёмная' };
 
 const BAR: Record<'light' | 'dark', string> = { light: '#FFFFFF', dark: '#15202A' };
 const subs = new Set<() => void>();

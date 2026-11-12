@@ -311,7 +311,7 @@ describe('apartment totals in the header', () => {
     expect(b).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(b);
     const pop = document.getElementById('tot-pop') as HTMLElement;
-    expect(pop.textContent).toContain('Укладывается');
+    expect(pop.textContent).toContain('Норма');
     expect(pop.textContent).toContain('Установлено');
     expect(pop.textContent).toContain('2P C50');
     expect(pop.textContent).toContain('ВВГнг(А)-LS 3×');
@@ -332,7 +332,7 @@ describe('apartment totals in the header', () => {
     const mk = (w: number, alloc = 15, supply = 1) => calcAll(w ? [mkLine('A', 'power', 5, [['x', w, 1]])] : [], { ...defaultCfg(), alloc, supply });
     expect(allocState(mk(0))).toEqual({ pct: 0, k: 'ok', text: 'Нет нагрузки' });
     expect(allocState(mk(2000)).k).toBe('ok');
-    expect(allocState(mk(2000)).text).toBe('Укладывается');
+    expect(allocState(mk(2000)).text).toBe('Норма');
     expect(allocState(mk(13000, 10, 3)).k).toBe('warn');
     const bad = allocState(mk(20000, 10, 3));
     expect(bad.k).toBe('bad');
@@ -387,7 +387,7 @@ describe('compact estimate and measurements', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /Отчёт/ })[0]);
     fireEvent.click(screen.getByRole('tab', { name: 'Смета' }));
     const inp = document.querySelector('.spec-t .price-in') as HTMLInputElement;
-    expect(inp.placeholder).toBe('цена');
+    expect(inp.placeholder).toBe('0,00');
     expect(document.querySelector('#rep-tp-estimate .tot')).toBeTruthy();
   });
 });

@@ -68,6 +68,6 @@ export const PRESETS: [string, number, string][] = [
   ['Светильник', 60, 'l'], ['Люстра', 180, 'l'], ['LED-лента', 14, 'l'], ['Зарядка электромобиля', 7400, 'p']
 ];
 
-export const STATUS = { ok: 'Норма', warn: 'Проверьте', bad: 'Не подходит' } as const;
+export const STATUS = { ok: 'Норма', warn: 'Совет', bad: 'Нарушение' } as const;
 
 export const CLIMITS: Record<string, [number, number]> = { ko: [0.3, 1], k: [0.5, 1], alloc: [1, 500], zs: [0.05, 2], feeder: [0, 3], margin: [1, 1.5], sip: [0, 500], rz: [0, 500] };

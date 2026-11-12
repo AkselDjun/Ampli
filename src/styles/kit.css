@@ -230,6 +230,9 @@ input:hover:not(:focus),select:hover:not(:focus){border-color:var(--ink-2)}
   .tabbar{gap:0;padding:var(--s-1-5) var(--s-2) 0}
   .tabbar-b{flex:1 1 auto;padding:0 var(--s-2);font-size:var(--t-sm)}
 }
+@media (--upto-380){
+  .tabbar-b{flex:1 1 0;min-width:0;padding:0 var(--s-1);white-space:normal;line-height:1.2;overflow-wrap:anywhere}
+}
 @media (--narrow){
   .btn{max-width:100%;padding-block:var(--s-1-5);line-height:1.25;white-space:normal;text-wrap:balance}
   .btn.sm{min-height:44px;padding-block:var(--s-1-5)}

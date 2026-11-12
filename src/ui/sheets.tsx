@@ -531,10 +531,10 @@ export function ReportSheet({
                 <td className="num sp-q" data-label="Количество">{item.qty}</td>
                 <td className="sp-n" data-label="Примечание">{item.note || '—'}</td>
                 <td className="num sp-p" data-label="Цена, BYN">
-                  <input className="price-in" type="text" inputMode="decimal" min={0} step={0.01} placeholder="цена" aria-label={'Цена: ' + item.name} {...errAttrs(fieldErr('price', lib.prices[item.name]), 'e-pr-' + i)} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
+                  <input className="price-in" type="text" inputMode="decimal" min={0} step={0.01} placeholder="0,00" aria-label={'Цена: ' + item.name} {...errAttrs(fieldErr('price', lib.prices[item.name]), 'e-pr-' + i)} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
                   <Err e={fieldErr('price', lib.prices[item.name])} id={'e-pr-' + i} />
                 </td>
-                <td className="num sp-s" data-label="Сумма, BYN">{sum === null ? '—' : fmt(sum, 2)}</td>
+                <td className="num sp-s" data-label="Сумма, BYN">{sum === null ? '' : fmt(sum, 2)}</td>
               </tr>
             ))}
           </tbody>
