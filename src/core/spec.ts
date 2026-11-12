@@ -1,6 +1,6 @@
 import type { Calc, SpecItem } from './types';
 import { fmt, plural } from './format';
-import { cableName, inCableName, protFull, uzoName } from './protection';
+import { cableName, inCableName, protFull, spdName, uzoName } from './protection';
 import { BOX_NAME } from './norms';
 import { contactorIn, vrRating } from './calc';
 import { weakSpec } from './weak';
@@ -18,7 +18,7 @@ export function buildSpec(a: Calc): SpecItem[] {
     const n = c.supply === 3 ? 3 : 1;
     items.push({ name: 'Реле контроля напряжения ' + (vr ? vr + ' А' : '63 А с контактором'), qty: n + ' шт', note: (n > 1 ? 'по одному на фазу; ' : '') + (vr ? 'номинал не меньше вводного автомата' : 'ток ввода больше 63 А, реле управляет контактором'), n, unit: 'шт' });
   }
-  if (a.inIn && c.spd) items.push({ name: 'УЗИП тип ' + (c.house ? '1+2 ' : '2 ') + (c.supply === 3 ? '3P+N' : '1P+N'), qty: '1 шт', note: 'после вводного автомата; защиту УЗИП выполнить по паспорту изготовителя', n: 1, unit: 'шт' });
+  if (a.inIn && c.spd) items.push({ name: spdName(c), qty: '1 шт', note: 'после вводного автомата; защиту УЗИП выполнить по паспорту изготовителя', n: 1, unit: 'шт' });
   if (a.prio) {
     const pr = a.prio;
     const g = (i: number) => 'Г' + (i + 1);

@@ -5,7 +5,7 @@ import { ROWLEN, STATUS } from '../core/norms';
 import { buildSpec, estimate } from '../core/spec';
 import { grandTotal, laborEstimate, unitQty } from '../core/labor';
 import { useLib } from '../store/LibContext';
-import { cableName, inCableName, protName } from '../core/protection';
+import { cableName, inCableName, protName, spdType } from '../core/protection';
 import { dropText } from '../core/report';
 import { Schematic } from './Schematic';
 import { Assumptions } from './Assumptions';
@@ -349,7 +349,7 @@ function AcceptDoc({ p, a }: { p: Project; a: Calc }) {
       <h1 className="act-h">Акт сдачи-приёмки выполненных работ</h1>
       <div className="act-top"><span>{p.address || p.name || '—'}</span><span>{actDate(p.acts)}</span></div>
       <p>
-        Исполнитель {b.company || p.author || '________________'}{b.signer ? ' в лице ' + b.signer : ''}, с одной стороны, и заказчик {p.client || '________________'}, с другой стороны, составили настоящий акт о том, что исполнитель выполнил, а заказчик принял работы по монтажу электропроводки и квартирного щитка{p.address ? ' по адресу: ' + p.address : ''}.
+        Исполнитель {b.company || p.author || '________________'}{b.signer ? ' в лице ' + b.signer : ''}, с одной стороны, и заказчик {p.client || '________________'}, с другой стороны, составили настоящий акт о том, что исполнитель выполнил, а заказчик принял работы по монтажу электропроводки и {cfgN(p.cfg).house ? 'щитка дома' : 'квартирного щитка'}{p.address ? ' по адресу: ' + p.address : ''}.
       </p>
       {(x.start || x.end) && <p>Сроки выполнения: {ruDate(x.start) || '…'} – {ruDate(x.end) || '…'}.</p>}
       <table>
@@ -513,7 +513,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
       </table>
       <h2>Ввод и щиток</h2>
       <p>
-        Вводной автомат: {a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—'}{a.inS ? ', кабель ввода ' + inCableName(c, a.inS) : ''}. Защита групп: {c.rcdMode ? 'УЗО на помещение и автоматы, у каждого УЗО своя шина N' : 'дифавтомат на каждую группу'}{a.rows.some(x => x.r.rcd && x.r.rcdA && !x.r.empty) ? ', тип A для групп с электроникой' : ''}{a.rows.some(x => x.r.arc && !x.r.empty) ? '; УЗДП на ' + (c.afdd === 'sock' ? 'розеточные группы' : 'однофазные группы') : ''}.{a.devs.some(d => d.kind === 'vr') ? ' Реле контроля напряжения после вводного автомата.' : ''}{a.devs.some(d => d.kind === 'spd') ? ' УЗИП тип 2 после вводного автомата.' : ''} Щиток на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}, занято {a.modSum}.
+        Вводной автомат: {a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—'}{a.inS ? ', кабель ввода ' + inCableName(c, a.inS) : ''}. Защита групп: {c.rcdMode ? 'УЗО на помещение и автоматы, у каждого УЗО своя шина N' : 'дифавтомат на каждую группу'}{a.rows.some(x => x.r.rcd && x.r.rcdA && !x.r.empty) ? ', тип A для групп с электроникой' : ''}{a.rows.some(x => x.r.arc && !x.r.empty) ? '; УЗДП на ' + (c.afdd === 'sock' ? 'розеточные группы' : 'однофазные группы') : ''}.{a.devs.some(d => d.kind === 'vr') ? ' Реле контроля напряжения после вводного автомата.' : ''}{a.devs.some(d => d.kind === 'spd') ? ' УЗИП тип ' + spdType(c) + ' после вводного автомата.' : ''} Щиток на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}, занято {a.modSum}.
       </p>
       {a.phases && (
         <p>Токи по фазам: L1 {fmt(a.phases.L1, 1)} А, L2 {fmt(a.phases.L2, 1)} А, L3 {fmt(a.phases.L3, 1)} А; перекос {fmt(a.imb, 0)} %.</p>

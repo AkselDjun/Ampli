@@ -7,6 +7,7 @@ import type { FloorRoom } from './floor';
 import { floorCalc } from './floor';
 import { houseCalc, houseTips } from './house';
 import { evNotes } from './ev';
+import { spdName, spdType } from './protection';
 
 export function cfgN(c: Cfg): CfgN {
   return {
@@ -418,7 +419,7 @@ export function calcAll(lines: Line[], cfg: Cfg, ex: { weak?: Weak; floor?: Floo
       devs.push({ kind: 'prio', mod: r.three ? 4 : 2, label: 'КМ' + contactorIn(r.In ?? 0), sub: 'Г' + (i + 1), title: 'Контактор ' + (r.three ? '4P' : '2P') + ' ' + contactorIn(r.In ?? 0) + ' А: отключение Г' + (i + 1) + ' реле приоритета' });
     });
   }
-  if (inIn && c.spd) devs.push({ kind: 'spd', mod: c.supply === 3 ? 4 : 2, label: 'УЗИП', sub: c.house ? 'тип 1+2' : 'тип 2', title: 'УЗИП тип ' + (c.house ? '1+2 ' : '2 ') + (c.supply === 3 ? '3P+N' : '1P+N') });
+  if (inIn && c.spd) devs.push({ kind: 'spd', mod: c.supply === 3 ? 4 : 2, label: 'УЗИП', sub: 'тип ' + spdType(c), title: spdName(c) });
   const groupDev = (x: Row, idx: number): Device => ({
     kind: x.r.rcbo ? 'rcd' : 'mcb',
     mod: x.r.mod,

@@ -58,6 +58,31 @@ describe('documents of one project agree with each other', () => {
     expect(spec.filter(i => i.name.startsWith('Контактор модульный')).reduce((s, i) => s + (i.n ?? 0), 0)).toBe(a.prio?.s.length);
   });
 
+  it('names the same surge protector type on the A3 sheet and in the printed report as in the spec', () => {
+    const { unmount } = render(<DrawingA3 p={p} a={a} company="" />);
+    const sheet = Array.from(document.querySelectorAll('svg.a3 text')).map(e => e.textContent).join(' ');
+    expect(sheet).toContain('УЗИП тип 1+2');
+    expect(sheet).not.toMatch(/УЗИП( FV1)? тип 2/);
+    expect(sheet).toContain('Щиток дома ЩК');
+    expect(sheet).not.toContain('этажного щита');
+    unmount();
+    render(<PrintDoc p={p} a={a} mode="report" />);
+    const text = document.body.textContent ?? '';
+    expect(text).toContain('УЗИП тип 1+2 после вводного автомата');
+    expect(text).not.toContain('УЗИП тип 2');
+  });
+
+  it('draws the group cable brand that the spec buys', () => {
+    render(<DrawingA3 p={p} a={a} company="" />);
+    const sheet = Array.from(document.querySelectorAll('svg.a3 text')).map(e => e.textContent).join(' ');
+    const brand = groups[0].r.cab;
+    expect(brand).toBe('NYM');
+    expect(spec.some(i => i.name.startsWith(brand + ' '))).toBe(true);
+    expect(sheet).toContain('кабелем ' + brand + ' с медными жилами');
+    expect(sheet).not.toContain('ВВГнг(А)-LS 3×');
+    expect(sheet.split(brand).length - 1).toBeGreaterThanOrEqual(groups.length);
+  });
+
   it('fits the panel modules into the panel that is bought', () => {
     expect(a.modSum).toBeLessThanOrEqual(a.size);
     expect(spec[0].name).toMatch(new RegExp('^Щиток на ' + a.size + ' '));
