@@ -9,6 +9,13 @@ import { buttonClass } from './kit';
 import type { ButtonSize, ButtonVariant } from './kit';
 import type { FieldErr } from '../core/limits';
 
+export function segStacks(labels: string[]): boolean {
+  if (labels.length > 3) return false;
+  const word = Math.max(...labels.flatMap(l => l.split(/\s+/).map(w => w.length)));
+  const full = Math.max(...labels.map(l => l.length));
+  return word * labels.length > 30 || full > 24;
+}
+
 export function Seg<T extends string | number>({
   name, value, items, onChange, labelledBy
 }: {
@@ -19,7 +26,7 @@ export function Seg<T extends string | number>({
   labelledBy?: string;
 }) {
   return (
-    <div className="seg" role="radiogroup" aria-labelledby={labelledBy} data-n={items.length}>
+    <div className="seg" role="radiogroup" aria-labelledby={labelledBy} data-n={items.length} data-stack={segStacks(items.map(i => i[1])) ? '' : undefined}>
       {items.map(([v, label]) => (
         <label key={String(v)}>
           <input type="radio" name={name} value={String(v)} checked={String(value) === String(v)} onChange={() => onChange(v)} />
