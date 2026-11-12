@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test';
 const brokenWords = (page: Page) =>
   page.evaluate(() => {
     const out: string[] = [];
-    for (const span of document.querySelectorAll<HTMLElement>('.seg span')) {
+    for (const span of document.querySelectorAll<HTMLElement>('.seg span, .radios span')) {
       if (!span.getClientRects().length) continue;
       const text = span.firstChild;
       if (!text || text.nodeType !== Node.TEXT_NODE) continue;
@@ -37,7 +37,7 @@ test('never splits a word inside a segmented option on a 320 px phone', async ({
   await page.locator('.rows .row').filter({ hasText: 'Варочная' }).first().click();
   await page.locator('#editor .fold-in > .why-t', { hasText: 'Дополнительно' }).click();
   const relay = page.getByRole('radiogroup').filter({ hasText: 'Приоритетная' });
-  await expect(relay).toHaveAttribute('data-stack', '');
+  await expect(relay).toHaveClass(/radios/);
   const opts = relay.locator('label');
   const a = await opts.nth(0).boundingBox();
   const b = await opts.nth(1).boundingBox();
