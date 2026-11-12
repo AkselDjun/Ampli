@@ -132,7 +132,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
   const maxCh = Math.max(6, Math.floor(cw / (fsz * 0.52)));
   const first = pg === 0;
   return (
-    <svg key={pg} className="a3" viewBox={'0 0 ' + W + ' ' + H} width={W + 'mm'} height={H + 'mm'} role="img" aria-label="Принципиальная схема распределительной сети" fill="none" stroke="#000" strokeWidth="0.35" fontFamily="'Golos Text', Arial, sans-serif">
+    <svg key={pg} className="a3" viewBox={'0 0 ' + W + ' ' + H} width={W + 'mm'} height={H + 'mm'} role="img" aria-label="Принципиальная схема распределительной сети" fill="none" stroke="#000" strokeWidth="0.35" fontFamily="'Ampli Sans', Arial, sans-serif">
       <rect x={FX} y={FY} width={FR - FX} height={FB - FY} strokeWidth="0.7" />
       <text x={TX0} y="14" {...t} fontSize="3.2" fontWeight="700">{boardName}</text>
       <text x={TX0} y="19" {...t} fontSize="2.4">{three ? '~3 × 400/230 В, 50 Гц' : '~230 В, 50 Гц'}</text>

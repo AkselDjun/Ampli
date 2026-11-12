@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 const dir = 'dist/assets';
-const budget = { js: 100 * 1024, css: 25 * 1024, initial: 195 * 1024, total: 340 * 1024 };
+const budget = { js: 100 * 1024, css: 25 * 1024, initial: 195 * 1024, total: 340 * 1024, fonts: 48 * 1024 };
 
 const html = readFileSync('dist/index.html', 'utf8');
 const initialFiles = new Set(
@@ -24,7 +24,13 @@ const initial = sum(rows.filter(r => r.initial));
 const lazy = sum(rows.filter(r => !r.initial));
 const total = initial + lazy;
 
+const fonts = readdirSync(dir)
+  .filter(f => f.endsWith('.woff2'))
+  .map(f => ({ f, size: readFileSync(join(dir, f)).length }));
+const fontTotal = fonts.reduce((s, r) => s + r.size, 0);
+
 const fails = [];
+if (fontTotal > budget.fonts) fails.push(`fonts: ${kb(fontTotal)} > ${kb(budget.fonts)}`);
 if (!initialFiles.size) fails.push('no entry assets found in dist/index.html');
 for (const r of rows) if (r.gz > budget[r.ext]) fails.push(`${r.f}: ${kb(r.gz)} > ${kb(budget[r.ext])}`);
 if (initial > budget.initial) fails.push(`first screen: ${kb(initial)} > ${kb(budget.initial)}`);
@@ -36,7 +42,9 @@ const lines = [
   ...rows.map(r => `| ${r.f} | ${r.initial ? 'first screen' : 'lazy'} | ${kb(r.raw)} | ${kb(r.gz)} |`),
   `| **First screen** | | | **${kb(initial)} / ${kb(budget.initial)}** |`,
   `| **Lazy** | | | **${kb(lazy)}** |`,
-  `| **Total** | | | **${kb(total)} / ${kb(budget.total)}** |`
+  `| **Total** | | | **${kb(total)} / ${kb(budget.total)}** |`,
+  ...fonts.map(r => `| ${r.f} | font | ${kb(r.size)} | woff2 |`),
+  `| **Fonts** | | | **${kb(fontTotal)} / ${kb(budget.fonts)}** |`
 ];
 console.log(lines.join('\n'));
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Bundle size\n\n${lines.join('\n')}\n`);

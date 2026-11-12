@@ -65,7 +65,7 @@ export default defineConfig({
   plugins: [
     csp(),
     react(),
-    preloadFont(/golos-text-cyrillic-wght-normal-[^/]*\.woff2$/),
+    preloadFont(/ampli-sans-wght-[^/]*\.woff2$/),
     babel({ presets: [compiler] }),
     VitePWA({
       registerType: 'prompt',
