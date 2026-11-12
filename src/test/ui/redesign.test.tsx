@@ -24,7 +24,7 @@ const proj = (lines: Line[], cfg: Partial<Cfg> = {}, o: Partial<Project> = {}): 
   ...o
 });
 const seed = (p: Project) => localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
-const longLine = () => mkLine('Длинная', 'power', 400, [['Печь', 3500, 1]]);
+const longLine = () => mkLine('Длинная', 'power', 600, [['Печь', 3500, 1]]);
 const overload = () => mkLine('Перегруз', 'power', 10, [['Первый', 10000, 1], ['Второй', 10000, 1]]);
 const heavySockets = () => mkLine('Розетки', 'socket', 10, [['Чайник', 1000, 1], ['Духовка', 3500, 1]]);
 
@@ -446,7 +446,7 @@ describe('Side folds', () => {
     expect(document.getElementById('chk-pop')).toBeNull();
   });
   it('uses the plural forms in the label', () => {
-    const heavy = Array.from({ length: 6 }, (_, i) => mkLine('П' + i, 'power', 400, [['x', 3500, 1]]));
+    const heavy = Array.from({ length: 6 }, (_, i) => mkLine('П' + i, 'power', 600, [['x', 3500, 1]]));
     const b = chkOf(proj(heavy));
     expect(b.querySelector('.vh')?.textContent).toMatch(/^Проверки по нормам: \d+ замечани(е|я|й)\. $/);
     expect(checksState([{ k: 'warn', t: 'a' }]).text).toBe('1 замечание');

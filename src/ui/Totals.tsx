@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import type { Calc } from '../core/types';
 import { fmt, fs } from '../core/format';
-import { inCableName } from '../core/protection';
+import { inCableName, inName } from '../core/protection';
 import { IconDown } from './Icons';
 import { usePop } from './pop';
 import { Button } from './kit';
@@ -26,7 +26,7 @@ export const Totals = memo(function Totals({ a, onNet, onCompare }: { a: Calc; o
   const c = a.c;
   const st = allocState(a);
   const three = c.supply === 3;
-  const inDev = a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—';
+  const inDev = inName(a.c, a.inIn);
   const inCab = a.inIn ? (a.inS ? inCableName(c, a.inS) : 'больше 35 мм²') : '—';
   const title = c.house ? 'Итого по дому' : 'Итого по квартире';
   const width = Math.min(100, Math.max(0, st.pct)) + '%';

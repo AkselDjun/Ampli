@@ -101,7 +101,8 @@ export function parseAttrs(raw: string): Attrs {
     const m = s.match(/(\d)\s*[xх]\s*(\d{1,2}(?:[.,]\d)?)/);
     if (m) {
       a.kind = 'cable';
-      a.brand = /nym/.test(s) ? 'NYM' : (/frls/.test(s) ? 'ВВГнг-FRLS' : 'ВВГнг-LS');
+      const br = /nym/.test(s) ? 'NYM' : (/frls/.test(s) ? 'ВВГнг-FRLS' : (/ввг/.test(s) ? 'ВВГнг-LS' : ''));
+      if (br) a.brand = br;
       a.cores = Number(m[1]);
       a.sect = num(m[2]);
       return a;
@@ -156,7 +157,7 @@ export function parseAttrs(raw: string): Attrs {
 
 export function matches(want: Attrs, got: Attrs): boolean {
   if (want.kind === 'other' || want.kind !== got.kind) return false;
-  if (want.kind === 'cable') return want.cores === got.cores && want.sect === got.sect;
+  if (want.kind === 'cable') return want.cores === got.cores && want.sect === got.sect && (!want.brand || !got.brand || want.brand === got.brand);
   if (want.kind === 'board') return got.modules >= want.modules && got.modules > 0;
   if (want.kind === 'bus') return want.bus === got.bus;
   if (want.kind === 'comb') return !want.poles || !got.poles || want.poles === got.poles;

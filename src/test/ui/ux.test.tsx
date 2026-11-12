@@ -38,7 +38,7 @@ describe('actionable checks', () => {
   });
 
   it('offers a single phase for a small load and opens groups', () => {
-    const ls = [mkLine('Длинная', 'power', 400, [['Печь', 3500, 1]]), mkLine('Без длины', 'light', 0, [['Лампа', 100, 1]]), mkLine('Перегруз', 'power', 10, [['Первый', 10000, 1], ['Второй', 10000, 1]])];
+    const ls = [mkLine('Длинная', 'power', 600, [['Печь', 3500, 1]]), mkLine('Без длины', 'light', 0, [['Лампа', 100, 1]]), mkLine('Перегруз', 'power', 10, [['Первый', 10000, 1], ['Второй', 10000, 1]])];
     const a = calc(ls, { supply: 3 });
     const list = checksOf(a);
     expect(checksOf(calc([ls[1]], { supply: 3 })).find(x => x.fix === 'phase1')).toBeTruthy();

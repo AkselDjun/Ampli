@@ -1,7 +1,7 @@
 import type { Calc, Device, LineType } from '../core/types';
 import { fmt, fs, plural } from '../core/format';
 import { ROWLEN } from '../core/norms';
-import { spdType } from '../core/protection';
+import { deviceKind, prioContactor, vrContactor } from '../core/protection';
 import { railCells, useFitCols } from './railfit';
 import { Fragment, memo, useState } from 'react';
 import { Fold, Tip } from './common';
@@ -71,7 +71,7 @@ const Module = memo(function Module({ d, i, cap, t, drag, over, sel, hot, prev, 
       <div className={cls} style={style} data-tip={d.title}>
         <b>{d.label}</b>
         <i>{d.sub}</i>
-        <em className="dev-cap">{d.kind === 'in' ? 'Ввод' : (d.kind === 'spd' || d.kind === 'vr' || d.kind === 'prio' ? EXTRA[d.kind][0] : d.zone)}</em>
+        <em className="dev-cap">{d.kind === 'in' ? 'Ввод' : (vrContactor(d) ? 'Контактор' : (d.kind === 'spd' || d.kind === 'vr' || d.kind === 'prio' ? EXTRA[d.kind][0] : d.zone))}</em>
       </div>
     );
   }
@@ -174,11 +174,11 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
             const cl = load === null ? '' : (load > 100 ? 'bad' : (load > 80 ? 'warn' : ''));
             const u = d.kind === 'uzo' ? a.uzos.find(z => z.zone === d.zone) : undefined;
             const extra = d.kind === 'spd' || d.kind === 'vr' || d.kind === 'prio';
-            const name = d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? 'УЗО: ' + d.zone : (d.kind === 'prio' && d.sub !== 'приоритет' ? 'Контактор ' + d.sub : (extra ? EXTRA[d.kind][1] : nameOf[g])));
-            const kind = d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'rcd' ? (d.arc ? 'УЗДП с дифавтоматом ' : 'дифавтомат ') + d.ma + ' мА' + (row?.r.rcdA ? ', тип A' : '') : (d.kind === 'uzo' ? d.sub.replace('мА', ' мА') + (u?.typeA ? ', тип A' : '') + ', своя шина N' : (d.kind === 'spd' ? 'тип ' + spdType(c) + ', ' + (c.supply === 3 ? '3P+N' : '1P+N') : (d.kind === 'vr' ? (c.supply === 3 ? 'по одному на фазу' : 'отключит квартиру при скачке напряжения') : d.kind === 'prio' ? d.title.split(': ')[1] ?? '' : (d.arc ? 'УЗДП с автоматом' : 'автомат')))));
+            const name = d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? 'УЗО: ' + d.zone : (prioContactor(d) ? 'Контактор ' + d.sub : (vrContactor(d) ? 'Контактор ввода' : (extra ? EXTRA[d.kind][1] : nameOf[g]))));
+            const kind = deviceKind(d, c, !!row?.r.rcdA, !!u?.typeA);
             const body = (
               <>
-                <span className={'bd-no k-' + d.kind}>{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (extra ? (d.kind === 'spd' ? 'FV' : (d.kind === 'prio' && d.sub !== 'приоритет' ? 'KM' : 'KV')) : g))}</span>
+                <span className={'bd-no k-' + d.kind}>{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (extra ? (d.kind === 'spd' ? 'FV' : (prioContactor(d) || vrContactor(d) ? 'KM' : 'KV')) : g))}</span>
                 <span className="bd-main">
                   <span className="bd-name">{name}</span>
                   <span className="bd-sub">{kind}{row && row.r.S ? ', ' + fs(row.r.S) + ' мм²' : ''}{u ? ' · ' + u.groups.map(k => 'Г' + (k + 1)).join(', ') : ''}</span>

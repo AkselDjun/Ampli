@@ -398,7 +398,7 @@ describe('RCD trip time measurement', () => {
     const first = d.querySelector('.pm') as HTMLElement;
     change(byLabel(d, 'Г1: Отключение УЗО, мс'), '28');
     expect(first.querySelector('.pill')?.textContent).toBe('Соответствует');
-    expect(first.querySelector('.pm-note')?.textContent).toContain('УЗО до 500 мс');
+    expect(first.querySelector('.pm-note')?.textContent).toContain('УЗО до 300 мс');
     change(byLabel(d, 'Г1: Отключение УЗО, мс'), '700');
     expect(first.querySelector('.pill')?.textContent).toBe('Не соответствует');
     expect(stored().list[0].lines[0].meas.rcd).toBe('700');
@@ -407,7 +407,7 @@ describe('RCD trip time measurement', () => {
     const w = dlg('Монтаж и приёмка');
     fireEvent.click(within(w).getByRole('tab', { name: /^Замеры/, hidden: true }));
     const row = w.querySelector('.ms-r') as HTMLElement;
-    expect(row.querySelector('small')?.textContent).toBe('УЗО 700 / 500 мс');
+    expect(row.querySelector('small')?.textContent).toBe('УЗО 700 / 300 мс');
     expect(row.querySelector('.pill')?.textContent).toBe('Не соответствует');
   });
 });

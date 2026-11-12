@@ -1,5 +1,5 @@
 import type { Appliance, BoxType, Calc, Cfg, CfgN, Device, InCable, Line, LineResult, Phase, Row, Uzo } from './types';
-import { ALL_STEPS, HEAT_RX, TYPE_A_RX, VR_STD, HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_PER_A_MA, LOAD_WARN, LONG_MIN_IN, LONG_RX, MARGIN_MAX, MOTOR_COS, MOTOR_RX, RCD10_MAX_IN, IN_CABLE, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, RCD_STD, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
+import { ALL_STEPS, HEAT_RX, TYPE_A_RX, VR_STD, HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_PER_A_MA, LOAD_WARN, LONG_MIN_IN, LONG_RX, MARGIN_MAX, MOTOR_COS, MOTOR_RX, RCD10_MAX_IN, RCD_STD_REF, IN_CABLE, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_20, RHO_HOT_K, RCD_STD, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs, pn } from './format';
 import type { Weak } from './weak';
 import { weakCalc, weakStarted } from './weak';
@@ -7,7 +7,7 @@ import type { FloorRoom } from './floor';
 import { floorCalc } from './floor';
 import { houseCalc, houseTips } from './house';
 import { evNotes } from './ev';
-import { spdName, spdType } from './protection';
+import { inPoles, spdName, spdType } from './protection';
 
 export function cfgN(c: Cfg): CfgN {
   return {
@@ -67,7 +67,7 @@ export const zoneOf = (l: Line): string => (l.zone ?? '').trim() || 'Без по
 
 export function loopOhm(S: number, len: number): number {
   const pe = Math.min(S, PE_MAX_S);
-  return RHO * RHO_HOT_K * len * (1 / S + 1 / pe);
+  return RHO_20 * RHO_HOT_K * len * (1 / S + 1 / pe);
 }
 
 export function shortCircuit(S: number, len: number, zs: number): number {
@@ -177,7 +177,7 @@ export function calcLine(l: Line, c: CfgN, zoneMa?: number): LineResult {
       r.rcdMeas = tm;
       if (tm > r.rcdLim) {
         r.status = 'bad';
-        r.notes.push('УЗО отключилось за ' + fmt(tm, 0) + ' мс при номинальном дифференциальном токе, допустимо не более ' + fmt(r.rcdLim, 0) + ' мс (ТКП 339-2022 с изм. № 1, табл. ' + (r.ma > 30 ? '4.4.47' : '4.4.48') + '). Замените аппарат.');
+        r.notes.push('УЗО отключилось за ' + fmt(tm, 0) + ' мс при номинальном дифференциальном токе, допустимо не более ' + fmt(r.rcdLim, 0) + ' мс (' + RCD_STD_REF + (r.ma > 30 ? ', селективное УЗО типа S' : ', УЗО общего типа') + '). Замените аппарат.');
       }
     }
   }
@@ -337,7 +337,7 @@ function planUzos(lines: Line[], c: CfgN): { rows: Row[]; uzos: Uzo[] } {
     const In = RCD_STD.find(x => x >= need) ?? RCD_STD[RCD_STD.length - 1];
     const ma = maOf.get(z) as number;
     const est = rs.filter(r => r.leakMeas === null);
-    const leak = rs.reduce((s, r) => s + (r.leakMeas ?? 0), 0) + est.reduce((s, r) => s + r.cable * LEAK_PER_M_MA + r.I * LEAK_PER_A_MA * c.ko, 0);
+    const leak = rs.reduce((s, r) => s + (r.leakMeas ?? 0), 0) + est.reduce((s, r) => s + r.cable * LEAK_PER_M_MA + r.I * LEAK_PER_A_MA, 0);
     idx.forEach(i => {
       const r = rows[i].r;
       r.uzo = k;
@@ -413,6 +413,7 @@ export function calcAll(lines: Line[], cfg: Cfg, ex: { weak?: Weak; floor?: Floo
     const vr = vrRating(inIn);
     const n = c.supply === 3 ? 3 : 1;
     devs.push({ kind: 'vr', mod: 2 * n, label: vr ? vr + 'А' : 'РН', sub: n > 1 ? '3 × реле' : 'реле U', title: 'Реле контроля напряжения' + (n > 1 ? ', по одному на фазу' : '') + (vr ? ' ' + vr + ' А' : ', через контактор') });
+    if (!vr) devs.push({ kind: 'vr', mod: c.supply === 3 ? 4 : 2, label: 'КМ' + contactorIn(inIn), sub: 'контактор', title: 'Контактор ' + inPoles(c) + ' ' + contactorIn(inIn) + ' А: отключает ввод по команде реле напряжения' });
   }
   if (prio.on) {
     const pName = prio.p.map(i => 'Г' + (i + 1)).join(', ');

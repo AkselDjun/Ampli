@@ -1,5 +1,5 @@
 import type { CfgN, Line, LineResult } from './types';
-import { IZ, KZ_TIME, RHO, RHO_HOT_K, SECTIONS, TYPES } from './norms';
+import { IZ, KZ_TIME, RHO, RHO_20, RHO_HOT_K, SECTIONS, TYPES } from './norms';
 import { NB, fmt, fs, round2 } from './format';
 import { cableName } from './protection';
 import { loopOhm } from './calc';
@@ -61,7 +61,7 @@ export function whyRows(l: Line, r: LineResult, c: CfgN): WhyRow[] {
       rows.push({
         title: 'Короткое замыкание',
         formula: r.ikSrc === 'meas' && r.zsMeas !== null ? 'Iк = 230 / ' + fmt(r.zsMeas, 2) + ' (замер петли) = ' + fmt(r.ik, 0) + NB + 'А' : 'Iк = 230 / (' + fmt(c.zs, 2) + ' + ' + fmt(zl, 2) + ') = ' + fmt(r.ik, 0) + NB + 'А',
-        note: 'Нужно не меньше ' + fmt(r.ikNeed, 0) + NB + 'А (' + (r.curve === 'B' ? 5 : 10) + ' × ' + r.curve + r.In + '), чтобы автомат отключил линию за ' + fs(KZ_TIME) + NB + 'с при 230' + NB + 'В (ТКП 339-2022, п. 4.3.5.4, табл. 4.3.1). ' + (r.ikSrc === 'meas' ? 'Ток посчитан по замеренному сопротивлению петли в конце линии, расчётный был бы ' + fmt(230 / (c.zs + zl), 0) + NB + 'А.' : 'Петля фаза-нуль питающей сети ' + fmt(c.zs, 2) + NB + 'Ом задана в параметрах, сопротивление жил фазы и PE взято с коэффициентом ' + fs(RHO_HOT_K) + ' на нагрев (' + fs(RHO) + NB + 'Ом·мм²/м).')
+        note: 'Нужно не меньше ' + fmt(r.ikNeed, 0) + NB + 'А (' + (r.curve === 'B' ? 5 : 10) + ' × ' + r.curve + r.In + '), чтобы автомат отключил линию за ' + fs(KZ_TIME) + NB + 'с при 230' + NB + 'В (ТКП 339-2022, п. 4.3.5.4, табл. 4.3.1). ' + (r.ikSrc === 'meas' ? 'Ток посчитан по замеренному сопротивлению петли в конце линии, расчётный был бы ' + fmt(230 / (c.zs + zl), 0) + NB + 'А.' : 'Петля фаза-нуль питающей сети ' + fmt(c.zs, 2) + NB + 'Ом задана в параметрах, сопротивление жил фазы и PE взято с коэффициентом ' + fs(RHO_HOT_K) + ' на нагрев к ' + fs(RHO_20) + NB + 'Ом·мм²/м при 20' + NB + '°C.')
       });
     }
   }

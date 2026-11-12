@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calcAll, vrRating } from '../../core/calc';
+import { calcAll, contactorIn, vrRating } from '../../core/calc';
 import { buildSpec } from '../../core/spec';
 import { protFull, protName, uzoName } from '../../core/protection';
 import { parseAttrs, matches } from '../../core/shop';
@@ -90,6 +90,15 @@ describe('voltage relay and surge protection', () => {
     const heavy = calcAll(Array.from({ length: 3 }, (_, i) => mkLine('П' + i, 'power', 5, [['Плита', 7000, 1]])), { ...defaultCfg(), vr: 'on', ko: 1 });
     expect(heavy.inIn).toBeGreaterThan(63);
     expect(heavy.devs.find(d => d.kind === 'vr')?.title).toContain('через контактор');
-    expect(buildSpec(heavy).find(i => i.name.startsWith('Реле'))?.name).toBe('Реле контроля напряжения 63 А с контактором');
+    expect(buildSpec(heavy).find(i => i.name.startsWith('Реле'))?.name).toBe('Реле контроля напряжения с управлением контактором');
+    const km = heavy.devs.find(d => d.kind === 'vr' && d.sub === 'контактор');
+    expect(km?.label).toBe('КМ' + contactorIn(heavy.inIn as number));
+    expect(km?.mod).toBe(2);
+    expect(buildSpec(heavy).find(i => i.name.startsWith('Контактор модульный'))?.name).toBe('Контактор модульный 2P ' + contactorIn(heavy.inIn as number) + ' А');
+  });
+  it('adds no input contactor while the relay itself carries the input current', () => {
+    const small = calcAll([mkLine('Розетки', 'socket', 5, [['Чайник', 2000, 1]])], { ...defaultCfg(), vr: 'on' });
+    expect(small.devs.filter(d => d.kind === 'vr')).toHaveLength(1);
+    expect(buildSpec(small).some(i => i.name.startsWith('Контактор'))).toBe(false);
   });
 });

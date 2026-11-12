@@ -1,6 +1,6 @@
 import { GROUND_RODS, GROUND_ROD_M, RZ_MAX, SIP_DROP_MAX, SIP_IZ, SIP_S } from './house';
 import type { CfgN } from './types';
-import { HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, KZ_TIME, LEAK_PER_A_MA, LONG_MIN_IN, MOTOR_COS, RCD10_MAX_IN, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_HOT_K, SINGLE_INPUT_KW, TRIP_MULT, TYPES, IN_CABLE } from './norms';
+import { HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, KZ_TIME, LEAK_PER_A_MA, LONG_MIN_IN, MOTOR_COS, RCD10_MAX_IN, RCD_STD_REF, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_20, RHO_HOT_K, SINGLE_INPUT_KW, TRIP_MULT, TYPES, IN_CABLE } from './norms';
 import { fmt, fs } from './format';
 import { JUMPER_M } from './supplies';
 import { EV_MIN_A } from './ev';
@@ -30,11 +30,11 @@ export function assumptions(c: CfgN, ex: { ev?: boolean } = {}): Assumption[] {
     { name: 'Время отключения КЗ', value: fs(KZ_TIME) + ' с при 230 В', basis: 'norm', source: 'ТКП 339-2022, п. 4.3.5.4, табл. 4.3.1' },
     { name: 'Ток мгновенного срабатывания', value: 'B: ' + TRIP_MULT.B + '×In, C: ' + TRIP_MULT.C + '×In', basis: 'practice', source: 'Верхняя граница диапазона срабатывания автомата по ГОСТ IEC 60898-1' },
     { name: 'Петля фаза-нуль питающей сети', value: fmt(c.zs, 2) + ' Ом', basis: 'user', source: 'Параметры сети; замер в карточке группы заменяет расчёт' },
-    { name: 'Сопротивление петли жил', value: 'ρ × ' + fs(RHO_HOT_K) + ', PE равен фазе до ' + PE_MAX_S + ' мм²', basis: 'practice', source: 'Множитель 1,5 — инженерный запас на нагрев, а не подтверждённое требование нормы; PE по ГОСТ 30331.15-2001, п. 524.2' },
+    { name: 'Сопротивление петли жил', value: fs(RHO_20) + ' Ом·мм²/м при 20 °C × ' + fs(RHO_HOT_K) + ', PE равен фазе до ' + PE_MAX_S + ' мм²', basis: 'practice', source: 'Множитель 1,5 — инженерный запас на нагрев жил при КЗ к сопротивлению меди при 20 °C, а не подтверждённое требование нормы; 0,0225 для потери напряжения уже учитывает нагрев и второй раз не умножается; PE по ГОСТ 30331.15-2001, п. 524.2' },
     { name: 'Ток УЗО', value: '30 мА, в мокрых помещениях 10 мА', basis: 'norm', source: 'ТКП 339-2022 с изм. № 1, п. 4.3.18.5; СН 4.04.01-2019, п. 16.3.13. На мощные приборы УЗО ставится по практике, тоже 30 мА: 100 мА защищает от пожара, но не от прямого прикосновения' },
-    { name: 'Время отключения УЗО при IΔn', value: '30 мА: 0,5 с; 10 мА: 5 с; свыше 30 мА: 2 с', basis: 'norm', source: 'ТКП 339-2022 с изм. № 1, табл. 4.4.47, 4.4.48 (УЗО типа AC)' },
+    { name: 'Время отключения УЗО при IΔn', value: 'не более 0,3 с для УЗО и дифавтоматов общего типа независимо от уставки; свыше 30 мА 0,5 с (селективные типа S)', basis: 'norm', source: RCD_STD_REF + '; табл. 4.4.47 и 4.4.48 ТКП 339-2022 с изм. № 1 сверить по тексту' },
     { name: 'Ток утечки', value: 'не более 1/3 уставки', basis: 'norm', source: 'СН 4.04.01-2019, п. 16.3.7; замечание ставится по замеру утечки' },
-    { name: 'Оценка утечки до замера', value: 'сеть ' + fs(LEAK_PER_M_MA) + ' мА/м, приборы ' + fs(LEAK_PER_A_MA) + ' мА на 1 А нагрузки; для суммы на УЗО нагрузка умножается на Ко', basis: 'practice', source: 'Без данных изготовителя оценка показывается подсказкой, а не замечанием' },
+    { name: 'Оценка утечки до замера', value: 'сеть ' + fs(LEAK_PER_M_MA) + ' мА/м, приборы ' + fs(LEAK_PER_A_MA) + ' мА на 1 А нагрузки, одинаково для дифавтомата и УЗО на помещение, без снижения на Ко', basis: 'practice', source: 'Без данных изготовителя оценка показывается подсказкой, а не замечанием' },
     { name: 'УЗО 10 мА', value: 'номинал не больше ' + RCD10_MAX_IN + ' А, при большей сумме автоматов помещение делится на несколько УЗО', basis: 'practice', source: 'УЗО 10 мА на больший ток редко выпускаются; меньше групп на одном аппарате, меньше ложных отключений' },
     { name: 'Сопротивление изоляции', value: 'не менее ' + fs(INS_MIN_MOHM) + ' МОм', basis: 'norm', source: 'ТКП 339-2022, п. 4.4.26.1, табл. 4.4.46' },
     { name: 'Однофазный ввод', value: 'до ' + SINGLE_INPUT_KW + ' кВт', basis: 'norm', source: 'СН 4.04.01-2019, п. 9.12' },

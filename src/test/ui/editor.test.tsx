@@ -176,8 +176,8 @@ describe('Editor RCD trip time', () => {
     boot();
     click(ed(), 'Замеры и фото');
     const input = byLabel(ed(), 'Замер времени отключения УЗО, мс');
-    expect(input.placeholder).toBe('до 500');
+    expect(input.placeholder).toBe('до 300');
     change(input, '800');
-    expect(ed().textContent).toContain('табл. 4.4.48');
+    expect(ed().textContent).toContain('ГОСТ IEC 61008-1');
   });
 });

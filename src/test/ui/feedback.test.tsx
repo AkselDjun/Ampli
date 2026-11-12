@@ -263,7 +263,7 @@ describe('panel mode as a real board', () => {
     expect(d.querySelector('.pm .no')?.textContent).toBe('Г2');
     expect(d.querySelector('.pm-prot')?.textContent).toContain('Комнаты');
     expect(byLabel(d, 'Г2: Изоляция, МОм').placeholder).toBe('норма от 0,5');
-    expect(byLabel(d, 'Г2: Отключение УЗО, мс').placeholder).toBe('норма до 500');
+    expect(byLabel(d, 'Г2: Отключение УЗО, мс').placeholder).toBe('норма до 300');
     expect(byLabel(d, 'Г2: Петля фаза-нуль, Ом').placeholder).toMatch(/^норма до \d+,\d{2}$/);
     expect(byLabel(d, 'Г2: Утечка, мА').placeholder).toBe('норма до 10,0');
   });

@@ -55,7 +55,7 @@ describe('documents of one project agree with each other', () => {
     const prio = a.devs.filter(d => d.kind === 'prio');
     expect(prio.length).toBe(1 + (a.prio?.s.length ?? 0));
     expect(spec.filter(i => i.name === 'Реле приоритета нагрузки').length).toBe(1);
-    expect(spec.filter(i => i.name.startsWith('Контактор модульный')).reduce((s, i) => s + (i.n ?? 0), 0)).toBe(a.prio?.s.length);
+    expect(spec.filter(i => i.name.startsWith('Контактор модульный')).reduce((s, i) => s + (i.n ?? 0), 0)).toBe((a.prio?.s.length ?? 0) + a.devs.filter(d => d.kind === 'vr' && d.sub === 'контактор').length);
   });
 
   it('names the same surge protector type on the A3 sheet and in the printed report as in the spec', () => {
