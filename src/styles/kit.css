@@ -54,6 +54,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
 .chips{display:flex;flex-wrap:wrap;gap:var(--s-2)}
 .chip{flex:none;min-height:40px;padding:0 var(--s-4);border-radius:999px;border:1px solid var(--line);background:var(--field);font-size:var(--t-m);font-weight:600;cursor:pointer;white-space:nowrap}
+a.chip{color:var(--ink);text-decoration:none}
 .chip:hover{border-color:var(--accent);color:var(--accent)}
 .chip:active{background:var(--accent-soft)}
 .chip.custom{border-style:dashed;color:var(--accent)}
