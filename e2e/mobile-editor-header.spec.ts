@@ -41,3 +41,24 @@ test.describe('header buttons on the group list', () => {
     }
   });
 });
+
+test.describe('editor header with wider glyphs at 360 px', () => {
+  test.use({ viewport: { width: 360, height: 700 }, bypassCSP: true });
+  test('drops a short result value instead of clipping it', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'phone layout');
+    await page.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
+    await page.goto('/');
+    await page.addStyleTag({ content: '*{letter-spacing:.6px !important}' });
+    await page.locator('.rows .row').filter({ hasText: 'Варочная' }).first().click();
+    await page.evaluate(() => window.scrollTo(0, 900));
+    const mini = page.locator('.ed-mini');
+    await expect(mini).toBeVisible();
+    expect(await mini.evaluate(e => e.scrollWidth - e.clientWidth)).toBeLessThanOrEqual(1);
+    const cut = await mini.evaluate(e => [...e.querySelectorAll('b')].some(b => {
+      const r = b.getBoundingClientRect();
+      const m = e.getBoundingClientRect();
+      return r.top < m.bottom && r.right > m.right + 1;
+    }));
+    expect(cut).toBe(false);
+  });
+});
