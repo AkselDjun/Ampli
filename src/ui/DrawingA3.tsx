@@ -1,7 +1,7 @@
 import type { Calc, Project, Row } from '../core/types';
 import { fmt, fs, plural, pn } from '../core/format';
 import { HEAT_RX, IN_CABLE } from '../core/norms';
-import { inCableName } from '../core/protection';
+import { inCableName, spdType } from '../core/protection';
 import { vrRating } from '../core/calc';
 import { useNow } from './now';
 
@@ -165,7 +165,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
           <path d={'M' + (SPDX - 1.2) + ' ' + (busY + 12.5) + 'l2.4 -5M' + (SPDX + 1.2) + ' ' + (busY + 7.5) + 'l-1 0.3M' + (SPDX + 1.2) + ' ' + (busY + 7.5) + 'l-0.2 1'} />
           <path d={'M' + SPDX + ' ' + (busY + 14) + 'v3M' + (SPDX - 2.5) + ' ' + (busY + 17) + 'h5M' + (SPDX - 1.6) + ' ' + (busY + 18) + 'h3.2M' + (SPDX - 0.8) + ' ' + (busY + 19) + 'h1.6'} />
           <text x={SPDX + 3.5} y={busY + 9} {...t} fontSize="2.4" fontWeight="700">FV1</text>
-          <text x={SPDX + 3.5} y={busY + 12.5} {...t} fontSize="2.2">УЗИП тип 2</text>
+          <text x={SPDX + 3.5} y={busY + 12.5} {...t} fontSize="2.2">УЗИП тип {spdType(c)}</text>
         </g>
       )}
       {a.uzos.map((u, k) => {
@@ -224,7 +224,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
       {first && <g>
         <text x={TX0} y={tableBottom + 8} {...t} fontSize="2.8" fontWeight="700">Итого по щитку</text>
         <text x={TX0} y={tableBottom + 13} {...t} fontSize="2.5">Руст = {fmt(a.sumInst / 1000, 2)} кВт; Ко = {fs(c.ko)}; Рр = {fmt(a.P / 1000, 2)} кВт; Iр = {fmt(a.Itot, 1)} А{three ? ' (наиболее загруженная фаза)' : ''}.</text>
-        <text x={TX0} y={tableBottom + 17.5} {...t} fontSize="2.5">Выделенная мощность {fmt(c.alloc, 1)} кВт. Корпус щитка на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}.{vr ? ' Реле напряжения KV1' + (three ? ' по одному на фазу' : '') + (vrA ? ', ' + vrA + ' А.' : ', через контактор.') : ''}{spd ? ' УЗИП FV1 тип 2 ' + (three ? '3P+N.' : '1P+N.') : ''}</text>
+        <text x={TX0} y={tableBottom + 17.5} {...t} fontSize="2.5">Выделенная мощность {fmt(c.alloc, 1)} кВт. Корпус щитка на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}.{vr ? ' Реле напряжения KV1' + (three ? ' по одному на фазу' : '') + (vrA ? ', ' + vrA + ' А.' : ', через контактор.') : ''}{spd ? ' УЗИП FV1 тип ' + spdType(c) + ' ' + (three ? '3P+N.' : '1P+N.') : ''}</text>
         <text x={TX0} y={tableBottom + 25} {...t} fontSize="2.8" fontWeight="700">Примечания</text>
         {[
           '1. Схема выполнена по ГОСТ 21.613-2014. Расчёт по ТКП 339-2022 с изм. № 1 и СН 4.04.01-2019.',

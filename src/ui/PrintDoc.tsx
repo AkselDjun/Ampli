@@ -5,7 +5,7 @@ import { ROWLEN, STATUS } from '../core/norms';
 import { buildSpec, estimate } from '../core/spec';
 import { grandTotal, laborEstimate, unitQty } from '../core/labor';
 import { useLib } from '../store/LibContext';
-import { cableName, inCableName, protName } from '../core/protection';
+import { cableName, inCableName, protName, spdType } from '../core/protection';
 import { dropText } from '../core/report';
 import { Schematic } from './Schematic';
 import { Assumptions } from './Assumptions';
@@ -513,7 +513,7 @@ function ReportDoc({ p, a }: { p: Project; a: Calc }) {
       </table>
       <h2>Ввод и щиток</h2>
       <p>
-        Вводной автомат: {a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—'}{a.inS ? ', кабель ввода ' + inCableName(c, a.inS) : ''}. Защита групп: {c.rcdMode ? 'УЗО на помещение и автоматы, у каждого УЗО своя шина N' : 'дифавтомат на каждую группу'}{a.rows.some(x => x.r.rcd && x.r.rcdA && !x.r.empty) ? ', тип A для групп с электроникой' : ''}{a.rows.some(x => x.r.arc && !x.r.empty) ? '; УЗДП на ' + (c.afdd === 'sock' ? 'розеточные группы' : 'однофазные группы') : ''}.{a.devs.some(d => d.kind === 'vr') ? ' Реле контроля напряжения после вводного автомата.' : ''}{a.devs.some(d => d.kind === 'spd') ? ' УЗИП тип 2 после вводного автомата.' : ''} Щиток на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}, занято {a.modSum}.
+        Вводной автомат: {a.inIn ? (three ? '4P' : '2P') + ' C' + a.inIn : '—'}{a.inS ? ', кабель ввода ' + inCableName(c, a.inS) : ''}. Защита групп: {c.rcdMode ? 'УЗО на помещение и автоматы, у каждого УЗО своя шина N' : 'дифавтомат на каждую группу'}{a.rows.some(x => x.r.rcd && x.r.rcdA && !x.r.empty) ? ', тип A для групп с электроникой' : ''}{a.rows.some(x => x.r.arc && !x.r.empty) ? '; УЗДП на ' + (c.afdd === 'sock' ? 'розеточные группы' : 'однофазные группы') : ''}.{a.devs.some(d => d.kind === 'vr') ? ' Реле контроля напряжения после вводного автомата.' : ''}{a.devs.some(d => d.kind === 'spd') ? ' УЗИП тип ' + spdType(c) + ' после вводного автомата.' : ''} Щиток на {a.size} {plural(a.size, ['модуль', 'модуля', 'модулей'])}, занято {a.modSum}.
       </p>
       {a.phases && (
         <p>Токи по фазам: L1 {fmt(a.phases.L1, 1)} А, L2 {fmt(a.phases.L2, 1)} А, L3 {fmt(a.phases.L3, 1)} А; перекос {fmt(a.imb, 0)} %.</p>

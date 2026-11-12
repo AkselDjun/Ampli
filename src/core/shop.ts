@@ -16,6 +16,8 @@ export interface Attrs {
   size?: string;
   typeA?: boolean;
   arc?: boolean;
+  spd12?: boolean;
+  brand?: string;
 }
 
 export interface Offer {
@@ -99,6 +101,7 @@ export function parseAttrs(raw: string): Attrs {
     const m = s.match(/(\d)\s*[xх]\s*(\d{1,2}(?:[.,]\d)?)/);
     if (m) {
       a.kind = 'cable';
+      a.brand = /nym/.test(s) ? 'NYM' : (/frls/.test(s) ? 'ВВГнг-FRLS' : 'ВВГнг-LS');
       a.cores = Number(m[1]);
       a.sect = num(m[2]);
       return a;
@@ -121,6 +124,7 @@ export function parseAttrs(raw: string): Attrs {
   }
   if (/узип|ограничител[ья] перенапряж|\bspd\b/.test(s)) {
     a.kind = 'spd';
+    if (/(?:тип|класс|type)\s*(?:1|i)\s*\+\s*(?:2|ii)|[tт]\s?1\s*\+\s*[tт]\s?2/.test(s)) a.spd12 = true;
     return a;
   }
   if (/реле.*напряжен|\bрн-?\d|\bузм\b/.test(s)) {
@@ -158,7 +162,8 @@ export function matches(want: Attrs, got: Attrs): boolean {
   if (want.kind === 'comb') return !want.poles || !got.poles || want.poles === got.poles;
   if (want.kind === 'wire' || want.kind === 'ferrule') return !!got.sect && want.sect === got.sect;
   if (want.kind === 'tube' || want.kind === 'duct') return !!got.size && want.size === got.size;
-  if (want.kind === 'spd' || want.kind === 'box') return true;
+  if (want.kind === 'spd') return !want.spd12 || !!got.spd12;
+  if (want.kind === 'box') return true;
   if (want.kind === 'relay') return !want.amp || got.amp >= want.amp;
   if (want.kind === 'rcd') return got.amp === want.amp && (!want.poles || !got.poles || want.poles === got.poles) && (!want.ma || !got.ma || want.ma === got.ma) && (!want.typeA || !!got.typeA);
   if (!got.amp || want.amp !== got.amp) return false;
@@ -179,7 +184,7 @@ export function bestOffers(item: SpecItem, offers: Offer[]): Offer[] {
 export function shopQuery(item: SpecItem): string {
   const w = parseAttrs(item.name);
   const name = item.name;
-  if (w.kind === 'cable') return 'ВВГнг-LS ' + w.cores + 'х' + String(w.sect).replace('.', ',');
+  if (w.kind === 'cable') return (w.brand ?? 'ВВГнг-LS') + ' ' + w.cores + 'х' + String(w.sect).replace('.', ',');
   if (w.kind === 'board') return 'Щиток встраиваемый ' + w.modules + ' ' + plural(w.modules ?? 0, ['модуль', 'модуля', 'модулей']);
   if (w.kind === 'bus') return w.bus === 'pe' ? 'Шина PE заземления на DIN-рейку' : 'Шина N нулевая на DIN-рейку';
   if (w.arc) return (w.kind === 'rcbo' ? 'УЗДП с дифавтоматом ' : 'УЗДП с автоматом ') + w.curve + w.amp + (w.ma ? ' ' + w.ma + ' мА' : '');
@@ -191,7 +196,7 @@ export function shopQuery(item: SpecItem): string {
   if (w.kind === 'wire') return 'Провод ПуГВ ' + fs(w.sect) + ' мм²';
   if (w.kind === 'tube') return 'Труба гофрированная ПВХ' + (w.size ? ' ' + w.size + ' мм' : '');
   if (w.kind === 'duct') return 'Кабель-канал' + (w.size ? ' ' + w.size.replace('x', '×') + ' мм' : '');
-  if (w.kind === 'spd') return 'УЗИП тип 2';
+  if (w.kind === 'spd') return 'УЗИП тип ' + (w.spd12 ? '1+2' : '2');
   if (w.kind === 'relay') return 'Реле контроля напряжения' + (w.amp ? ' ' + w.amp + 'А' : '');
   return name;
 }

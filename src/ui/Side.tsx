@@ -1,6 +1,7 @@
 import type { Calc, Device, LineType } from '../core/types';
 import { fmt, fs, plural } from '../core/format';
 import { ROWLEN } from '../core/norms';
+import { spdType } from '../core/protection';
 import { railCells, useFitCols } from './railfit';
 import { Fragment, memo, useState } from 'react';
 import { Fold, Tip } from './common';
@@ -174,7 +175,7 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
             const u = d.kind === 'uzo' ? a.uzos.find(z => z.zone === d.zone) : undefined;
             const extra = d.kind === 'spd' || d.kind === 'vr' || d.kind === 'prio';
             const name = d.kind === 'in' ? 'Вводной автомат' : (d.kind === 'uzo' ? 'УЗО: ' + d.zone : (d.kind === 'prio' && d.sub !== 'приоритет' ? 'Контактор ' + d.sub : (extra ? EXTRA[d.kind][1] : nameOf[g])));
-            const kind = d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'rcd' ? (d.arc ? 'УЗДП с дифавтоматом ' : 'дифавтомат ') + d.ma + ' мА' + (row?.r.rcdA ? ', тип A' : '') : (d.kind === 'uzo' ? d.sub.replace('мА', ' мА') + (u?.typeA ? ', тип A' : '') + ', своя шина N' : (d.kind === 'spd' ? 'тип 2, ' + (c.supply === 3 ? '3P+N' : '1P+N') : (d.kind === 'vr' ? (c.supply === 3 ? 'по одному на фазу' : 'отключит квартиру при скачке напряжения') : d.kind === 'prio' ? d.title.split(': ')[1] ?? '' : (d.arc ? 'УЗДП с автоматом' : 'автомат')))));
+            const kind = d.kind === 'in' ? (c.supply === 3 ? '4 полюса' : '2 полюса') : (d.kind === 'rcd' ? (d.arc ? 'УЗДП с дифавтоматом ' : 'дифавтомат ') + d.ma + ' мА' + (row?.r.rcdA ? ', тип A' : '') : (d.kind === 'uzo' ? d.sub.replace('мА', ' мА') + (u?.typeA ? ', тип A' : '') + ', своя шина N' : (d.kind === 'spd' ? 'тип ' + spdType(c) + ', ' + (c.supply === 3 ? '3P+N' : '1P+N') : (d.kind === 'vr' ? (c.supply === 3 ? 'по одному на фазу' : 'отключит квартиру при скачке напряжения') : d.kind === 'prio' ? d.title.split(': ')[1] ?? '' : (d.arc ? 'УЗДП с автоматом' : 'автомат')))));
             const body = (
               <>
                 <span className={'bd-no k-' + d.kind}>{d.kind === 'in' ? 'Ввод' : (d.kind === 'uzo' ? 'УЗО' : (extra ? (d.kind === 'spd' ? 'FV' : (d.kind === 'prio' && d.sub !== 'приоритет' ? 'KM' : 'KV')) : g))}</span>

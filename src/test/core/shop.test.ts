@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bestOffers, matches, norm, parseAttrs, searchUrl, shopQuery, SHOPS } from '../../core/shop';
+import { spdName } from '../../core/protection';
 import { buildSpec } from '../../core/spec';
 import { calcAll } from '../../core/calc';
 import { sampleProject } from '../../core/project';
@@ -103,5 +104,30 @@ describe('shopQuery and searchUrl', () => {
       expect(parseAttrs(s.name).kind).not.toBe('other');
       expect(shopQuery(s).length).toBeGreaterThan(5);
     });
+  });
+});
+
+describe('surge protector type and cable brand', () => {
+  it('searches the surge protector type that the spec names', () => {
+    expect(shopQuery(it_('УЗИП тип 1+2 1P+N'))).toBe('УЗИП тип 1+2');
+    expect(shopQuery(it_('УЗИП тип 2 3P+N'))).toBe('УЗИП тип 2');
+  });
+
+  it('does not offer a type 2 surge protector for a type 1+2 position', () => {
+    const offers = [{ name: 'УЗИП тип 2 1P+N 20 кА', price: 40, src: 'a' }, { name: 'УЗИП Т1+Т2 1P+N 12,5 кА', price: 150, src: 'a' }];
+    expect(bestOffers(it_('УЗИП тип 1+2 1P+N'), offers).map(o => o.price)).toEqual([150]);
+    expect(bestOffers(it_('УЗИП тип 2 1P+N'), offers).map(o => o.price)).toEqual([40, 150]);
+  });
+
+  it('keeps the group cable brand in the search query', () => {
+    expect(shopQuery(it_('NYM 3×2,5'))).toBe('NYM 3х2,5');
+    expect(shopQuery(it_('ВВГнг(А)-FRLS 3×1,5'))).toBe('ВВГнг-FRLS 3х1,5');
+  });
+});
+
+describe('spdName', () => {
+  it('names the surge protector by object and supply', () => {
+    expect(spdName({ house: true, supply: 1 })).toBe('УЗИП тип 1+2 1P+N');
+    expect(spdName({ house: false, supply: 3 })).toBe('УЗИП тип 2 3P+N');
   });
 });
