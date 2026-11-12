@@ -23,9 +23,9 @@ export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, o
             <Totals a={calc} onNet={onNetwork} onCompare={onCompare} />
             <Checks a={calc} onGroup={onGroup} onFix={onCheckFix} />
           </div>
-          <button className="ab-btn desk ab-find" type="button" aria-label="Найти действие или группу" aria-keyshortcuts="Control+K" onClick={onSearch}>
+          <button className="ab-btn desk ab-find" type="button" aria-keyshortcuts="Control+K" onClick={onSearch}>
             <IconSearch />
-            <span className="ab-txt" aria-hidden="true">Найти</span>
+            <span className="ab-txt">Найти<span className="vh"> действие или группу</span></span>
             <kbd className="ab-kbd" aria-hidden="true">Ctrl K</kbd>
           </button>
           <button className="ab-btn tour-help" type="button" data-tip="Обучение" aria-label="Открыть обучение" onClick={onTour}>?</button>

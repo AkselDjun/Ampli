@@ -113,19 +113,23 @@ test('enters a measurement on the panel inside the acceptance sheet', async ({ p
   await noSideScroll(page);
 });
 
-test.describe('toast with an action on a 320 px phone', () => {
+test.describe('chapter hint on a 320 px phone', () => {
   test.use({ viewport: { width: 320, height: 640 }, reducedMotion: 'reduce' });
 
-  test('keeps the message wide and puts the action under it', async ({ page }) => {
+  test('keeps the message readable and the actions in reach inside the sheet', async ({ page }) => {
     await page.goto('/');
     await expect(rows(page).first()).toBeVisible();
     await page.locator('nav.tabs').getByRole('button', { name: 'Отчёт' }).click();
-    const toastCard = page.locator('.toast').filter({ has: page.locator('.toast-a') });
-    await expect(toastCard).toBeVisible();
-    const text = await toastCard.locator('.toast-t').boundingBox();
-    const action = await toastCard.locator('.toast-a').boundingBox();
-    expect(text?.width ?? 0).toBeGreaterThanOrEqual(200);
-    expect(action?.y ?? 0).toBeGreaterThan((text?.y ?? 0) + (text?.height ?? 0) - 4);
+    const hint = page.locator('.sheet:not([hidden]) .sheet-hint');
+    await expect(hint).toBeVisible();
+    const text = (await hint.locator('span').first().boundingBox())!;
+    const box = (await hint.boundingBox())!;
+    expect(text.width).toBeGreaterThanOrEqual(120);
+    for (const b of await hint.locator('button').all()) {
+      const r = (await b.boundingBox())!;
+      expect(r.height).toBeGreaterThanOrEqual(44);
+      expect(r.x + r.width).toBeLessThanOrEqual(box.x + box.width + 0.5);
+    }
     await noSideScroll(page);
   });
 });

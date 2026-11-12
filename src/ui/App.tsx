@@ -140,7 +140,7 @@ export function App() {
   const sheetNav = useMemo(() => (hintOn && hintCh ? {
     ...nav,
     hint: {
-      text: hintCh === TOUR_CHAPTER.BUILD ? 'Впервые в монтаже? Покажем щиток, карту проводки и чек-лист за минуту.' : 'Впервые в документах? Покажем схему и смету в трёх вариантах за минуту.',
+      text: hintCh === TOUR_CHAPTER.BUILD ? 'Покажем щиток, проводку и чек-лист за минуту.' : 'Покажем схему и смету за минуту.',
       label: 'Показать',
       run: () => { setHintCh(null); setTourChapter(hintCh); setTourOpen(true); },
       close: () => setHintCh(null)

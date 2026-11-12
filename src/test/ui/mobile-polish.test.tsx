@@ -164,7 +164,7 @@ describe('chapter hints', () => {
     fireEvent.click(within(nav).getByRole('button', { name: /Отчёт/ }));
     await waitFor(() => expect(document.querySelector('.sheet:not([hidden]) .sheet-hint')).not.toBeNull());
     const hint = document.querySelector('.sheet:not([hidden]) .sheet-hint') as HTMLElement;
-    expect(hint.textContent).toContain('Впервые в документах');
+    expect(hint.textContent).toContain('Покажем схему и смету');
     fireEvent.click(within(hint).getByRole('button', { name: 'Показать' }));
     expect(document.querySelector('.tour [role="dialog"] h2')?.textContent).toBe(ONBOARDING_STEPS[chapterStart(ONBOARDING_STEPS, TOUR_CHAPTER.HANDOVER)].title);
     expect(chapterHintPending(TOUR_CHAPTER.HANDOVER)).toBe(false);

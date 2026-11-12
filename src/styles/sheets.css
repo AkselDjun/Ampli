@@ -357,3 +357,9 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
 .sheet-hint-x svg{width:16px;height:16px}
 .sheet-hint-a:hover,.sheet-hint-x:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
 .sheet-hint-a:focus-visible,.sheet-hint-x:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+@media (--narrow){
+  .sheet-hint{margin-top:var(--s-2);padding-block:0;font-size:var(--t-s)}
+  .sheet-hint-a{min-height:44px;padding:0 var(--s-2)}
+  .sheet-hint-x{width:44px;height:44px}
+}
+.sheet:has(.mb .pm) .sheet-hint{display:none}
