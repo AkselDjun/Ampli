@@ -34,7 +34,7 @@
 
 .mb{display:grid;gap:var(--s-3);min-width:0}
 .mb>.bd-help{margin:0}
-@media (--narrow) and (max-height:760px){.mb .pmb-top{display:none}}
+@media (--narrow) and (max-height:640px){.mb .pmb-top{display:none}}
 .mb>.pm:not(:last-child){margin-bottom:0}
 .mb-list[open] .ms-list{margin-top:var(--s-2)}
 .pm-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--s-3)}
