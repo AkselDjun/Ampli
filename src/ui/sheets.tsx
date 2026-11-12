@@ -2,7 +2,7 @@ import type { JSX } from 'react';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import type { Calc, Project } from '../core/types';
 import type { TplKey } from '../core/templates';
-import { TPL_LIST, TPL_NAME, blank, contentFor, sample } from '../core/templates';
+import { TPL_LIST, TPL_NAME, contentFor } from '../core/templates';
 import { MAX_PROJECTS, cfgErr, fieldErr } from '../core/limits';
 import { cfgN } from '../core/calc';
 import { BOX_NAME, IN_CABLE } from '../core/norms';
@@ -159,7 +159,7 @@ export function NetSheet({
 }
 
 export function ProjectsSheet({
-  open, onClose, state, p, dispatch, onLib
+  open, onClose, state, p, dispatch, onLib, onBlank, onSample
 }: {
   open: boolean;
   onClose: () => void;
@@ -167,6 +167,8 @@ export function ProjectsSheet({
   p: Project;
   dispatch: (a: Action) => void;
   onLib: () => void;
+  onBlank: () => void;
+  onSample: () => void;
 }) {
   const { lib, dispatch: libDispatch } = useLib();
   const [tplOpen, setTplOpen] = useState(false);
@@ -258,18 +260,6 @@ export function ProjectsSheet({
   return (
     <Sheet open={open} onClose={onClose} title="Проекты" tourId="projects" bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся только в этом браузере. Чтобы перенести проект на другое устройство, сохраните его в файл или отправьте ссылкой.">
       <TabPanel scope="pj" id="main" cur={tab}>
-      <h3 className="sec-t">Текущий проект</h3>
-      <div className="meta-grid">
-        <Field id="mName" label="Название" wide><input id="mName" ref={nameRef} type="text" autoComplete="off" maxLength={80} value={p.name} onChange={e => dispatch({ t: 'meta', field: 'name', value: e.target.value })} /></Field>
-        <Field id="mAddr" label="Объект, адрес" wide><input id="mAddr" type="text" autoComplete="off" maxLength={120} value={p.address} onChange={e => dispatch({ t: 'meta', field: 'address', value: e.target.value })} /></Field>
-        <Field id="mClient" label="Заказчик"><input id="mClient" type="text" autoComplete="off" maxLength={80} value={p.client} onChange={e => dispatch({ t: 'meta', field: 'client', value: e.target.value })} /></Field>
-        <Field id="mAuthor" label="Исполнитель"><input id="mAuthor" type="text" autoComplete="off" maxLength={80} value={p.author} onChange={e => dispatch({ t: 'meta', field: 'author', value: e.target.value })} /></Field>
-      </div>
-      <div className="data-row pj-reset">
-        <span className="muted">Заменить группы текущего проекта:</span>
-        <ArmButton variant="ghost" size="sm" label="Загрузить пример" onRun={() => { dispatch({ t: 'replace', content: sample() }); onClose(); }} />
-        <ArmButton variant="ghost" size="sm" label="Начать с нуля" onRun={() => { dispatch({ t: 'replace', content: blank() }); onClose(); }} />
-      </div>
       <div className="sec-row">
         <h3 className="sec-t">Все проекты</h3>
         <span className="muted">{n} {plural(n, ['проект', 'проекта', 'проектов'])}</span>
@@ -321,6 +311,18 @@ export function ProjectsSheet({
             </div>
           </>
         )}
+      </div>
+      <h3 className="sec-t">Текущий проект</h3>
+      <div className="meta-grid">
+        <Field id="mName" label="Название" wide><input id="mName" ref={nameRef} type="text" autoComplete="off" maxLength={80} value={p.name} onChange={e => dispatch({ t: 'meta', field: 'name', value: e.target.value })} /></Field>
+        <Field id="mAddr" label="Объект, адрес" wide><input id="mAddr" type="text" autoComplete="off" maxLength={120} value={p.address} onChange={e => dispatch({ t: 'meta', field: 'address', value: e.target.value })} /></Field>
+        <Field id="mClient" label="Заказчик"><input id="mClient" type="text" autoComplete="off" maxLength={80} value={p.client} onChange={e => dispatch({ t: 'meta', field: 'client', value: e.target.value })} /></Field>
+        <Field id="mAuthor" label="Исполнитель"><input id="mAuthor" type="text" autoComplete="off" maxLength={80} value={p.author} onChange={e => dispatch({ t: 'meta', field: 'author', value: e.target.value })} /></Field>
+      </div>
+      <div className="data-row pj-reset">
+        <span className="muted">Заменить группы текущего проекта:</span>
+        <ArmButton variant="ghost" size="sm" label="Загрузить пример" onRun={() => { onSample(); onClose(); }} />
+        <ArmButton variant="ghost" size="sm" label="Начать с нуля" onRun={() => { onBlank(); onClose(); }} />
       </div>
       </TabPanel>
       <TabPanel scope="pj" id="share" cur={tab}>
@@ -423,6 +425,7 @@ export function ReportSheet({
   const three = a.c.supply === 3;
   const { lib, dispatch: libDispatch } = useLib();
   const est = estimate(buildSpec(a), lib.prices);
+  const empty = !a.rows.some(x => x.r.In);
   const [tab, setTab] = useState(want ? want.tab : 'groups');
   const [wantSeen, setWantSeen] = useState(want);
   if (want !== wantSeen) {
@@ -432,9 +435,10 @@ export function ReportSheet({
   return (
     <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Основания' }]} />}>
       <TabPanel scope="rep" id="groups" cur={tab} lazy>
+      {empty && <div className="empty rep-empty">В проекте пока нет групп с приборами. Добавьте группу, и здесь появятся таблица, схема и смета.</div>}
       <div className="copy-row">
-        <Button variant="primary" onClick={() => onPrint('report')}>Печать / PDF</Button>
-        <Button onClick={copy}>Скопировать отчёт</Button>
+        <Button variant="primary" disabled={empty} onClick={() => onPrint('report')}>Печать / PDF</Button>
+        <Button disabled={empty} onClick={copy}>Скопировать отчёт</Button>
       </div>
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <h3 className="sec-t">Группы линий</h3>

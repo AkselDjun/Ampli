@@ -133,9 +133,11 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
   return (
     <div className="pane-panel">
       <Fold title="Щиток" className="c-panel" open>
-        <p className="muted">
-          Приборов на {a.modSum} мод. Нужен корпус на <b>{a.size}</b> мод. с запасом 20 %{a.fits ? '.' : ', но и он тесен: разделите щиток на два.'}
-        </p>
+        {a.rows.some(x => x.r.In) ? (
+          <p className="muted">
+            Приборов на {a.modSum} мод. Нужен корпус на <b>{a.size}</b> мод. с запасом 20 %{a.fits ? '.' : ', но и он тесен: разделите щиток на два.'}
+          </p>
+        ) : <p className="muted bd-empty">Щиток соберётся, когда в проекте появится группа с приборами.</p>}
         <div className="rail-wrap">
           <div className="rail" ref={railRef} data-rc={cols} style={{ ['--rc' as string]: cols }}>
             {a.devs.map((d, i) => {
