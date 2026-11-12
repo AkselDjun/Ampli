@@ -54,3 +54,13 @@ test('never splits a word inside a segmented option on a 320 px phone', async ({
   await expect(net.getByRole('radiogroup').filter({ hasText: 'FRLS' }).first()).toBeVisible();
   expect(await brokenWords(page)).toEqual([]);
 });
+
+test.describe('with wider glyphs', () => {
+  test.use({ bypassCSP: true });
+  test('keeps the group type words whole on a 320 px phone', async ({ page }) => {
+    await page.addStyleTag({ content: '*{letter-spacing:.6px !important}' });
+    await page.locator('.rows .row').filter({ hasText: 'Варочная' }).first().click();
+    await expect(page.getByRole('radiogroup').filter({ hasText: 'Мощный' }).first()).toBeVisible();
+    expect(await brokenWords(page)).toEqual([]);
+  });
+});

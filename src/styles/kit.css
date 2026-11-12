@@ -197,6 +197,8 @@ input:hover:not(:focus),select:hover:not(:focus){border-color:var(--ink-2)}
   .seg[data-n="4"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
   .seg[data-n="4"] label+label span{border-left:0}
   .seg span{overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
+  .seg:is([data-n="2"],[data-n="3"]):not([data-stack]) label{min-width:min-content}
+  .seg:is([data-n="2"],[data-n="3"]) span{-webkit-hyphens:manual;hyphens:manual}
 }
 @media (--upto-480){
   .seg[data-stack]{flex-direction:column}
