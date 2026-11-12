@@ -195,8 +195,9 @@ button.bd-b:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 @media (--tablet){.pm{bottom:calc(-1 * var(--pad));margin:0 calc(-1 * var(--pad)) calc(-1 * var(--pad));padding:var(--s-3) var(--pad) var(--pad)}}
 
 @media (--phone){
-  .chk-b{padding:var(--s-1-5) var(--s-2) var(--s-2)}
+  .chk-b{padding:var(--s-1-5) var(--s-1-5) var(--s-2)}
   .chk-b .lbl{display:none}
+  .chk-b b{gap:var(--s-0-5);font-size:var(--t-m)}
 }
 
 .chk-w{position:relative;display:flex}
