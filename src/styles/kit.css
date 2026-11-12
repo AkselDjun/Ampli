@@ -196,7 +196,12 @@ input:hover:not(:focus),select:hover:not(:focus){border-color:var(--ink-2)}
 @media (--upto-520){
   .seg[data-n="4"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
   .seg[data-n="4"] label+label span{border-left:0}
-  .seg span{overflow-wrap:anywhere}
+  .seg span{overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
+}
+@media (--upto-480){
+  .seg[data-stack]{flex-direction:column}
+  .seg[data-stack] label{flex:none}
+  .seg[data-stack] span{justify-content:flex-start;min-height:var(--field-h);padding:var(--s-2) var(--s-3);text-align:left}
 }
 .tabbar{padding:var(--s-1-5) calc(var(--pad) - var(--s-3)) 0}
 .tabbar-b{padding:0 var(--s-3)}
