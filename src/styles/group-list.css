@@ -249,3 +249,12 @@
   .list-head .hist{display:flex;flex:1 1 100%;flex-wrap:wrap;gap:var(--s-2);margin-left:0;justify-content:flex-start}
   .list-head .lv-keep{flex:1 1 auto;justify-content:center;white-space:nowrap}
 }
+.am-sep{height:1px;margin:var(--s-1) var(--s-2);background:var(--line)}
+.am-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-0-5)}
+.am-list .am-pair button{min-height:48px;padding:var(--s-1-5) var(--s-2);gap:var(--s-2)}
+.am-pair .am-ic{width:28px;height:28px;border-radius:8px;color:var(--ink-2)}
+.am-pair .am-ic svg{width:18px;height:18px}
+@media (--tablet){
+  .nf-pair.compact{display:none}
+  .sample{display:none}
+}
