@@ -242,3 +242,8 @@
   .list-head .hist{display:flex;flex:1 1 100%;flex-wrap:wrap;gap:var(--s-2);margin-left:0;justify-content:flex-start}
   .list-head .lv-keep{flex:1 1 auto;justify-content:center}
 }
+@media (--desktop){
+  .list-head{flex-wrap:wrap}
+  .list-head .hist{display:flex;flex:1 1 100%;flex-wrap:wrap;gap:var(--s-2);margin-left:0;justify-content:flex-start}
+  .list-head .lv-keep{flex:1 1 auto;justify-content:center;white-space:nowrap}
+}
