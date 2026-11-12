@@ -166,7 +166,10 @@ export function App() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const saveSeq = useRef(0);
   const mounted = useRef(true);
-  useEffect(() => () => { mounted.current = false; }, []);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
   const onSaved = (ok: boolean) => {
     if (!ok && !saveFail.current) toastBad('Не удалось сохранить изменения: в браузере закончилось место. Удалите лишние проекты или фото и сохраните проект в файл.');
     saveFail.current = !ok;
