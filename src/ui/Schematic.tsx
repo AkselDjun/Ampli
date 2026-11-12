@@ -27,7 +27,7 @@ export function Schematic({ a }: { a: Calc }) {
   const step = 50;
   const h = top + Math.max(1, entries.length) * step + 8;
   const bus = 60;
-  const inLabel = a.inIn ? (c.supply === 3 ? '4P' : '2P') + ' C' + a.inIn : '—';
+  const inLabel = a.inIn ? (c.supply === 3 ? '4P' : '2P') + ' C' + a.inIn : (a.P > 0 ? 'не подобран, см. замечания' : '—');
   const inCable = a.inS ? inCableName(c, a.inS) : '';
   const t = { fill: 'currentColor', stroke: 'none' } as const;
   const lastTop = (() => {

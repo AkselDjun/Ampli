@@ -87,6 +87,10 @@ export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: C
       {rows.length === 0 && <p className="muted">Добавьте группы с приборами, они появятся здесь.</p>}
       {rows.length > 0 && (
         <>
+          <div className="pmb-top">
+            <span><b>{done}</b> из {rows.length} групп измерено</span>
+            <span className="pmb-leg"><i className="v-ok" />соответствует <i className="v-bad" />нет <i className="v-none" />не измерено</span>
+          </div>
           <div className="pmb-box">
             <div className="pmb-rail" ref={railRef} data-rc={cols} style={{ ['--rc' as string]: cols }}>
               {a.devs.map((d, i) => {
@@ -136,10 +140,6 @@ export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: C
               })}
               {Array.from({ length: free }, (_, i) => plate('f' + i))}
             </div>
-          </div>
-          <div className="pmb-top">
-            <span><b>{done}</b> из {rows.length} групп измерено</span>
-            <span className="pmb-leg"><i className="v-ok" />соответствует <i className="v-bad" />нет <i className="v-none" />не измерено</span>
           </div>
         </>
       )}

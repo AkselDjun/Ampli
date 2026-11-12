@@ -302,7 +302,7 @@ export function Editor({
                 <span>Прибор</span>
                 <span>Мощность</span>
                 <span>Штук / длина</span>
-                {showBr && <span>От коробки, м</span>}
+                {showBr && <span>От коробки</span>}
                 <span />
               </div>
             )}

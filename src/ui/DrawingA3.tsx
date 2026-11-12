@@ -109,7 +109,7 @@ export function DrawingA3({ p, a, company }: { p: Project; a: Calc; company: str
     vals.push(r.cab, (r.three ? 5 : 3) + '×' + fs(r.S as number), r.cable > 0 ? fmt(r.cable, 0) : '—', fmt(r.pInst / 1000, 2), fmt(r.I, 1), fmt(r.drop, 1), 'Г' + (o.i + 1));
     return vals;
   };
-  const inLabel = a.inIn ? (three ? '4P ' : '2P ') + 'C' + a.inIn : '—';
+  const inLabel = a.inIn ? (three ? '4P ' : '2P ') + 'C' + a.inIn : (a.P > 0 ? 'не подобран' : '—');
   const boardName = c.house ? 'Щиток дома ЩК' : 'Щиток квартирный ЩК';
   const inCab = a.inS ? inCableName(c, a.inS) : IN_CABLE[c.inCable];
   const date = new Date();

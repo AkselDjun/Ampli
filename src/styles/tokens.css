@@ -1,7 +1,7 @@
 :root{
   --font-body:'Ampli Sans','Ampli Sans Fallback',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --font-num:var(--font-body);
-  --t-2xs:11px;--t-xs:12px;--t-s:12px;--t-sm:13px;--t-m:15px;--t-base:15px;--t-l:18px;--t-xl:18px;--t-2xl:22px;--t-3xl:28px;--t-4xl:28px;
+  --t-hw-xs:8px;--t-hw-s:9px;--t-hw:10px;--t-2xs:11px;--t-xs:12px;--t-s:12px;--t-sm:13px;--t-m:15px;--t-base:15px;--t-l:18px;--t-xl:18px;--t-2xl:22px;--t-3xl:28px;--t-4xl:28px;
 
   --s-0:0;--s-px:1px;--s-0-5:2px;--s-1:4px;--s-1-5:6px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-7:28px;--s-8:32px;--s-10:40px;--s-12:48px;
 
@@ -9,7 +9,7 @@
 
   --bar:56px;
 
-  --field-h:44px;--field-h-s:36px;--field-px:var(--s-3);--field-r:var(--r-m);--field-fs:var(--t-base);--field-bw:1px;--check-s:20px;
+  --field-h:44px;--field-h-s:36px;--field-px:var(--s-3);--field-r:var(--r-m);--field-fs:var(--t-base);--field-bw:1px;--check-s:20px;--check-bw:2px;
   --gutter:16px;--gap:16px;--pad:16px;
 
   --dur-fast:.15s;--dur-quick:.18s;--dur:.2s;

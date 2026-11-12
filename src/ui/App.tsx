@@ -482,7 +482,7 @@ export function App() {
     { id: 'lib', group: 'Проект', label: 'Мои данные', words: 'реквизиты шаблоны цены логотип тема оформление', run: () => setSheet(APP_SHEET.LIBRARY) },
     { id: 'th-dark', group: 'Вид', label: 'Тёмная тема', words: 'тема оформление ночь', run: () => setTheme('dark') },
     { id: 'th-light', group: 'Вид', label: 'Светлая тема', words: 'тема оформление день', run: () => setTheme('light') },
-    { id: 'th-auto', group: 'Вид', label: 'Тема как в системе', words: 'тема оформление авто', run: () => setTheme('auto') },
+    { id: 'th-auto', group: 'Вид', label: 'Тема: авто', words: 'тема оформление как в системе', run: () => setTheme('auto') },
     ...(a.phases ? [{ id: 'bal', group: 'Проект', label: 'Выровнять нагрузку по фазам', words: 'фазы', run: () => { dispatch({ t: 'balance' }); toastOk('Фазы выровнены'); } }] : [])
   ];
   const tab = (v: AppView) => {
