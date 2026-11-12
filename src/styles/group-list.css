@@ -64,6 +64,8 @@
 .row-wrap.sw-l .sw-del{opacity:1}
 .fixbar{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2) var(--s-3);padding:var(--s-2) var(--s-3);background:var(--bad-soft);color:var(--ink);font-size:var(--t-m);border-radius:0 0 14px 14px;position:relative;z-index:1}
 .fixbar svg{width:18px;height:18px;color:var(--bad);flex:none}
+.fixbar.warn{background:var(--warn-soft)}
+.fixbar.warn svg{color:var(--warn)}
 .fixbar span{flex:1;min-width:140px}
 .fixbar .btn{height:34px}
 .addmenu{position:relative}

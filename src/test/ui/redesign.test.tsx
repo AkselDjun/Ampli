@@ -276,6 +276,12 @@ describe('FixBar', () => {
     await user.click(screen.getByRole('button', { name: 'Сделать' }));
     expect(onApply).toHaveBeenCalledTimes(1);
   });
+  it('paints advice as a warning and a violation as an error', () => {
+    const { rerender } = render(<FixBar fix={{ text: 'Т', label: null, act: null }} onApply={() => undefined} />);
+    expect(screen.getByRole('note')).toHaveClass('fixbar', 'warn');
+    rerender(<FixBar fix={{ text: 'Т', label: null, act: null }} bad onApply={() => undefined} />);
+    expect(screen.getByRole('note')).toHaveClass('fixbar', 'bad');
+  });
   it('shows no button without action or label', () => {
     const { rerender } = render(<FixBar fix={{ text: 'Т', label: null, act: null }} onApply={() => undefined} />);
     expect(screen.queryByRole('button')).toBeNull();
@@ -657,6 +663,7 @@ describe('App flows', () => {
     seed(proj([overload()]));
     render(<App />);
     const ed = document.querySelector('.col-edit') as HTMLElement;
+    expect(within(ed).getAllByRole('note')[0]).toHaveClass('fixbar', 'bad');
     await user.click(within(ed).getByRole('button', { name: 'Разделить' }));
     expect(rowsOf().length).toBe(2);
   });
@@ -667,6 +674,7 @@ describe('App flows', () => {
     render(<App />);
     const ed = document.querySelector('.col-edit') as HTMLElement;
     expect(within(ed).getByRole('note')).toHaveTextContent('Вынесите «Духовка»');
+    expect(within(ed).getByRole('note')).toHaveClass('fixbar', 'warn');
     await user.click(within(ed).getByRole('button', { name: 'Вынести' }));
     expect(rowsOf().length).toBe(2);
     expect(rowsOf()[1].querySelector('.row-name')?.textContent).toBe('Духовка');
