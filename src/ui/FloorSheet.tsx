@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import type { Project } from '../core/types';
-import { FLOOR_SYS, FLOOR_USES, SYS_KEYS, USE_KEYS, floorAppName, floorCalc } from '../core/floor';
+import { FLOOR_SYS, FLOOR_USES, SYS_KEYS, USE_KEYS, floorAppName, floorCalc, floorSummary } from '../core/floor';
 import type { FloorRoom, FloorUse } from '../core/floor';
 import { fmt } from '../core/format';
 import type { Action } from '../store/reducer';
-import { ArmButton, Err, Sheet, errAttrs } from './common';
+import { ArmButton, DoneFoot, Err, Sheet, errAttrs } from './common';
 import { fieldErr } from '../core/limits';
 import { IconAlert, IconDone } from './Icons';
 import { toastOk } from './toast';
@@ -103,6 +103,8 @@ export function FloorSheet({ open, onClose, p, dispatch }: { open: boolean; onCl
       open={open}
       onClose={onClose}
       title="Тёплый пол"
+      kind="panel"
+      footer={<DoneFoot onDone={onClose} status={floorSummary(p.floor) || 'Помещений пока нет'} />}
       tip={<>Электрический тёплый пол по помещениям: мат, кабель или плёнка, мощность, терморегулятор и отдельная группа. Изделия попадают в спецификацию и смету. Удельная мощность по умолчанию из практики, её можно изменить для кабеля и плёнки.</>}
     >
       <div className="chips room-add" aria-label="Добавить помещение">

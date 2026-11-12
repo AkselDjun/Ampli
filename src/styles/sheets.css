@@ -130,7 +130,6 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 .shop-offer{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-1) var(--s-3)}
 .shop-offer select{max-width:100%;min-width:0;flex:1 1 100%}
 .shop-price{font-family:var(--font-num);font-weight:700;font-variant-numeric:tabular-nums}
-.shop-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--s-3);padding-top:var(--s-1)}
 
 .sheet-panel.compact{max-height:calc(100dvh - 32px);height:auto}
 @media (--above-tablet){
@@ -345,3 +344,32 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
   .sheet-hint-x{width:44px;height:44px}
 }
 .sheet:has(.mb .pm) .sheet-hint{display:none}
+.sheet-tw{min-width:0;display:grid}
+.sheet-sub{margin:0;font-size:var(--t-sm);color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet-foot{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2) var(--s-3);padding:var(--s-3) var(--pad);padding-bottom:max(var(--s-3),env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface)}
+.sheet-foot>.foot-st{flex:1 1 auto;min-width:0;font-size:var(--t-sm);color:var(--ink-2)}
+.sheet-foot>.foot-st b{color:var(--ink);font-variant-numeric:tabular-nums}
+.sheet-foot>.btn{flex:none}
+.sheet[data-kind=dialog] .sheet-panel{width:min(480px,100%);height:auto;max-height:calc(100dvh - 32px)}
+@media (--tablet){
+  .sheet[data-kind=dialog]{align-items:center;padding:var(--s-4)}
+  .sheet[data-kind=dialog] .sheet-panel{border-radius:var(--r-l);padding-bottom:0;animation-name:sheet-in}
+  .sheet[data-kind=panel] .sheet-panel{height:auto;max-height:94dvh}
+  .sheet-foot>.btn{flex:1 1 0}
+  .sheet-foot>.foot-st{flex-basis:100%}
+}
+@media (--above-tablet){
+  .sheet[data-kind=panel]{justify-content:flex-end;align-items:stretch;padding:0}
+  .sheet[data-kind=panel][data-side=left]{justify-content:flex-start}
+  .sheet[data-kind=panel] .sheet-panel{width:min(440px,100%);height:auto;max-height:none;border-radius:0;animation-name:panel-in-r}
+  .sheet[data-kind=panel][data-side=left] .sheet-panel{animation-name:panel-in-l}
+  .sheet[data-kind=panel].out .sheet-panel{animation-name:panel-out-r}
+  .sheet[data-kind=panel][data-side=left].out .sheet-panel{animation-name:panel-out-l}
+}
+.sheet.live{top:var(--bar);background:transparent;pointer-events:none}
+.sheet.live .sheet-panel{pointer-events:auto;border-left:1px solid var(--line);box-shadow:var(--sh-2)}
+.sheet.live[data-side=left] .sheet-panel{border-left:0;border-right:1px solid var(--line)}
+@keyframes panel-in-r{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes panel-in-l{from{transform:translateX(-24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes panel-out-r{to{transform:translateX(24px);opacity:0}}
+@keyframes panel-out-l{to{transform:translateX(-24px);opacity:0}}

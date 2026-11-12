@@ -87,7 +87,12 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Где купить" bar={<Tabs scope="shop" label="Разделы закупки" cur={tab} onChange={setTab} items={[{ id: 'buy', label: 'Что купить' }, { id: 'lists', label: 'Прайсы' + (lists.length ? ' (' + lists.length + ')' : '') }]} />} tip="Список собран из спецификации. Кнопка магазина ищет позицию на его сайте. Цены берутся только из ваших прайсов, приложение их не угадывает.">
+    <Sheet open={open} onClose={onClose} title="Где купить" footer={tab === 'buy' && offers.length > 0 ? (
+      <>
+        <span className="foot-st">Найдено цен: <b>{matched}</b> из {rows.length}. Итого: <b>{fmt(total, 2)}{BYN}</b></span>
+        <Button variant="primary" onClick={apply} disabled={!matched}>Подставить в смету</Button>
+      </>
+    ) : undefined} bar={<Tabs scope="shop" label="Разделы закупки" cur={tab} onChange={setTab} items={[{ id: 'buy', label: 'Что купить' }, { id: 'lists', label: 'Прайсы' + (lists.length ? ' (' + lists.length + ')' : '') }]} />} tip="Список собран из спецификации. Кнопка магазина ищет позицию на его сайте. Цены берутся только из ваших прайсов, приложение их не угадывает.">
       <TabPanel scope="shop" id="lists" cur={tab}>
       <h3 className="sec-t">Прайсы поставщиков</h3>
       <div className="data-row">
@@ -156,12 +161,6 @@ export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => 
           );
         })}
       </ul>
-      {offers.length > 0 && (
-        <div className="shop-foot">
-          <span>Найдено цен: <b>{matched}</b> из {rows.length}. Итого по найденным: <b>{fmt(total, 2)}{BYN}</b></span>
-          <Button variant="primary" onClick={apply} disabled={!matched}>Подставить в смету</Button>
-        </div>
-      )}
       </TabPanel>
     </Sheet>
   );

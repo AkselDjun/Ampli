@@ -1,9 +1,9 @@
 import type { Project } from '../core/types';
-import { UTP_MAX, WEAK_KEYS, WEAK_KINDS, weakCalc, weakSpec } from '../core/weak';
+import { UTP_MAX, WEAK_KEYS, WEAK_KINDS, weakCalc, weakSpec, weakSummary } from '../core/weak';
 import type { WeakKind } from '../core/weak';
 import { fmt, plural, pn } from '../core/format';
 import type { Action } from '../store/reducer';
-import { Err, Sheet, errAttrs } from './common';
+import { DoneFoot, Err, Sheet, errAttrs } from './common';
 import { asLabel, fieldErr } from '../core/limits';
 import type { FieldErr } from '../core/limits';
 import { toastOk } from './toast';
@@ -23,7 +23,7 @@ export function WeakSheet({ open, onClose, p, dispatch }: { open: boolean; onClo
   const zones = Array.from(new Set([...p.lines.map(l => (l.zone ?? '').trim()), ...(p.floor ?? []).map(r => r.name.trim())].filter(Boolean)));
   const lastRoom = pts.length ? pts[pts.length - 1].room : '';
   return (
-    <Sheet open={open} onClose={onClose} title="Слаботочка" tip={<>Интернет, телевидение, камеры и домофон: точки по помещениям, кабели, слаботочный щиток, коммутатор и делитель. Кабели, розетки и оборудование попадают в спецификацию и смету. Каждая точка тянется отдельной линией от слаботочного щитка, длина UTP до {UTP_MAX} м по ISO/IEC 11801.</>}>
+    <Sheet open={open} onClose={onClose} title="Слаботочка" kind="panel" footer={<DoneFoot onDone={onClose} status={weakSummary(p.weak) || 'Точек пока нет'} />} tip={<>Интернет, телевидение, камеры и домофон: точки по помещениям, кабели, слаботочный щиток, коммутатор и делитель. Кабели, розетки и оборудование попадают в спецификацию и смету. Каждая точка тянется отдельной линией от слаботочного щитка, длина UTP до {UTP_MAX} м по ISO/IEC 11801.</>}>
       {c && (
         <div className="ow-head wk-head">
           <span className={'pill ' + (c.notes.some(n => n.k === 'bad') ? 'bad' : c.notes.some(n => n.k === 'warn') ? 'warn' : 'ok')}>{c.points} {plural(c.points, ['точка', 'точки', 'точек'])}</span>
