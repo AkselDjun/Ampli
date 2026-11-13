@@ -50,20 +50,18 @@
   .owner-act,.ev-fallback{display:none!important}
 
   .printdoc .stk-legend{display:flex;flex-wrap:wrap;gap:3mm 6mm;margin:0 0 4mm;font-size:8pt}
-  .printdoc .stk-k{display:inline-flex;align-items:center;gap:1.5mm;padding:0.8mm 2mm;border-radius:1mm}
   .printdoc .stk-k svg,.printdoc .stk-top svg{width:3.4mm;height:3.4mm}
   .printdoc .stk-row{position:relative;display:flex;box-sizing:border-box;border:0.3mm solid var(--print-black);margin:6mm 0 0;break-inside:avoid}
   .printdoc .stk-rn{position:absolute;top:-4.2mm;left:0;font-size:7pt;color:var(--print-ink-4)}
   .printdoc .stk-row .stk-i{height:19mm;border:0;border-right:0.3mm dashed var(--print-black);justify-content:flex-start;padding:0;gap:0.6mm;overflow:hidden}
   .printdoc .stk-row .stk-i:last-child{border-right:0}
   .printdoc .stk-top{display:flex;align-items:center;justify-content:center;gap:1mm;width:100%;height:5mm;font-size:7.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .printdoc .stk-nm{font-size:6.5pt;line-height:1.1;padding:0 0.8mm;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .printdoc .stk-i small{font-size:8pt;font-weight:700;margin-top:auto;padding-bottom:0.8mm}
   .printdoc .k-in .stk-top,.printdoc .stk-k.k-in{background:var(--print-ink);color:var(--print-paper)}
   .printdoc .k-uzo .stk-top,.printdoc .stk-k.k-uzo{background:var(--print-paper);color:var(--print-rcd);box-shadow:inset 0 0 0 0.4mm var(--print-rcd)}
   .printdoc .k-light .stk-top,.printdoc .stk-k.k-light{background:var(--print-light);color:var(--print-ink)}
   .printdoc .k-power .stk-top,.printdoc .stk-k.k-power{background:var(--print-power);color:var(--print-paper)}
-  .printdoc .stk-k{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .printdoc .stk-k{display:inline-flex;align-items:center;gap:1.5mm;padding:0.8mm 2mm;border-radius:1mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .printdoc .stk-free{justify-content:center;color:var(--print-line)}
   .printdoc .stk-free small{margin:0;font-weight:400}
 
@@ -87,7 +85,7 @@
   .printdoc .k-vr .stk-top,.printdoc .stk-k.k-vr,.printdoc .k-prio .stk-top,.printdoc .stk-k.k-prio{background:var(--print-ink-4);color:var(--print-paper)}
   .printdoc .k-spd .stk-top,.printdoc .stk-k.k-spd{background:var(--print-spd);color:var(--print-ink)}
   .printdoc .k-socket .stk-top,.printdoc .stk-k.k-socket{background:var(--print-socket);color:var(--print-paper)}
-  .printdoc .stk-nm{overflow-wrap:break-word;hyphens:auto;text-align:center}
+  .printdoc .stk-nm{font-size:6.5pt;line-height:1.1;padding:0 0.8mm;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:break-word;hyphens:auto;text-align:center}
   .printdoc h2,.printdoc h3{break-after:avoid;page-break-after:avoid}
   .printdoc td.nw{white-space:nowrap}
   .printdoc.a3doc svg.a3+svg.a3{break-before:page;page-break-before:always}

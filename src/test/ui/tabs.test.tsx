@@ -85,7 +85,7 @@ describe('sheets use tabs and one panel at a time', () => {
     fireEvent.click(within(d).getByRole('tab', { name: 'Смета' }));
     expect(within(d).getByRole('button', { name: /Excel/ })).toBeTruthy();
     expect(within(d).getByRole('button', { name: 'Где купить' })).toBeTruthy();
-    expect(d.querySelector('#rep-tp-estimate .est')).toBeTruthy();
+    expect(d.querySelector('#rep-tp-estimate .spec-t tfoot')).toBeTruthy();
     fireEvent.click(within(d).getByRole('tab', { name: 'Основания' }));
     expect(d.querySelector('#rep-tp-notes .assum')).toBeTruthy();
     fireEvent.click(within(d).getByRole('tab', { name: 'Схема' }));

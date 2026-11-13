@@ -8,7 +8,7 @@ import { byUsage, catalog, searchCatalog, topUsed } from '../core/catalog';
 import { whyRows } from '../core/why';
 import type { Action } from '../store/reducer';
 import { toastOk } from './toast';
-import { IconDown, IconSearch } from './Icons';
+import { IconClose, IconDown, IconSearch } from './Icons';
 import { usePop } from './pop';
 import { useMenuKeys } from './menu';
 import { PhotoStrip } from './PhotoStrip';
@@ -302,7 +302,7 @@ export function Editor({
                 <span>Прибор</span>
                 <span>Мощность</span>
                 <span>Штук / длина</span>
-                {showBr && <span>От коробки, м</span>}
+                {showBr && <span>От коробки</span>}
                 <span />
               </div>
             )}
@@ -343,7 +343,7 @@ export function Editor({
                       </span>
                     </label>
                   )}
-                  <IconButton className="a-del" label="Удалить прибор" tip="Удалить прибор" onClick={() => keepChips(() => { dispatch({ t: 'delApp', id: ap.id }); if (ap.name.trim() || pn(ap.w, 0) > 0) toastOk('Прибор удалён: ' + (ap.name.trim() || 'без названия')); })}>×</IconButton>
+                  <IconButton className="a-del" label="Удалить прибор" tip="Удалить прибор" onClick={() => keepChips(() => { dispatch({ t: 'delApp', id: ap.id }); if (ap.name.trim() || pn(ap.w, 0) > 0) toastOk('Прибор удалён: ' + (ap.name.trim() || 'без названия')); })}><IconClose /></IconButton>
                   {showExt && (
                     <div className="a-ext">
                       <label className="a-alt">

@@ -13,11 +13,16 @@ import { stored } from '../stored';
 vi.setConfig({ testTimeout: 60000 });
 
 const box = () => document.querySelector('.proj-box') as HTMLElement;
+const extra = (name: string) => {
+  fireEvent.click(within(document.getElementById('groups') as HTMLElement).getAllByRole('button', { name: /Добавить группу/ })[0]);
+  fireEvent.click(screen.getByRole('menuitem', { name }));
+};
 
 describe('floor heating sheet', () => {
   it('picks a product, checks it and writes it into a group', () => {
     render(<App />);
-    fireEvent.click(within(box()).getByRole('button', { name: /^Тёплый пол ?: мат, кабель, плёнка$/ }));
+    expect(within(box()).queryByRole('button', { name: /^Тёплый пол/ })).toBeNull();
+    extra('Тёплый пол');
     const d = dlg('Тёплый пол');
     expect(d.querySelector('.empty')).not.toBeNull();
     click(d, '+ Ванная');
@@ -78,7 +83,7 @@ describe('weak current sheet', () => {
   it('collects points, shows equipment and checks, and adds works', () => {
     wide(false);
     render(<App />);
-    fireEvent.click(within(box()).getByRole('button', { name: /^Слаботочка ?: интернет, ТВ, камеры$/ }));
+    extra('Слаботочка');
     const d = dlg('Слаботочка');
     expect(d.querySelector('.empty')).not.toBeNull();
     click(d, '+ Интернет');

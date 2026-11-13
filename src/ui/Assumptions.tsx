@@ -1,23 +1,17 @@
 import type { CfgN } from '../core/types';
 import { BASIS_LABEL, assumptions } from '../core/assumptions';
+import { DataTable } from './kit';
 
 export function Assumptions({ cfg, ev = false }: { cfg: CfgN; ev?: boolean }) {
   return (
-    <div className="tablewrap" role="region" aria-label="Допущения и источники" tabIndex={0}>
-      <table className="t2 assum">
-        <thead>
-          <tr><th>Параметр</th><th>Значение</th><th>Основание</th></tr>
-        </thead>
-        <tbody>
-          {assumptions(cfg, { ev }).map(a => (
-            <tr key={a.name}>
-              <td>{a.name}</td>
-              <td>{a.value}</td>
-              <td><span className={'basis ' + a.basis}>{BASIS_LABEL[a.basis]}</span> {a.source}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable label="Допущения и источники" className="assum" head={<><th>Параметр</th><th>Значение</th><th>Основание</th></>}>
+      {assumptions(cfg, { ev }).map(a => (
+        <tr key={a.name}>
+          <td className="c-t">{a.name}</td>
+          <td className="c-m as-v">{a.value}</td>
+          <td className="c-m as-b"><span className={'basis ' + a.basis}>{BASIS_LABEL[a.basis]}</span> {a.source}</td>
+        </tr>
+      ))}
+    </DataTable>
   );
 }

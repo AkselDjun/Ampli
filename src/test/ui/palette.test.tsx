@@ -21,6 +21,21 @@ describe('filterCmds', () => {
     expect(filterCmds(cmds, 'елка кух').map(c => c.id)).toEqual(['b']);
     expect(filterCmds(cmds, 'нет такого')).toEqual([]);
   });
+  it('puts actions before groups while the query is empty', () => {
+    const list: Cmd[] = [{ ...cmds[1], id: 'g', late: true }, cmds[0]];
+    expect(filterCmds(list, '').map(c => c.id)).toEqual(['a', 'g']);
+    expect(filterCmds(list, 'елка').map(c => c.id)).toEqual(['g']);
+  });
+});
+
+describe('Header search', () => {
+  it('opens the palette from the header button', () => {
+    wide(true);
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Найти действие или группу' }));
+    expect(pal().open).toBe(true);
+    expect(opts()[0]).not.toMatch(/^Г\d/);
+  });
 });
 
 describe('Command palette', () => {
@@ -54,11 +69,9 @@ describe('Command palette', () => {
     expect(pal().open).toBe(false);
   });
 
-  it('has no search button in the header, opens with slash, navigates with arrows and picks a group', () => {
+  it('opens with slash, navigates with arrows and picks a group', () => {
     wide(true);
     render(<App />);
-    expect((document.querySelector('.ab-main') as HTMLElement).textContent).not.toContain('Найти');
-    expect(screen.queryByRole('button', { name: 'Быстрые действия' })).toBeNull();
     fireEvent.keyDown(document.body, { key: '/' });
     expect(pal().open).toBe(true);
     change(q(), 'Г3');

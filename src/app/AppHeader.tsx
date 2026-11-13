@@ -1,10 +1,10 @@
-import { Brand, IconBack, IconCheck, IconDoc, IconMeter } from '../ui/Icons';
+import { Brand, IconBack, IconCheck, IconDoc, IconMeter, IconSearch } from '../ui/Icons';
 import { Checks } from '../ui/Checks';
 import { Totals } from '../ui/Totals';
 import { Button } from '../ui/kit';
 import type { AppHeaderProps } from './types';
 
-export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, onNetwork, onGroup, onCheckFix, onTour, onPanel, onWork, onReport, onCompare }: AppHeaderProps) {
+export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, onNetwork, onGroup, onCheckFix, onTour, onPanel, onWork, onReport, onCompare, onSearch }: AppHeaderProps) {
   return (
     <header className="appbar">
       <div className="in">
@@ -23,6 +23,11 @@ export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, o
             <Totals a={calc} onNet={onNetwork} onCompare={onCompare} />
             <Checks a={calc} onGroup={onGroup} onFix={onCheckFix} />
           </div>
+          <button className="ab-btn desk ab-find" type="button" aria-keyshortcuts="Control+K" onClick={onSearch}>
+            <IconSearch />
+            <span className="ab-txt">Найти<span className="vh"> действие или группу</span></span>
+            <kbd className="ab-kbd" aria-hidden="true">Ctrl K</kbd>
+          </button>
           <button className="ab-btn tour-help" type="button" data-tip="Обучение" aria-label="Открыть обучение" onClick={onTour}>?</button>
           <button className="ab-btn" type="button" data-tour="panel" data-tip="Приёмка: замеры на щитке" aria-label="Замеры на щитке" onClick={onPanel}>
             <IconMeter />

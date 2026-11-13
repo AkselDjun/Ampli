@@ -6,6 +6,7 @@
     "unit-no-unknown": true,
     "property-no-unknown": [true, { "ignoreProperties": ["container-type"] }],
     "declaration-block-no-duplicate-custom-properties": true,
+    "no-duplicate-selectors": true,
     "custom-property-no-missing-var-function": true,
     "function-no-unknown": [true, { "ignoreFunctions": ["light-dark"] }],
     "declaration-property-value-allowed-list": {

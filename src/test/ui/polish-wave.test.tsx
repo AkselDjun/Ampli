@@ -75,12 +75,12 @@ describe('comparison of variants', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Итого по квартире/ }));
     click(document.querySelector('.tot-pop') as HTMLElement, 'Сравнить варианты');
     const d = dlg('Сравнение вариантов');
-    const sum = d.querySelector('.cmp-sum') as HTMLElement;
+    const sum = d.querySelector('.cmp-res') as HTMLElement;
     expect(sum.textContent).toContain('Отметьте ниже');
     fireEvent.click(screen.getByRole('checkbox', { name: /Г2 Плита/ }));
-    expect(sum.textContent).toContain('→');
-    expect(sum.querySelectorAll('li').length).toBeGreaterThan(0);
-    expect(d.querySelectorAll('tr.cmp-same').length).toBeGreaterThan(0);
+    expect(sum.textContent).toMatch(/Меняется показателей: \d+ из \d+/);
+    expect(sum.querySelectorAll('tr.diff').length).toBeGreaterThan(0);
+    expect(sum.querySelectorAll('tr.same').length).toBeGreaterThan(0);
     expect(sum.compareDocumentPosition(d.querySelector('.ck') as HTMLElement) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });

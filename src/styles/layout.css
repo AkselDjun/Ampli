@@ -1,7 +1,7 @@
 .tabs button{touch-action:manipulation}
 .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-.workspace{width:100%;max-width:1560px;margin:0 auto;padding:var(--s-4) max(var(--s-4),env(safe-area-inset-right,0px)) calc(86px + env(safe-area-inset-bottom,0px)) max(var(--s-4),env(safe-area-inset-left,0px));display:block}
+.workspace{width:100%;max-width:1560px;margin:0 auto;padding:var(--s-4) max(var(--s-4),env(safe-area-inset-right,0px)) calc(86px + env(safe-area-inset-bottom,0px)) max(var(--s-4),env(safe-area-inset-left,0px));display:block;padding-left:max(var(--gutter),env(safe-area-inset-left,0px));padding-right:max(var(--gutter),env(safe-area-inset-right,0px))}
 .col{min-width:0;display:grid;gap:var(--s-4);align-content:start}
 .main-col{display:contents}
 
@@ -18,10 +18,9 @@
   .c-phase{order:4}
   .c-panel{order:1}
   .tabs{display:none}
-  .workspace{height:calc(100vh - var(--bar) - env(safe-area-inset-top,0px));height:calc(100dvh - var(--bar) - env(safe-area-inset-top,0px));padding-block:var(--s-4);display:grid;grid-template-columns:350px minmax(0,1fr);gap:var(--s-5)}
+  .workspace{height:calc(100vh - var(--bar) - env(safe-area-inset-top,0px));height:calc(100dvh - var(--bar) - env(safe-area-inset-top,0px));display:grid;grid-template-columns:350px minmax(0,1fr);padding-left:max(var(--gutter),env(safe-area-inset-left,0px));padding-right:max(var(--gutter),env(safe-area-inset-right,0px));padding-block:var(--gap);gap:var(--gap)}
   .col-list,.main-col{overflow-y:auto;min-height:0;scrollbar-width:thin;padding-bottom:var(--s-3)}
   .main-col{display:block}
-  .col-edit{margin-bottom:var(--s-5)}
 }
 @media (--wide-l){
   .workspace{grid-template-columns:350px minmax(0,1fr) 400px}
@@ -30,7 +29,6 @@
 }
 @media (--narrow){
   .col-list,.col-edit,.col-res{display:none}
-  #app[data-view="groups"] .col-list{display:grid}
   #app[data-view="edit"] .col-edit{display:grid}
   #app[data-view="panel"] .col-res{display:grid}
   #app[data-view="edit"] .tabs{display:none}
@@ -42,15 +40,12 @@
   .badge{position:absolute;top:5px;left:calc(50% + 6px);min-width:17px;height:17px;padding:0 var(--s-1);border-radius:var(--r-s);background:var(--warn);color:var(--bg);font-size:var(--t-2xs);font-weight:700;font-style:normal;display:flex;align-items:center;justify-content:center}
 }
 
-@media (--narrow){#app[data-view="groups"] .col-list{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}}
+@media (--narrow){#app[data-view="groups"] .col-list{display:grid;padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}}
 
 .c-panel .tabbar{padding:0;margin:var(--s-2) 0 var(--s-4)}
 .c-panel .tabbar-b{padding:0 var(--s-3)}
-
-.workspace{padding-left:max(var(--gutter),env(safe-area-inset-left,0px));padding-right:max(var(--gutter),env(safe-area-inset-right,0px))}
 .col,.pane-sum,.pane-panel{gap:var(--gap)}
 @media (--desktop){
-  .workspace{padding-block:var(--gap);gap:var(--gap)}
   .col-edit{margin-bottom:var(--gap)}
 }
 @media (--wide-xl){.workspace{grid-template-columns:360px minmax(0,1fr) 440px}}

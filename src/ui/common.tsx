@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useBackClose } from './back';
 import type { KeyboardEvent as ReactKeyEvent, ReactNode } from 'react';
 import { IconAlert, IconBack, IconClose, IconDone, IconDown, IconInfo } from './Icons';
 import { useSheetNav } from './sheetnav';
 import { currentToast, dismissToast, subscribeToast, toastLife } from './toast';
 import { haptic } from './haptic';
-import { buttonClass } from './kit';
+import { Button, buttonClass } from './kit';
 import type { ButtonSize, ButtonVariant } from './kit';
 import type { FieldErr } from '../core/limits';
 
@@ -220,14 +220,55 @@ export function TabPanel({ scope, id, cur, lazy = false, children }: { scope: st
 }
 
 const STACK: object[] = [];
+
+export type SheetKind = 'dialog' | 'panel' | 'screen';
+
+export function DoneFoot({ onDone, status = 'Изменения сохраняются сразу' }: { onDone: () => void; status?: ReactNode }) {
+  return (
+    <>
+      <span className="foot-st" role="status">{status}</span>
+      <Button variant="primary" onClick={onDone}>Готово</Button>
+    </>
+  );
+}
+
+const DOCK_Q = '(min-width:1000px)';
+const subMq = (q: string) => (cb: () => void) => {
+  if (typeof window.matchMedia !== 'function') return () => undefined;
+  const m = window.matchMedia(q);
+  m.addEventListener?.('change', cb);
+  return () => m.removeEventListener?.('change', cb);
+};
+const getMq = (q: string) => () => typeof window.matchMedia === 'function' && window.matchMedia(q).matches;
+const subDock = subMq(DOCK_Q);
+const getDock = getMq(DOCK_Q);
+export const useDocked = (): boolean => useSyncExternalStore(subDock, getDock, () => false);
 const SCROLL = new Map<string, number>();
 const BACK = { on: false };
+const OUT_MS = 150;
+
+const calm = (): boolean => typeof window.matchMedia !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const quiet = (panel: HTMLElement): (() => void) => {
+  const root = panel.closest('#app');
+  if (!root) return () => undefined;
+  const done: Element[] = [];
+  for (const el of Array.from(root.children)) {
+    if (el.contains(panel) || el.matches('.toast-zone, .tour, .sheet:not([hidden])') || el.hasAttribute('inert')) continue;
+    el.setAttribute('inert', '');
+    done.push(el);
+  }
+  return () => done.forEach(el => el.removeAttribute('inert'));
+};
 
 export function Sheet({
-  open, onClose, title, compact, tip, bar, historyLayer = true, tourId, children
+  open, onClose, title, compact, tip, bar, historyLayer = true, tourId, kind = 'screen', side = 'right', sub, footer, children
 }: {
- 
   compact?: boolean;
+  kind?: SheetKind;
+  side?: 'left' | 'right';
+  sub?: ReactNode;
+  footer?: ReactNode;
   bar?: ReactNode;
   open: boolean;
   onClose: () => void;
@@ -237,19 +278,34 @@ export function Sheet({
   tourId?: string;
   children: ReactNode;
 }) {
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const headRef = useRef<HTMLHeadingElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   useBackClose(open && historyLayer, onClose);
   const bodyRef = useRef<HTMLDivElement>(null);
   const opener = useRef<Element | null>(null);
   const nav = useSheetNav();
   const y0 = useRef<number | null>(null);
-  const [dy, setDy] = useState(0);
+  const dy = useRef(0);
   const titleRef = useRef(title);
+  const id = useId();
+  const docked = useDocked();
+  const live = kind === 'panel' && docked;
+  const [leaving, setLeaving] = useState(false);
+  const [was, setWas] = useState(open);
+  if (was !== open) {
+    setWas(open);
+    setLeaving(!open && !calm());
+  }
+  useEffect(() => {
+    if (!leaving) return;
+    const t = window.setTimeout(() => setLeaving(false), OUT_MS);
+    return () => window.clearTimeout(t);
+  }, [leaving]);
   useLayoutEffect(() => {
     titleRef.current = title;
   });
   const trap = (e: ReactKeyEvent<HTMLDivElement>) => {
-    if (e.key !== 'Tab') return;
+    if (e.key !== 'Tab' || live) return;
     const all = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')).filter(el => !el.closest('[hidden]') && el.getClientRects().length > 0 && !(el instanceof HTMLInputElement && el.type === 'radio' && !el.checked));
     const first = all[0];
     const end = all[all.length - 1];
@@ -262,14 +318,22 @@ export function Sheet({
       first.focus();
     }
   };
+  const move = (v: number) => {
+    dy.current = v;
+    const el = panelRef.current;
+    if (!el) return;
+    el.style.transform = v ? 'translateY(' + v + 'px)' : '';
+    el.style.transition = v ? 'none' : '';
+  };
   const drag = {
     onTouchStart: (e: React.TouchEvent) => { y0.current = e.touches[0].clientY; },
-    onTouchMove: (e: React.TouchEvent) => { if (y0.current !== null) setDy(Math.max(0, e.touches[0].clientY - y0.current)); },
+    onTouchMove: (e: React.TouchEvent) => { if (y0.current !== null) move(Math.max(0, e.touches[0].clientY - y0.current)); },
     onTouchEnd: () => {
-      const d = dy;
+      const d = dy.current;
+      const h = panelRef.current?.getBoundingClientRect().height ?? 0;
       y0.current = null;
-      setDy(0);
-      if (d > 90) onClose();
+      move(0);
+      if (d > Math.max(90, h * 0.3)) onClose();
     }
   };
   useEffect(() => {
@@ -281,8 +345,9 @@ export function Sheet({
     const body = bodyRef.current;
     if (body) body.scrollTop = BACK.on ? SCROLL.get(ttl) ?? 0 : 0;
     BACK.on = false;
-    document.documentElement.style.overflow = 'hidden';
-    closeRef.current?.focus();
+    if (!live) document.documentElement.style.overflow = 'hidden';
+    const unquiet = panelRef.current && !live ? quiet(panelRef.current) : () => undefined;
+    headRef.current?.focus({ preventScroll: true });
     const key = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && STACK[STACK.length - 1] === me) onClose();
     };
@@ -292,23 +357,34 @@ export function Sheet({
       const i = STACK.indexOf(me);
       if (i >= 0) STACK.splice(i, 1);
       document.removeEventListener('keydown', key);
+      unquiet();
       if (!STACK.length) document.documentElement.style.overflow = '';
       const o = opener.current;
       if (o instanceof HTMLElement && document.contains(o)) o.focus();
     };
-  }, [open, onClose]);
-  const id = 'ttl-' + title.length + title.charCodeAt(0);
+  }, [open, onClose, live]);
   return (
-    <div className="sheet" hidden={!open} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className={'sheet-panel' + (compact ? ' compact' : '') + (bar ? '' : ' fit')} role="dialog" aria-modal="true" aria-labelledby={id} data-tour-view={tourId} onKeyDown={trap} style={dy ? { transform: 'translateY(' + dy + 'px)', transition: 'none' } : undefined}>
+    <div className={'sheet' + (leaving ? ' out' : '') + (live ? ' live' : '')} data-kind={kind} data-side={kind === 'panel' ? side : undefined} hidden={!open} inert={leaving || undefined} onClick={e => !live && e.target === e.currentTarget && onClose()}>
+      <div ref={panelRef} className={'sheet-panel' + (compact ? ' compact' : '') + (bar && kind === 'screen' ? '' : ' fit')} role="dialog" aria-modal={live ? undefined : true} aria-labelledby={id} data-tour-view={tourId} onKeyDown={trap}>
         <div className="sheet-head" {...drag}>
           {nav.back && <button className="sheet-back" type="button" onClick={() => { BACK.on = true; nav.back?.(); }} aria-label={'Назад: ' + nav.to} data-tip={'Назад: ' + nav.to}><IconBack /></button>}
-          <h2 id={id}>{title}</h2>
+          <div className="sheet-tw">
+            <h2 id={id} ref={headRef} tabIndex={-1}>{title}</h2>
+            {sub && <p className="sheet-sub">{sub}</p>}
+          </div>
           {tip && <Tip>{tip}</Tip>}
-          <button ref={closeRef} className="sheet-close" type="button" onClick={onClose} aria-label="Закрыть">×</button>
+          <button className="sheet-close" type="button" onClick={onClose} aria-label="Закрыть"><IconClose /></button>
         </div>
         {bar}
+        {nav.hint && (
+          <div className="sheet-hint" role="status">
+            <span>{nav.hint.text}</span>
+            <button type="button" className="sheet-hint-a" onClick={nav.hint.run}>{nav.hint.label}</button>
+            <button type="button" className="sheet-hint-x" aria-label="Скрыть подсказку" onClick={nav.hint.close}><IconClose /></button>
+          </div>
+        )}
         <div className="sheet-body" ref={bodyRef}>{children}</div>
+        {footer && <div className="sheet-foot">{footer}</div>}
       </div>
     </div>
   );

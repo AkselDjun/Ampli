@@ -181,7 +181,8 @@ describe('documents', () => {
 describe('weak current points', () => {
   it('fixes a zero count on blur and removes a point', () => {
     render(<App />);
-    fireEvent.click(within(document.querySelector('.proj-box') as HTMLElement).getByRole('button', { name: /^Слаботочка/ }));
+    fireEvent.click(within(document.getElementById('groups') as HTMLElement).getAllByRole('button', { name: /Добавить группу/ })[0]);
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Слаботочка' }));
     const d = dlg('Слаботочка');
     click(d, '+ Интернет');
     const row = d.querySelector('.wk-row[role="listitem"]') as HTMLElement;

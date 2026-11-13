@@ -32,9 +32,17 @@ export interface ReportRequest {
   n: number;
 }
 
+export interface SheetHint {
+  text: string;
+  label: string;
+  run: () => void;
+  close: () => void;
+}
+
 export interface SheetNav {
   back?: () => void;
   to?: string;
+  hint?: SheetHint;
 }
 
 export interface AppHeaderProps {
@@ -51,6 +59,7 @@ export interface AppHeaderProps {
   onWork: () => void;
   onReport: () => void;
   onCompare: () => void;
+  onSearch: () => void;
 }
 
 export interface AppTabsProps {

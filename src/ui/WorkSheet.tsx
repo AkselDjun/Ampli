@@ -59,7 +59,14 @@ export function WorkSheet({
   ];
   const chosen = docs.map(d => d.m).filter(m => pack.includes(m) && (m !== 'wiring' || walls > 0));
   return (
-    <Sheet open={open} onClose={onClose} title="Приёмка" tourId="work" bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: rows.length ? 'Замеры ' + done + '/' + rows.length : 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Во вкладке «Замеры» щиток показан так же, как он собран: нажмите на автомат и введите замеры. Цвет рычажка: зелёный соответствует, красный не соответствует, серый ещё не измерено. Те же значения есть в карточке группы.">
+    <Sheet open={open} onClose={onClose} title="Приёмка" tourId="work" sub={p.name || 'Без названия'} footer={tab === 'meas' ? undefined : (
+      <>
+        <span className="foot-st">Чек-лист <b>{pr.done}/{pr.total}</b>{rows.length ? <>, замеры <b>{done}/{rows.length}</b></> : null}</span>
+        {tab === 'docs'
+          ? <Button variant="primary" disabled={!chosen.length || empty} onClick={() => onPrint(chosen)}>Печать комплекта{chosen.length ? ' · ' + chosen.length : ''}</Button>
+          : <Button variant="primary" onClick={() => setTab('docs')}>К документам</Button>}
+      </>
+    )} bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: rows.length ? 'Замеры ' + done + '/' + rows.length : 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Во вкладке «Замеры» щиток показан так же, как он собран: нажмите на автомат и введите замеры. Цвет рычажка: зелёный соответствует, красный не соответствует, серый ещё не измерено. Те же значения есть в карточке группы.">
       <TabPanel scope="wk" id="check" cur={tab}>
       <div className="wk-prog">
         <span><b>{pr.done}</b> из {pr.total} пунктов выполнено</span>
@@ -104,10 +111,7 @@ export function WorkSheet({
           </li>
         ))}
       </ul>
-      <div className="copy-row">
-        <Button variant="primary" disabled={!chosen.length || empty} onClick={() => onPrint(chosen)}>Печать комплекта{chosen.length ? ' · ' + chosen.length : ''}</Button>
-        {empty && <span className="muted">В проекте нет групп, печатать пока нечего.</span>}
-      </div>
+      {empty && <p className="muted">В проекте нет групп, печатать пока нечего.</p>}
       <details className="bd-help proto-d acts-d">
         <summary>Сроки и гарантия для актов{actSum ? ': ' + actSum : ''}</summary>
         <div className="meta-grid">

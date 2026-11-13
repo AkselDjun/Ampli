@@ -5,11 +5,11 @@ test('keeps the list view buttons on one line in the desktop list column', async
   await page.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
   await page.goto('/');
   await expect(page.locator('.rows .row').first()).toBeVisible();
-  const buttons = page.locator('.list-head .lv-t');
+  const buttons = page.locator('.list-head .lv-t, .list-head .lv-link');
   await expect(buttons).toHaveCount(2);
   for (const b of await buttons.all()) {
     const ratio = await b.evaluate(el => {
-      const s = el.querySelector('span:last-child') as HTMLElement;
+      const s = (el.querySelector('span:last-child') ?? el) as HTMLElement;
       return s.getBoundingClientRect().height / parseFloat(getComputedStyle(s).fontSize);
     });
     expect(ratio).toBeLessThan(1.8);

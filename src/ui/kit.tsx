@@ -38,3 +38,24 @@ export function Field({
     </div>
   );
 }
+
+export function DataTable({ label, className, head, foot, children }: { label: string; className?: string; head: ReactNode; foot?: ReactNode; children: ReactNode }) {
+  return (
+    <div className="tablewrap dt-wrap" role="region" aria-label={label} tabIndex={0}>
+      <table className={cx('dt', className)}>
+        <thead><tr>{head}</tr></thead>
+        <tbody>{children}</tbody>
+        {foot && <tfoot>{foot}</tfoot>}
+      </table>
+    </div>
+  );
+}
+
+export function MoneyInput({ className, ...rest }: ComponentProps<'input'>) {
+  return (
+    <span className={cx('money-in', className)}>
+      <input className="price-in" type="text" inputMode="decimal" {...rest} />
+      <span className="money-u" aria-hidden="true">BYN</span>
+    </span>
+  );
+}

@@ -16,7 +16,7 @@ for (const width of [320, 375]) {
       await start(page);
       const head = (await page.locator('.list-head h2').boundingBox())!;
       const hist = (await page.locator('.list-head .hist').boundingBox())!;
-      const btns = await page.locator('.list-head .lv-keep').all();
+      const btns = await page.locator('.list-head .lv-keep, .list-head .lv-link').all();
       expect(btns.length).toBe(2);
       const boxes = await Promise.all(btns.map(async b => (await b.boundingBox())!));
       expect(Math.round(boxes[0].x)).toBe(Math.round(head.x));
@@ -26,7 +26,7 @@ for (const width of [320, 375]) {
       }
       const right = Math.max(...boxes.map(b => b.x + b.width));
       expect(Math.abs(right - (hist.x + hist.width))).toBeLessThanOrEqual(1);
-      if (width >= 375) expect(Math.round(boxes[1].y)).toBe(Math.round(boxes[0].y));
+      expect(Math.abs(boxes[1].y + boxes[1].height / 2 - (boxes[0].y + boxes[0].height / 2))).toBeLessThanOrEqual(1);
     });
 
     test('shows the project name up to the edge of its line', async ({ page, isMobile }) => {

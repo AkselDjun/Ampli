@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { PanelPane } from '../../ui/Side';
 import { Schematic } from '../../ui/Schematic';
@@ -431,6 +431,9 @@ describe('small window fixes', () => {
     render(<App />);
     fireEvent.click(screen.getAllByRole('button', { name: /Приёмка/ })[0]);
     const d = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Приёмка') as HTMLElement;
-    expect(d.querySelectorAll('#wk-tp-docs .btn.primary').length).toBe(1);
+    fireEvent.click(within(d).getByRole('tab', { name: 'Документы' }));
+    expect(d.querySelectorAll('#wk-tp-docs .btn.primary').length).toBe(0);
+    const prim = Array.from(d.querySelectorAll<HTMLElement>('.btn.primary')).filter(b => !b.closest('[hidden]'));
+    expect(prim.map(b => b.textContent)).toEqual([expect.stringMatching(/^Печать комплекта/)]);
   });
 });

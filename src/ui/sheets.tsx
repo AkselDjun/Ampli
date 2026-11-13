@@ -17,7 +17,7 @@ import { IconChev, IconDownload, IconWire } from './Icons';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
 import { Assumptions } from './Assumptions';
-import { ArmButton, Err, Seg, errAttrs, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
+import { ArmButton, DoneFoot, Err, Seg, errAttrs, Sheet, Stepper, TabPanel, Tabs, Tip } from './common';
 import { Schematic } from './Schematic';
 import { toast, toastBad, toastOk } from './toast';
 import { IOS_STEPS, install, usePwa } from './pwa';
@@ -30,7 +30,7 @@ import { useLib } from '../store/LibContext';
 import { estimate } from '../core/spec';
 import { DrawingA3 } from './parts';
 import type { PrintMode } from './WorkSheet';
-import { Button, Field } from './kit';
+import { Button, DataTable, Field, MoneyInput } from './kit';
 import { APP_VERSION, NORMS_EDITION } from '../core/version';
 import { MAX_IMPORT_BYTES, lastBackup, restorePhotos, validateBackup } from '../store/backup';
 import { isEvLine } from '../core/ev';
@@ -47,7 +47,7 @@ export function NetSheet({
 }) {
   const c = cfgN(p.cfg);
   return (
-    <Sheet open={open} onClose={onClose} title="Параметры сети" tourId="network">
+    <Sheet open={open} onClose={onClose} title="Параметры сети" tourId="network" kind="panel" sub={p.name || 'Без названия'} footer={<DoneFoot onDone={onClose} status="Расчёт обновляется сразу" />}>
       <div className="f" data-tour="object">
         <span className="lbl-row"><span className="lbl" id="l-obj">Объект</span><Tip label="О режиме частного дома">Частный дом: ввод СИП от опоры, разделение PEN на вводе, повторное заземление, УЗИП тип 1+2 и уличные группы.</Tip></span>
         <Seg<string> name="obj" labelledBy="l-obj" value={c.house ? 'house' : 'flat'} items={[['flat', 'Квартира'], ['house', 'Частный дом']]} onChange={v => dispatch({ t: 'cfg', field: 'obj', value: v === 'house' ? 'house' : '' })} />
@@ -258,7 +258,12 @@ export function ProjectsSheet({
   };
   const n = state.list.length;
   return (
-    <Sheet open={open} onClose={onClose} title="Проекты" tourId="projects" bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся только в этом браузере. Чтобы перенести проект на другое устройство, сохраните его в файл или отправьте ссылкой.">
+    <Sheet open={open} onClose={onClose} title="Проекты" tourId="projects" kind="panel" side="left" footer={(
+      <>
+        <span className="foot-st">{n} {plural(n, ['проект', 'проекта', 'проектов'])} на этом устройстве</span>
+        <Button variant="primary" aria-expanded={tplOpen} aria-controls="tpl" onClick={() => { setTab('main'); setTplOpen(!tplOpen); if (!tplOpen) setTimeout(() => document.getElementById('tpl')?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }), 0); }}>+ Новый проект</Button>
+      </>
+    )} bar={<Tabs scope="pj" label="Разделы окна проектов" cur={tab} onChange={setTab} items={[{ id: 'main', label: 'Проекты' }, { id: 'share', label: 'Обмен и данные' }]} />} tip="Проекты хранятся только в этом браузере. Чтобы перенести проект на другое устройство, сохраните его в файл или отправьте ссылкой.">
       <TabPanel scope="pj" id="main" cur={tab}>
       <div className="sec-row">
         <h3 className="sec-t">Все проекты</h3>
@@ -278,9 +283,6 @@ export function ProjectsSheet({
             </div>
           );
         })}
-      </div>
-      <div className="data-row">
-        <Button variant="primary" aria-expanded={tplOpen} aria-controls="tpl" onClick={() => setTplOpen(!tplOpen)}>+ Новый проект</Button>
       </div>
       <div className="tpl" id="tpl" hidden={!tplOpen}>
         <span className="lbl" id="l-stove">Плита</span>
@@ -433,72 +435,66 @@ export function ReportSheet({
     if (want) setTab(want.tab);
   }
   return (
-    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Основания' }]} />}>
+    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" sub={p.name || 'Без названия'} footer={tab === 'scheme' ? (
+      <>
+        <span className="foot-st">Лист А3 по ГОСТ 21.613</span>
+        <Button variant="primary" disabled={empty} onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
+      </>
+    ) : (
+      <>
+        <span className="foot-st">{empty ? 'Добавьте группу с приборами, чтобы напечатать отчёт' : ''}</span>
+        <Button disabled={empty} onClick={copy}>Скопировать отчёт</Button>
+        <Button variant="primary" disabled={empty} onClick={() => onPrint('report')}>Печать / PDF</Button>
+      </>
+    )} bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Основания' }]} />}>
+      {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <TabPanel scope="rep" id="groups" cur={tab} lazy>
       {empty && <div className="empty rep-empty">В проекте пока нет групп с приборами. Добавьте группу, и здесь появятся таблица, схема и смета.</div>}
-      <div className="copy-row">
-        <Button variant="primary" disabled={empty} onClick={() => onPrint('report')}>Печать / PDF</Button>
-        <Button disabled={empty} onClick={copy}>Скопировать отчёт</Button>
-      </div>
-      {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <h3 className="sec-t">Группы линий</h3>
-      <div className="tablewrap" role="region" aria-label="Таблица групп" tabIndex={0}>
-        <table className="gtab">
-          <thead>
-            <tr>
-              <th>Гр.</th><th>Название</th>{three && <th>Фаза</th>}<th className="num">Установл., Вт</th><th className="num">Ток, А</th><th>Защита</th><th>Кабель</th><th className="num" title="Потеря напряжения">Потеря U, %</th><th>Статус</th>
+      <DataTable label="Таблица групп" className="gtab" head={<><th>Гр.</th><th>Название</th>{three && <th>Фаза</th>}<th className="num">Установл., Вт</th><th className="num">Ток, А</th><th>Защита</th><th>Кабель</th><th className="num" title="Потеря напряжения">Потеря U, %</th><th>Статус</th></>} foot={(
+        <tr>
+          <td className="c-t" colSpan={three ? 3 : 2}>Всего</td>
+          <td className="num c-m" data-k="Установлено">{fmt(a.sumInst, 0)}<span className="dt-u"> Вт</span></td>
+          <td className="num c-m" data-k="Ток">{fmt(a.Itot, 1)}<span className="dt-u"> А</span></td>
+          <td colSpan={4} className="c-v">Расчётная мощность {fmt(a.P / 1000, 1)} кВт</td>
+        </tr>
+      )}>
+        {a.rows.map((x, i) => {
+          const r = x.r;
+          const head = (
+            <>
+              <td className="mono c-k">Г{i + 1}</td>
+              <td className="c-t">{x.l.name}</td>
+              {three && <td className="mono c-m" data-k="Фаза">{r.three ? '3Ф' : (x.l.phase === '3' ? '3Ф' : x.l.phase)}</td>}
+            </>
+          );
+          if (r.empty) {
+            return (
+              <tr key={x.l.id}>
+                {head}
+                <td className="num c-x">0</td>
+                <td className="num c-x">—</td>
+                <td colSpan={4} className="muted c-m">нет приборов</td>
+              </tr>
+            );
+          }
+          return (
+            <tr key={x.l.id}>
+              {head}
+              <td className="num c-m">{fmt(r.pInst, 0)}<span className="dt-u"> Вт</span></td>
+              <td className="num c-m">{fmt(r.I, 1)}<span className="dt-u"> А</span></td>
+              <td className="mono c-v">{r.In ? protName(r) : '—'}</td>
+              <td className="mono c-m">{r.In ? cableName(r) : '—'}</td>
+              <td className="num c-m" data-k="ΔU">{r.In ? fmt(r.drop, 1) : '—'}<span className="dt-u"> %</span></td>
+              <td className="c-s">{r.status === 'ok' ? <span className="st-ok">{STATUS.ok}</span> : <span className={'pill ' + r.status}>{STATUS[r.status]}</span>}</td>
             </tr>
-          </thead>
-          <tbody>
-            {a.rows.map((x, i) => {
-              const r = x.r;
-              const head = (
-                <>
-                  <td className="mono t-no" data-label="Гр.">Г{i + 1}</td>
-                  <td className="t-name" data-label="Название">{x.l.name}</td>
-                  {three && <td className="mono g-ph" data-label="Фаза">{r.three ? '3Ф' : (x.l.phase === '3' ? '3Ф' : x.l.phase)}</td>}
-                </>
-              );
-              if (r.empty) {
-                return (
-                  <tr key={x.l.id}>
-                    {head}
-                    <td className="num" data-label="Установл., Вт">0</td>
-                    <td className="num" data-label="Ток, А">—</td>
-                    <td colSpan={4} className="muted">нет приборов</td>
-                  </tr>
-                );
-              }
-              return (
-                <tr key={x.l.id}>
-                  {head}
-                  <td className="num g-pw" data-label="Установл., Вт">{fmt(r.pInst, 0)}</td>
-                  <td className="num g-i" data-label="Ток, А">{fmt(r.I, 1)}</td>
-                  <td className="mono g-pr" data-label="Защита">{r.In ? protName(r) : '—'}</td>
-                  <td className="mono g-cb" data-label="Кабель">{r.In ? cableName(r) : '—'}</td>
-                  <td className="num g-du" data-label="Потеря напряжения, %">{r.In ? fmt(r.drop, 1) : '—'}</td>
-                  <td className="g-st" data-label="Статус"><span className={'pill ' + r.status}>{STATUS[r.status]}</span></td>
-                </tr>
-              );
-            })}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colSpan={three ? 3 : 2}>Всего</td>
-              <td className="num" data-label="Установлено, Вт">{fmt(a.sumInst, 0)}</td>
-              <td className="num" data-label="Ток, А">{fmt(a.Itot, 1)}</td>
-              <td colSpan={4} className="mono">Расчётная мощность {fmt(a.P / 1000, 1)} кВт</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+          );
+        })}
+      </DataTable>
       </TabPanel>
       <TabPanel scope="rep" id="scheme" cur={tab} lazy>
-      <div className="sec-row">
-        <h3 className="sec-t">Схема щитка</h3>
-        <Button size="sm" onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
-      </div>
-      <p className="muted schem-hint">Схема шире экрана: листайте её вбок или поверните телефон. Для печати есть лист А3.</p>
+      <h3 className="sec-t">Схема щитка</h3>
+      <p className="muted schem-hint">Схема шире экрана: листайте её вбок или поверните телефон. Для печати есть лист А3 в подвале.</p>
       <div className="schem-wrap" role="region" aria-label="Однолинейная схема, прокручивается" tabIndex={0}><Schematic a={a} /></div>
       <details className="bd-help a3-prev">
         <summary>Лист А3 со штампом</summary>
@@ -519,31 +515,24 @@ export function ReportSheet({
         </div>
       )}
       <h3 className="sec-t">Спецификация</h3>
-      <div className="tablewrap" role="region" aria-label="Спецификация" tabIndex={0}>
-        <table className="t2 spec-t">
-          <thead>
-            <tr><th>Позиция</th><th className="num">Количество</th><th>Примечание</th><th className="num">Цена, BYN</th><th className="num">Сумма, BYN</th></tr>
-          </thead>
-          <tbody>
-            {est.rows.map(({ item, sum }, i) => (
-              <tr key={i}>
-                <td className="t-name">{item.name}</td>
-                <td className="num sp-q" data-label="Количество">{item.qty}</td>
-                <td className="sp-n" data-label="Примечание">{item.note || '—'}</td>
-                <td className="num sp-p" data-label="Цена, BYN">
-                  <input className="price-in" type="text" inputMode="decimal" min={0} step={0.01} placeholder="0,00" aria-label={'Цена: ' + item.name} {...errAttrs(fieldErr('price', lib.prices[item.name]), 'e-pr-' + i)} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
-                  <Err e={fieldErr('price', lib.prices[item.name])} id={'e-pr-' + i} />
-                </td>
-                <td className="num sp-s" data-label="Сумма, BYN">{sum === null ? '' : fmt(sum, 2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="est">
-        <span>Материалы</span>
-        <span className="mono">{est.total > 0 ? fmt(est.total, 2) + ' BYN' : '—'}</span>
-      </div>
+      <DataTable label="Спецификация" className="spec-t" head={<><th>Позиция</th><th className="num">Количество</th><th className="num">Цена</th><th className="num">Сумма, BYN</th></>} foot={(
+        <tr>
+          <td className="c-t" colSpan={3}>Материалы</td>
+          <td className={'num c-v' + (est.total > 0 ? '' : ' muted')}>{est.total > 0 ? fmt(est.total, 2) + ' BYN' : 'цены не заданы'}</td>
+        </tr>
+      )}>
+        {est.rows.map(({ item, sum }, i) => (
+          <tr key={i}>
+            <td className="c-t">{item.name}{item.note && <small className="dt-note">{item.note}</small>}</td>
+            <td className="num c-m">{item.qty}</td>
+            <td className="num c-v">
+              <MoneyInput placeholder="0,00" aria-label={'Цена: ' + item.name} {...errAttrs(fieldErr('price', lib.prices[item.name]), 'e-pr-' + i)} value={lib.prices[item.name] ?? ''} onChange={e => libDispatch({ t: 'price', name: item.name, value: e.target.value })} />
+              <Err e={fieldErr('price', lib.prices[item.name])} id={'e-pr-' + i} />
+            </td>
+            <td className={'num c-m' + (sum === null ? ' dt-nil' : '')} data-k="Сумма">{sum === null ? '—' : fmt(sum, 2)}</td>
+          </tr>
+        ))}
+      </DataTable>
       {est.missing > 0 && Object.keys(lib.prices).length > 0 && <p className="muted">Для {est.missing} поз. цена или количество не заданы, они не входят в итог.</p>}
       <LaborTable p={p} a={a} dispatch={dispatch} />
       <Totals {...totals(a, p, lib.prices, lib.labor)} />

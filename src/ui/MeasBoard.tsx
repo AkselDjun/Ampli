@@ -80,6 +80,14 @@ export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: C
     if (f === 'leak') return 'до ' + fmt(x.r.leakLim, 1);
     return 'до ' + fmt(x.r.rcdLim, 0);
   };
+  const fit = (f: MeasField): boolean | null => {
+    if (!x) return null;
+    const r = x.r;
+    if (f === 'zs') return r.zsMeas === null ? null : r.ik >= r.ikNeed;
+    if (f === 'ins') return r.insMeas === null ? null : r.insMeas >= 0.5;
+    if (f === 'leak') return r.leakMeas === null ? null : r.leakMeas <= r.leakLim;
+    return r.rcdMeas === null ? null : r.rcdMeas <= r.rcdLim;
+  };
   const plate = (key: string) => <div key={key} className="pmb-dev pmb-free" aria-hidden="true"><span className="pmb-strip" /><span className="pmb-blank" /></div>;
   return (
     <div className="mb">
@@ -175,7 +183,7 @@ export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: C
                   }}
                 />
                 <Err e={fieldErr(fd.f, (x.l.meas ?? {})[fd.f])} id={'e-pm-' + fd.f} />
-                <small className="muted pm-norm">норма {hint(fd.f)}</small>
+                <small className={'pm-norm' + (fit(fd.f) === true ? ' ok' : (fit(fd.f) === false ? ' bad' : ''))}>{fit(fd.f) === true ? 'В норме, ' : (fit(fd.f) === false ? 'Не в норме, нужно ' : 'Норма ')}{hint(fd.f)}</small>
               </label>
             ))}
           </div>

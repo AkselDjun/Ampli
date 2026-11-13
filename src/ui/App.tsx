@@ -42,7 +42,7 @@ import type { AppView, ReportRequest, SaveStatus } from '../app/types';
 import { useSheetStack } from '../app/useSheetStack';
 import { AppHeader } from '../app/AppHeader';
 import { AppTabs } from '../app/AppTabs';
-import { SHEET_TITLE, sheetForTourScene } from '../app/navigation';
+import { sheetForTourScene } from '../app/navigation';
 import { TOUR_CHAPTER, TOUR_MODE, TOUR_SCENE } from '../features/onboarding/model';
 import type { TourChapter, TourMode, TourScene } from '../features/onboarding/model';
 
@@ -115,27 +115,38 @@ export function App() {
   const [tourChapter, setTourChapter] = useState<TourChapter | undefined>(undefined);
   const [tourMode, setTourMode] = useState<TourMode>(TOUR_MODE.FULL);
   const [freshAsk, setFreshAsk] = useState(() => !tourOpen && !incoming && !shared && !owner && freshPending());
+  const freshDone = useRef(false);
+  const busy = sheet !== null || (view === APP_VIEW.EDITOR && !isWide());
   useEffect(() => {
-    if (!freshAsk || sheet) return;
+    if (!freshAsk || freshDone.current || busy) return;
     const t = window.setTimeout(() => {
+      freshDone.current = true;
       markFreshSeen();
       setFreshAsk(false);
       toast('В Ampli новое: частный дом, укладка в мощность, карта проводки и смета в трёх вариантах.', { label: 'Показать', run: () => { setSheet(null); setTourMode(TOUR_MODE.FRESH); setTourOpen(true); } });
     }, 1500);
     return () => window.clearTimeout(t);
-  }, [freshAsk, sheet, setSheet]);
+  }, [freshAsk, busy, setSheet]);
+  const [hintCh, setHintCh] = useState<TourChapter | null>(null);
   useEffect(() => {
     const ch = sheet === APP_SHEET.WORK ? TOUR_CHAPTER.BUILD : (sheet === APP_SHEET.REPORT ? TOUR_CHAPTER.HANDOVER : null);
-    if (!ch || !sheet || tourOpen || onboardingPending() || !chapterHintPending(ch)) return;
-    const title = SHEET_TITLE[sheet];
-    const shown = () => [...document.querySelectorAll('[role="dialog"] h2')].some(h => h.textContent === title);
+    if (!ch || tourOpen || onboardingPending() || !chapterHintPending(ch)) return;
     const t = window.setTimeout(() => {
-      if (!shown()) return;
       markChapterHint(ch);
-      toast(ch === TOUR_CHAPTER.BUILD ? 'Впервые в монтаже? Покажем щиток, карту проводки и чек-лист за минуту.' : 'Впервые в документах? Покажем схему и смету в трёх вариантах за минуту.', { label: 'Показать', run: () => { setTourChapter(ch); setTourOpen(true); } });
-    }, 400);
+      setHintCh(ch);
+    }, 0);
     return () => window.clearTimeout(t);
   }, [sheet, tourOpen]);
+  const hintOn = hintCh !== null && ((hintCh === TOUR_CHAPTER.BUILD && sheet === APP_SHEET.WORK) || (hintCh === TOUR_CHAPTER.HANDOVER && sheet === APP_SHEET.REPORT));
+  const sheetNav = useMemo(() => (hintOn && hintCh ? {
+    ...nav,
+    hint: {
+      text: hintCh === TOUR_CHAPTER.BUILD ? 'Покажем щиток, проводку и чек-лист за минуту.' : 'Покажем схему и смету за минуту.',
+      label: 'Показать',
+      run: () => { setHintCh(null); setTourChapter(hintCh); setTourOpen(true); },
+      close: () => setHintCh(null)
+    }
+  } : nav), [hintOn, hintCh, nav]);
   const closeTour = useCallback(() => {
     setTourChapter(undefined);
     setTourMode(TOUR_MODE.FULL);
@@ -156,7 +167,10 @@ export function App() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const saveSeq = useRef(0);
   const mounted = useRef(true);
-  useEffect(() => () => { mounted.current = false; }, []);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
   const onSaved = (ok: boolean) => {
     if (!ok && !saveFail.current) toastBad('Не удалось сохранить изменения: в браузере закончилось место. Удалите лишние проекты или фото и сохраните проект в файл.');
     saveFail.current = !ok;
@@ -451,7 +465,7 @@ export function App() {
     setSheet(APP_SHEET.REPORT);
   };
   const cmds: Cmd[] = [
-    ...p.lines.map((l, i) => ({ id: 'g' + l.id, group: 'Группы', label: 'Г' + (i + 1) + ' ' + (l.name || 'Без названия'), hint: l.zone?.trim() || TYPES[l.type].short, words: 'группа', run: () => { setSheet(null); dispatch({ t: 'select', id: l.id }); goEdit(); } })),
+    ...p.lines.map((l, i) => ({ id: 'g' + l.id, group: 'Группы', label: 'Г' + (i + 1) + ' ' + (l.name || 'Без названия'), hint: l.zone?.trim() || TYPES[l.type].short, words: 'группа', late: true, run: () => { setSheet(null); dispatch({ t: 'select', id: l.id }); goEdit(); } })),
     { id: 'add-l', group: 'Добавить', label: 'Добавить группу освещения', words: 'свет новая', run: () => addGroup('light') },
     { id: 'add-s', group: 'Добавить', label: 'Добавить розеточную группу', words: 'розетки новая', run: () => addGroup('socket') },
     { id: 'add-p', group: 'Добавить', label: 'Добавить мощный прибор', words: 'плита бойлер новая группа', run: () => addGroup('power') },
@@ -477,7 +491,7 @@ export function App() {
     { id: 'lib', group: 'Проект', label: 'Мои данные', words: 'реквизиты шаблоны цены логотип тема оформление', run: () => setSheet(APP_SHEET.LIBRARY) },
     { id: 'th-dark', group: 'Вид', label: 'Тёмная тема', words: 'тема оформление ночь', run: () => setTheme('dark') },
     { id: 'th-light', group: 'Вид', label: 'Светлая тема', words: 'тема оформление день', run: () => setTheme('light') },
-    { id: 'th-auto', group: 'Вид', label: 'Тема как в системе', words: 'тема оформление авто', run: () => setTheme('auto') },
+    { id: 'th-auto', group: 'Вид', label: 'Тема: авто', words: 'тема оформление как в системе', run: () => setTheme('auto') },
     ...(a.phases ? [{ id: 'bal', group: 'Проект', label: 'Выровнять нагрузку по фазам', words: 'фазы', run: () => { dispatch({ t: 'balance' }); toastOk('Фазы выровнены'); } }] : [])
   ];
   const tab = (v: AppView) => {
@@ -555,6 +569,7 @@ export function App() {
           onWork={() => setSheet(APP_SHEET.WORK)}
           onReport={() => setSheet(APP_SHEET.REPORT)}
           onCompare={() => setSheet(APP_SHEET.COMPARE)}
+          onSearch={() => setPal(true)}
         />
 
         <main className="workspace">
@@ -607,7 +622,7 @@ export function App() {
           onReport={() => setSheet(APP_SHEET.REPORT)}
         />
 
-        <SheetNavContext.Provider value={nav}>
+        <SheetNavContext.Provider value={sheetNav}>
         <Hold open={sheet === APP_SHEET.NETWORK}><NetSheet open={sheet === APP_SHEET.NETWORK} onClose={closeSheet} p={p} dispatch={dispatch} onOld={() => pushSheet(APP_SHEET.OLD_WIRING)} oldLabel={oldLabel} /></Hold>
         <Hold open={sheet === APP_SHEET.FLOOR}><FloorSheet open={sheet === APP_SHEET.FLOOR} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
         <Hold open={sheet === APP_SHEET.WEAK}><WeakSheet open={sheet === APP_SHEET.WEAK} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>

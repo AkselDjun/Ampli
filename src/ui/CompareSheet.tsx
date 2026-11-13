@@ -3,7 +3,7 @@ import type { Calc, Project } from '../core/types';
 import { ADDONS, compareRows, variantCalc } from '../core/compare';
 import { fmt } from '../core/format';
 import { Sheet } from './common';
-import { Button } from './kit';
+import { Button, DataTable } from './kit';
 
 export function CompareSheet({ open, onClose, p, a }: { open: boolean; onClose: () => void; p: Project; a: Calc }) {
   const [excluded, setExcluded] = useState<string[]>([]);
@@ -12,18 +12,37 @@ export function CompareSheet({ open, onClose, p, a }: { open: boolean; onClose: 
   const alt = useMemo(() => variantCalc(p, excluded, addons), [p, excluded, addons]);
   const rows = compareRows(a, alt);
   const changed = excluded.length + addons.length > 0;
-  const diff = changed ? rows.filter(r => r.now !== r.alt) : [];
+  const diff = changed ? rows.filter(r => r.now !== r.alt).length : 0;
   return (
-    <Sheet open={open} onClose={onClose} title="Сравнение вариантов" tip="Отметьте, что убрать или добавить, и сравните ввод и щиток. Сам проект не меняется.">
-      <div className="cmp-sum" role="status" aria-live="polite">
-        {!changed ? <span className="muted">Отметьте ниже, что убрать или добавить: здесь появится, что изменится.</span> : diff.length === 0 ? <span>Ввод и щиток не меняются.</span> : (
-          <ul>
-            {diff.map(r => (
-              <li key={r.label}><span className="cmp-l">{r.label}</span> <span className="num">{r.now}</span> → <b className={'num cmp ' + (r.worse === true ? 'worse' : (r.worse === false ? 'better' : ''))}>{r.alt}</b></li>
-            ))}
-          </ul>
-        )}
-      </div>
+    <Sheet open={open} onClose={onClose} title="Сравнение вариантов" footer={(
+      <>
+        <span className="foot-st" role="status">{changed ? 'Отличий от проекта: ' + (excluded.length + addons.length) + ', меняется показателей: ' + diff : 'Отметьте, что убрать или добавить'}</span>
+        <Button variant="ghost" disabled={!changed} onClick={() => { setExcluded([]); setAddons([]); }}>Сбросить</Button>
+        <Button variant="primary" onClick={onClose}>Готово</Button>
+      </>
+    )} tip="Отметьте, что убрать или добавить, и сравните ввод и щиток. Сам проект не меняется.">
+      <div className="cmp-grid">
+      <section className="cmp-res" aria-label="Итог сравнения">
+      <p className="cmp-lead muted">{changed ? (diff > 0 ? 'Меняется показателей: ' + diff + ' из ' + rows.length : 'Показатели щитка не меняются') : 'Отметьте ниже, что убрать или добавить, и здесь появятся отличия.'}</p>
+      <DataTable label="Сравнение вариантов" className="cmp-t" head={<><th>Показатель</th><th className="num">Сейчас</th><th className="num">Вариант</th></>}>
+        {rows.map(r => {
+          const same = !changed || r.now === r.alt;
+          const tone = same ? '' : (r.worse === true ? 'worse' : (r.worse === false ? 'better' : ''));
+          return (
+            <tr key={r.label} className={same ? 'same' : 'diff'}>
+              <td className="c-t">{r.label}</td>
+              <td className="num c-m" data-k="Сейчас">{r.now}</td>
+              <td className="num c-v">
+                <span className={'cmp ' + tone}>{r.alt}</span>
+                {tone && <small className={'cmp-w ' + tone}>{tone === 'worse' ? 'хуже' : 'лучше'}</small>}
+              </td>
+            </tr>
+          );
+        })}
+      </DataTable>
+      {changed && alt.hint3 && <p className="muted">В варианте расчётная нагрузка {fmt(alt.P / 1000, 1)} кВт больше 12 кВт: по СН 4.04.01-2019, п. 9.12 нужен трёхфазный ввод.</p>}
+      </section>
+      <div className="cmp-pick">
       <h3 className="sec-t">Убрать из расчёта</h3>
       <ul className="ck">
         {p.lines.map((l, i) => (
@@ -46,27 +65,7 @@ export function CompareSheet({ open, onClose, p, a }: { open: boolean; onClose: 
           </li>
         ))}
       </ul>
-      <div className="tablewrap" role="region" aria-label="Сравнение вариантов" tabIndex={0}>
-        <table className="t2">
-          <thead>
-            <tr><th>Показатель</th><th className="num">Сейчас</th><th className="num">Вариант</th></tr>
-          </thead>
-          <tbody>
-            {rows.map(r => (
-              <tr key={r.label} className={changed && r.now === r.alt ? 'cmp-same' : undefined}>
-                <td className="t-name">{r.label}</td>
-                <td className="num" data-label="Сейчас">{r.now}</td>
-                <td className="num" data-label="Вариант">
-                  <span className={'cmp ' + (changed && r.worse === true ? 'worse' : (changed && r.worse === false ? 'better' : ''))}>{r.alt}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
-      {changed && alt.hint3 && <p className="muted">В варианте расчётная нагрузка {fmt(alt.P / 1000, 1)} кВт больше 12 кВт: по СН 4.04.01-2019, п. 9.12 нужен трёхфазный ввод.</p>}
-      <div className="data-row">
-        <Button variant="ghost" disabled={!changed} onClick={() => { setExcluded([]); setAddons([]); }}>Сбросить</Button>
       </div>
     </Sheet>
   );
