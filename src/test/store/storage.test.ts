@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { BOOT_KEY, KEY, OLDKEY, changes, clearProjects, dropLegacy, loadBoot, loadStore, mergeLists, readProjects, resetProjectDb, saveBoot, saveStore, writeProjects } from '../../store/storage';
+import { BOOT_KEY, DELETED_KEY, KEY, clearDeleted, deletedIds, markDeleted, OLDKEY, changes, clearProjects, dropLegacy, loadBoot, loadStore, mergeLists, readProjects, resetProjectDb, saveBoot, saveStore, writeProjects } from '../../store/storage';
 import { sampleProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
 
@@ -242,5 +242,20 @@ describe('project database connection', () => {
     });
     expect(upgraded).toBe(true);
     expect(reqs.length).toBe(1);
+  });
+});
+
+describe('deleted projects list', () => {
+  it('keeps ids until their deletion is written', () => {
+    localStorage.removeItem(DELETED_KEY);
+    markDeleted(['a', 'b']);
+    markDeleted(['b', 'c']);
+    expect(deletedIds()).toEqual(['a', 'b', 'c']);
+    clearDeleted(['a', 'c']);
+    expect(deletedIds()).toEqual(['b']);
+    clearDeleted(['b']);
+    expect(localStorage.getItem(DELETED_KEY)).toBeNull();
+    localStorage.setItem(DELETED_KEY, '{bad');
+    expect(deletedIds()).toEqual([]);
   });
 });
