@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { Calc, Project } from '../core/types';
 import { plural, ymd } from '../core/format';
 import { CHECK_ITEMS, progress } from '../core/checklist';
@@ -17,7 +17,7 @@ import { Button, Field, IconButton } from './kit';
 export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3' | 'hidden' | 'wiring' | 'accept' | 'old';
 
 export function WorkSheet({
-  open, onClose, p, a, dispatch, onPrint, want, onTab
+  open, onClose, p, a, dispatch, onPrint, tab: tabIn, onTab
 }: {
   open: boolean;
   onClose: () => void;
@@ -25,18 +25,15 @@ export function WorkSheet({
   a: Calc;
   dispatch: (x: Action) => void;
   onPrint: (m: PrintMode | PrintMode[]) => void;
-  want?: { tab: string; n: number };
+  tab?: string;
   onTab?: (tab: string) => void;
 }) {
-  const [tab, setTab] = useState(want ? want.tab : 'check');
-  const [wantSeen, setWantSeen] = useState(want);
-  if (want !== wantSeen) {
-    setWantSeen(want);
-    if (want) setTab(want.tab);
-  }
-  useEffect(() => {
-    if (open) onTab?.(tab);
-  }, [open, tab, onTab]);
+  const [ownTab, setOwnTab] = useState(tabIn ?? 'check');
+  const tab = tabIn ?? ownTab;
+  const setTab = (t: string) => {
+    setOwnTab(t);
+    onTab?.(t);
+  };
   const checks = p.checks ?? {};
   const pr = progress(p.checks);
   const rows = protocolRows(a);

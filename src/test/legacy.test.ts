@@ -42,7 +42,7 @@ describe('reducer', () => {
   };
   it('edits a line field and clears the sample flag', () => {
     const s0 = base();
-    const s1 = reducer(s0, { t: 'lineField', field: 'len', value: 40 });
+    const s1 = reducer(s0, { t: 'lineField', id: cur(s0).lines[0].id, field: 'len', value: 40 });
     expect(cur(s1).sample).toBe(false);
     expect(cur(s1).lines[0].len).toBe(40);
     expect(cur(s0).lines[0].len).toBe(9);
@@ -50,7 +50,7 @@ describe('reducer', () => {
   it('adds and deletes lines', () => {
     const s1 = reducer(base(), { t: 'addLine', type: 'power' });
     expect(cur(s1).lines.length).toBe(15);
-    const s2 = reducer(s1, { t: 'delLine' });
+    const s2 = reducer(s1, { t: 'delLine', id: s1.sel as string });
     expect(cur(s2).lines.length).toBe(14);
   });
   it('keeps one project after deleting the last', () => {

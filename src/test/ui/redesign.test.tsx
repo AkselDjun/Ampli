@@ -13,6 +13,7 @@ import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
 import { BOOT_KEY, KEY } from '../../store/storage';
+import { flushSaves } from '../stored';
 import type { Cfg, Line, Project } from '../../core/types';
 import { wide } from './util';
 
@@ -632,6 +633,7 @@ describe('App flows', () => {
     const L = Number(/(\d+) м/.exec(b.textContent as string)?.[1]);
     await user.click(b);
     expect(screen.getByRole('status')).toHaveTextContent('Исправлено');
+    flushSaves();
     const stored = JSON.parse(localStorage.getItem(BOOT_KEY) as string).project.lines[0];
     expect(Number(stored.len)).toBe(L);
     expect(document.querySelector('.row-wrap .fixbar')).toBeNull();

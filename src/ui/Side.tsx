@@ -7,6 +7,7 @@ import { Fragment, memo, useState } from 'react';
 import { Fold, Tip } from './common';
 import { same } from './hold';
 import { Button } from './kit';
+import { BP, useMedia } from './media';
 
 export const Summary = memo(function Summary({ a, onBalance, solo = false }: { a: Calc; onBalance: () => void; solo?: boolean }) {
   const mx = a.phases ? Math.max(a.phases.L1, a.phases.L2, a.phases.L3, 0.001) : 1;
@@ -121,7 +122,9 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
     typeOf.set(x.l.id, x.l.type);
   });
   const lids = a.devs.filter(x => x.lid).map(x => x.lid as string);
-  const [listOpen, setListOpen] = useState(() => typeof window.matchMedia !== 'function' || window.matchMedia('(min-width: 1000px)').matches);
+  const desktop = useMedia(BP.desktop, true);
+  const [listPick, setListOpen] = useState<boolean | null>(null);
+  const listOpen = listPick ?? desktop;
   return (
     <div className="pane-panel">
       <Fold title="Щиток" className="c-panel" open>

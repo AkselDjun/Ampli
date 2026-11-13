@@ -8,7 +8,7 @@ import { Boundary } from './ui/Boundary';
 import { initPwa, retirePwa } from './ui/pwa';
 import { PWA_ENABLED } from './core/flags';
 import { initTheme } from './ui/theme';
-import { hasLink } from './core/links';
+import { readLocation } from './app/location';
 import { loadCodec } from './ui/linkCodec';
 
 initTheme();
@@ -29,7 +29,7 @@ const start = (): void => {
   );
 };
 
-if (hasLink(window.location.hash)) void loadCodec().then(start, start);
+if (readLocation().link) void loadCodec().then(start, start);
 else start();
 
 if (PWA_ENABLED) initPwa(registerSW);

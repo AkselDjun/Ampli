@@ -27,11 +27,6 @@ export type SheetId = AppSheet | null;
 export type SaveStatus = 'saved' | 'saving' | 'error' | 'conflict';
 export type HeaderCheckFix = 'phase3' | 'phase1' | 'net';
 
-export interface ReportRequest {
-  tab: string;
-  n: number;
-}
-
 export interface SheetHint {
   text: string;
   label: string;
@@ -40,6 +35,7 @@ export interface SheetHint {
 }
 
 export interface SheetNav {
+  shown?: () => void;
   back?: () => void;
   to?: string;
   hint?: SheetHint;

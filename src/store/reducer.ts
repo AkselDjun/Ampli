@@ -32,11 +32,11 @@ export type MeasField = 'zs' | 'ins' | 'leak' | 'rcd';
 export type Action =
   | { t: 'select'; id: string }
   | { t: 'addLine'; type: LineType }
-  | { t: 'delLine' }
+  | { t: 'delLine'; id: string }
   | { t: 'moveLine'; id: string; to: string }
   | { t: 'sortByZone' }
-  | { t: 'dupLine' }
-  | { t: 'splitLine'; mode: 'largest' | 'half' }
+  | { t: 'dupLine'; id: string }
+  | { t: 'splitLine'; id: string; mode: 'largest' | 'half' }
   | { t: 'roomAdd'; room: Room }
   | { t: 'roomDel'; id: string }
   | { t: 'roomName'; id: string; value: string }
@@ -48,15 +48,14 @@ export type Action =
   | { t: 'photoDel'; id: string }
   | { t: 'photoNote'; id: string; value: string }
   | { t: 'photoTraces'; id: string; traces: Trace[] }
-  | { t: 'addApps'; apps: { name: string; w: number; n: number; m?: number }[] }
-  | { t: 'lineField'; field: 'name' | 'zone' | 'len' | 'sockets' | 'perSocket'; value: string | number }
-  | { t: 'lineType'; type: LineType }
-  | { t: 'linePhase'; phase: Phase }
-  | { t: 'lineWet'; wet: boolean; out?: boolean }
+  | { t: 'addApps'; line: string; apps: { name: string; w: number; n: number; m?: number }[] }
+  | { t: 'lineField'; id: string; field: 'name' | 'zone' | 'len' | 'sockets' | 'perSocket'; value: string | number }
+  | { t: 'lineType'; id: string; type: LineType }
+  | { t: 'linePhase'; id: string; phase: Phase }
+  | { t: 'lineWet'; id: string; wet: boolean; out?: boolean }
   | { t: 'prio'; set: Record<string, 'p' | 's' | ''> }
   | { t: 'appPower'; line: string; app: string; w: number }
-  | { t: 'lineMeas'; field: MeasField; value: string }
-  | { t: 'lineMeasAt'; id: string; field: MeasField; value: string }
+  | { t: 'lineMeas'; id: string; field: MeasField; value: string }
   | { t: 'check'; id: string; on: boolean }
   | { t: 'workQty'; key: WorkKey; value: string }
   | { t: 'proto'; field: 'date' | 'device' | 'by'; value: string }
@@ -72,10 +71,10 @@ export type Action =
   | { t: 'weakSet'; id: string; field: Exclude<keyof WeakPt, 'id'>; value: string }
   | { t: 'weakDel'; id: string }
   | { t: 'weakOnt'; on: boolean }
-  | { t: 'appField'; id: string; field: 'name' | 'w' | 'n' | 'br' | 'm' | 'cos'; value: string | number }
-  | { t: 'appAlt'; id: string; on: boolean }
-  | { t: 'addApp'; name?: string; w?: number; m?: number }
-  | { t: 'delApp'; id: string }
+  | { t: 'appField'; line: string; id: string; field: 'name' | 'w' | 'n' | 'br' | 'm' | 'cos'; value: string | number }
+  | { t: 'appAlt'; line: string; id: string; on: boolean }
+  | { t: 'addApp'; line: string; name?: string; w?: number; m?: number }
+  | { t: 'delApp'; line: string; id: string }
   | { t: 'cfg'; field: keyof Cfg; value: string | number }
   | { t: 'cfgStep'; field: 'alloc' | 'ko' | 'k' | 'zs' | 'feeder' | 'margin' | 'sip' | 'rz'; d: number }
   | { t: 'balance' }
@@ -95,8 +94,8 @@ const patch = (s: State, fn: (p: Project) => Project): State => ({
   list: s.list.map(p => (p.id === s.cur ? { ...fn(p), sample: false, updated: Date.now() } : p))
 });
 
-const patchLine = (s: State, fn: (l: Line) => Line): State =>
-  patch(s, p => ({ ...p, lines: p.lines.map(l => (l.id === s.sel ? fn(l) : l)) }));
+const patchLine = (s: State, id: string, fn: (l: Line) => Line): State =>
+  cur(s).lines.some(l => l.id === id) ? patch(s, p => ({ ...p, lines: p.lines.map(l => (l.id === id ? fn(l) : l)) })) : s;
 
 const firstId = (p: Project): string | null => (p.lines.length ? p.lines[0].id : null);
 
@@ -118,10 +117,11 @@ export function reducer(s: State, a: Action): State {
       return next;
     }
     case 'delLine': {
-      const i = p.lines.findIndex(l => l.id === s.sel);
+      const i = p.lines.findIndex(l => l.id === a.id);
       if (i < 0) return s;
-      const lines = p.lines.filter(l => l.id !== s.sel);
-      const next = patch(s, q => ({ ...q, lines, photos: (q.photos ?? []).filter(ph => ph.line !== s.sel) }));
+      const lines = p.lines.filter(l => l.id !== a.id);
+      const next = patch(s, q => ({ ...q, lines, photos: (q.photos ?? []).filter(ph => ph.line !== a.id) }));
+      if (s.sel !== a.id) return next;
       return { ...next, sel: lines.length ? lines[Math.min(i, lines.length - 1)].id : null };
     }
     case 'photoAdd':
@@ -166,7 +166,7 @@ export function reducer(s: State, a: Action): State {
       return { ...next, sel: lines[0].id };
     }
     case 'splitLine': {
-      const i = p.lines.findIndex(l => l.id === s.sel);
+      const i = p.lines.findIndex(l => l.id === a.id);
       if (i < 0) return s;
       const src = p.lines[i];
       const parts = splitApps(src, a.mode);
@@ -181,7 +181,6 @@ export function reducer(s: State, a: Action): State {
       lines[i] = { ...src, apps: parts.keep };
       lines.splice(i + 1, 0, moved);
       let next = patch(s, q => ({ ...q, lines }));
-      next = { ...next, sel: src.id };
       if (pn(p.cfg.supply, 1) === 3) next = patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) }));
       return next;
     }
@@ -216,30 +215,30 @@ export function reducer(s: State, a: Action): State {
       return patch(s, q => ({ ...q, lines }));
     }
     case 'dupLine': {
-      const i = p.lines.findIndex(l => l.id === s.sel);
+      const i = p.lines.findIndex(l => l.id === a.id);
       if (i < 0) return s;
       const src = p.lines[i];
       const cp: Line = { ...src, id: nid(), name: (src.name || 'Без названия') + ' (копия)', apps: src.apps.map(x => ({ ...x, id: nid() })), meas: undefined };
       const lines = [...p.lines];
       lines.splice(i + 1, 0, cp);
       let next = patch(s, q => ({ ...q, lines }));
-      next = { ...next, sel: cp.id };
+      if (s.sel === src.id) next = { ...next, sel: cp.id };
       if (pn(p.cfg.supply, 1) === 3) next = patch(next, q => ({ ...q, lines: balanceLines(q.lines, q.cfg) }));
       return next;
     }
     case 'addApps':
-      return patchLine(s, l => ({ ...l, apps: [...l.apps, ...a.apps.map(x => ({ id: nid(), name: x.name, w: x.w, n: x.n, ...(x.m !== undefined ? { m: x.m } : {}) }))] }));
+      return patchLine(s, a.line, l => ({ ...l, apps: [...l.apps, ...a.apps.map(x => ({ id: nid(), name: x.name, w: x.w, n: x.n, ...(x.m !== undefined ? { m: x.m } : {}) }))] }));
     case 'lineField': {
       let v = a.field in LINE_MAX ? numIn(a.value, LINE_MAX[a.field]) : a.value;
       if (a.field === 'zone' && typeof v === 'string') {
         const key = String(v).trim().toLowerCase();
-        const twin = key ? p.lines.find(l => l.id !== s.sel && (l.zone ?? '').trim().toLowerCase() === key && (l.zone ?? '').trim() !== String(v).trim()) : undefined;
+        const twin = key ? p.lines.find(l => l.id !== a.id && (l.zone ?? '').trim().toLowerCase() === key && (l.zone ?? '').trim() !== String(v).trim()) : undefined;
         if (twin) v = (twin.zone ?? '').trim();
       }
-      return patchLine(s, l => ({ ...l, [a.field]: v }));
+      return patchLine(s, a.id, l => ({ ...l, [a.field]: v }));
     }
     case 'lineType':
-      return patchLine(s, l => {
+      return patchLine(s, a.id, l => {
         const prev = TYPES[l.type];
         const d = TYPES[a.type];
         return {
@@ -250,11 +249,9 @@ export function reducer(s: State, a: Action): State {
         };
       });
     case 'linePhase':
-      return patchLine(s, l => ({ ...l, phase: a.phase }));
+      return patchLine(s, a.id, l => ({ ...l, phase: a.phase }));
     case 'lineMeas':
-      return patchLine(s, l => ({ ...l, meas: { ...(l.meas ?? {}), [a.field]: numIn(a.value, MEAS_MAX) } }));
-    case 'lineMeasAt':
-      return patch(s, q => ({ ...q, lines: q.lines.map(l => (l.id === a.id ? { ...l, meas: { ...(l.meas ?? {}), [a.field]: numIn(a.value, MEAS_MAX) } } : l)) }));
+      return patchLine(s, a.id, l => ({ ...l, meas: { ...(l.meas ?? {}), [a.field]: numIn(a.value, MEAS_MAX) } }));
     case 'workQty': {
       const v = a.value.trim();
       const n = Number(v.replace(',', '.'));
@@ -363,18 +360,18 @@ export function reducer(s: State, a: Action): State {
         })
       }));
     case 'lineWet':
-      return patchLine(s, l => {
+      return patchLine(s, a.id, l => {
         const next: Line = { ...l, wet: a.wet };
         if (a.out) next.out = true;
         else delete next.out;
         return next;
       });
     case 'appField':
-      return patchLine(s, l => ({ ...l, apps: l.apps.map(x => (x.id === a.id ? { ...x, [a.field]: a.field in APP_MAX ? numIn(a.value, APP_MAX[a.field]) : a.value } : x)) }));
+      return patchLine(s, a.line, l => ({ ...l, apps: l.apps.map(x => (x.id === a.id ? { ...x, [a.field]: a.field in APP_MAX ? numIn(a.value, APP_MAX[a.field]) : a.value } : x)) }));
     case 'appAlt':
-      return patchLine(s, l => ({ ...l, apps: l.apps.map(x => (x.id === a.id ? { ...x, alt: a.on || undefined } : x)) }));
+      return patchLine(s, a.line, l => ({ ...l, apps: l.apps.map(x => (x.id === a.id ? { ...x, alt: a.on || undefined } : x)) }));
     case 'addApp':
-      return patchLine(s, l => {
+      return patchLine(s, a.line, l => {
         if (a.name === undefined) return { ...l, apps: [...l.apps, { id: nid(), name: '', w: '', n: 1 }] };
         const ex = a.m === undefined ? l.apps.find(x => x.name === a.name && pn(x.w, 0) === a.w && x.m === undefined) : undefined;
         if (ex) return { ...l, apps: l.apps.map(x => (x === ex ? { ...x, n: pn(x.n, 0) + 1 } : x)) };
@@ -382,7 +379,7 @@ export function reducer(s: State, a: Action): State {
         return { ...l, apps: [...l.apps, app] };
       });
     case 'delApp':
-      return patchLine(s, l => ({ ...l, apps: l.apps.filter(x => x.id !== a.id) }));
+      return patchLine(s, a.line, l => ({ ...l, apps: l.apps.filter(x => x.id !== a.id) }));
     case 'cfg': {
       let next = patch(s, q => ({ ...q, cfg: { ...q.cfg, [a.field]: a.field === 'supply' || a.field === 'drop' ? Number(a.value) : a.field in CLIMITS ? numIn(a.value, CLIMITS[a.field][1]) : a.value } }));
       if (a.field === 'obj' && a.value === 'house' && p.cfg.obj !== 'house') next = patch(next, q => ({ ...q, cfg: { ...q.cfg, spd: 'on', sip: q.cfg.sip ?? SIP_LEN_DEF } }));

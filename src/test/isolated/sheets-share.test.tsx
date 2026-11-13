@@ -83,7 +83,7 @@ describe('MeasBoard', () => {
     const dispatch = vi.fn();
     render(<MeasBoard open a={a} dispatch={dispatch} />);
     change(byLabel(document.body, 'Г1: Утечка, мА'), '2');
-    expect(dispatch).toHaveBeenCalledWith({ t: 'lineMeasAt', id: l.id, field: 'leak', value: '2' });
+    expect(dispatch).toHaveBeenCalledWith({ t: 'lineMeas', id: l.id, field: 'leak', value: '2' });
   });
 });
 

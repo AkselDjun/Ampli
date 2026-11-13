@@ -33,3 +33,7 @@ export function sheetHash(sheet: SheetId, tab?: string): string {
 }
 
 export const isSheetHash = (hash: string): boolean => readSheetHash(hash) !== null;
+
+export const sheetTabs = (sheet: AppSheet): readonly string[] => TABS[sheet] ?? [];
+
+export const defaultTab = (sheet: AppSheet): string | undefined => TABS[sheet]?.[0];

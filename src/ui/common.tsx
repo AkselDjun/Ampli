@@ -6,6 +6,7 @@ import { useSheetNav } from './sheetnav';
 import { currentToast, dismissToast, subscribeToast, toastLife } from './toast';
 import { haptic } from './haptic';
 import { Button, buttonClass } from './kit';
+import { BP, useMedia } from './media';
 import type { ButtonSize, ButtonVariant } from './kit';
 import type { FieldErr } from '../core/limits';
 
@@ -233,17 +234,7 @@ export function DoneFoot({ onDone, status = 'Изменения сохраняю
   );
 }
 
-const DOCK_Q = '(min-width:1000px)';
-const subMq = (q: string) => (cb: () => void) => {
-  if (typeof window.matchMedia !== 'function') return () => undefined;
-  const m = window.matchMedia(q);
-  m.addEventListener?.('change', cb);
-  return () => m.removeEventListener?.('change', cb);
-};
-const getMq = (q: string) => () => typeof window.matchMedia === 'function' && window.matchMedia(q).matches;
-const subDock = subMq(DOCK_Q);
-const getDock = getMq(DOCK_Q);
-export const useDocked = (): boolean => useSyncExternalStore(subDock, getDock, () => false);
+export const useDocked = (): boolean => useMedia(BP.desktop);
 const SCROLL = new Map<string, number>();
 const BACK = { on: false };
 const OUT_MS = 150;
@@ -285,6 +276,10 @@ export function Sheet({
   const bodyRef = useRef<HTMLDivElement>(null);
   const opener = useRef<Element | null>(null);
   const nav = useSheetNav();
+  const shown = nav.shown;
+  useEffect(() => {
+    if (open && historyLayer) shown?.();
+  }, [open, historyLayer, shown]);
   const y0 = useRef<number | null>(null);
   const dy = useRef(0);
   const titleRef = useRef(title);

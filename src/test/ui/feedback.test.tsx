@@ -282,7 +282,7 @@ describe('panel mode as a real board', () => {
     fireEvent.click(screen.getByRole('button', { name: /← Г2/ }));
     expect(d.querySelector('.pm .no')?.textContent).toBe('Г2');
     change(byLabel(d, 'Г2: Изоляция, МОм'), '5');
-    expect(dispatch).toHaveBeenCalledWith({ t: 'lineMeasAt', id: ls[1].id, field: 'ins', value: '5' });
+    expect(dispatch).toHaveBeenCalledWith({ t: 'lineMeas', id: ls[1].id, field: 'ins', value: '5' });
   });
   it('shows RCDs per room as fixed modules', () => {
     const { d } = mk({ prot: 'rcd' });

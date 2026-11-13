@@ -37,20 +37,21 @@ describe('numeric input cleaning', () => {
 
   it('applies limits to group, appliance, measurement, floor and weak fields', () => {
     let s = one();
+    const id = cur(s).lines[0].id;
     const app = cur(s).lines[0].apps[0].id;
     s = run(s,
-      { t: 'lineField', field: 'len', value: '100000' },
-      { t: 'lineField', field: 'name', value: '-Имя 1' },
-      { t: 'appField', id: app, field: 'w', value: '-500' },
-      { t: 'appField', id: app, field: 'n', value: '150' },
-      { t: 'lineMeas', field: 'ins', value: '-3' }
+      { t: 'lineField', id, field: 'len', value: '100000' },
+      { t: 'lineField', id, field: 'name', value: '-Имя 1' },
+      { t: 'appField', line: id, id: app, field: 'w', value: '-500' },
+      { t: 'appField', line: id, id: app, field: 'n', value: '150' },
+      { t: 'lineMeas', id, field: 'ins', value: '-3' }
     );
     const l = cur(s).lines[0];
     expect(l.len).toBe('500');
     expect(l.name).toBe('-Имя 1');
     expect(l.apps[0]).toMatchObject({ w: '500', n: '150' });
     expect(l.meas?.ins).toBe('3');
-    s = run(s, { t: 'lineMeasAt', id: l.id, field: 'leak', value: '0,4' });
+    s = run(s, { t: 'lineMeas', id: l.id, field: 'leak', value: '0,4' });
     expect(cur(s).lines[0].meas?.leak).toBe('0,4');
     s = run(s, { t: 'floorAdd', use: 'room' });
     const f = (cur(s).floor ?? [])[0].id;
@@ -67,11 +68,12 @@ describe('rooms of groups', () => {
   it('reuses the spelling of an existing room typed in another case', () => {
     let s = one();
     const p = cur(s);
-    s = run(s, { t: 'select', id: p.lines[1].id }, { t: 'lineField', field: 'zone', value: 'комнаты' });
+    const id = p.lines[1].id;
+    s = run(s, { t: 'lineField', id, field: 'zone', value: 'комнаты' });
     expect(cur(s).lines[1].zone).toBe('Комнаты');
-    s = run(s, { t: 'lineField', field: 'zone', value: 'Комнаты ' });
+    s = run(s, { t: 'lineField', id, field: 'zone', value: 'Комнаты ' });
     expect(cur(s).lines[1].zone).toBe('Комнаты ');
-    s = run(s, { t: 'lineField', field: 'zone', value: 'Новая' });
+    s = run(s, { t: 'lineField', id, field: 'zone', value: 'Новая' });
     expect(cur(s).lines[1].zone).toBe('Новая');
   });
 
@@ -84,7 +86,7 @@ describe('rooms of groups', () => {
 
   it('adds LED strips from the quick list with their length', () => {
     let s = one();
-    s = run(s, { t: 'addApps', apps: [{ name: 'LED-лента', w: 14.4, n: 1, m: 5 }] });
+    s = run(s, { t: 'addApps', line: cur(s).lines[0].id, apps: [{ name: 'LED-лента', w: 14.4, n: 1, m: 5 }] });
     const apps = cur(s).lines[0].apps;
     expect(apps[apps.length - 1]).toMatchObject({ name: 'LED-лента', w: 14.4, m: 5 });
   });

@@ -7,7 +7,7 @@ import { IDBObjectStore } from 'fake-indexeddb';
 import { sample } from '../../core/templates';
 import { KEY, readProjects, saveBoot, writeProjects } from '../../store/storage';
 import { init, reducer } from '../../store/reducer';
-import { stored, storedProjects } from '../stored';
+import { flushSaves, stored, storedProjects } from '../stored';
 import { byLabel, change } from './util';
 
 vi.setConfig({ testTimeout: 60000 });
@@ -66,6 +66,7 @@ describe('projects in IndexedDB', () => {
     const put = vi.spyOn(IDBObjectStore.prototype, 'put');
     fireEvent.click(document.querySelector('.col-list .row') as HTMLElement);
     change(byLabel(document, 'Название группы'), 'Кухня');
+    flushSaves();
     await settle();
     expect(put).toHaveBeenCalled();
     expect(put.mock.calls.every(c => c[1] === a.id)).toBe(true);
