@@ -11,22 +11,15 @@ for (const width of [320, 375]) {
   test.describe(`phone ${width} px`, () => {
     test.use({ viewport: { width, height: 700 } });
 
-    test('lines up the list view buttons under the heading', async ({ page, isMobile }) => {
+    test('puts the renumber link under the heading', async ({ page, isMobile }) => {
       test.skip(!isMobile, 'phone layout');
       await start(page);
       const head = (await page.locator('.list-head h2').boundingBox())!;
-      const hist = (await page.locator('.list-head .hist').boundingBox())!;
-      const btns = await page.locator('.list-head .lv-keep, .list-head .lv-link').all();
-      expect(btns.length).toBe(2);
-      const boxes = await Promise.all(btns.map(async b => (await b.boundingBox())!));
-      expect(Math.round(boxes[0].x)).toBe(Math.round(head.x));
-      for (const b of boxes) {
-        expect(b.y).toBeGreaterThan(head.y + head.height - 1);
-        expect(Math.round(b.height)).toBeGreaterThanOrEqual(44);
-      }
-      const right = Math.max(...boxes.map(b => b.x + b.width));
-      expect(Math.abs(right - (hist.x + hist.width))).toBeLessThanOrEqual(1);
-      expect(Math.abs(boxes[1].y + boxes[1].height / 2 - (boxes[0].y + boxes[0].height / 2))).toBeLessThanOrEqual(1);
+      await expect(page.locator('.list-head .lv-link')).toHaveCount(1);
+      const link = (await page.locator('.list-head .lv-link').boundingBox())!;
+      expect(Math.round(link.x)).toBe(Math.round(head.x));
+      expect(link.y).toBeGreaterThan(head.y + head.height - 1);
+      expect(Math.round(link.height)).toBeGreaterThanOrEqual(44);
     });
 
     test('shows the project name up to the edge of its line', async ({ page, isMobile }) => {
