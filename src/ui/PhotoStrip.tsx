@@ -63,7 +63,7 @@ export function PhotoStrip({
   return (
     <div className="photos">
       <div className="photo-add">
-        <Seg name={'ptag-' + name} value={tag} items={PHOTO_TAGS.filter(t => tags.includes(t[0]))} onChange={setTag} />
+        <Seg name={'ptag-' + name} label="Что на фото" value={tag} items={PHOTO_TAGS.filter(t => tags.includes(t[0]))} onChange={setTag} />
         <Button variant="ghost" disabled={busy || full} onClick={() => input.current?.click()}>
           <IconCamera /> Фото
         </Button>

@@ -58,6 +58,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .flag.warn{background:var(--warn-soft);color:var(--warn)}
 .flag.bad{background:var(--bad-soft);color:var(--bad)}
 .empty{padding:var(--s-7) var(--s-4);text-align:center;color:var(--ink-2);border:1px dashed var(--line);border-radius:var(--r-m);background:var(--surface)}
+.empty-t{margin:0 auto;max-width:44ch;text-wrap:pretty}
+.empty-a{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--s-2);margin-top:var(--s-4)}
 
 .chips{display:flex;flex-wrap:wrap;gap:var(--s-2)}
 .chip{flex:none;min-height:40px;padding:0 var(--s-4);border-radius:var(--r-pill);border:1px solid var(--line);background:var(--field);font-size:var(--t-m);font-weight:600;cursor:pointer;white-space:nowrap}

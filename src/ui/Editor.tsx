@@ -14,7 +14,8 @@ import { useMenuKeys } from './menu';
 import { PhotoStrip } from './PhotoStrip';
 import { FixBar } from './FixBar';
 import { fixFor } from '../core/fixes';
-import { ArmButton, Err, Seg, Stepper, errAttrs } from './common';
+import { ArmButton, Err, errAttrs } from './common';
+import { ChoiceField, Empty, StepField } from './fields';
 import { asLabel, fieldErr } from '../core/limits';
 import type { FieldErr } from '../core/limits';
 import { useLib } from '../store/LibContext';
@@ -110,7 +111,7 @@ export function Editor({
   if (!l) {
     return (
       <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы">
-        <div className="empty">Выберите группу слева или добавьте новую.</div>
+        <Empty>Выберите группу слева или добавьте новую.</Empty>
       </section>
     );
   }
@@ -239,35 +240,24 @@ export function Editor({
             )}
           </>
         )}
-        <div className="blk">
-          <span className="lbl">Тип группы</span>
-          <Seg<LineType> name={'t-' + l.id} value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', type: v })} />
-        </div>
+        <ChoiceField<LineType> className="blk" name={'t-' + l.id} label="Тип группы" value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', type: v })} />
         <div className="grid3 ed-core">
-          <div className="f len-f">
-            <span className="lbl">Длина до распредкоробки, м</span>
-            <Stepper
-              value={l.len}
-              onChange={v => dispatch({ t: 'lineField', field: 'len', value: v })}
-              onStep={d => setLen(pn(l.len, 0) + d)}
-              d={1}
-              min={0}
-              max={500}
-              step="any"
-              label="Длина линии, м"
-              less="Короче"
-              more="Длиннее"
-              err={lenErr}
-              errId={'e-len-' + l.id}
-            />
-            <Err e={lenErr} id={'e-len-' + l.id} />
-          </div>
-          {three && (
-            <div className="f ph-f">
-              <span className="lbl">Фаза</span>
-              <Seg<Phase> name={'p-' + l.id} value={l.phase} items={phItems} onChange={v => dispatch({ t: 'linePhase', phase: v })} />
-            </div>
-          )}
+          <StepField
+            className="len-f"
+            label="Длина до распредкоробки, м"
+            aria="Длина линии, м"
+            value={l.len}
+            onChange={v => dispatch({ t: 'lineField', field: 'len', value: v })}
+            onStep={d => setLen(pn(l.len, 0) + d)}
+            d={1}
+            min={0}
+            max={500}
+            step="any"
+            less="Короче"
+            more="Длиннее"
+            err={lenErr}
+          />
+          {three && <ChoiceField<Phase> className="ph-f" name={'p-' + l.id} label="Фаза" value={l.phase} items={phItems} onChange={v => dispatch({ t: 'linePhase', phase: v })} />}
           <p className="muted len-note">{hasBr && r ? 'До дальней точки ' + fmt(r.len, 0) + ' м, кабеля всего ' + fmt(r.cable, 0) + ' м.' : 'Если коробки нет, это вся длина линии.'}</p>
         </div>
         {a.c.rcdMode && (
@@ -450,21 +440,12 @@ export function Editor({
                 </label>
               )}
               {morePrio && (
-                <div className="blk">
-                  <span className="lbl">Реле приоритета нагрузки</span>
-                  <Seg<string> name={'pr-' + l.id} value={l.prio ?? ''} items={[['', 'Нет'], ['p', 'Приоритетная'], ['s', 'Отключается']]} onChange={v => dispatch({ t: 'prio', set: { [l.id]: v === 'p' || v === 's' ? v : '' } })} />
-                </div>
+                <ChoiceField<string> className="blk" name={'pr-' + l.id} label="Реле приоритета нагрузки" value={l.prio ?? ''} items={[['', 'Нет'], ['p', 'Приоритетная'], ['s', 'Отключается']]} onChange={v => dispatch({ t: 'prio', set: { [l.id]: v === 'p' || v === 's' ? v : '' } })} />
               )}
               {a.c.house ? (
-                <div className="blk">
-                  <span className="lbl">Условия</span>
-                  <Seg<string> name={'w-' + l.id} value={l.out ? 'out' : (l.wet ? 'wet' : 'dry')} items={[['dry', 'Обычные'], ['wet', 'Особо опасные'], ['out', 'На улице']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet', out: v === 'out' })} />
-                </div>
+                <ChoiceField<string> className="blk" name={'w-' + l.id} label="Условия" value={l.out ? 'out' : (l.wet ? 'wet' : 'dry')} items={[['dry', 'Обычные'], ['wet', 'Особо опасные'], ['out', 'На улице']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet', out: v === 'out' })} />
               ) : moreCond && (
-                <div className="blk">
-                  <span className="lbl">Условия</span>
-                  <Seg<string> name={'w-' + l.id} value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычные'], ['wet', 'Вне помещения или особо опасные']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet' })} />
-                </div>
+                <ChoiceField<string> className="blk" name={'w-' + l.id} label="Условия" value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычные'], ['wet', 'Вне помещения или особо опасные']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet' })} />
               )}
             </div>
           </div>

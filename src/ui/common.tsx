@@ -19,9 +19,10 @@ export function segStacks(labels: string[]): boolean {
 export const segAsList = (labels: string[]): boolean => (labels.length >= 4 && labels.join('').length > 24) || segStacks(labels);
 
 export function Seg<T extends string | number>({
-  name, value, items, onChange, labelledBy
+  name, value, items, onChange, labelledBy, label
 }: {
   name: string;
+  label?: string;
   value: T;
   items: [T, string][];
   onChange: (v: T) => void;
@@ -29,7 +30,7 @@ export function Seg<T extends string | number>({
 }) {
   const list = segAsList(items.map(i => i[1]));
   return (
-    <div className={list ? 'radios' : 'seg'} role="radiogroup" aria-labelledby={labelledBy} data-n={items.length}>
+    <div className={list ? 'radios' : 'seg'} role="radiogroup" aria-labelledby={labelledBy} aria-label={labelledBy ? undefined : label} data-n={items.length}>
       {items.map(([v, label]) => (
         <label key={String(v)}>
           <input type="radio" name={name} value={String(v)} checked={String(value) === String(v)} onChange={() => onChange(v)} />

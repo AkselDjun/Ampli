@@ -8,6 +8,7 @@ import { ArmButton, DoneFoot, Err, Sheet, errAttrs } from './common';
 import { fieldErr } from '../core/limits';
 import { IconAlert, IconDone } from './Icons';
 import { toastOk } from './toast';
+import { AddChips, Empty } from './fields';
 import { Button } from './kit';
 
 const ADD: [FloorUse, string][] = [['bath', 'Ванная'], ['kitchen', 'Кухня'], ['room', 'Комната'], ['loggia', 'Лоджия']];
@@ -107,12 +108,8 @@ export function FloorSheet({ open, onClose, p, dispatch }: { open: boolean; onCl
       footer={<DoneFoot onDone={onClose} status={floorSummary(p.floor) || 'Помещений пока нет'} />}
       tip={<>Электрический тёплый пол по помещениям: мат, кабель или плёнка, мощность, терморегулятор и отдельная группа. Изделия попадают в спецификацию и смету. Удельная мощность по умолчанию из практики, её можно изменить для кабеля и плёнки.</>}
     >
-      <div className="chips room-add" aria-label="Добавить помещение">
-        {ADD.map(([k, label]) => (
-          <button key={k} className="chip" type="button" onClick={() => dispatch({ t: 'floorAdd', use: k })}>+ {label}</button>
-        ))}
-      </div>
-      {rooms.length === 0 && <div className="empty">Добавьте помещение кнопкой выше и введите свободную площадь пола.</div>}
+      <AddChips label="Добавить помещение" items={ADD} onAdd={k => dispatch({ t: 'floorAdd', use: k })} />
+      {rooms.length === 0 && <Empty>Добавьте помещение кнопкой выше и введите свободную площадь пола.</Empty>}
       {rooms.map(r => <RoomCard key={r.id} r={r} p={p} dispatch={dispatch} />)}
     </Sheet>
   );
