@@ -11,6 +11,7 @@ import { asLabel, fieldErr } from '../core/limits';
 import { IconClose, IconSearch } from './Icons';
 import { Button, IconButton } from './kit';
 import { Mic } from './parts';
+import { AddChips, Empty } from './fields';
 import { parseRooms } from '../core/roomtext';
 
 const tagOf = (tags: string): RoomApp['tag'] => (tags.includes('l') ? 'l' : (tags.includes('p') && !tags.includes('s') ? 'p' : 's'));
@@ -85,11 +86,7 @@ export function RoomsSheet({
         <ArmButton variant="primary" label={'Собрать группы: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])} armedLabel="Заменить текущие группы?" disabled={planned === 0} onRun={() => { dispatch({ t: 'assemble' }); onClose(); toastOk('Собрано из комнат: ' + planned + ' ' + plural(planned, ['группа', 'группы', 'групп'])); }} />
       </>
     )} tip="Опишите комнаты и приборы, группы соберутся сами: свет и розетки по комнатам, мощные приборы отдельными линиями. Потом группы можно поправить вручную.">
-      <div className="chips room-add">
-        {ROOM_PRESETS.map(r => (
-          <button key={r.key} className="chip" type="button" onClick={() => dispatch({ t: 'roomAdd', room: makeRoom(r) })}>+ {r.title}</button>
-        ))}
-      </div>
+      <AddChips label="Добавить комнату" items={ROOM_PRESETS.map((r): [string, string] => [r.key, r.title])} onAdd={k => { const r = ROOM_PRESETS.find(x => x.key === k); if (r) dispatch({ t: 'roomAdd', room: makeRoom(r) }); }} />
       <div className="room-text">
         <Button size="sm" variant="ghost" aria-expanded={text !== null} onClick={() => { setText(text === null ? '' : null); setMsg(''); }}>{text === null ? 'Из сообщения клиента или голосом' : 'Скрыть ввод текстом'}</Button>
         {text !== null && (
@@ -103,7 +100,7 @@ export function RoomsSheet({
           </div>
         )}
       </div>
-      {rooms.length === 0 && <div className="empty">Комнат пока нет. Добавьте первую кнопкой выше.</div>}
+      {rooms.length === 0 && <Empty>Комнат пока нет. Добавьте первую кнопкой выше.</Empty>}
       {rooms.map(r => (
         <section className="card room" key={r.id}>
           <div className="card-head">

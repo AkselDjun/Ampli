@@ -3,7 +3,7 @@ import type { ComponentProps, ReactNode } from 'react';
 export type ButtonVariant = 'default' | 'primary' | 'ghost' | 'danger';
 export type ButtonSize = 'md' | 'sm';
 
-const cx = (...parts: (string | false | null | undefined)[]): string => parts.filter(Boolean).join(' ');
+export const cx = (...parts: (string | false | null | undefined)[]): string => parts.filter(Boolean).join(' ');
 
 export const buttonClass = (variant: ButtonVariant = 'default', size: ButtonSize = 'md', extra?: string): string =>
   cx('btn', variant !== 'default' && variant, size === 'sm' && 'sm', extra);
