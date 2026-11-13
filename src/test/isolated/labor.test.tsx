@@ -74,7 +74,7 @@ describe('Labour estimate in the report', () => {
     expect(v.textContent).not.toContain('Чужая позиция');
     click(v, 'Открыть Ampli');
     expect(document.querySelector('.est-view')).toBeNull();
-    expect(window.location.hash).toBe('');
+    expect(window.location.hash).not.toContain('e=');
   });
 
   it('prints works and the grand total in the PDF report', () => {

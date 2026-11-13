@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { LineType } from '../core/types';
 import { TYPES } from '../core/norms';
 import { IconBolt, IconBulb, IconHeat, IconLan, IconRooms, IconSocket } from './Icons';
+import { useScrollHide } from './useScrollHide';
 import { useMenuKeys } from './menu';
 import { Button } from './kit';
 
@@ -25,19 +26,7 @@ export function AddMenu({ onAdd, onRooms, onFloor, onWeak, fab, down }: { onAdd:
     };
   }, [open]);
   const { listRef, triggerRef, onKeyDown, back } = useMenuKeys(open, () => setOpen(false));
-  const [hide, setHide] = useState(false);
-  useEffect(() => {
-    if (!fab) return;
-    let last = window.scrollY;
-    const on = () => {
-      const y = window.scrollY;
-      if (Math.abs(y - last) < 8) return;
-      setHide(y > last && y > 80);
-      last = y;
-    };
-    window.addEventListener('scroll', on, { passive: true });
-    return () => window.removeEventListener('scroll', on);
-  }, [fab]);
+  const hide = useScrollHide(!!fab);
   const pick = (t: LineType) => {
     back();
     onAdd(t);

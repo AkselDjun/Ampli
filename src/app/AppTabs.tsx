@@ -1,10 +1,12 @@
 import { IconCheck, IconDoc, IconList, IconPanel } from '../ui/Icons';
+import { useScrollHide } from '../ui/useScrollHide';
 import { APP_VIEW } from './types';
 import type { AppTabsProps } from './types';
 
 export function AppTabs({ calc, view, onGroups, onPanel, onWork, onReport }: AppTabsProps) {
+  const hide = useScrollHide(view === APP_VIEW.GROUPS || view === APP_VIEW.PANEL, 120);
   return (
-    <nav className="tabs" aria-label="Разделы" data-tour="reports">
+    <nav className={'tabs' + (hide ? ' hide' : '')} aria-label="Разделы" data-tour="reports">
       <button type="button" onClick={onGroups} aria-current={view === APP_VIEW.GROUPS || view === APP_VIEW.EDITOR ? 'page' : undefined}>
         <IconList />
         <span>Группы</span>

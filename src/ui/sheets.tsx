@@ -387,7 +387,7 @@ export function ProjectsSheet({
 }
 
 export function ReportSheet({
-  open, onClose, p, a, onPrint, onShop, dispatch, want
+  open, onClose, p, a, onPrint, onShop, dispatch, want, onTab
 }: {
   open: boolean;
   onClose: () => void;
@@ -397,6 +397,7 @@ export function ReportSheet({
   want?: { tab: string; n: number };
   onPrint: (m: PrintMode) => void;
   onShop: () => void;
+  onTab?: (tab: string) => void;
 }) {
   const [fallback, setFallback] = useState<string | null>(null);
   const ta = useRef<HTMLTextAreaElement>(null);
@@ -434,6 +435,9 @@ export function ReportSheet({
     setWantSeen(want);
     if (want) setTab(want.tab);
   }
+  useEffect(() => {
+    if (open) onTab?.(tab);
+  }, [open, tab, onTab]);
   return (
     <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" sub={p.name || 'Без названия'} footer={tab === 'scheme' ? (
       <>
