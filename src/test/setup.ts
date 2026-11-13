@@ -40,7 +40,6 @@ beforeAll(async () => {
 beforeEach(() => {
   Object.defineProperty(window, 'localStorage', { value: new MemStorage(), configurable: true, writable: true });
   Object.defineProperty(globalThis, 'localStorage', { value: window.localStorage, configurable: true, writable: true });
-  localStorage.setItem('ampli-listby', 'no');
   localStorage.setItem('ampli-onboarding-v1', 'done');
   localStorage.setItem('ampli-onboarding-fresh', '2');
   resetPhotoCache();
