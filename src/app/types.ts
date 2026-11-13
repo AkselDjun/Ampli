@@ -35,6 +35,7 @@ export interface SheetHint {
 }
 
 export interface SheetNav {
+  shown?: () => void;
   back?: () => void;
   to?: string;
   hint?: SheetHint;

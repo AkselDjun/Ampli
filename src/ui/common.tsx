@@ -275,6 +275,10 @@ export function Sheet({
   const bodyRef = useRef<HTMLDivElement>(null);
   const opener = useRef<Element | null>(null);
   const nav = useSheetNav();
+  const shown = nav.shown;
+  useEffect(() => {
+    if (open && historyLayer) shown?.();
+  }, [open, historyLayer, shown]);
   const y0 = useRef<number | null>(null);
   const dy = useRef(0);
   const titleRef = useRef(title);

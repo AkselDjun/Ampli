@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Project } from '../core/types';
 import type { EstimateShare } from '../core/links';
 import { LINK_FAIL_TEXT, getCodec, loadCodec } from '../ui/linkCodec';
@@ -47,7 +47,15 @@ export interface AppLocationApi {
 }
 
 export function useAppLocation({ bootSheet }: { bootSheet: boolean }): AppLocationApi {
-  const { sheet, setSheet, pushSheet, nav } = useSheetStack();
+  const { sheet, setSheet, pushSheet, nav: stackNav } = useSheetStack();
+  const [shown, setShown] = useState<SheetId>(null);
+  const [shownOf, setShownOf] = useState<SheetId>(sheet);
+  if (shownOf !== sheet) {
+    setShownOf(sheet);
+    setShown(null);
+  }
+  const markShown = useCallback(() => setShown(sheet), [sheet]);
+  const nav = useMemo(() => ({ ...stackNav, shown: markShown }), [stackNav, markShown]);
   const [tabs, setTabs] = useState<Partial<Record<AppSheet, string>>>({});
   const [links, setLinks] = useState<Opened>(() => {
     const c = getCodec();
@@ -64,9 +72,10 @@ export function useAppLocation({ bootSheet }: { bootSheet: boolean }): AppLocati
   const tabOf = useCallback((id: AppSheet) => tabs[id] ?? defaultTab(id), [tabs]);
   const sheetTab = sheet ? tabs[sheet] ?? defaultTab(sheet) : undefined;
 
+  const visible = sheet !== null && shown === sheet ? sheet : null;
   useEffect(() => {
-    writeSheetLocation(sheet, sheetTab);
-  }, [sheet, sheetTab]);
+    writeSheetLocation(visible, sheetTab);
+  }, [visible, sheetTab]);
 
   const bootLoc = useRef<AppLocation | null>(bootSheet ? readLocation() : null);
   useEffect(() => {

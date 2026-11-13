@@ -34,6 +34,7 @@ export function useProjectPersistence({ boot, state, dispatch, viewOnly }: { boo
   const latest = useRef({ cur: state.cur, list: state.list });
   const dirty = useRef(false);
   const seq = useRef(0);
+  const removed = useRef(new Set<string>());
 
   const onSaved = useStable((ok: boolean) => {
     if (!ok && !saveFail.current) toastBad(FULL_TEXT);
@@ -60,9 +61,16 @@ export function useProjectPersistence({ boot, state, dispatch, viewOnly }: { boo
     const before = photoKeys();
     before.catch(() => undefined);
     readProjects()
-      .then(stored => {
+      .then(found => {
+        const stale = found.filter(x => removed.current.has(x.id)).map(x => x.id);
+        const stored = found.filter(x => !removed.current.has(x.id));
         d.full = true;
         d.prev = mergeLists(d.prev, stored, []);
+        if (stale.length) {
+          pendingWrite.current = pendingWrite.current
+            .then(() => (conflict.current ? undefined : writeProjectsChecked([], stale, revision.current, tabOwner.current).then(next => { revision.current = next; })))
+            .catch(() => undefined);
+        }
         gcPhotos(referencedPhotoIds(mergeLists(latest.current.list, stored, [])), before).catch(() => undefined);
         dispatch({ t: 'hydrate', projects: stored, order: d.order, replace: boot.source === 'empty' });
       })
@@ -119,6 +127,7 @@ export function useProjectPersistence({ boot, state, dispatch, viewOnly }: { boo
       return;
     }
     const { put, del } = changes(d.prev, list);
+    del.forEach(id => removed.current.add(id));
     const clear = d.clear;
     d.prev = list;
     d.clear = false;
@@ -148,9 +157,16 @@ export function useProjectPersistence({ boot, state, dispatch, viewOnly }: { boo
       });
   });
 
+  const shape = useRef('');
   useEffect(() => {
     if (viewOnly) return;
     dirty.current = true;
+    const next = state.cur + '|' + state.list.map(x => x.id).join(',');
+    if (next !== shape.current) {
+      shape.current = next;
+      flush();
+      return;
+    }
     const t = setTimeout(flush, SAVE_DELAY_MS);
     return () => clearTimeout(t);
   }, [state.cur, state.list, viewOnly, flush]);
