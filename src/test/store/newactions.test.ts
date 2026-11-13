@@ -41,23 +41,23 @@ describe('photo actions', () => {
   it('deleting a line removes only its photos', () => {
     const s0 = mk();
     const [l1, l2] = cur(s0).lines;
-    let s = run(s0, { t: 'photoAdd', photo: ph('x', l1.id) }, { t: 'photoAdd', photo: ph('y', l2.id) }, { t: 'photoAdd', photo: ph('z', 'other') }, { t: 'select', id: l1.id }, { t: 'delLine' });
+    let s = run(s0, { t: 'photoAdd', photo: ph('x', l1.id) }, { t: 'photoAdd', photo: ph('y', l2.id) }, { t: 'photoAdd', photo: ph('z', 'other') }, { t: 'delLine', id: l1.id });
     expect(cur(s).photos?.map(x => x.id)).toEqual(['y', 'z']);
     const p = cur(s);
     delete p.photos;
-    s = run(s, { t: 'delLine' });
+    s = run(s, { t: 'delLine', id: p.lines[0].id });
     expect(cur(s).photos).toEqual([]);
   });
-  it('lineMeasAt sets measurements on a specific line', () => {
+  it('lineMeas sets measurements on a specific line', () => {
     const s0 = mk();
     const [l1, l2] = cur(s0).lines;
-    let s = run(s0, { t: 'lineMeasAt', id: l2.id, field: 'zs', value: '0.5' });
+    let s = run(s0, { t: 'lineMeas', id: l2.id, field: 'zs', value: '0.5' });
     expect(cur(s).lines[1].meas).toEqual({ zs: '0.5' });
     expect(cur(s).lines[0].meas).toEqual(l1.meas);
-    s = run(s, { t: 'lineMeasAt', id: l2.id, field: 'ins', value: '3' });
+    s = run(s, { t: 'lineMeas', id: l2.id, field: 'ins', value: '3' });
     expect(cur(s).lines[1].meas).toEqual({ zs: '0.5', ins: '3' });
     expect(s.sel).toBe(s0.sel);
-    s = run(s, { t: 'lineMeasAt', id: 'none', field: 'leak', value: '1' });
+    s = run(s, { t: 'lineMeas', id: 'none', field: 'leak', value: '1' });
     expect(cur(s).lines[1].meas).toEqual({ zs: '0.5', ins: '3' });
   });
 });

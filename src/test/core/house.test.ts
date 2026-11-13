@@ -111,9 +111,9 @@ describe('private house mode', () => {
     expect(cur(s).cfg.sip).toBe('35');
     s = reducer(s, { t: 'cfgStep', field: 'rz', d: 1 });
     expect(cur(s).cfg.rz).toBe(1);
-    s = reducer(s, { t: 'lineWet', wet: false, out: true });
+    s = reducer(s, { t: 'lineWet', id: cur(s).lines[0].id, wet: false, out: true });
     expect(cur(s).lines[0]).toMatchObject({ out: true, wet: false });
-    s = reducer(s, { t: 'lineWet', wet: true });
+    s = reducer(s, { t: 'lineWet', id: cur(s).lines[0].id, wet: true });
     expect(cur(s).lines[0].out).toBeUndefined();
   });
 });

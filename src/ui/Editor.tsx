@@ -23,6 +23,7 @@ import { appCos, zoneOf } from '../core/calc';
 import { useByRoom } from './prefs';
 import { Button, IconButton } from './kit';
 import { Mic } from './parts';
+import { BP, useMedia } from './media';
 
 const CHIP_MAX = 6;
 const CHIP_MAX_PHONE = 3;
@@ -70,7 +71,7 @@ export function Editor({
   const [quick, setQuick] = useState<string | null>(null);
   const [quickMsg, setQuickMsg] = useState('');
   const [allChips, setAllChips] = useState(false);
-  const [chipMax] = useState(() => typeof window.matchMedia !== 'function' || window.matchMedia('(min-width:761px)').matches ? CHIP_MAX : CHIP_MAX_PHONE);
+  const chipMax = useMedia(BP.aboveTablet, true) ? CHIP_MAX : CHIP_MAX_PHONE;
   const resRef = useRef<HTMLDivElement>(null);
   const [mini, setMini] = useState(false);
   const [brOn, setBrOn] = useState(false);
@@ -134,7 +135,7 @@ export function Editor({
   const often = topUsed(cat, lib.usage, tag).filter(it => !have(it.name));
   const presets = byUsage(catalog().filter(it => it.tags.indexOf(tag) >= 0 && !have(it.name) && (search.trim() || !often.some(o => o.key === it.key))), lib.usage);
   const addFrom = (name: string, w: number) => {
-    keepChips(() => dispatch({ t: 'addApp', name, w, ...(/лент/i.test(name) ? { m: 5 } : {}) }));
+    keepChips(() => dispatch({ t: 'addApp', line: l.id, name, w, ...(/лент/i.test(name) ? { m: 5 } : {}) }));
     libDispatch({ t: 'use', name });
     setSearch('');
   };
@@ -149,7 +150,7 @@ export function Editor({
   const hasBr = !!r && r.len > pn(l.len, 0);
   const showBr = brOn || l.apps.some(ap => pn(ap.br, 0) > 0);
   const showExt = extOn || l.apps.some(ap => !!ap.alt || String(ap.cos ?? '').trim() !== '');
-  const addEmpty = () => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp' }); });
+  const addEmpty = () => keepChips(() => { focusNew.current = true; dispatch({ t: 'addApp', line: l.id }); });
   const onPowKey = (e: React.KeyboardEvent<HTMLInputElement>, i: number) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
@@ -171,7 +172,7 @@ export function Editor({
     ['cos', showExt ? fieldErr('cos', ap.cos) : null, 'cos φ']
   ] as [string, FieldErr | null, string][]).flatMap(([f, e, label]) => (e ? [{ f, e: asLabel(label, e) }] : []));
   const measErr = { zs: fieldErr('zs', l.meas?.zs), ins: fieldErr('ins', l.meas?.ins), leak: fieldErr('leak', l.meas?.leak), rcd: fieldErr('rcd', l.meas?.rcd) };
-  const setLen = (v: number) => dispatch({ t: 'lineField', field: 'len', value: Math.max(0, Math.min(500, round2(v))) });
+  const setLen = (v: number) => dispatch({ t: 'lineField', id: l.id, field: 'len', value: Math.max(0, Math.min(500, round2(v))) });
   return (
     <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы">
       <div className="ed">
@@ -179,7 +180,7 @@ export function Editor({
         <p className="vh ed-say" aria-live="polite" aria-atomic="true">{say}</p>
         <div className="ed-head">
           <span className="no">Г{idx + 1}</span>
-          <input className="ed-name" aria-label="Название группы" value={l.name} onChange={e => dispatch({ t: 'lineField', field: 'name', value: e.target.value })} />
+          <input className="ed-name" aria-label="Название группы" value={l.name} onChange={e => dispatch({ t: 'lineField', id: l.id, field: 'name', value: e.target.value })} />
           {r && !r.empty && <span className={'pill ' + r.status}>{STATUS[r.status]}</span>}
         </div>
         {r && (
@@ -220,8 +221,8 @@ export function Editor({
                 bad={r.status === 'bad'}
                 onApply={() => {
                   if (!fix.act) return;
-                  if (fix.act.k === 'len') dispatch({ t: 'lineField', field: 'len', value: fix.act.len });
-                  else dispatch({ t: 'splitLine', mode: fix.act.k });
+                  if (fix.act.k === 'len') dispatch({ t: 'lineField', id: l.id, field: 'len', value: fix.act.len });
+                  else dispatch({ t: 'splitLine', id: l.id, mode: fix.act.k });
                   toastOk('Исправлено');
                 }}
               />
@@ -241,14 +242,14 @@ export function Editor({
         )}
         <div className="blk">
           <span className="lbl">Тип группы</span>
-          <Seg<LineType> name={'t-' + l.id} value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', type: v })} />
+          <Seg<LineType> name={'t-' + l.id} value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', id: l.id, type: v })} />
         </div>
         <div className="grid3 ed-core">
           <div className="f len-f">
             <span className="lbl">Длина до распредкоробки, м</span>
             <Stepper
               value={l.len}
-              onChange={v => dispatch({ t: 'lineField', field: 'len', value: v })}
+              onChange={v => dispatch({ t: 'lineField', id: l.id, field: 'len', value: v })}
               onStep={d => setLen(pn(l.len, 0) + d)}
               d={1}
               min={0}
@@ -265,7 +266,7 @@ export function Editor({
           {three && (
             <div className="f ph-f">
               <span className="lbl">Фаза</span>
-              <Seg<Phase> name={'p-' + l.id} value={l.phase} items={phItems} onChange={v => dispatch({ t: 'linePhase', phase: v })} />
+              <Seg<Phase> name={'p-' + l.id} value={l.phase} items={phItems} onChange={v => dispatch({ t: 'linePhase', id: l.id, phase: v })} />
             </div>
           )}
           <p className="muted len-note">{hasBr && r ? 'До дальней точки ' + fmt(r.len, 0) + ' м, кабеля всего ' + fmt(r.cable, 0) + ' м.' : 'Если коробки нет, это вся длина линии.'}</p>
@@ -273,7 +274,7 @@ export function Editor({
         {a.c.rcdMode && (
           <label className="blk">
             <span className="lbl">Помещение</span>
-            <input className="ed-zone" list={'zones-' + l.id} aria-label="Помещение для УЗО" placeholder="Например, кухня" maxLength={60} value={l.zone ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'zone', value: e.target.value })} />
+            <input className="ed-zone" list={'zones-' + l.id} aria-label="Помещение для УЗО" placeholder="Например, кухня" maxLength={60} value={l.zone ?? ''} onChange={e => dispatch({ t: 'lineField', id: l.id, field: 'zone', value: e.target.value })} />
             <datalist id={'zones-' + l.id}>
               {zones.map(z => <option key={z} value={z} />)}
             </datalist>
@@ -284,11 +285,11 @@ export function Editor({
           <div className="grid3 sock">
             <label className="f">
               <span className="lbl">Розеток, шт</span>
-              <input type="text" inputMode="numeric" min={0} step={1} aria-label="Розеток в группе, шт" placeholder="0" {...errAttrs(sockErr, 'e-sock-' + l.id)} value={String(l.sockets ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'sockets', value: e.target.value })} />
+              <input type="text" inputMode="numeric" min={0} step={1} aria-label="Розеток в группе, шт" placeholder="0" {...errAttrs(sockErr, 'e-sock-' + l.id)} value={String(l.sockets ?? '')} onChange={e => dispatch({ t: 'lineField', id: l.id, field: 'sockets', value: e.target.value })} />
             </label>
             <label className="f">
               <span className="lbl">На розетку, Вт</span>
-              <input type="text" inputMode="numeric" min={0} step="any" aria-label="Нагрузка на розетку, Вт" placeholder="0" {...errAttrs(perErr, 'e-per-' + l.id)} value={String(l.perSocket ?? '')} onChange={e => dispatch({ t: 'lineField', field: 'perSocket', value: e.target.value })} />
+              <input type="text" inputMode="numeric" min={0} step="any" aria-label="Нагрузка на розетку, Вт" placeholder="0" {...errAttrs(perErr, 'e-per-' + l.id)} value={String(l.perSocket ?? '')} onChange={e => dispatch({ t: 'lineField', id: l.id, field: 'perSocket', value: e.target.value })} />
             </label>
             <Err e={sockErr && asLabel('Розеток', sockErr)} id={'e-sock-' + l.id} />
             <Err e={perErr && asLabel('На розетку', perErr)} id={'e-per-' + l.id} />
@@ -311,27 +312,27 @@ export function Editor({
               const at = (f: string) => errAttrs(errs.find(x => x.f === f)?.e, 'e-' + f + '-' + ap.id);
               return (
                 <div className="app" key={ap.id}>
-                  <input className="a-name" aria-label="Название прибора" placeholder="Название прибора" value={ap.name} ref={el => { if (el && focusNew.current && i === l.apps.length - 1) { focusNew.current = false; el.focus(); } }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); powRefs.current[ap.id]?.focus(); } }} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'name', value: e.target.value })} />
+                  <input className="a-name" aria-label="Название прибора" placeholder="Название прибора" value={ap.name} ref={el => { if (el && focusNew.current && i === l.apps.length - 1) { focusNew.current = false; el.focus(); } }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); powRefs.current[ap.id]?.focus(); } }} onChange={e => dispatch({ t: 'appField', line: l.id, id: ap.id, field: 'name', value: e.target.value })} />
                   <label className="a-w">
                     <span className="lbl a-lbl">Мощность</span>
                     <span className="fld" data-sfx={ap.m !== undefined ? 'Вт/м' : 'Вт'}>
-                      <input aria-label={ap.m !== undefined ? 'Мощность, Вт на метр' : 'Мощность, Вт'} type="text" inputMode="numeric" enterKeyHint="next" min={0} step="any" placeholder="0" {...at('w')} value={String(ap.w)} ref={el => { powRefs.current[ap.id] = el; }} onKeyDown={e => onPowKey(e, i)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'w', value: e.target.value })} />
+                      <input aria-label={ap.m !== undefined ? 'Мощность, Вт на метр' : 'Мощность, Вт'} type="text" inputMode="numeric" enterKeyHint="next" min={0} step="any" placeholder="0" {...at('w')} value={String(ap.w)} ref={el => { powRefs.current[ap.id] = el; }} onKeyDown={e => onPowKey(e, i)} onChange={e => dispatch({ t: 'appField', line: l.id, id: ap.id, field: 'w', value: e.target.value })} />
                     </span>
                   </label>
                   {ap.m !== undefined ? (
                     <label className="a-n">
                       <span className="lbl a-lbl">Длина ленты</span>
                       <span className="fld" data-sfx="м">
-                        <input aria-label="Длина ленты, м" type="text" inputMode="decimal" min={0} step="any" {...at('n')} value={String(ap.m)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'm', value: e.target.value })} />
+                        <input aria-label="Длина ленты, м" type="text" inputMode="decimal" min={0} step="any" {...at('n')} value={String(ap.m)} onChange={e => dispatch({ t: 'appField', line: l.id, id: ap.id, field: 'm', value: e.target.value })} />
                       </span>
                     </label>
                   ) : (
                     <div className="a-n">
                       <span className="lbl a-lbl">Штук</span>
                       <div className="step">
-                        <button type="button" aria-label="Меньше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(999, pn(ap.n, 1) - 1)) })}>−</button>
-                        <input aria-label="Количество" type="text" inputMode="numeric" min={0} step={1} {...at('n')} value={String(ap.n)} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'n', value: e.target.value })} />
-                        <button type="button" aria-label="Больше" onClick={() => dispatch({ t: 'appField', id: ap.id, field: 'n', value: Math.max(1, Math.min(999, pn(ap.n, 1) + 1)) })}>+</button>
+                        <button type="button" aria-label="Меньше" onClick={() => dispatch({ t: 'appField', line: l.id, id: ap.id, field: 'n', value: Math.max(1, Math.min(999, pn(ap.n, 1) - 1)) })}>−</button>
+                        <input aria-label="Количество" type="text" inputMode="numeric" min={0} step={1} {...at('n')} value={String(ap.n)} onChange={e => dispatch({ t: 'appField', line: l.id, id: ap.id, field: 'n', value: e.target.value })} />
+                        <button type="button" aria-label="Больше" onClick={() => dispatch({ t: 'appField', line: l.id, id: ap.id, field: 'n', value: Math.max(1, Math.min(999, pn(ap.n, 1) + 1)) })}>+</button>
                       </div>
                     </div>
                   )}
@@ -339,20 +340,20 @@ export function Editor({
                     <label className="a-br">
                       <span className="lbl a-lbl">От коробки</span>
                       <span className="fld" data-sfx="м">
-                        <input aria-label="Отвод от коробки, м" type="text" inputMode="decimal" min={0} step="any" placeholder="0" {...at('br')} value={String(ap.br ?? '')} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'br', value: e.target.value })} />
+                        <input aria-label="Отвод от коробки, м" type="text" inputMode="decimal" min={0} step="any" placeholder="0" {...at('br')} value={String(ap.br ?? '')} onChange={e => dispatch({ t: 'appField', line: l.id, id: ap.id, field: 'br', value: e.target.value })} />
                       </span>
                     </label>
                   )}
-                  <IconButton className="a-del" label="Удалить прибор" tip="Удалить прибор" onClick={() => keepChips(() => { dispatch({ t: 'delApp', id: ap.id }); if (ap.name.trim() || pn(ap.w, 0) > 0) toastOk('Прибор удалён: ' + (ap.name.trim() || 'без названия')); })}><IconClose /></IconButton>
+                  <IconButton className="a-del" label="Удалить прибор" tip="Удалить прибор" onClick={() => keepChips(() => { dispatch({ t: 'delApp', line: l.id, id: ap.id }); if (ap.name.trim() || pn(ap.w, 0) > 0) toastOk('Прибор удалён: ' + (ap.name.trim() || 'без названия')); })}><IconClose /></IconButton>
                   {showExt && (
                     <div className="a-ext">
                       <label className="a-alt">
-                        <input type="checkbox" checked={!!ap.alt} onChange={e => dispatch({ t: 'appAlt', id: ap.id, on: e.target.checked })} />
+                        <input type="checkbox" checked={!!ap.alt} onChange={e => dispatch({ t: 'appAlt', line: l.id, id: ap.id, on: e.target.checked })} />
                         <span>Не одновременно</span>
                       </label>
                       <label className="a-cos">
                         <span className="lbl a-lbl">cos φ</span>
-                        <input aria-label="cos φ прибора" type="text" inputMode="decimal" placeholder={fs(appCos({ ...ap, cos: undefined }))} {...at('cos')} value={String(ap.cos ?? '')} onChange={e => dispatch({ t: 'appField', id: ap.id, field: 'cos', value: e.target.value })} />
+                        <input aria-label="cos φ прибора" type="text" inputMode="decimal" placeholder={fs(appCos({ ...ap, cos: undefined }))} {...at('cos')} value={String(ap.cos ?? '')} onChange={e => dispatch({ t: 'appField', line: l.id, id: ap.id, field: 'cos', value: e.target.value })} />
                       </label>
                     </div>
                   )}
@@ -379,7 +380,7 @@ export function Editor({
             </ul>
           )}
           {search.trim() && found.length === 0 && (
-            <button className="chip custom" type="button" onClick={() => { keepChips(() => dispatch({ t: 'addApp', name: search.trim() })); libDispatch({ t: 'use', name: search }); setSearch(''); }}>
+            <button className="chip custom" type="button" onClick={() => { keepChips(() => dispatch({ t: 'addApp', line: l.id, name: search.trim() })); libDispatch({ t: 'use', name: search }); setSearch(''); }}>
               + Добавить «{search.trim()}»
             </button>
           )}
@@ -421,7 +422,7 @@ export function Editor({
               <div className="copy-row">
                 <Button variant="primary" onClick={() => {
                   const r = parseApps(quick);
-                  if (r.apps.length) dispatch({ t: 'addApps', apps: r.apps });
+                  if (r.apps.length) dispatch({ t: 'addApps', line: l.id, apps: r.apps });
                   setQuickMsg((r.apps.length ? 'Добавлено: ' + r.apps.length : 'Ничего не добавлено') + (r.skipped.length ? '. Не разобрано: ' + r.skipped.join('; ') : ''));
                   if (r.apps.length) setQuick(r.skipped.join('\n'));
                 }}>Добавить</Button>
@@ -442,7 +443,7 @@ export function Editor({
               {moreZone && (
                 <label className="blk">
                   <span className="lbl">Помещение</span>
-                  <input className="ed-zone" list={'zones-' + l.id} aria-label="Помещение группы" placeholder="Например, кухня" maxLength={60} value={l.zone ?? ''} onChange={e => dispatch({ t: 'lineField', field: 'zone', value: e.target.value })} />
+                  <input className="ed-zone" list={'zones-' + l.id} aria-label="Помещение группы" placeholder="Например, кухня" maxLength={60} value={l.zone ?? ''} onChange={e => dispatch({ t: 'lineField', id: l.id, field: 'zone', value: e.target.value })} />
                   <datalist id={'zones-' + l.id}>
                     {zones.map(z => <option key={z} value={z} />)}
                   </datalist>
@@ -458,12 +459,12 @@ export function Editor({
               {a.c.house ? (
                 <div className="blk">
                   <span className="lbl">Условия</span>
-                  <Seg<string> name={'w-' + l.id} value={l.out ? 'out' : (l.wet ? 'wet' : 'dry')} items={[['dry', 'Обычные'], ['wet', 'Особо опасные'], ['out', 'На улице']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet', out: v === 'out' })} />
+                  <Seg<string> name={'w-' + l.id} value={l.out ? 'out' : (l.wet ? 'wet' : 'dry')} items={[['dry', 'Обычные'], ['wet', 'Особо опасные'], ['out', 'На улице']]} onChange={v => dispatch({ t: 'lineWet', id: l.id, wet: v === 'wet', out: v === 'out' })} />
                 </div>
               ) : moreCond && (
                 <div className="blk">
                   <span className="lbl">Условия</span>
-                  <Seg<string> name={'w-' + l.id} value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычные'], ['wet', 'Вне помещения или особо опасные']]} onChange={v => dispatch({ t: 'lineWet', wet: v === 'wet' })} />
+                  <Seg<string> name={'w-' + l.id} value={l.wet ? 'wet' : 'dry'} items={[['dry', 'Обычные'], ['wet', 'Вне помещения или особо опасные']]} onChange={v => dispatch({ t: 'lineWet', id: l.id, wet: v === 'wet' })} />
                 </div>
               )}
             </div>
@@ -479,23 +480,23 @@ export function Editor({
             <div className="grid3">
               <label className="f">
                 <span className="lbl">Петля фаза-нуль, Ом</span>
-                <input type="text" inputMode="decimal" min={0} step={0.01} aria-label="Замер петли фаза-нуль, Ом" {...errAttrs(measErr.zs, 'e-mzs-' + l.id)} value={String(l.meas?.zs ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'zs', value: e.target.value })} />
+                <input type="text" inputMode="decimal" min={0} step={0.01} aria-label="Замер петли фаза-нуль, Ом" {...errAttrs(measErr.zs, 'e-mzs-' + l.id)} value={String(l.meas?.zs ?? '')} onChange={e => dispatch({ t: 'lineMeas', id: l.id, field: 'zs', value: e.target.value })} />
                 <Err e={measErr.zs} id={'e-mzs-' + l.id} />
               </label>
               <label className="f">
                 <span className="lbl">Изоляция, МОм</span>
-                <input type="text" inputMode="decimal" min={0} step={0.1} aria-label="Замер сопротивления изоляции, МОм" {...errAttrs(measErr.ins, 'e-mins-' + l.id)} value={String(l.meas?.ins ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'ins', value: e.target.value })} />
+                <input type="text" inputMode="decimal" min={0} step={0.1} aria-label="Замер сопротивления изоляции, МОм" {...errAttrs(measErr.ins, 'e-mins-' + l.id)} value={String(l.meas?.ins ?? '')} onChange={e => dispatch({ t: 'lineMeas', id: l.id, field: 'ins', value: e.target.value })} />
                 <Err e={measErr.ins} id={'e-mins-' + l.id} />
               </label>
               <label className="f">
                 <span className="lbl">Ток утечки, мА</span>
-                <input type="text" inputMode="decimal" min={0} step={0.1} aria-label="Замер тока утечки, мА" {...errAttrs(measErr.leak, 'e-mleak-' + l.id)} value={String(l.meas?.leak ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'leak', value: e.target.value })} />
+                <input type="text" inputMode="decimal" min={0} step={0.1} aria-label="Замер тока утечки, мА" {...errAttrs(measErr.leak, 'e-mleak-' + l.id)} value={String(l.meas?.leak ?? '')} onChange={e => dispatch({ t: 'lineMeas', id: l.id, field: 'leak', value: e.target.value })} />
                 <Err e={measErr.leak} id={'e-mleak-' + l.id} />
               </label>
               {r?.rcd && (
                 <label className="f">
                   <span className="lbl">УЗО при IΔn, мс</span>
-                  <input type="text" inputMode="numeric" min={0} step={1} aria-label="Замер времени отключения УЗО, мс" {...errAttrs(measErr.rcd, 'e-mrcd-' + l.id)} placeholder={'до ' + fmt(r.rcdLim, 0)} value={String(l.meas?.rcd ?? '')} onChange={e => dispatch({ t: 'lineMeas', field: 'rcd', value: e.target.value })} />
+                  <input type="text" inputMode="numeric" min={0} step={1} aria-label="Замер времени отключения УЗО, мс" {...errAttrs(measErr.rcd, 'e-mrcd-' + l.id)} placeholder={'до ' + fmt(r.rcdLim, 0)} value={String(l.meas?.rcd ?? '')} onChange={e => dispatch({ t: 'lineMeas', id: l.id, field: 'rcd', value: e.target.value })} />
                   <Err e={measErr.rcd} id={'e-mrcd-' + l.id} />
                 </label>
               )}
@@ -537,8 +538,8 @@ export function Editor({
           </div>
         )}
         <div className="ed-end">
-          <Button onClick={() => { dispatch({ t: 'dupLine' }); toastOk('Создана копия группы'); }} aria-label="Копировать группу">Копировать</Button>
-          <ArmButton variant="danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine' }); onDeleted(); toastOk('Группа удалена'); }} />
+          <Button onClick={() => { dispatch({ t: 'dupLine', id: l.id }); toastOk('Создана копия группы'); }} aria-label="Копировать группу">Копировать</Button>
+          <ArmButton variant="danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine', id: l.id }); onDeleted(); toastOk('Группа удалена'); }} />
         </div>
       </div>
     </section>

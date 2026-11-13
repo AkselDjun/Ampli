@@ -179,7 +179,7 @@ export function MeasBoard({ open, a, dispatch, children }: { open: boolean; a: C
                   value={String((x.l.meas ?? {})[fd.f] ?? '')}
                   onChange={e => {
                     setPick(x.l.id);
-                    dispatch({ t: 'lineMeasAt', id: x.l.id, field: fd.f, value: e.target.value });
+                    dispatch({ t: 'lineMeas', id: x.l.id, field: fd.f, value: e.target.value });
                   }}
                 />
                 <Err e={fieldErr(fd.f, (x.l.meas ?? {})[fd.f])} id={'e-pm-' + fd.f} />

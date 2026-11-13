@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import type { ReactNode } from 'react';
 import { BOOT_KEY, KEY, clearProjects, readProjects } from '../store/storage';
+import { clearLocation } from '../app/location';
 import { backupArchive } from '../store/backup';
 import { LIB_KEY } from '../store/lib';
 import { download } from './download';
@@ -61,7 +62,7 @@ export class Boundary extends Component<{ children: ReactNode }, { err: boolean;
       void e;
     }
     await clearProjects().catch(() => undefined);
-    window.location.hash = '';
+    clearLocation();
     window.location.reload();
   };
 

@@ -49,25 +49,39 @@ describe('lines', () => {
   it('deletes the selected line and picks a neighbour', () => {
     let s = mk();
     const n = lines(s).length;
-    s = run(s, { t: 'select', id: lines(s)[2].id }, { t: 'delLine' });
+    const third = lines(s)[2].id;
+    s = run(s, { t: 'select', id: third }, { t: 'delLine', id: third });
     expect(lines(s)).toHaveLength(n - 1);
     expect(s.sel).toBe(lines(s)[2].id);
-    s = run(s, { t: 'select', id: lines(s)[lines(s).length - 1].id }, { t: 'delLine' });
+    const last = lines(s)[lines(s).length - 1].id;
+    s = run(s, { t: 'select', id: last }, { t: 'delLine', id: last });
     expect(s.sel).toBe(lines(s)[lines(s).length - 1].id);
   });
+  it('deletes and copies a line by id without changing the selection', () => {
+    let s = mk();
+    const sel = s.sel;
+    const other = lines(s)[3];
+    s = run(s, { t: 'dupLine', id: other.id });
+    expect(s.sel).toBe(sel);
+    expect(lines(s)[4].name).toBe(other.name + ' (копия)');
+    s = run(s, { t: 'delLine', id: other.id });
+    expect(s.sel).toBe(sel);
+    expect(lines(s).some(l => l.id === other.id)).toBe(false);
+  });
   it('deleting the last line leaves null selection', () => {
-    let s = run(mk(), ...Array.from({ length: 14 }, () => ({ t: 'delLine' }) as Action));
+    let s = Array.from({ length: 14 }).reduce<State>(x => reducer(x, { t: 'delLine', id: x.sel as string }), mk());
     expect(lines(s)).toHaveLength(0);
     expect(s.sel).toBeNull();
-    expect(reducer(s, { t: 'delLine' })).toBe(s);
-    s = run(s, { t: 'dupLine' });
+    expect(reducer(s, { t: 'delLine', id: 'none' })).toBe(s);
+    s = run(s, { t: 'dupLine', id: 'none' });
     expect(lines(s)).toHaveLength(0);
   });
   it('duplicates a line next to the original without measurements', () => {
     let s = mk();
-    s = run(s, { t: 'lineMeas', field: 'zs', value: '0.4' });
+    const id = s.sel as string;
+    s = run(s, { t: 'lineMeas', id, field: 'zs', value: '0.4' });
     const src = selLine(s);
-    s = run(s, { t: 'dupLine' });
+    s = run(s, { t: 'dupLine', id });
     expect(lines(s)[1].name).toBe(src.name + ' (копия)');
     expect(lines(s)[1].meas).toBeUndefined();
     expect(lines(s)[1].id).not.toBe(src.id);
@@ -76,25 +90,33 @@ describe('lines', () => {
   });
   it('duplicates unnamed lines and balances on three phase', () => {
     let s = mk(3);
-    s = run(s, { t: 'lineField', field: 'name', value: '' }, { t: 'dupLine' });
+    const id = s.sel as string;
+    s = run(s, { t: 'lineField', id, field: 'name', value: '' }, { t: 'dupLine', id });
     expect(lines(s)[1].name).toBe('Без названия (копия)');
   });
   it('edits line fields', () => {
     let s = mk();
-    s = run(s, { t: 'lineField', field: 'name', value: 'N' }, { t: 'lineField', field: 'len', value: '33' });
+    const id = s.sel as string;
+    s = run(s, { t: 'lineField', id, field: 'name', value: 'N' }, { t: 'lineField', id, field: 'len', value: '33' });
     expect(selLine(s)).toMatchObject({ name: 'N', len: '33' });
   });
   it('changes line type resetting defaults and phase', () => {
-    let s = run(mk(3), { t: 'lineField', field: 'name', value: 'Освещение' }, { t: 'linePhase', phase: '3' }, { t: 'lineType', type: 'socket' });
+    const s0 = mk(3);
+    const id = s0.sel as string;
+    let s = run(s0, { t: 'lineField', id, field: 'name', value: 'Освещение' }, { t: 'linePhase', id, phase: '3' }, { t: 'lineType', id, type: 'socket' });
     expect(selLine(s)).toMatchObject({ type: 'socket', phase: 'L1' });
     expect(selLine(s).name).toBe('Розетки');
-    s = run(s, { t: 'lineField', field: 'name', value: 'Custom' }, { t: 'lineType', type: 'power' }, { t: 'linePhase', phase: '3' }, { t: 'lineType', type: 'power' });
+    s = run(s, { t: 'lineField', id, field: 'name', value: 'Custom' }, { t: 'lineType', id, type: 'power' }, { t: 'linePhase', id, phase: '3' }, { t: 'lineType', id, type: 'power' });
     expect(selLine(s)).toMatchObject({ name: 'Custom', phase: '3', type: 'power' });
   });
   it('sets phase, wet and measurements', () => {
-    let s = run(mk(), { t: 'linePhase', phase: 'L2' }, { t: 'lineWet', wet: true }, { t: 'lineMeas', field: 'zs', value: '1' }, { t: 'lineMeas', field: 'ins', value: '2' }, { t: 'lineMeas', field: 'leak', value: '3' });
+    const s0 = mk();
+    const id = s0.sel as string;
+    let s = run(s0, { t: 'linePhase', id, phase: 'L2' }, { t: 'lineWet', id, wet: true }, { t: 'lineMeas', id, field: 'zs', value: '1' }, { t: 'lineMeas', id, field: 'ins', value: '2' }, { t: 'lineMeas', id, field: 'leak', value: '3' });
     expect(selLine(s)).toMatchObject({ phase: 'L2', wet: true, meas: { zs: '1', ins: '2', leak: '3' } });
-    s = run(s, { t: 'select', id: 'missing' }, { t: 'lineField', field: 'name', value: 'zzz' });
+    const before = s;
+    s = run(s, { t: 'lineField', id: 'missing', field: 'name', value: 'zzz' });
+    expect(s).toBe(before);
     expect(lines(s).some(l => l.name === 'zzz')).toBe(false);
   });
   it('balances explicitly', () => {
@@ -106,28 +128,31 @@ describe('lines', () => {
 describe('appliances', () => {
   it('adds, edits and deletes apps', () => {
     let s = mk();
+    const line = s.sel as string;
     const n = selLine(s).apps.length;
-    s = run(s, { t: 'addApp' });
+    s = run(s, { t: 'addApp', line });
     const added = selLine(s).apps[n];
     expect(added).toMatchObject({ name: '', w: '', n: 1 });
-    s = run(s, { t: 'appField', id: added.id, field: 'name', value: 'Фен' }, { t: 'appField', id: added.id, field: 'w', value: 1800 }, { t: 'appField', id: added.id, field: 'n', value: '2' });
+    s = run(s, { t: 'appField', line, id: added.id, field: 'name', value: 'Фен' }, { t: 'appField', line, id: added.id, field: 'w', value: 1800 }, { t: 'appField', line, id: added.id, field: 'n', value: '2' });
     expect(selLine(s).apps[n]).toMatchObject({ name: 'Фен', w: 1800, n: '2' });
     expect(selLine(s).apps[0].name).not.toBe('Фен');
-    s = run(s, { t: 'delApp', id: added.id });
+    s = run(s, { t: 'delApp', line, id: added.id });
     expect(selLine(s).apps).toHaveLength(n);
   });
   it('adds preset apps and merges duplicates', () => {
     let s = mk();
-    s = run(s, { t: 'addApp', name: 'Фен', w: 1800 });
+    const line = s.sel as string;
+    s = run(s, { t: 'addApp', line, name: 'Фен', w: 1800 });
     const l = selLine(s);
     expect(l.apps[l.apps.length - 1]).toMatchObject({ name: 'Фен', w: 1800, n: 1 });
-    s = run(s, { t: 'addApp', name: 'Фен', w: 1800 });
+    s = run(s, { t: 'addApp', line, name: 'Фен', w: 1800 });
     expect(selLine(s).apps[selLine(s).apps.length - 1].n).toBe(2);
-    s = run(s, { t: 'addApp', name: 'Другой' });
+    s = run(s, { t: 'addApp', line, name: 'Другой' });
     expect(selLine(s).apps[selLine(s).apps.length - 1]).toMatchObject({ name: 'Другой', w: '', n: 1 });
   });
   it('adds many apps', () => {
-    const s = run(mk(), { t: 'addApps', apps: [{ name: 'a', w: 10, n: 2 }, { name: 'b', w: 20, n: 1 }] });
+    const s0 = mk();
+    const s = run(s0, { t: 'addApps', line: s0.sel as string, apps: [{ name: 'a', w: 10, n: 2 }, { name: 'b', w: 20, n: 1 }] });
     const l = selLine(s);
     expect(l.apps.slice(-2).map(a => [a.name, a.w, a.n])).toEqual([['a', 10, 2], ['b', 20, 1]]);
   });

@@ -387,14 +387,14 @@ export function ProjectsSheet({
 }
 
 export function ReportSheet({
-  open, onClose, p, a, onPrint, onShop, dispatch, want, onTab
+  open, onClose, p, a, onPrint, onShop, dispatch, tab: tabIn, onTab
 }: {
   open: boolean;
   onClose: () => void;
   p: Project;
   a: Calc;
   dispatch: (x: Action) => void;
-  want?: { tab: string; n: number };
+  tab?: string;
   onPrint: (m: PrintMode) => void;
   onShop: () => void;
   onTab?: (tab: string) => void;
@@ -429,15 +429,12 @@ export function ReportSheet({
   const { lib, dispatch: libDispatch } = useLib();
   const est = estimate(buildSpec(a), lib.prices);
   const empty = !a.rows.some(x => x.r.In);
-  const [tab, setTab] = useState(want ? want.tab : 'groups');
-  const [wantSeen, setWantSeen] = useState(want);
-  if (want !== wantSeen) {
-    setWantSeen(want);
-    if (want) setTab(want.tab);
-  }
-  useEffect(() => {
-    if (open) onTab?.(tab);
-  }, [open, tab, onTab]);
+  const [ownTab, setOwnTab] = useState(tabIn ?? 'groups');
+  const tab = tabIn ?? ownTab;
+  const setTab = (t: string) => {
+    setOwnTab(t);
+    onTab?.(t);
+  };
   return (
     <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" sub={p.name || 'Без названия'} footer={tab === 'scheme' ? (
       <>

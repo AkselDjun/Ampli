@@ -97,8 +97,8 @@ describe('storage and links', () => {
     const set = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('quota'); });
     fireEvent.click(document.querySelector('.col-list .row') as HTMLElement);
     change(byLabel(document, 'Название группы'), 'А');
-    await waitFor(() => expect(toastText()).toContain('закончилось место'));
-    expect(document.querySelector('.save-indicator')).toHaveTextContent('Ошибка сохранения');
+    await waitFor(() => expect(document.querySelector('.save-indicator')).toHaveTextContent('Ошибка сохранения'));
+    expect(toastText()).toContain('закончилось место');
     set.mockRestore();
   });
 

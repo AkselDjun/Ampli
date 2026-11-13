@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { Calc } from '../core/types';
 import { fmt } from '../core/format';
 import { buildSpec } from '../core/spec';
@@ -14,11 +14,8 @@ import { Button } from './kit';
 
 const BYN = ' BYN';
 
-export function ShopSheet({ open, onClose, a, onShown }: { open: boolean; onClose: () => void; a: Calc; onShown?: () => void }) {
+export function ShopSheet({ open, onClose, a }: { open: boolean; onClose: () => void; a: Calc }) {
   const { lib, dispatch } = useLib();
-  useEffect(() => {
-    if (open) onShown?.();
-  }, [open, onShown]);
   const [lists, setLists] = useState<PriceList[]>(loadLists);
   const [pick, setPick] = useState<Record<string, number>>({});
   const [tab, setTab] = useState('buy');
