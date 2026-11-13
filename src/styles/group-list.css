@@ -201,12 +201,10 @@
 @media (--tablet){.pb-name{-webkit-line-clamp:1;display:block;white-space:nowrap;text-overflow:ellipsis}}
 @media (--upto-420){
   .list-head .hist{display:flex;flex:1 1 100%;flex-wrap:nowrap;gap:var(--s-2);margin-left:0;justify-content:space-between;align-items:center}
-  .list-head .lv-keep{white-space:nowrap;padding-inline:var(--s-2)}
 }
 @media (--desktop){
   .list-head{flex-wrap:wrap}
   .list-head .hist{display:flex;flex:1 1 100%;flex-wrap:nowrap;gap:var(--s-2);margin-left:0;justify-content:space-between;align-items:center}
-  .list-head .lv-keep{white-space:nowrap}
 }
 .lv-link{display:inline-flex;align-items:center;min-height:44px;padding:0 var(--s-1);border:0;background:none;color:var(--accent);font:inherit;font-size:var(--t-sm);font-weight:600;white-space:nowrap;cursor:pointer;border-radius:var(--r-s)}
 .lv-link:hover{text-decoration:underline;text-underline-offset:3px}
