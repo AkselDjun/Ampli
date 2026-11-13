@@ -263,3 +263,34 @@ export function changes(prev: Project[], next: Project[]): { put: Project[]; del
   const ids = new Set(next.map(p => p.id));
   return { put: next.filter(p => before.get(p.id) !== p), del: prev.filter(p => !ids.has(p.id)).map(p => p.id) };
 }
+
+export const DELETED_KEY = 'ampli-deleted';
+
+export function deletedIds(): string[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(DELETED_KEY) ?? '[]') as unknown;
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+  } catch (e) {
+    void e;
+    return [];
+  }
+}
+
+const saveDeleted = (ids: string[]): void => {
+  try {
+    if (ids.length) localStorage.setItem(DELETED_KEY, JSON.stringify(ids));
+    else localStorage.removeItem(DELETED_KEY);
+  } catch (e) {
+    void e;
+  }
+};
+
+export function markDeleted(ids: string[]): void {
+  if (ids.length) saveDeleted([...new Set([...deletedIds(), ...ids])].slice(-200));
+}
+
+export function clearDeleted(ids: string[]): void {
+  if (!ids.length) return;
+  const done = new Set(ids);
+  saveDeleted(deletedIds().filter(id => !done.has(id)));
+}
