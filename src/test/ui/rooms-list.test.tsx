@@ -58,6 +58,31 @@ describe('group list by rooms', () => {
     expect(screen.queryByRole('button', { name: 'По помещениям' })).toBeNull();
   });
 
+  it('keeps a flat list without the switch until groups are in different rooms', () => {
+    const ls: Line[] = [mkLine('Свет', 'light', 5, [['Лампа', 100, 1]]), mkLine('Чайник', 'socket', 5, [['Чайник', 2000, 1]])];
+    const p = newProject({ cfg: { ...defaultCfg(), prot: 'rcbo' }, lines: ls, sample: false }, 'Т');
+    localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
+    localStorage.removeItem(LISTBY_KEY);
+    render(<App />);
+    expect(heads()).toEqual([]);
+    expect(screen.queryByRole('button', { name: 'По помещениям' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Номера по порядку' })).toBeNull();
+  });
+
+  it('joins rooms written in different case under one heading', () => {
+    const ls: Line[] = [
+      { ...mkLine('Свет', 'light', 5, [['Лампа', 100, 1]]), zone: 'Кухня' },
+      { ...mkLine('Ванна', 'socket', 5, [['Фен', 1800, 1]]), zone: 'Ванная' },
+      { ...mkLine('Чайник', 'socket', 5, [['Чайник', 2000, 1]]), zone: ' кухня ' }
+    ];
+    const p = newProject({ cfg: { ...defaultCfg(), prot: 'rcbo' }, lines: ls, sample: false }, 'Т');
+    localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
+    localStorage.removeItem(LISTBY_KEY);
+    render(<App />);
+    expect(heads()).toEqual(['Кухня', 'Ванная']);
+    expect(document.querySelector('.rows .zone-h small')?.textContent).toMatch(/^2 группы/);
+  });
+
   it('works when storage throws', () => {
     const get = vi.spyOn(localStorage, 'getItem').mockImplementation(k => { if (k === LISTBY_KEY) throw new Error('x'); return null; });
     const set = vi.spyOn(localStorage, 'setItem').mockImplementation(k => { if (k === LISTBY_KEY) throw new Error('x'); });

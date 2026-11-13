@@ -9,7 +9,8 @@ import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconHeat, IconLan, 
 import { floorSummary } from '../core/floor';
 import { weakSummary } from '../core/weak';
 import { useByRoom } from './prefs';
-import { zoneOf } from '../core/calc';
+import { roomGroups } from '../core/zonelist';
+import type { ZoneGroup } from '../core/zonelist';
 import { ArmButton } from './common';
 import { AddMenu } from './AddMenu';
 import { FixBar } from './FixBar';
@@ -156,19 +157,12 @@ export const GroupList = memo(function GroupList({
   if (p.address) sub.push(p.address);
   sub.push(count + ' ' + plural(count, ['группа', 'группы', 'групп']));
   const [byRoom, setByRoom] = useByRoom();
-  const groups: { zone: string | null; items: number[] }[] = [];
-  if (byRoom && count > 1) {
-    a.rows.forEach((x, i) => {
-      const z = zoneOf(x.l);
-      const g = groups.find(y => y.zone === z);
-      if (g) g.items.push(i);
-      else groups.push({ zone: z, items: [i] });
-    });
-    groups.sort((p, q) => Number(p.zone === 'Без помещения') - Number(q.zone === 'Без помещения'));
-  } else groups.push({ zone: null, items: a.rows.map((_, i) => i) });
+  const zoned = roomGroups(a.rows.map(x => x.l));
+  const canGroup = zoned.length > 1;
+  const groups: ZoneGroup[] = byRoom && canGroup ? zoned : [{ zone: null, items: a.rows.map((_, i) => i) }];
   const jumbled = groups.flatMap(g => g.items).some((k, j) => k !== j);
   const [shut, setShut] = useState<string[]>([]);
-  const selZone = byRoom ? (() => { const x = a.rows.find(y => y.l.id === sel); return x ? zoneOf(x.l) : null; })() : null;
+  const selZone = groups.find(g => g.zone !== null && g.items.some(k => a.rows[k].l.id === sel))?.zone ?? null;
   useEffect(() => {
     if (selZone) setShut(v => (v.includes(selZone) ? v.filter(z => z !== selZone) : v));
   }, [sel, selZone]);
@@ -236,13 +230,13 @@ export const GroupList = memo(function GroupList({
       <div className="list-head">
         <h2>Группы линий</h2>
         <span className="hist">
-          {count > 1 && (
+          {canGroup && (
             <button className={'lv-t lv-keep' + (byRoom ? ' on' : '')} type="button" aria-pressed={byRoom} data-tip="Сгруппировать по помещениям" onClick={() => setByRoom(!byRoom)}>
               <IconRooms />
               <span>По помещениям</span>
             </button>
           )}
-          {byRoom && jumbled && (
+          {jumbled && (
             <button className="lv-link" type="button" data-tip="Номера групп пойдут подряд по помещениям, как на щитке" onClick={onRenumber}>
               <span>Номера по порядку</span>
             </button>
