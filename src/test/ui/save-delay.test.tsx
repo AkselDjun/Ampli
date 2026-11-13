@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { App } from '../../ui/App';
-import { BOOT_KEY } from '../../store/storage';
+import { BOOT_KEY, deletedIds, markDeleted, readProjects, saveBoot, writeProjects } from '../../store/storage';
+import { newProject } from '../../core/project';
+import { sample } from '../../core/templates';
 import { SAVE_DELAY_MS } from '../../app/useProjectPersistence';
 import { byLabel, change } from './util';
 
@@ -47,5 +49,18 @@ describe('saving the project while typing', () => {
     change(byLabel(document, 'Название группы'), 'Прихожая');
     unmount();
     expect(savedName()).toBe('Прихожая');
+  });
+});
+
+describe('deleted projects after a cut write', () => {
+  it('does not bring back a project whose deletion did not reach IndexedDB', async () => {
+    const keep = newProject({ ...sample(), sample: false }, 'Остался');
+    const gone = newProject({ ...sample(), sample: false }, 'Удалён');
+    await writeProjects([keep, gone], []);
+    saveBoot(keep, [keep.id]);
+    markDeleted([gone.id]);
+    render(<App />);
+    await waitFor(async () => expect((await readProjects()).map(x => x.name)).toEqual(['Остался']));
+    expect(deletedIds()).toEqual([]);
   });
 });

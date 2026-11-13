@@ -3,7 +3,7 @@ import type { Dispatch } from 'react';
 import type { Project } from '../core/types';
 import { referencedPhotoIds } from '../core/photos';
 import type { Action, State } from '../store/reducer';
-import { BOOT_KEY, REVISION_KEY, changes, dropLegacy, mergeLists, ProjectConflictError, readProjects, saveBoot, saveStore, tabId, writeProjectsChecked } from '../store/storage';
+import { BOOT_KEY, REVISION_KEY, clearDeleted, deletedIds, markDeleted, changes, dropLegacy, mergeLists, ProjectConflictError, readProjects, saveBoot, saveStore, tabId, writeProjectsChecked } from '../store/storage';
 import type { Boot } from '../store/storage';
 import { gcPhotos, photoKeys } from '../store/photos';
 import { backupDue, keepData, snoozeBackup } from '../store/backup';
@@ -34,7 +34,8 @@ export function useProjectPersistence({ boot, state, dispatch, viewOnly }: { boo
   const latest = useRef({ cur: state.cur, list: state.list });
   const dirty = useRef(false);
   const seq = useRef(0);
-  const removed = useRef(new Set<string>());
+  const removed = useRef<Set<string> | null>(null);
+  const removedIds = (): Set<string> => (removed.current ??= new Set(deletedIds()));
 
   const onSaved = useStable((ok: boolean) => {
     if (!ok && !saveFail.current) toastBad(FULL_TEXT);
@@ -62,13 +63,13 @@ export function useProjectPersistence({ boot, state, dispatch, viewOnly }: { boo
     before.catch(() => undefined);
     readProjects()
       .then(found => {
-        const stale = found.filter(x => removed.current.has(x.id)).map(x => x.id);
-        const stored = found.filter(x => !removed.current.has(x.id));
+        const stale = found.filter(x => removedIds().has(x.id)).map(x => x.id);
+        const stored = found.filter(x => !removedIds().has(x.id));
         d.full = true;
         d.prev = mergeLists(d.prev, stored, []);
         if (stale.length) {
           pendingWrite.current = pendingWrite.current
-            .then(() => (conflict.current ? undefined : writeProjectsChecked([], stale, revision.current, tabOwner.current).then(next => { revision.current = next; })))
+            .then(() => (conflict.current ? undefined : writeProjectsChecked([], stale, revision.current, tabOwner.current).then(next => { revision.current = next; clearDeleted(stale); })))
             .catch(() => undefined);
         }
         gcPhotos(referencedPhotoIds(mergeLists(latest.current.list, stored, [])), before).catch(() => undefined);
@@ -127,7 +128,10 @@ export function useProjectPersistence({ boot, state, dispatch, viewOnly }: { boo
       return;
     }
     const { put, del } = changes(d.prev, list);
-    del.forEach(id => removed.current.add(id));
+    put.forEach(x => removedIds().delete(x.id));
+    clearDeleted(put.map(x => x.id));
+    del.forEach(id => removedIds().add(id));
+    markDeleted(del);
     const clear = d.clear;
     d.prev = list;
     d.clear = false;
@@ -139,6 +143,7 @@ export function useProjectPersistence({ boot, state, dispatch, viewOnly }: { boo
     write
       .then(() => {
         if (clear) dropLegacy();
+        clearDeleted(del);
         onSaved(true);
         finish('saved');
       })
