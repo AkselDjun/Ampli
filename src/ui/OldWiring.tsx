@@ -3,7 +3,8 @@ import { OLD_EMPTY, OLD_SIGNS, oldVerdict } from '../core/oldwire';
 import type { OldKey } from '../core/oldwire';
 import type { Action } from '../store/reducer';
 import { plural } from '../core/format';
-import { ArmButton, DoneFoot, Seg, Sheet } from './common';
+import { ArmButton, DoneFoot, Sheet } from './common';
+import { ChoiceField } from './fields';
 import { IconAlert, IconDone } from './Icons';
 import type { PrintMode } from './WorkSheet';
 import { Button } from './kit';
@@ -46,10 +47,7 @@ export function OldSheet({ open, onClose, p, a, dispatch, onPrint }: { open: boo
   const v = oldVerdict(p.old, a);
   const set = (field: OldKey) => (value: string | number) => dispatch({ t: 'old', field, value: String(value) });
   const seg = (field: OldKey, label: string, items: [string, string][]) => (
-    <div className="f">
-      <span className="lbl" id={'l-ow-' + field}>{label}</span>
-      <Seg<string> name={'ow-' + field} labelledBy={'l-ow-' + field} value={String(o[field])} items={items} onChange={set(field)} />
-    </div>
+    <ChoiceField<string> name={'ow-' + field} label={label} value={String(o[field])} items={items} onChange={set(field)} />
   );
   const bad = v.findings.filter(f => f.k === 'bad').length;
   const warn = v.findings.filter(f => f.k === 'warn').length;

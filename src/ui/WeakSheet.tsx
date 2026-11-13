@@ -8,6 +8,7 @@ import { asLabel, fieldErr } from '../core/limits';
 import type { FieldErr } from '../core/limits';
 import { toastOk } from './toast';
 import { IconAlert, IconClose, IconInfo } from './Icons';
+import { AddChips, Empty } from './fields';
 import { IconButton } from './kit';
 
 
@@ -30,13 +31,9 @@ export function WeakSheet({ open, onClose, p, dispatch }: { open: boolean; onClo
           <span className="muted">{WEAK_KEYS.filter(k => c.count[k]).map(k => WEAK_KINDS[k].short + ' ' + c.count[k]).join(' · ')}{c.meters ? ' · ' + fmt(c.meters, 0) + ' м кабеля' : ''}</span>
         </div>
       )}
-      <div className="chips room-add" aria-label="Добавить точку">
-        {WEAK_KEYS.map(k => (
-          <button key={k} className="chip" type="button" onClick={() => dispatch({ t: 'weakAdd', kind: k, room: lastRoom })}>+ {WEAK_KINDS[k].short}</button>
-        ))}
-      </div>
+      <AddChips label="Добавить точку" items={WEAK_KEYS.map(k => [k, WEAK_KINDS[k].short])} onAdd={k => dispatch({ t: 'weakAdd', kind: k, room: lastRoom })} />
       {pts.length === 0 ? (
-        <div className="empty">Добавьте точки кнопками выше: помещение, сколько розеток и длина от слаботочного щитка.</div>
+        <Empty>Добавьте точки кнопками выше: помещение, сколько розеток и длина от слаботочного щитка.</Empty>
       ) : (
         <div className="wk-list" role="list" aria-label="Слаботочные точки">
           <datalist id="wk-zones">{zones.map(z => <option key={z} value={z} />)}</datalist>
