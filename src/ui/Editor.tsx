@@ -21,7 +21,6 @@ import type { FieldErr } from '../core/limits';
 import { useLib } from '../store/LibContext';
 import { parseApps } from '../core/quick';
 import { appCos, zoneOf } from '../core/calc';
-import { useByRoom } from './prefs';
 import { Button, IconButton } from './kit';
 import { Mic } from './parts';
 import { BP, useMedia } from './media';
@@ -68,7 +67,6 @@ export function Editor({
   const [measOpen, setMeasOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [byRoom] = useByRoom();
   const [quick, setQuick] = useState<string | null>(null);
   const [quickMsg, setQuickMsg] = useState('');
   const [allChips, setAllChips] = useState(false);
@@ -159,7 +157,7 @@ export function Editor({
     if (next) powRefs.current[next.id]?.focus();
     else addEmpty();
   };
-  const peers = a.rows.map((_y, i) => i).filter(i => !(byRoom || a.c.rcdMode) || zoneOf(a.rows[i].l).toLowerCase() === zoneOf(l).toLowerCase());
+  const peers = a.rows.map((_y, i) => i).filter(i => zoneOf(a.rows[i].l).toLowerCase() === zoneOf(l).toLowerCase());
   const pi = peers.indexOf(idx);
   const prevPeer = pi > 0 ? peers[pi - 1] : -1;
   const nextPeer = pi >= 0 && pi < peers.length - 1 ? peers[pi + 1] : -1;

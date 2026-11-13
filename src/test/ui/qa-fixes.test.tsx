@@ -135,10 +135,10 @@ describe('keyboard on the list and the board', () => {
   it('keeps focus on the next row after Delete', async () => {
     wide(true);
     render(<App />);
-    const second = rows()[1].querySelector('.row-name')?.textContent;
-    rows()[0].focus();
-    expect(document.activeElement).toBe(rows()[0]);
-    fireEvent.keyDown(rows()[0], { key: 'Delete' });
+    const second = rows()[2].querySelector('.row-name')?.textContent;
+    rows()[1].focus();
+    expect(document.activeElement).toBe(rows()[1]);
+    fireEvent.keyDown(rows()[1], { key: 'Delete' });
     await act(() => new Promise(r => setTimeout(r, 50)));
     expect((document.activeElement as HTMLElement).querySelector('.row-name')?.textContent).toBe(second);
   });

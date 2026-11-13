@@ -3,7 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { AddMenu } from '../../ui/AddMenu';
 import { Sheet } from '../../ui/common';
-import { byLabel, change, click, wide } from './util';
+import { byLabel, change, click, wide, rowNo } from './util';
 import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
@@ -91,7 +91,7 @@ describe('reorder without dragging', () => {
   it('moves the group earlier and later from the actions menu', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(rows()[2]);
+    fireEvent.click(rowNo(3));
     const names = () => stored().list[0].lines.map((l: { name: string }) => l.name);
     const [first, kitchen, third] = names();
     click(ed(), /Ещё действия/);
@@ -112,7 +112,7 @@ describe('screen reader feedback in the editor', () => {
     vi.useFakeTimers();
     wide(true);
     render(<App />);
-    fireEvent.click(rows()[6]);
+    fireEvent.click(rowNo(7));
     expect(ed().querySelector('h2.vh')?.textContent).toBe('Группа Г7 Варочная панель');
     const say = () => ed().querySelector('.ed-say')?.textContent;
     expect(say()).toBe('');
@@ -136,7 +136,7 @@ describe('screen reader feedback in the editor', () => {
     });
     wide(true);
     render(<App />);
-    fireEvent.click(rows()[6]);
+    fireEvent.click(rowNo(7));
     act(() => cb([{ isIntersecting: false, boundingClientRect: { top: -200 }, rootBounds: { top: 56 } }]));
     const mini = document.querySelector<HTMLElement>('.ed-mini');
     expect(mini).not.toHaveAttribute('aria-label');

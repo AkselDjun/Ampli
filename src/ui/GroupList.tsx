@@ -8,7 +8,6 @@ import type { FixAct } from '../core/fixes';
 import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconHeat, IconLan, IconNet, IconRooms, IconSocket, IconTrash, IconWire } from './Icons';
 import { floorSummary } from '../core/floor';
 import { weakSummary } from '../core/weak';
-import { useByRoom } from './prefs';
 import { roomGroups } from '../core/zonelist';
 import type { ZoneGroup } from '../core/zonelist';
 import { ArmButton } from './common';
@@ -72,13 +71,21 @@ const GroupRow = memo(function GroupRow({
         onKeyDown={e => {
           if (e.key === 'Delete') {
             e.preventDefault();
+            const gone = e.currentTarget;
             const all = Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
-            const at = all.indexOf(e.currentTarget);
+            const at = all.indexOf(gone);
+            const next = all[at + 1] ?? all[at - 1];
             onDelete(x.l.id);
-            requestAnimationFrame(() => {
+            let tries = 10;
+            const land = () => {
+              if (gone.isConnected && --tries > 0) {
+                requestAnimationFrame(land);
+                return;
+              }
               const now = Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
-              (now[Math.min(at, now.length - 1)] ?? document.querySelector<HTMLElement>('.list-head h2'))?.focus();
-            });
+              (next?.isConnected ? next : now[Math.min(at, now.length - 1)] ?? document.querySelector<HTMLElement>('.list-head h2'))?.focus();
+            };
+            requestAnimationFrame(land);
           } else if ((e.ctrlKey || e.metaKey) && (e.key === 'd' || e.key === 'в')) {
             e.preventDefault();
             onCopy(x.l.id);
@@ -156,10 +163,8 @@ export const GroupList = memo(function GroupList({
   const sub: string[] = [];
   if (p.address) sub.push(p.address);
   sub.push(count + ' ' + plural(count, ['группа', 'группы', 'групп']));
-  const [byRoom, setByRoom] = useByRoom();
   const zoned = roomGroups(a.rows.map(x => x.l));
-  const canGroup = zoned.length > 1;
-  const groups: ZoneGroup[] = byRoom && canGroup ? zoned : [{ zone: null, items: a.rows.map((_, i) => i) }];
+  const groups: ZoneGroup[] = zoned.length > 1 ? zoned : [{ zone: null, items: a.rows.map((_, i) => i) }];
   const jumbled = groups.flatMap(g => g.items).some((k, j) => k !== j);
   const [shut, setShut] = useState<string[]>([]);
   const selZone = groups.find(g => g.zone !== null && g.items.some(k => a.rows[k].l.id === sel))?.zone ?? null;
@@ -230,12 +235,6 @@ export const GroupList = memo(function GroupList({
       <div className="list-head">
         <h2>Группы линий</h2>
         <span className="hist">
-          {canGroup && (
-            <button className={'lv-t lv-keep' + (byRoom ? ' on' : '')} type="button" aria-pressed={byRoom} data-tip="Сгруппировать по помещениям" onClick={() => setByRoom(!byRoom)}>
-              <IconRooms />
-              <span>По помещениям</span>
-            </button>
-          )}
           {jumbled && (
             <button className="lv-link" type="button" data-tip="Номера групп пойдут подряд по помещениям, как на щитке" onClick={onRenumber}>
               <span>Номера по порядку</span>

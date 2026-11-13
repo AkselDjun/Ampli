@@ -4,7 +4,6 @@ import { App } from '../../ui/App';
 import { MeasBoard } from '../../ui/MeasBoard';
 import { Onboarding } from '../../ui/Onboarding';
 import { Totals } from '../../ui/Totals';
-import { LISTBY_KEY } from '../../ui/prefs';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
@@ -42,7 +41,6 @@ describe('renumbering groups by rooms', () => {
   it('offers the button only when the numbers jump inside rooms and renumbers on click', () => {
     wide(true);
     save(proj(mixed()));
-    localStorage.setItem(LISTBY_KEY, 'room');
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Номера по порядку' }));
     expect(stored().list[0].lines.map((l: Line) => l.name)).toEqual(['Свет кухни', 'Розетки кухни', 'Свет комнат', 'Розетки коридора']);

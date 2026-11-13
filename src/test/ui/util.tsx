@@ -48,3 +48,9 @@ export const byLabel = (root: ParentNode, label: string): HTMLInputElement => {
 export const change = (el: HTMLElement, value: string) => fireEvent.change(el, { target: { value } });
 
 export const toastText = (): string => currentToast()?.text ?? '';
+
+export const rowNo = (n: number): HTMLElement => {
+  const r = Array.from(document.querySelectorAll<HTMLElement>('.rows .row')).find(x => x.querySelector('.no')?.textContent === 'Г' + n);
+  if (!r) throw new Error('no row Г' + n);
+  return r;
+};

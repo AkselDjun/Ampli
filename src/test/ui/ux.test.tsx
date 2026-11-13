@@ -9,7 +9,7 @@ import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
 import { KEY } from '../../store/storage';
 import type { Cfg, Line } from '../../core/types';
-import { byLabel, change, click, dlg, wide } from './util';
+import { byLabel, change, click, dlg, wide, rowNo } from './util';
 import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
@@ -84,7 +84,7 @@ describe('editor', () => {
     Element.prototype.scrollIntoView = into;
     wide(true);
     render(<App />);
-    fireEvent.click(rows()[6]);
+    fireEvent.click(rowNo(7));
     expect(document.querySelector('.ed-mini')).toBeNull();
     act(() => cb([{ isIntersecting: false, boundingClientRect: { top: -200 }, rootBounds: { top: 56 } }]));
     const mini = document.querySelector('.ed-mini') as HTMLElement;
@@ -122,7 +122,7 @@ describe('editor', () => {
   it('shows branch lengths on demand and keeps them when filled', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(rows()[2]);
+    fireEvent.click(rowNo(3));
     const brs = () => ed().querySelectorAll<HTMLInputElement>('[aria-label="Отвод от коробки, м"]');
     expect(brs().length).toBe(0);
     expect(ed().querySelector('.apps.no-br')).not.toBeNull();
@@ -139,7 +139,7 @@ describe('editor', () => {
     change(brs()[0], '3');
     fireEvent.click(rows()[3]);
     expect(brs().length).toBe(0);
-    fireEvent.click(rows()[2]);
+    fireEvent.click(rowNo(3));
     expect(brs().length).toBeGreaterThan(0);
     click(ed(), /Ещё действия/);
     expect(within(ed().querySelector('[role="menu"]') as HTMLElement).queryByText(/отводы к точкам/)).toBeNull();

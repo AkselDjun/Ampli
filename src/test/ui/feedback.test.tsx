@@ -12,7 +12,7 @@ import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
 import type { Cfg, Line, Project } from '../../core/types';
-import { byLabel, change, click, wide } from './util';
+import { byLabel, change, click, wide, rowNo } from './util';
 import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
@@ -133,7 +133,7 @@ describe('editor fields from the electricians', () => {
   });
   it('edits branch length to the junction box for an appliance', () => {
     boot();
-    fireEvent.click(rows()[2]);
+    fireEvent.click(rowNo(3));
     expect(ed().querySelectorAll('[aria-label="Отвод от коробки, м"]').length).toBe(0);
     click(ed(), /Ещё действия/);
     click(ed(), 'Указать отводы к точкам');

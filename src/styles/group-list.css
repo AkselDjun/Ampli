@@ -138,10 +138,6 @@
 .addmenu.fab.hide .fab-b{transform:translateY(140%);opacity:0;pointer-events:none}
 .sample .link{display:inline-block;padding:var(--s-3) var(--s-1);margin:-12px -4px}
 @media (prefers-reduced-motion:reduce){.addmenu.fab .fab-b{transition:none}}
-.lv-t{display:inline-flex;align-items:center;gap:var(--s-1-5);min-height:36px;padding:var(--s-1) var(--s-3);border:1px solid var(--line);border-radius:var(--r-pill);background:var(--surface);color:var(--ink-2);font:inherit;font-size:var(--t-sm);font-weight:600;cursor:pointer}
-.lv-t svg{width:16px;height:16px}
-.lv-t:hover{border-color:var(--ink-2);color:var(--ink)}
-.lv-t.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
 .zone-h{margin:0;background:var(--field);border-bottom:1px solid var(--line);font-size:inherit}
 .zone-h button{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-1) var(--s-2);width:100%;min-height:44px;padding:var(--s-2) var(--s-4) var(--s-2) 10px;border:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
 .zone-h button:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
@@ -157,11 +153,6 @@
 .zone-h.shut:not(:last-child){border-bottom:1px solid var(--line)}
 @media (prefers-reduced-motion:reduce){.zone-chev{transition:none}}
 .rows .zone-h:not(:first-child){border-top:1px solid var(--line)}
-@media (--upto-420){
-  .lv-t:not(.lv-keep) span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-  .lv-t:not(.lv-keep){width:44px;height:44px;justify-content:center;padding:0}
-  .lv-keep{min-height:44px}
-}
 .addmenu.fab.hide:focus-within .fab-b{transform:none;opacity:1;pointer-events:auto}
 .row-sub .row-ty[data-t="light"]{color:var(--ty-light)}
 .row-sub .row-ty[data-t="socket"]{color:var(--ty-socket)}
@@ -187,10 +178,10 @@
 .start-ty[data-t="power"] svg{color:var(--ty-power)}
 .start-s{justify-self:start;min-height:44px}
 @media (pointer:fine) and (--desktop){.start-ty{min-height:36px}}
-.row,.start-b,.start-ty,.lv-t,.zone-h button,.netfold,.projbar,.fab-b{transition:transform .08s ease,background-color var(--dur-fast) ease,border-color var(--dur-fast) ease,box-shadow var(--dur-fast) ease}
-.start-b:active,.start-ty:active,.lv-t:active,.fab-b:active{transform:scale(.97)}
+.row,.start-b,.start-ty,.zone-h button,.netfold,.projbar,.fab-b{transition:transform .08s ease,background-color var(--dur-fast) ease,border-color var(--dur-fast) ease,box-shadow var(--dur-fast) ease}
+.start-b:active,.start-ty:active,.fab-b:active{transform:scale(.97)}
 .row:active,.zone-h button:active,.netfold:active,.projbar:active{transform:scale(.99)}
-@media (prefers-reduced-motion:reduce){.start-b:active,.start-ty:active,.lv-t:active,.fab-b:active,.row:active,.zone-h button:active,.netfold:active,.projbar:active{transform:none}}
+@media (prefers-reduced-motion:reduce){.start-b:active,.start-ty:active,.fab-b:active,.row:active,.zone-h button:active,.netfold:active,.projbar:active{transform:none}}
 .nf-pair{display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column;border-top:1px solid var(--line)}
 .nf-pair .netfold{padding-inline:var(--s-3) var(--s-2);gap:var(--s-2)}
 .nf-pair .netfold+.netfold{border-left:1px solid var(--line)}
