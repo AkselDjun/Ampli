@@ -1,3 +1,4 @@
+import { NO_ZONE } from './zonelist';
 import type { Appliance, BoxType, Calc, Cfg, CfgN, Device, InCable, Line, LineResult, Phase, Row, Uzo } from './types';
 import { ALL_STEPS, HEAT_RX, TYPE_A_RX, VR_STD, HEAT_PLUG_KW, SN_CH2_DATE, INS_MIN_MOHM, rcdTripMs, IZ, KZ_TIME, LEAK_FRACTION, LEAK_PER_A_MA, LOAD_WARN, LONG_MIN_IN, LONG_RX, MARGIN_MAX, MOTOR_COS, MOTOR_RX, RCD10_MAX_IN, RCD_STD_REF, IN_CABLE, LEAK_PER_M_MA, PE_MAX_S, RHO, RHO_20, RHO_HOT_K, RCD_STD, ROWLEN, SECTIONS, SINGLE_INPUT_KW, SIZES, STD, STD_IN, TRIP_MULT, TYPES } from './norms';
 import { fmt, fs, pn } from './format';
@@ -63,7 +64,7 @@ export function demand(apps: Appliance[]): { w: number; va: number } {
 }
 
 export const appBr = (a: Appliance): number => Math.max(0, pn(a.br, 0));
-export const zoneOf = (l: Line): string => (l.zone ?? '').trim() || 'Без помещения';
+export const zoneOf = (l: Line): string => (l.zone ?? '').trim() || NO_ZONE;
 
 export function loopOhm(S: number, len: number): number {
   const pe = Math.min(S, PE_MAX_S);
