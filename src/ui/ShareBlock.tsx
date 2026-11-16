@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import type { Project } from '../core/types';
 import { estimateUrl, ownerUrl, shareUrl } from '../core/share';
 import { buildSpec } from '../core/spec';
@@ -10,13 +10,14 @@ import { Tip } from './common';
 import { toast, toastOk } from './toast';
 import { shareText, telegramUrl, viberUrl } from '../core/message';
 import { Button } from './kit';
+import { Qr } from './parts';
 
 type Kind = 'project' | 'owner' | 'estimate';
 
-const TEXT: Record<Kind, { btn: string; tip: string }> = {
-  project: { btn: 'Ссылка на проект', tip: 'Проект хранится в самой ссылке, без сервера. Получатель добавит себе копию. Фото не передаются.' },
-  owner: { btn: 'Ссылка для владельца', tip: 'Паспорт щитка только для просмотра. Данные хранятся в самой ссылке, без сервера. Фото не передаются.' },
-  estimate: { btn: 'Ссылка для клиента', tip: 'Клиент увидит смету и итог «работы + материалы» с текущими ценами, без редактора. Кнопкой «Согласовать» он отправит вам подтверждение.' }
+const TEXT: Record<Kind, { btn: string; qr: string; big: string; tip: string }> = {
+  project: { btn: 'Ссылка на проект', qr: 'QR-код проекта', big: 'Проект слишком большой для QR-кода. Отправьте ссылку.', tip: 'Проект хранится в самой ссылке, без сервера. Получатель добавит себе копию. Фото не передаются.' },
+  owner: { btn: 'Ссылка для владельца', qr: 'QR-код паспорта', big: 'Паспорт слишком большой для QR-кода. Отправьте ссылку.', tip: 'Паспорт щитка только для просмотра. Данные хранятся в самой ссылке, без сервера. Фото не передаются.' },
+  estimate: { btn: 'Ссылка для клиента', qr: 'QR-код сметы', big: 'Смета слишком большая для QR-кода. Отправьте ссылку.', tip: 'Клиент увидит смету и итог «работы + материалы» с текущими ценами, без редактора. Кнопкой «Согласовать» он отправит вам подтверждение.' }
 };
 
 export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boolean; kind?: Kind }) {
@@ -24,6 +25,7 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
   const { lib } = useLib();
   const [fallback, setFallback] = useState<string | null>(null);
   const [send, setSend] = useState<{ url: string; text: string } | null>(null);
+  const [qrAt, setQrAt] = useState<number | null>(null);
   const ta = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (fallback !== null && ta.current) {
@@ -31,7 +33,7 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
       ta.current.select();
     }
   }, [fallback]);
-  const url = (): string => {
+  const url = (at: number = Date.now()): string => {
     const base = window.location.href;
     if (k === 'owner') return ownerUrl(p, base);
     if (k === 'project') return shareUrl(p, base);
@@ -40,7 +42,7 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
     Object.entries(lib.prices).forEach(([n, v]) => {
       if (names.has(n)) prices[n] = v;
     });
-    return estimateUrl({ p, prices, labor: lib.labor, company: lib.brand.company, contacts: lib.brand.contacts, at: Date.now(), ...(lib.tiers.on ? { tiers: lib.tiers.markup } : {}) }, base);
+    return estimateUrl({ p, prices, labor: lib.labor, company: lib.brand.company, contacts: lib.brand.contacts, at, ...(lib.tiers.on ? { tiers: lib.tiers.markup } : {}) }, base);
   };
   const t = TEXT[k];
   const copy = async () => {
@@ -85,9 +87,11 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
       <div className="data-row">
         <Button variant="ghost" onClick={copy}><IconShare /> {t.btn}</Button>
         <Button variant="ghost" aria-expanded={send !== null} onClick={toggle}>Отправить в Viber или Telegram</Button>
+        <Button variant="ghost" aria-pressed={qrAt !== null} onClick={() => setQrAt(qrAt === null ? Date.now() : null)}>QR-код</Button>
         <Tip>{t.tip}</Tip>
       </div>
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label={t.btn} />}
+      {qrAt !== null && <Suspense fallback={null}><Qr text={url(qrAt)} label={t.qr} tooBig={t.big} /></Suspense>}
       {send && (
         <div className="send">
           <label className="lbl" htmlFor={'msg-' + k}>Текст сообщения</label>

@@ -74,6 +74,9 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 .share textarea{min-height:calc(var(--field-h) * 2)}
 .send{display:grid;gap:var(--s-1-5)}
 .share .send-text{min-height:96px}
+.qr{display:block;width:min(240px,100%);height:auto;justify-self:start;border-radius:var(--r-m)}
+.qr-bg{fill:var(--print-paper)}
+.qr-ink{fill:var(--print-ink)}
 .send .data-row a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 
 .pd-photos{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -101,6 +104,9 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 .pp-warn{color:var(--bad)}
 .pp-steps{margin:0;padding-left:var(--s-5);display:grid;gap:var(--s-1);font-size:var(--t-sm)}
 .pp-note{font-size:var(--t-s);color:var(--ink-2);margin:var(--s-3) 0 0}
+.pp-qr{display:flex;align-items:center;gap:var(--s-3);margin-top:var(--s-4);break-inside:avoid}
+.pp-qr .qr{width:30mm;flex:none}
+.pp-qr span{font-size:var(--t-s);color:var(--ink-2)}
 
 .pl-list,.shop-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--s-2)}
 .pl-list li{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);padding:var(--s-2) var(--s-3);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}

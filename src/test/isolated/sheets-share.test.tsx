@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { App } from '../../ui/App';
 import { MeasBoard } from '../../ui/MeasBoard';
 import { IncomingSheet } from '../../ui/IncomingSheet';
@@ -237,10 +237,32 @@ describe('ShareBlock', () => {
     fireEvent.click(within(d).getByRole('button', { name: 'Отправить в Viber или Telegram' }));
     expect(within(d).queryByRole('button', { name: 'Другое приложение' })).toBeNull();
   });
-  it('has no QR code button', () => {
+  it('toggles the QR code of the project link', async () => {
     render(<App />);
     const d = openProj();
-    expect(within(d).queryByRole('button', { name: 'QR-код' })).toBeNull();
+    const q = within(d).getByRole('button', { name: 'QR-код' });
+    expect(d.querySelector('.qr')).toBeNull();
+    fireEvent.click(q);
+    expect(q).toHaveAttribute('aria-pressed', 'true');
+    const img = await within(d).findByRole('img', { name: 'QR-код проекта' });
+    expect(img.querySelector('path')?.getAttribute('d')).toMatch(/^M\d+ \d+h\d+v1h-\d+z/);
+    fireEvent.click(q);
+    expect(q).toHaveAttribute('aria-pressed', 'false');
+    expect(d.querySelector('.qr')).toBeNull();
+  });
+  it('explains when the project is too large for a QR code', async () => {
+    let n = 7;
+    const rnd = () => {
+      n = (n * 1103515245 + 12345) % 2147483648;
+      return n.toString(36);
+    };
+    seed(p => {
+      p.lines = Array.from({ length: 40 }, () => mkLine(Array.from({ length: 12 }, rnd).join(''), 'socket', 10, [[Array.from({ length: 8 }, rnd).join(''), 2200, 1]]));
+    });
+    render(<App />);
+    const d = openProj();
+    fireEvent.click(within(d).getByRole('button', { name: 'QR-код' }));
+    await waitFor(() => expect(d.querySelector('.share [role="status"]')?.textContent).toBe('Проект слишком большой для QR-кода. Отправьте ссылку.'));
     expect(d.querySelector('.qr')).toBeNull();
   });
 });
@@ -326,7 +348,7 @@ describe('Owner passport', () => {
     expect(stored().list[0].lines[0].zone).toBe('Кухня и коридор');
   });
 
-  it('prints the passport with the location and no QR code', () => {
+  it('prints the passport with the location and a QR code', () => {
     seed(p => { p.lines[0].zone = 'Спальня'; });
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     render(<App />);
@@ -335,7 +357,8 @@ describe('Owner passport', () => {
     const doc = document.querySelector('.printdoc') as HTMLElement;
     expect(doc.querySelector('h1')?.textContent).toBe('Паспорт электрощита');
     expect(doc.textContent).toContain('Спальня');
-    expect(doc.querySelector('.pp-qr')).toBeNull();
+    expect(doc.querySelector('.pp-qr svg[aria-label="QR-код паспорта"] path')).toBeTruthy();
+    expect(doc.querySelector('.pp-qr')?.textContent).toContain('Наведите камеру телефона');
     expect(doc.querySelector('.pp-steps')).toBeTruthy();
     print.mockRestore();
   });
@@ -347,7 +370,8 @@ describe('Owner passport', () => {
     const d = dlg('Приёмка');
     await act(async () => { click(d, /Ссылка для владельца/); });
     expect(write.mock.calls[0][0]).toContain('#o=v1.');
-    expect(within(d).queryByRole('button', { name: 'QR-код' })).toBeNull();
+    click(d, 'QR-код');
+    await waitFor(() => expect(d.querySelector('svg.qr[aria-label="QR-код паспорта"] path')).toBeTruthy());
   });
 
   it('opens a read-only passport from an owner link and can hand the project over', () => {

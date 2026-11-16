@@ -39,7 +39,7 @@
 
   .printdoc .pp{color:var(--print-ink)}
   .printdoc .pp-card,.printdoc .pp-in{background:var(--print-paper);border-color:var(--print-line)}
-  .printdoc .pp-sub,.printdoc .pp-meta span,.printdoc .pp-in span,.printdoc .pp-where,.printdoc .pp-note,.printdoc .pp-prot{color:var(--print-ink-3)}
+  .printdoc .pp-sub,.printdoc .pp-meta span,.printdoc .pp-in span,.printdoc .pp-where,.printdoc .pp-note,.printdoc .pp-qr span,.printdoc .pp-prot{color:var(--print-ink-3)}
   .printdoc .pp-warn{color:var(--print-ink);font-weight:600}
   .printdoc .pp h1{font-size:20px}
   .printdoc .pp-card p,.printdoc .pp-steps{font-size:11px}

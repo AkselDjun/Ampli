@@ -1,4 +1,4 @@
-import { Suspense, useId, useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import type { Project, RoomApp } from '../core/types';
 import { PRESETS } from '../core/norms';
 import { ROOM_PRESETS, assemble, makeRoom } from '../core/rooms';
@@ -10,7 +10,6 @@ import { ArmButton, Err, Sheet, errAttrs } from './common';
 import { asLabel, fieldErr } from '../core/limits';
 import { IconClose, IconSearch } from './Icons';
 import { Button, IconButton } from './kit';
-import { Mic } from './parts';
 import { AddChips, Empty } from './fields';
 import { parseRooms } from '../core/roomtext';
 
@@ -88,13 +87,12 @@ export function RoomsSheet({
     )} tip="Опишите комнаты и приборы, группы соберутся сами: свет и розетки по комнатам, мощные приборы отдельными линиями. Потом группы можно поправить вручную.">
       <AddChips label="Добавить комнату" items={ROOM_PRESETS.map((r): [string, string] => [r.key, r.title])} onAdd={k => { const r = ROOM_PRESETS.find(x => x.key === k); if (r) dispatch({ t: 'roomAdd', room: makeRoom(r) }); }} />
       <div className="room-text">
-        <Button size="sm" variant="ghost" aria-expanded={text !== null} onClick={() => { setText(text === null ? '' : null); setMsg(''); }}>{text === null ? 'Из сообщения клиента или голосом' : 'Скрыть ввод текстом'}</Button>
+        <Button size="sm" variant="ghost" aria-expanded={text !== null} onClick={() => { setText(text === null ? '' : null); setMsg(''); }}>{text === null ? 'Из сообщения клиента' : 'Скрыть ввод текстом'}</Button>
         {text !== null && (
           <div className="quick">
             <textarea aria-label="Комнаты и приборы текстом" rows={4} placeholder={'Кухня: плита 7 кВт, духовка 3,5 кВт, посудомойка\nВанная: бойлер 2 кВт, стиральная машина'} value={text} onChange={e => setText(e.target.value)} />
             <div className="copy-row">
               <Button variant="primary" onClick={fromText}>Добавить комнаты</Button>
-              <Suspense fallback={null}><Mic rooms label="Диктовать комнаты и приборы" onText={t => setText(q => (q && q.trim() ? q.replace(/\s*$/, '') + '\n' : '') + t)} /></Suspense>
               <span role="status" className="muted">{msg}</span>
             </div>
           </div>
