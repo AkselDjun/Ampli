@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import type { Photo, PhotoTag, Trace } from '../core/types';
 import { TraceSheet } from './parts';
-import { toastBad } from './toast';
+import { toastBad, toastOk } from './toast';
 import { PHOTO_LIMIT, PHOTO_TAGS, PHOTO_TAG_LABEL } from '../core/photos';
 import { nid } from '../core/ids';
 import { photoUrl, putPhoto } from '../store/photos';
@@ -59,7 +59,10 @@ export function PhotoStrip({
     }
     setBusy(false);
   };
-  const del = (id: string) => onDel(id);
+  const del = (id: string) => {
+    onDel(id);
+    toastOk('Фото удалено');
+  };
   return (
     <div className="photos">
       <div className="photo-add">

@@ -131,6 +131,7 @@
   .a-br .fld{max-width:none}
   .app .step{background:var(--surface);grid-template-columns:34px minmax(0,1fr) 34px}
   .a-lbl{display:block;font-size:var(--t-s)}
+  .app:not(.app-h)~.app .a-lbl{display:none}
 }
 @media (--tablet){.app{background:var(--field);border:1px solid var(--line);border-radius:var(--r-m);grid-template-columns:minmax(0,1.3fr) minmax(0,1.15fr) minmax(0,.45fr) 40px;grid-template-areas:"name name name del" "w n br br";gap:var(--s-2) var(--s-1-5);padding:var(--s-2)}}
 @media (--upto-420){

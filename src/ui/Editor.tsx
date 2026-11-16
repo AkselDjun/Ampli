@@ -15,7 +15,7 @@ import { PhotoStrip } from './PhotoStrip';
 import { FixBar } from './FixBar';
 import { fixFor } from '../core/fixes';
 import { ArmButton, Err, errAttrs } from './common';
-import { ChoiceField, Empty, StepField } from './fields';
+import { ChoiceField, Empty, FieldLabel, StepField } from './fields';
 import { asLabel, fieldErr } from '../core/limits';
 import type { FieldErr } from '../core/limits';
 import { useLib } from '../store/LibContext';
@@ -243,6 +243,8 @@ export function Editor({
           <StepField
             className="len-f"
             label="Длина до распредкоробки, м"
+            tip="Если распредкоробки нет, укажите всю длину линии от щитка."
+            tipLabel="Что указать в длине"
             aria="Длина линии, м"
             value={l.len}
             onChange={v => dispatch({ t: 'lineField', id: l.id, field: 'len', value: v })}
@@ -256,17 +258,16 @@ export function Editor({
             err={lenErr}
           />
           {three && <ChoiceField<Phase> className="ph-f" name={'p-' + l.id} label="Фаза" value={l.phase} items={phItems} onChange={v => dispatch({ t: 'linePhase', id: l.id, phase: v })} />}
-          <p className="muted len-note">{hasBr && r ? 'До дальней точки ' + fmt(r.len, 0) + ' м, кабеля всего ' + fmt(r.cable, 0) + ' м.' : 'Если коробки нет, это вся длина линии.'}</p>
+          {hasBr && r && <p className="muted len-note">{'До дальней точки ' + fmt(r.len, 0) + ' м, кабеля всего ' + fmt(r.cable, 0) + ' м.'}</p>}
         </div>
         {a.c.rcdMode && (
-          <label className="blk">
-            <span className="lbl">Помещение</span>
+          <div className="blk">
+            <FieldLabel label="Помещение" tip="Группы одного помещения ставятся под одно УЗО. Название печатается на щитке, бирках и в паспорте." tipLabel="Зачем указывать помещение" />
             <input className="ed-zone" list={'zones-' + l.id} aria-label="Помещение для УЗО" placeholder="Например, кухня" maxLength={60} value={l.zone ?? ''} onChange={e => dispatch({ t: 'lineField', id: l.id, field: 'zone', value: e.target.value })} />
             <datalist id={'zones-' + l.id}>
               {zones.map(z => <option key={z} value={z} />)}
             </datalist>
-            <small className="muted len-note">Группы одного помещения ставятся под одно УЗО.</small>
-          </label>
+          </div>
         )}
         {l.type === 'socket' && (
           <div className="grid3 sock">
@@ -427,14 +428,13 @@ export function Editor({
             </button>
             <div className="fold-in-b" hidden={!moreOpen}>
               {moreZone && (
-                <label className="blk">
-                  <span className="lbl">Помещение</span>
+                <div className="blk">
+                  <FieldLabel label="Помещение" tip="Подпись группы на щитке, бирках и в паспорте." tipLabel="Зачем указывать помещение" />
                   <input className="ed-zone" list={'zones-' + l.id} aria-label="Помещение группы" placeholder="Например, кухня" maxLength={60} value={l.zone ?? ''} onChange={e => dispatch({ t: 'lineField', id: l.id, field: 'zone', value: e.target.value })} />
                   <datalist id={'zones-' + l.id}>
                     {zones.map(z => <option key={z} value={z} />)}
                   </datalist>
-                  <small className="muted len-note">Подпись группы на щитке, бирках и в паспорте.</small>
-                </label>
+                </div>
               )}
               {morePrio && (
                 <ChoiceField<string> className="blk" name={'pr-' + l.id} label="Реле приоритета нагрузки" value={l.prio ?? ''} items={[['', 'Нет'], ['p', 'Приоритетная'], ['s', 'Отключается']]} onChange={v => dispatch({ t: 'prio', set: { [l.id]: v === 'p' || v === 's' ? v : '' } })} />

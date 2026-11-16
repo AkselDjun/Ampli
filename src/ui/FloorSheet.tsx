@@ -32,7 +32,7 @@ function RoomCard({ r, p, dispatch }: { r: FloorRoom; p: Project; dispatch: (a: 
     <section className="card fl-room" aria-label={'Тёплый пол: ' + r.name}>
       <div className="card-head">
         <input className="ed-name" aria-label="Название помещения" value={r.name} onChange={e => set('name')(e.target.value)} />
-        <ArmButton variant="danger" size="sm" label="Удалить" armedLabel="Точно?" onRun={() => dispatch({ t: 'floorDel', id: r.id })} />
+        <ArmButton variant="danger" size="sm" label="Удалить" armedLabel="Точно?" onRun={() => { dispatch({ t: 'floorDel', id: r.id }); toastOk('Тёплый пол удалён: ' + (r.name.trim() || 'без названия')); }} />
       </div>
       <div className="fl-grid">
         <label className="f">

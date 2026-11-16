@@ -5,7 +5,7 @@ import { CHECK_ITEMS, progress } from '../core/checklist';
 import { protocolRows } from '../core/protocol';
 import { MeasBoard } from './MeasBoard';
 import type { Action } from '../store/reducer';
-import { Sheet, TabPanel, Tabs } from './common';
+import { Sheet, TabPanel, Tabs, Tip } from './common';
 import { ShareBlock } from './ShareBlock';
 import { actsOf, actsSummary } from '../core/acts';
 import { oldStarted } from '../core/oldwire';
@@ -13,6 +13,7 @@ import { tracedCount, wallPhotos } from '../core/traces';
 import { IconPrint } from './Icons';
 import { usePack } from './pack';
 import { Button, Field, IconButton } from './kit';
+import { SecTitle } from './fields';
 
 export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3' | 'hidden' | 'wiring' | 'accept' | 'old';
 
@@ -70,18 +71,18 @@ export function WorkSheet({
     )} bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: rows.length ? 'Замеры ' + done + '/' + rows.length : 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Во вкладке «Замеры» щиток показан так же, как он собран: нажмите на автомат и введите замеры. Цвет рычажка: зелёный соответствует, красный не соответствует, серый ещё не измерено. Те же значения есть в карточке группы.">
       <TabPanel scope="wk" id="check" cur={tab}>
       <div className="wk-prog">
-        <span><b>{pr.done}</b> из {pr.total} пунктов выполнено</span>
         <div className="meter" role="img" aria-label={'Выполнено ' + pr.done + ' из ' + pr.total}>
           <i style={{ width: (pr.total ? pr.done / pr.total * 100 : 0) + '%' }} />
         </div>
       </div>
       <ul className="ck">
         {CHECK_ITEMS.map(it => (
-          <li key={it.id}>
+          <li key={it.id} className={checks[it.id] ? 'on' : undefined}>
             <label>
               <input type="checkbox" checked={!!checks[it.id]} onChange={e => dispatch({ t: 'check', id: it.id, on: e.target.checked })} />
-              <span className="ck-t"><b>{it.title}</b>{!checks[it.id] && <small>{it.hint}</small>}</span>
+              <span className="ck-t"><b>{it.title}</b></span>
             </label>
+            <Tip label={'Что проверить: ' + it.title}>{it.hint}</Tip>
           </li>
         ))}
       </ul>
@@ -99,8 +100,7 @@ export function WorkSheet({
       </MeasBoard>
       </TabPanel>
       <TabPanel scope="wk" id="docs" cur={tab}>
-      <h3 className="sec-t">Комплект для сдачи</h3>
-      <p className="muted">Отметьте документы и напечатайте их одним файлом. Значок принтера печатает один документ.</p>
+      <SecTitle tipLabel="Как напечатать комплект" tip="Отметьте документы и напечатайте их одним файлом. Значок принтера печатает один документ.">Комплект для сдачи</SecTitle>
       <ul className="pack" aria-label="Документы комплекта">
         {docs.map(d => (
           <li key={d.m}>
@@ -121,8 +121,7 @@ export function WorkSheet({
           <Field id="aWar" label="Гарантия, мес."><input id="aWar" type="text" inputMode="numeric" min={0} max={120} step={1} value={acts.warranty || ''} placeholder="без гарантии" onChange={e => dispatch({ t: 'acts', field: 'warranty', value: e.target.value })} /></Field>
         </div>
       </details>
-      <h3 className="sec-t">Паспорт для владельца</h3>
-      <p className="muted">Что на каком автомате, сколько можно включать и что делать, если выбило. Отправьте ссылкой или распечатайте с QR-кодом для дверцы щитка.</p>
+      <SecTitle tipLabel="Что в паспорте" tip="Что на каком автомате, сколько можно включать и что делать, если выбило. Отправьте ссылкой или распечатайте с QR-кодом для дверцы щитка.">Паспорт для владельца</SecTitle>
       <ShareBlock p={p} owner />
       </TabPanel>
     </Sheet>

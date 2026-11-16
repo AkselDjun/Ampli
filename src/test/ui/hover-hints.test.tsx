@@ -20,11 +20,12 @@ describe('hover hints', () => {
     expect(bare.map(el => el.outerHTML.slice(0, 120))).toEqual([]);
   });
 
-  it('explains fields in visible text on the group card', () => {
+  it('explains fields on the group card in text or a tap-to-open tip', () => {
     wide(false);
     render(<App />);
     fireEvent.click(document.querySelector('.rows .row') as HTMLElement);
     expect(screen.getAllByText('От коробки').length).toBeGreaterThan(0);
-    expect(screen.getByText('Группы одного помещения ставятся под одно УЗО.')).toBeTruthy();
+    expect(screen.getByText(/ставятся под одно УЗО/).closest('.tip')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Зачем указывать помещение' })).toBeTruthy();
   });
 });

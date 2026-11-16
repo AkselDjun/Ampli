@@ -194,18 +194,8 @@
   .row .chev{width:16px;height:16px}
 }
 @media (--upto-380){.row-name{font-size:var(--t-base)}}
-@media (--upto-420){
-  .list-head{flex-wrap:wrap}
-  .row .chev{display:none}
-}
+@media (--upto-420){.row .chev{display:none}}
 @media (--tablet){.pb-name{-webkit-line-clamp:1;display:block;white-space:nowrap;text-overflow:ellipsis}}
-@media (--upto-420){
-  .list-head .hist{display:flex;flex:1 1 100%;flex-wrap:nowrap;gap:var(--s-2);margin-left:0;justify-content:space-between;align-items:center}
-}
-@media (--desktop){
-  .list-head{flex-wrap:wrap}
-  .list-head .hist{display:flex;flex:1 1 100%;flex-wrap:nowrap;gap:var(--s-2);margin-left:0;justify-content:space-between;align-items:center}
-}
 .lv-link{display:inline-flex;align-items:center;min-height:44px;padding:0 var(--s-1);border:0;background:none;color:var(--accent);font:inherit;font-size:var(--t-sm);font-weight:600;white-space:nowrap;cursor:pointer;border-radius:var(--r-s)}
 .lv-link:hover{text-decoration:underline;text-underline-offset:3px}
 .lv-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}

@@ -3,12 +3,13 @@ import { plural } from '../core/format';
 import { useLib } from '../store/LibContext';
 import { ArmButton, DoneFoot, Seg, Sheet, TabPanel, Tabs, Tip } from './common';
 import { scaleLogo } from './logo';
-import { toastBad } from './toast';
+import { toastBad, toastOk } from './toast';
 import { THEME_LABEL, useTheme } from './theme';
 import type { Theme } from './theme';
 import { Button, Field } from './kit';
 import { APP_VERSION, NORMS_CHECKED, NORMS_EDITION } from '../core/version';
 import { CHANGELOG_URL } from './release';
+import { SecTitle } from './fields';
 
 export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lib, dispatch } = useLib();
@@ -29,7 +30,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
       <div className="logo-row">
         {b.logo ? <img className="logo-img" src={b.logo} alt="Логотип" /> : <span className="muted">Логотип не загружен</span>}
         <Button onClick={() => file.current?.click()}>{b.logo ? 'Заменить логотип' : 'Загрузить логотип'}</Button>
-        {b.logo && <Button variant="ghost" onClick={() => dispatch({ t: 'logo', value: '' })}>Убрать логотип</Button>}
+        {b.logo && <Button variant="ghost" onClick={() => { dispatch({ t: 'logo', value: '' }); toastOk('Логотип убран'); }}>Убрать логотип</Button>}
         <input
           ref={file}
           className="pj-file"
@@ -42,7 +43,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
             const input = e.target;
             if (!f) return;
             scaleLogo(f).then(
-              v => dispatch({ t: 'logo', value: v }),
+              v => { dispatch({ t: 'logo', value: v }); toastOk('Логотип загружен, он появится в отчётах'); },
               (e: unknown) => toastBad(e instanceof Error && e.message === 'too large' ? 'Логотип больше 10 МБ. Выберите файл поменьше.' : 'Не удалось прочитать изображение. Подойдёт PNG, JPG или SVG.')
             );
             input.value = '';
@@ -62,7 +63,7 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
           <div className="lib-r" key={t.id}>
             <span className="lib-n">{t.name}</span>
             <span className="muted">{t.lines.length} {plural(t.lines.length, ['группа', 'группы', 'групп'])}</span>
-            <ArmButton variant="danger" label="Удалить" armedLabel="Точно?" onRun={() => dispatch({ t: 'delTpl', id: t.id })} />
+            <ArmButton variant="danger" label="Удалить" armedLabel="Точно?" onRun={() => { dispatch({ t: 'delTpl', id: t.id }); toastOk('Шаблон удалён: ' + t.name); }} />
           </div>
         ))}
       </div>
@@ -72,13 +73,12 @@ export function LibSheet({ open, onClose }: { open: boolean; onClose: () => void
         <span className="muted">{nPrices} {plural(nPrices, ['позиция', 'позиции', 'позиций'])}</span>
       </div>
       <div className="data-row">
-        <ArmButton variant="ghost" label="Очистить все цены" armedLabel="Точно очистить?" disabled={nPrices === 0} onRun={() => dispatch({ t: 'clearPrices' })} />
+        <ArmButton variant="ghost" label="Очистить все цены" armedLabel="Точно очистить?" disabled={nPrices === 0} onRun={() => { dispatch({ t: 'clearPrices' }); toastOk('Цены очищены'); }} />
       </div>
       </TabPanel>
       <TabPanel scope="lib" id="view" cur={tab}>
-      <h3 className="sec-t" id="themeT">Тема оформления</h3>
+      <SecTitle id="themeT" tipLabel="О теме" tip="«Авто» следует настройке телефона или компьютера. Выбор хранится на этом устройстве.">Тема оформления</SecTitle>
       <Seg<Theme> name="theme" labelledBy="themeT" value={theme} onChange={setTheme} items={(Object.keys(THEME_LABEL) as Theme[]).map(k => [k, THEME_LABEL[k]])} />
-      <p className="muted">«Авто» следует настройке телефона или компьютера. Выбор хранится на этом устройстве.</p>
       <h3 className="sec-t">О программе</h3>
       <p className="muted">Ampli {APP_VERSION}. Нормы: {NORMS_EDITION}, сверено {NORMS_CHECKED}.</p>
       <p><a className="link" href={CHANGELOG_URL} target="_blank" rel="noopener noreferrer">Что нового</a></p>

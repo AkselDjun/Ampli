@@ -86,3 +86,13 @@ export function AddChips<K extends string>({ label, items, onAdd }: { label: str
     </div>
   );
 }
+
+export function SecTitle({ id, tip, tipLabel, children }: { id?: string; tip?: ReactNode; tipLabel?: string; children: ReactNode }) {
+  if (!tip) return <h3 className="sec-t" id={id}>{children}</h3>;
+  return (
+    <div className="sec-tip">
+      <h3 className="sec-t" id={id}>{children}</h3>
+      <Tip label={tipLabel}>{tip}</Tip>
+    </div>
+  );
+}
