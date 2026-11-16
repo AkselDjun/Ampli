@@ -11,14 +11,15 @@ for (const width of [320, 375]) {
   test.describe(`phone ${width} px`, () => {
     test.use({ viewport: { width, height: 700 } });
 
-    test('puts the renumber link under the heading', async ({ page, isMobile }) => {
+    test('puts the renumber link beside the heading on one line', async ({ page, isMobile }) => {
       test.skip(!isMobile, 'phone layout');
       await start(page);
       const head = (await page.locator('.list-head h2').boundingBox())!;
       await expect(page.locator('.list-head .lv-link')).toHaveCount(1);
       const link = (await page.locator('.list-head .lv-link').boundingBox())!;
-      expect(Math.round(link.x)).toBe(Math.round(head.x));
-      expect(link.y).toBeGreaterThan(head.y + head.height - 1);
+      expect(link.x).toBeGreaterThan(head.x + head.width);
+      expect(Math.abs(link.y + link.height / 2 - (head.y + head.height / 2))).toBeLessThan(4);
+      expect(link.x + link.width).toBeLessThanOrEqual(width);
       expect(Math.round(link.height)).toBeGreaterThanOrEqual(44);
     });
 

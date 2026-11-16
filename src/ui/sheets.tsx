@@ -31,7 +31,7 @@ import { estimate } from '../core/spec';
 import { DrawingA3 } from './parts';
 import type { PrintMode } from './WorkSheet';
 import { Button, DataTable, Field, MoneyInput } from './kit';
-import { ChoiceField, Empty, StepField } from './fields';
+import { ChoiceField, Empty, SecTitle, StepField } from './fields';
 
 type CfgNum = Extract<Action, { t: 'cfgStep' }>['field'];
 import { APP_VERSION, NORMS_EDITION } from '../core/version';
@@ -72,7 +72,7 @@ export function NetSheet({
       <StepField {...num('alloc', p.cfg.alloc)} tour="alloc" d={1} min={1} step={0.5} label="Выделенная мощность, кВт" aria="Выделенная мощность, кВт" tipLabel="О выделенной мощности" tip={'Из технических условий на ' + where + '. С ней сравнивается расчётная мощность в табло вверху.'} />
       <PowerFitBlock p={p} dispatch={dispatch} />
       <ChoiceField<string> name="met" label="Прокладка кабеля" tipLabel="О прокладке" tip="Скрытая: кабель в трубе в стене или кладке (способы 2 и 5A, табл. 52Н ГОСТ 30331.15). Открытая: в коробе или по поверхности (способы 4A и 11)." value={c.method} items={[['wall', 'Скрытая'], ['open', 'Открытая']]} onChange={set('method')} />
-      <ChoiceField<string> name="prot" label="Защита групп" value={c.rcdMode ? 'rcd' : 'rcbo'} items={[['rcbo', 'Дифавтомат на группу'], ['rcd', 'УЗО на помещение + автоматы']]} onChange={set('prot')} note={c.rcdMode ? 'Одно УЗО на помещение, за ним автоматы, у каждого УЗО своя шина N. Помещение указывается в карточке группы.' : 'При утечке отключится только одна группа, но щиток получится шире.'} />
+      <ChoiceField<string> name="prot" label="Защита групп" value={c.rcdMode ? 'rcd' : 'rcbo'} items={[['rcbo', 'Дифавтомат на группу'], ['rcd', 'УЗО на помещение + автоматы']]} onChange={set('prot')} tipLabel="О защите групп" tip="Дифавтомат на группу: при утечке отключится только одна группа, но щиток получится шире. УЗО на помещение: одно УЗО на помещение, за ним автоматы, у каждого УЗО своя шина N. Помещение указывается в карточке группы." />
       <ChoiceField<string> name="afdd" label="УЗДП, защита от дугового пробоя" tipLabel="Об УЗДП" tip="Отключает линию при искрении в плохом контакте или повреждённом кабеле, которое автомат и УЗО не видят. Нормы РБ для квартир его не требуют: ставится по желанию, чаще на розетки спален и детских. Только для однофазных групп." value={c.afdd} items={[['off', 'Нет'], ['sock', 'На розетки'], ['all', 'На все группы']]} onChange={set('afdd')} />
       <fieldset className="net-opts">
         <legend className="lbl">Защита всего щитка</legend>
@@ -226,7 +226,7 @@ export function ProjectsSheet({
           const cur = x.id === state.cur;
           return (
             <div className={'pj' + (cur ? ' cur' : '')} key={x.id}>
-              <button className="pj-open" type="button" aria-current={cur ? 'true' : undefined} onClick={() => { dispatch({ t: 'openProject', id: x.id }); onClose(); }}>
+              <button className="pj-open" type="button" aria-current={cur ? 'true' : undefined} onClick={() => { dispatch({ t: 'openProject', id: x.id }); onClose(); if (!cur) toastOk('Открыт проект: ' + (x.name || 'Без названия')); }}>
                 <span className="pj-name">{x.name || 'Без названия'}</span>
                 <span className="pj-sub">{cur ? 'Открыт · ' : ''}{x.lines.length} {plural(x.lines.length, ['группа', 'группы', 'групп'])} · {dfmt(x.updated)}</span>
               </button>
@@ -280,8 +280,7 @@ export function ProjectsSheet({
       </div>
       </TabPanel>
       <TabPanel scope="pj" id="share" cur={tab}>
-      <h3 className="sec-t">Перенести на другое устройство</h3>
-      <p className="muted">Ссылка и QR-код открывают этот проект на другом телефоне или компьютере. Файл подходит для архива и отправки почтой.</p>
+      <SecTitle tipLabel="Как перенести проект" tip="Ссылка и QR-код открывают этот проект на другом телефоне или компьютере. Файл подходит для архива и отправки почтой.">Перенести на другое устройство</SecTitle>
       <ShareBlock p={p} />
       <div className="data-row">
         <Button variant="ghost" onClick={exportFile}>Сохранить в файл</Button>
@@ -312,8 +311,8 @@ export function ProjectsSheet({
           }}
         />
       </div>
-      <h3 className="sec-t">Резервная копия</h3>
-      <p className="muted">Все проекты в одном файле. Сохраняйте его раз в неделю: если браузер очистит данные или телефон сломается, проекты можно вернуть кнопкой «Открыть из файла». {last ? 'Последняя копия: ' + dfmt(last) + '.' : 'Копия ещё не сохранялась.'}</p>
+      <SecTitle tipLabel="Зачем резервная копия" tip="Все проекты в одном файле. Сохраняйте его раз в неделю: если браузер очистит данные или телефон сломается, проекты можно вернуть кнопкой «Открыть из файла».">Резервная копия</SecTitle>
+      <p className="muted">{last ? 'Последняя копия: ' + dfmt(last) + '.' : 'Копия ещё не сохранялась.'}</p>
       <div className="data-row">
         <Button variant="ghost" onClick={() => { void exportBackup(state.list).then(ok => {
           if (ok) {
@@ -322,13 +321,11 @@ export function ProjectsSheet({
           } else note('Не удалось сохранить файл на этом устройстве', true);
         }); }}>Сохранить резервную копию</Button>
       </div>
-      <h3 className="sec-t">Шаблон</h3>
-      <p className="muted">Группы и параметры этого проекта станут заготовкой для новых проектов.</p>
+      <SecTitle tipLabel="Что такое шаблон" tip="Группы и параметры этого проекта станут заготовкой для новых проектов.">Шаблон</SecTitle>
       <div className="data-row">
         <Button variant="ghost" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines, floor: p.floor, weak: p.weak }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</Button>
       </div>
-      <h3 className="sec-t">Мои данные</h3>
-      <p className="muted">Реквизиты для отчёта, шаблоны и цены.</p>
+      <SecTitle tipLabel="Что в моих данных" tip="Реквизиты для отчёта, шаблоны и цены.">Мои данные</SecTitle>
       <div className="data-row">
         <Button variant="ghost" onClick={onLib}>Открыть мои данные</Button>
       </div>

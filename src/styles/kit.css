@@ -192,7 +192,9 @@ input:hover:not(:focus),select:hover:not(:focus){border-color:var(--ink-2)}
 }
 .tabbar{display:flex;gap:var(--s-1);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;flex:none;padding:var(--s-1-5) calc(var(--pad) - var(--s-3)) 0}
 .tabbar-b{flex:none;min-height:44px;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--ink-2);font:inherit;font-weight:600;font-size:var(--t-m);cursor:pointer;white-space:nowrap;border-radius:var(--r-s) var(--r-s) 0 0;padding:0 var(--s-3)}
-.tabpanel>.sec-t:not(:first-child){margin-top:var(--s-2)}
+.tabpanel>:is(.sec-t,.sec-tip):not(:first-child){margin-top:var(--s-2)}
+.sec-tip{display:flex;align-items:center;gap:var(--s-1);min-height:24px}
+.sec-tip .tip{margin-left:0}
 
 .lbl-row{display:flex;align-items:center;gap:var(--s-1-5);min-height:20px}
 .lbl-row .lbl{display:inline}

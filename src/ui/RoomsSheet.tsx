@@ -103,7 +103,7 @@ export function RoomsSheet({
         <section className="card room" key={r.id}>
           <div className="card-head">
             <input className="ed-name" aria-label="Название комнаты" value={r.name} onChange={e => dispatch({ t: 'roomName', id: r.id, value: e.target.value })} />
-            <ArmButton variant="danger" size="sm" label="Удалить" armedLabel="Точно?" onRun={() => dispatch({ t: 'roomDel', id: r.id })} />
+            <ArmButton variant="danger" size="sm" label="Удалить" armedLabel="Точно?" onRun={() => { dispatch({ t: 'roomDel', id: r.id }); toastOk('Комната удалена: ' + (r.name.trim() || 'без названия')); }} />
           </div>
           {r.apps.map(ap => {
             const we = fieldErr('w', ap.w);

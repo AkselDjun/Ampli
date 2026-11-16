@@ -8,6 +8,7 @@ import { ChoiceField } from './fields';
 import { IconAlert, IconDone } from './Icons';
 import type { PrintMode } from './WorkSheet';
 import { Button } from './kit';
+import { toastOk } from './toast';
 
 const pillK = (k: string): string => (k === 'none' ? 'warn' : k);
 
@@ -83,7 +84,7 @@ export function OldSheet({ open, onClose, p, a, dispatch, onPrint }: { open: boo
           <Findings o={p.old} a={a} />
           <div className="copy-row">
             <Button variant="primary" onClick={() => onPrint('old')}>Печать заключения</Button>
-            <ArmButton label="Очистить ответы" onRun={() => dispatch({ t: 'oldReset' })} />
+            <ArmButton label="Очистить ответы" onRun={() => { dispatch({ t: 'oldReset' }); toastOk('Ответы очищены'); }} />
           </div>
         </>
       )}

@@ -24,7 +24,7 @@ describe('WorkSheet', () => {
     fireEvent.click(boxes[0]);
     fireEvent.click(boxes[1]);
     expect(stored().list[0].checks).toBeTruthy();
-    expect(d.querySelector('.wk-prog')?.textContent).toContain('2 из');
+    expect(d.querySelector('.wk-prog .meter')?.getAttribute('aria-label')).toContain('2 из');
     fireEvent.click(boxes[1]);
     change(d.querySelector('#pDate') as HTMLElement, '2026-03-04');
     change(d.querySelector('#pBy') as HTMLElement, 'Иванов');
