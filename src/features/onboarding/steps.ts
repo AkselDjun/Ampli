@@ -125,7 +125,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     scene: TOUR_SCENE.PROJECTS,
     icon: 'projects',
     title: 'Проекты и резервные копии',
-    text: 'Ведите несколько объектов, отправляйте проект ссылкой или файлом. Данные хранятся только на этом устройстве.',
+    text: 'Ведите несколько объектов, отправляйте проект ссылкой, QR-кодом или файлом. Данные хранятся только на этом устройстве.',
     tip: 'Раз в неделю сохраняйте резервную копию в файл.',
     targets: ['[data-tour-view="projects"] .tabbar', '[data-tour-view="projects"]']
   }

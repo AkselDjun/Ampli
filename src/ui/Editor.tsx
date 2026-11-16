@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Calc, Line, LineType, Phase, Photo } from '../core/types';
 import { NB, fmt, fs, plural, pn, round2 } from '../core/format';
@@ -22,7 +22,6 @@ import { useLib } from '../store/LibContext';
 import { parseApps } from '../core/quick';
 import { appCos, zoneOf } from '../core/calc';
 import { Button, IconButton } from './kit';
-import { Mic } from './parts';
 import { BP, useMedia } from './media';
 
 const CHIP_MAX = 6;
@@ -414,7 +413,6 @@ export function Editor({
                   setQuickMsg((r.apps.length ? 'Добавлено: ' + r.apps.length : 'Ничего не добавлено') + (r.skipped.length ? '. Не разобрано: ' + r.skipped.join('; ') : ''));
                   if (r.apps.length) setQuick(r.skipped.join('\n'));
                 }}>Добавить</Button>
-                <Suspense fallback={null}><Mic label="Диктовать список приборов" onText={t => setQuick(q => (q && q.trim() ? q.replace(/[\s,]*$/, '') + ', ' : '') + t)} /></Suspense>
                 <span role="status" className="muted">{quickMsg}</span>
               </div>
             </div>

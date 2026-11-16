@@ -38,7 +38,7 @@ export function paletteCommands({ p, a, dispatch, setSheet, openSheet, pick, add
     { id: 'work', group: 'Монтаж', label: 'Приёмка', words: 'монтаж чек-лист протокол паспорт', run: () => setSheet(APP_SHEET.WORK) },
     { id: 'panel', group: 'Монтаж', label: 'Замеры на щитке', words: 'режим на щитке протокол петля изоляция узо', run: () => openSheet(APP_SHEET.WORK, 'meas') },
     { id: 'proto', group: 'Монтаж', label: 'Печать протокола замеров', words: 'pdf', run: () => doPrint('proto') },
-    { id: 'pass', group: 'Монтаж', label: 'Печать паспорта для владельца', words: 'pdf', run: () => doPrint('passport') },
+    { id: 'pass', group: 'Монтаж', label: 'Печать паспорта для владельца', words: 'pdf qr', run: () => doPrint('passport') },
     { id: 'hidden', group: 'Монтаж', label: 'Печать акта скрытых работ', words: 'pdf освидетельствование штробы', run: () => doPrint('hidden') },
     { id: 'accept', group: 'Монтаж', label: 'Печать акта приёмки работ', words: 'pdf сдача гарантия', run: () => doPrint('accept') },
     { id: 'a3', group: 'Документы', label: 'Печать схемы A3 по ГОСТ', words: 'pdf чертёж однолинейная штамп', run: () => doPrint('a3') },
