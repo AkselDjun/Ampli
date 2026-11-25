@@ -424,8 +424,8 @@ describe('small window fixes', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Проекты:/ }));
     const d = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Проекты') as HTMLElement;
     const share = d.querySelector('#pj-tp-share') as HTMLElement;
-    expect(Array.from(share.querySelectorAll('h3')).map(h => h.textContent)).toEqual(['Перенести на другое устройство', 'Резервная копия', 'Шаблон', 'Мои данные']);
-    expect(share.querySelectorAll('.sec-tip .tip [role="tooltip"]').length).toBe(4);
+    expect(Array.from(share.querySelectorAll('h3')).map(h => h.textContent)).toEqual(['Перенести на другое устройство', 'Пароль для файлов', 'Резервная копия', 'Шаблон', 'Мои данные']);
+    expect(share.querySelectorAll('.sec-tip .tip [role="tooltip"]').length).toBe(5);
   });
   it('keeps one primary action on the documents tab of acceptance', () => {
     render(<App />);
