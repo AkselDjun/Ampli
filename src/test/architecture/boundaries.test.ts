@@ -62,7 +62,7 @@ describe('architecture boundaries', () => {
     };
     walk('src/main.tsx');
     expect(seen.has('src/ui/App.tsx')).toBe(true);
-    for (const lazy of ['fflate', 'src/core/share.ts', 'src/core/qr.ts', 'src/ui/Qr.tsx', 'src/ui/Palette.tsx', 'src/ui/Assumptions.tsx', 'src/core/assumptions.ts']) expect(seen.has(lazy), lazy).toBe(false);
+    for (const lazy of ['fflate', 'src/core/share.ts', 'src/core/qr.ts', 'src/ui/Qr.tsx', 'src/ui/Palette.tsx', 'src/ui/Assumptions.tsx', 'src/core/assumptions.ts', 'src/core/errlog.ts', 'src/core/problem.ts', 'src/store/errlog.ts', 'src/ui/problem.ts', 'src/ui/ProblemBlock.tsx']) expect(seen.has(lazy), lazy).toBe(false);
   });
 
   it('keeps the texts of the tour out of the first screen', () => {

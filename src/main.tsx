@@ -11,7 +11,9 @@ import { PWA_ENABLED } from './core/flags';
 import { initTheme } from './ui/theme';
 import { readLocation } from './app/location';
 import { loadCodec } from './ui/linkCodec';
+import { installErrorCapture } from './store/errcatch';
 
+installErrorCapture(window);
 initTheme();
 
 const print = document.createElement('link');

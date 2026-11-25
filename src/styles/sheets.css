@@ -422,3 +422,7 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
 .asm-sw.sw-n{background:var(--wire-n)}
 .asm-sw.sw-pe{background:linear-gradient(135deg,var(--wire-pe) 0 50%,var(--wire-pe-2) 50% 100%)}
 .asm-notes{margin:0;padding-left:var(--s-5);display:grid;gap:var(--s-1-5);font-size:var(--t-sm)}
+.problem-d>summary{cursor:pointer;font-weight:600;color:var(--accent);min-height:44px;display:flex;align-items:center}
+.problem-pre{margin:0;max-height:240px;overflow:auto;padding:var(--s-3);border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface-2);color:var(--ink);font-family:var(--font-num);font-size:var(--t-xs);white-space:pre-wrap;overflow-wrap:anywhere}
+.problem-pre:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.problem-act a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}

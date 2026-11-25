@@ -13,3 +13,4 @@ export function updatedFrom(): string | null {
     return null;
   }
 }
+export const SUPPORT_URL = 'https://github.com/AkselDjun/Ampli/issues/new';

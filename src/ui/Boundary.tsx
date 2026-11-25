@@ -1,5 +1,6 @@
 import { Component } from 'react';
-import type { ReactNode } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
+import { catchError } from '../store/errcatch';
 import { BOOT_KEY, KEY, clearProjects, readProjects } from '../store/storage';
 import { clearLocation } from '../app/location';
 import { backupArchive } from '../store/backup';
@@ -29,6 +30,22 @@ export class Boundary extends Component<{ children: ReactNode }, { err: boolean;
   static getDerivedStateFromError(): { err: boolean; message: string } {
     return { err: true, message: '' };
   }
+
+  componentDidCatch(error: unknown, info: ErrorInfo): void {
+    catchError('render', error, info.componentStack ?? '');
+  }
+
+  report = async (): Promise<void> => {
+    try {
+      const { problemFile } = await import('./problem');
+      const file = await problemFile('Экран «Что-то пошло не так»');
+      download(file.name, file.text, 'text/plain;charset=utf-8');
+      this.setState({ message: 'Отчёт скачан. Отправьте файл разработчику, в нём нет данных проектов.' });
+    } catch (e) {
+      void e;
+      this.setState({ message: 'Не удалось подготовить отчёт об ошибке.' });
+    }
+  };
 
   save = async (): Promise<void> => {
     try {
@@ -75,6 +92,7 @@ export class Boundary extends Component<{ children: ReactNode }, { err: boolean;
         <div className="crash-act">
           <Button onClick={() => void this.save()}>Скачать резервную копию</Button>
           <Button onClick={() => window.location.reload()}>Перезагрузить</Button>
+          <Button variant="ghost" onClick={() => void this.report()}>Скачать отчёт об ошибке</Button>
           <Button variant="danger" onClick={() => void this.reset()}>Скачать копию и начать заново</Button>
         </div>
         {this.state.message && <p role="status">{this.state.message}</p>}
