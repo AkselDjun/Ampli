@@ -23,6 +23,7 @@ import { toast, toastBad, toastOk } from './toast';
 import { IOS_STEPS, install, usePwa } from './pwa';
 import { PWA_ENABLED } from '../core/flags';
 import { ShareBlock } from './ShareBlock';
+import { LockSettings } from './LockSettings';
 import { LaborTable, Totals, totals } from './Labor';
 import { PowerFitBlock } from './PowerFit';
 import { TierSettings } from './Tiers';
@@ -377,6 +378,8 @@ export function ProjectsSheet({
           } else note('Не удалось сохранить файл на этом устройстве', true);
         }); }}>Сохранить резервную копию</Button>
       </div>
+      <SecTitle tipLabel="Что делает замок" tip="Без замка данные хранятся в браузере в открытом виде. С замком их можно прочитать только после ввода пароля.">Замок на устройстве</SecTitle>
+      <LockSettings list={state.list} cur={state.cur} />
       <SecTitle tipLabel="Что такое шаблон" tip="Группы и параметры этого проекта станут заготовкой для новых проектов.">Шаблон</SecTitle>
       <div className="data-row">
         <Button variant="ghost" onClick={() => { libDispatch({ t: 'addTpl', name: p.name || 'Мой шаблон', cfg: p.cfg, lines: p.lines, floor: p.floor, weak: p.weak }); note('Шаблон сохранён: ' + (p.name || 'Мой шаблон')); }}>Сохранить как шаблон</Button>

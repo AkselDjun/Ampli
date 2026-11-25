@@ -398,3 +398,6 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
   .cmp-pick{grid-area:pick}
   .cmp-t{min-width:0}
 }
+.lock-set{display:grid;gap:var(--s-3)}
+.lock-code{font-family:var(--font-num);font-size:var(--t-l);font-weight:600;letter-spacing:.06em;padding:var(--s-3);border:var(--field-bw) dashed var(--line-strong);border-radius:var(--r-m);background:var(--surface-2);overflow-wrap:anywhere}
+.lock-ok{display:flex;gap:var(--s-2);align-items:flex-start;cursor:pointer}
