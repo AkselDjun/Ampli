@@ -7,6 +7,8 @@ import { weakSpec } from './weak';
 import { floorSpec } from './floor';
 import { supplySpec } from './supplies';
 import { houseSpec } from './house';
+import { assembly } from './assembly';
+import type { AsmBus } from './assembly';
 
 export function buildSpec(a: Calc): SpecItem[] {
   const c = a.c;
@@ -61,9 +63,14 @@ export function buildSpec(a: Calc): SpecItem[] {
   dev.forEach(d => items.push({ name: d.name, qty: d.n + ' шт', note: d.g.join(', '), n: d.n, unit: 'шт' }));
   if (a.inS) items.push({ name: inCableName(c, a.inS), qty: 'по месту', note: 'кабель ввода в щиток', n: null, unit: 'м' });
   cab.forEach(cc => items.push({ name: cc.name, qty: cc.m > 0 ? Math.ceil(cc.m * 1.1) + ' м' : 'длина не задана', note: cc.g.join(', ') + (cc.m > 0 ? '; запас 10 %' : ''), n: cc.m > 0 ? Math.ceil(cc.m * 1.1) : null, unit: 'м' }));
-  const nN = Math.max(1, a.uzos.length);
-  items.push({ name: 'Шина N (нулевая)', qty: nN + ' шт', note: a.uzos.length ? 'своя на каждое УЗО: ' + a.uzos.map(u => u.zone).join(', ') : '', n: nN, unit: 'шт' });
-  items.push({ name: 'Шина PE (заземления)', qty: '1 шт', note: '', n: 1, unit: 'шт' });
+  const asm = assembly(a);
+  const holes = (b: AsmBus): string => (b.count > 1 ? b.count + ' × ' : '') + b.holes + ' отв.';
+  const nBus = asm.buses.filter(b => b.kind === 'n');
+  const peBus = asm.buses.filter(b => b.kind === 'pe');
+  const nN = Math.max(1, nBus.reduce((s, b) => s + b.count, 0));
+  const nPE = Math.max(1, peBus.reduce((s, b) => s + b.count, 0));
+  items.push({ name: 'Шина N (нулевая)', qty: nN + ' шт', note: nBus.length ? nBus.map(b => (b.uzo === undefined ? 'ввод' : a.uzos[b.uzo].zone) + ' ' + holes(b)).join('; ') + (a.uzos.length ? '; своя на каждое УЗО' : '') : '', n: nN, unit: 'шт' });
+  items.push({ name: 'Шина PE (заземления)', qty: nPE + ' шт', note: peBus.map(holes).join('; '), n: nPE, unit: 'шт' });
   if (a.boxes > 0) items.push({ name: 'Коробка распределительная ' + BOX_NAME[c.box], qty: a.boxes + ' шт', note: 'по одной на группу с отводами', n: a.boxes, unit: 'шт' });
   items.push(...houseSpec(a));
   items.push(...supplySpec(a));

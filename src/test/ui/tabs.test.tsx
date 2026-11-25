@@ -57,7 +57,7 @@ describe('sheets use tabs and one panel at a time', () => {
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
   };
   const cases: [string, string, string[]][] = [
-    ['Отчёт', 'Отчёт и спецификация', ['Группы', 'Схема', 'Смета', 'Основания']],
+    ['Отчёт', 'Отчёт и спецификация', ['Группы', 'Схема', 'Сборка', 'Смета', 'Основания']],
     ['Приёмка', 'Приёмка', ['Чек-лист 0/10', 'Замеры 0/14', 'Документы']]
   ];
   cases.forEach(([opener, title, labels]) => {

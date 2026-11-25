@@ -89,4 +89,14 @@
   .printdoc h2,.printdoc h3{break-after:avoid;page-break-after:avoid}
   .printdoc td.nw{white-space:nowrap}
   .printdoc.a3doc svg.a3+svg.a3{break-before:page;page-break-before:always}
+  .printdoc .asm{gap:3mm}
+  .printdoc .asm-rail{break-inside:avoid;border:0.3mm solid var(--print-line);background:transparent;padding:2mm}
+  .printdoc .asm-devs{background:transparent;padding:0;gap:1.5mm}
+  .printdoc .asm-dev{border:0.3mm solid var(--print-black);background:transparent;color:var(--print-ink);min-width:16mm;padding:1mm 1.5mm;font-size:8pt}
+  .printdoc .asm-dev b{color:var(--print-ink);font-size:9pt}
+  .printdoc .asm-dev span,.printdoc .asm-dev small,.printdoc .asm .muted{color:var(--print-ink-2)}
+  .printdoc .asm-comb{border-left-color:var(--print-black);font-size:9pt}
+  .printdoc .asm-sw{-webkit-print-color-adjust:exact;print-color-adjust:exact;border-color:var(--print-black)}
+  .printdoc .asm .dt-wrap{overflow:visible;border:0}
+  .printdoc .asm-notes{font-size:9pt}
 }

@@ -24,6 +24,7 @@ import { IOS_STEPS, install, usePwa } from './pwa';
 import { PWA_ENABLED } from '../core/flags';
 import { ShareBlock } from './ShareBlock';
 import { LockSettings } from './LockSettings';
+import { AssemblyView } from './AssemblyView';
 import { LaborTable, Totals, totals } from './Labor';
 import { PowerFitBlock } from './PowerFit';
 import { TierSettings } from './Tiers';
@@ -449,13 +450,18 @@ export function ReportSheet({
         <span className="foot-st">Лист А3 по ГОСТ 21.613</span>
         <Button variant="primary" disabled={empty} onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>
       </>
+    ) : tab === 'assembly' ? (
+      <>
+        <span className="foot-st">{empty ? 'Добавьте группу с приборами, чтобы напечатать лист' : 'Лист для сборки щитка на столе'}</span>
+        <Button variant="primary" disabled={empty} onClick={() => onPrint('assembly')}>Печать листа сборки</Button>
+      </>
     ) : (
       <>
         <span className="foot-st">{empty ? 'Добавьте группу с приборами, чтобы напечатать отчёт' : ''}</span>
         <Button disabled={empty} onClick={copy}>Скопировать отчёт</Button>
         <Button variant="primary" disabled={empty} onClick={() => onPrint('report')}>Печать / PDF</Button>
       </>
-    )} bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Основания' }]} />}>
+    )} bar={<Tabs scope="rep" label="Разделы отчёта" cur={tab} onChange={setTab} items={[{ id: 'groups', label: 'Группы' }, { id: 'scheme', label: 'Схема' }, { id: 'assembly', label: 'Сборка' }, { id: 'estimate', label: 'Смета' }, { id: 'notes', label: 'Основания' }]} />}>
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label="Текст отчёта" />}
       <TabPanel scope="rep" id="groups" cur={tab} lazy>
       {empty && <Empty className="rep-empty">В проекте пока нет групп с приборами. Добавьте группу, и здесь появятся таблица, схема и смета.</Empty>}
@@ -510,6 +516,9 @@ export function ReportSheet({
         <p className="muted">Принципиальная схема распределительной сети по ГОСТ 21.613 с таблицей групп и основной надписью. Реквизиты организации берутся из «Мои данные», разработчик из карточки проекта.</p>
         <div className="a3-wrap"><Suspense fallback={null}><DrawingA3 p={p} a={a} company={lib.brand.company} /></Suspense></div>
       </details>
+      </TabPanel>
+      <TabPanel scope="rep" id="assembly" cur={tab} lazy>
+      <AssemblyView a={a} />
       </TabPanel>
       <TabPanel scope="rep" id="estimate" cur={tab} lazy>
       <div className="copy-row">
