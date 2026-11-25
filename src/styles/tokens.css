@@ -42,7 +42,7 @@
   --sh-1:0 1px 3px rgba(0,0,0,0.10),0 1px 1px rgba(0,0,0,0.04);
   --sh-2:0 4px 12px rgba(0,0,0,0.06),0 12px 32px rgba(0,0,0,0.10);
   --ring:0 0 0 3px var(--accent-soft);
-  --glass:rgba(249,249,251,0.8);
+  --glass:rgba(249,249,251,0.94);
   --on-fill:#FFFFFF;
   --highlight:#FFFFFF;
   --paper:#FFFFFF;
@@ -53,6 +53,7 @@
   --ty-light:#0D7F8C;
   --ty-socket:#6B46C1;
   --ty-power:#B5317F;
+  --ty-light-tile:#0B7480;--ty-socket-tile:#6B46C1;--ty-power-tile:#B02D78;
   --ty-light-soft:#DDF3F5;
   --ty-light-ink:#0A5F69;
   --ty-power-soft:#FBE3F0;
@@ -167,7 +168,7 @@
   --veil:rgba(0,0,0,0.7);
     --sh-1:0 1px 2px rgba(0,0,0,0.35);
     --sh-2:0 8px 28px rgba(0,0,0,0.5);
-    --glass:rgba(28,28,30,0.8);
+    --glass:rgba(28,28,30,0.94);
     --l1:#C48A52;
     --l2:#C9D3DC;
     --l3:#7C8894;
@@ -178,7 +179,7 @@
     --ty-light-ink:#5ED3DE;
     --ty-power-soft:#3A1A2C;
     --ty-power-ink:#F383C2;
-    --disp-bg:#000000;
+    --disp-bg:#1C1C1E;
     --toast-edge:#3B4D5E;
     --dev-body:linear-gradient(180deg,#2b3946,#1d2833);
     --dev-ink:#E6ECF1;
@@ -221,7 +222,7 @@
   --veil:rgba(0,0,0,0.7);
   --sh-1:0 1px 2px rgba(0,0,0,0.35);
   --sh-2:0 8px 28px rgba(0,0,0,0.5);
-  --glass:rgba(28,28,30,0.8);
+  --glass:rgba(28,28,30,0.94);
   --l1:#C48A52;
   --l2:#C9D3DC;
   --l3:#7C8894;
@@ -232,7 +233,7 @@
   --ty-light-ink:#5ED3DE;
   --ty-power-soft:#3A1A2C;
   --ty-power-ink:#F383C2;
-  --disp-bg:#000000;
+  --disp-bg:#1C1C1E;
   --toast-edge:#3B4D5E;
   --dev-body:linear-gradient(180deg,#2b3946,#1d2833);
   --dev-ink:#E6ECF1;
