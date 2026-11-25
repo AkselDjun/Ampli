@@ -9,7 +9,7 @@ for (const width of [320, 360, 390]) {
       await page.addInitScript(() => localStorage.setItem('ampli-onboarding-v1', 'done'));
       await page.goto('/');
       await page.locator('.rows .row').filter({ hasText: 'Варочная' }).first().click();
-      await expect(page.locator('#editor')).toBeVisible();
+      await expect(page.locator('#editor .ed')).toBeVisible();
       await page.evaluate(() => window.scrollTo(0, 900));
       const mini = page.locator('.ed-mini');
       await expect(mini).toBeVisible();
@@ -50,6 +50,7 @@ test.describe('editor header with wider glyphs at 360 px', () => {
     await page.goto('/');
     await page.addStyleTag({ content: '*{letter-spacing:.6px !important}' });
     await page.locator('.rows .row').filter({ hasText: 'Варочная' }).first().click();
+    await expect(page.locator('#editor .ed')).toBeVisible();
     await page.evaluate(() => window.scrollTo(0, 900));
     const mini = page.locator('.ed-mini');
     await expect(mini).toBeVisible();

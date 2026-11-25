@@ -342,6 +342,7 @@ describe('Owner passport', () => {
   };
 
   it('stores the group room typed in the editor', () => {
+    wide(true);
     seed(() => undefined);
     render(<App />);
     change(ed().querySelector('input.ed-zone') as HTMLInputElement, 'Кухня и коридор');

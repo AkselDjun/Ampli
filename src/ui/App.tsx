@@ -13,10 +13,9 @@ import { useBackClose } from './back';
 import { updatedFrom } from './release';
 import { APP_VERSION } from '../core/version';
 import { GroupList } from './GroupList';
-import { Editor } from './Editor';
 import { PanelPane, Summary } from './Side';
 import { SheetNavContext } from './sheetnav';
-import { CompareSheet, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
+import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { IncomingSheet } from './IncomingSheet';
@@ -46,6 +45,7 @@ export function App() {
   const loc = useAppLocation({ bootSheet: !tourAtStart });
   const { sheet, setSheet, pushSheet, openSheet, tabOf, setTab, incoming, shared, owner } = loc;
   const wide = useMedia(BP.desktop);
+  const beside = useMedia(BP.aboveTablet);
   const [whyOpen, setWhyOpen] = useState(false);
   const [pal, setPal] = useState(false);
   const scrollPos = useRef(0);
@@ -265,6 +265,8 @@ export function App() {
             onSample={onSample}
           />
           <div className="main-col">
+            {beside || view === APP_VIEW.EDITOR ? (
+            <Suspense fallback={<section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы" />}>
             <Editor
               l={selected}
               idx={idx}
@@ -275,6 +277,8 @@ export function App() {
               onDeleted={() => { if (!mediaMatches(BP.desktop)) goBack(); }}
               photos={p.photos ?? []}
             />
+            </Suspense>
+            ) : <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы" />}
             <aside className="col col-res" aria-label="Итоги расчёта">
               <PanelPane a={da} sel={state.sel} hot={hot} onHot={setHot} onPick={pick} onMove={moveLine} />
               <Summary key={'s' + (view === APP_VIEW.PANEL)} a={da} solo={view === APP_VIEW.PANEL} onBalance={balance} />
