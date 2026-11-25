@@ -4,6 +4,9 @@ import type { WorkPrices } from './labor';
 export const SHARE_PREFIX = '#p=';
 export const OWNER_PREFIX = '#o=';
 export const ESTIMATE_PREFIX = '#e=';
+export const LOCKED_VERSION = 's1.';
+
+export const isLockedLink = (data: string): boolean => data.trim().startsWith(LOCKED_VERSION);
 
 export const TIER_MARKUP_MAX = 300;
 

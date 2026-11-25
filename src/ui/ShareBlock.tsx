@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import type { Project } from '../core/types';
-import { estimateUrl, ownerUrl, shareUrl } from '../core/share';
+import { estimateUrl, lockedUrl, ownerUrl, shareUrl } from '../core/share';
 import { buildSpec } from '../core/spec';
 import { calcAll } from '../core/calc';
 import { tierPriceNames } from '../core/tiers';
@@ -20,12 +20,13 @@ const TEXT: Record<Kind, { btn: string; qr: string; big: string; tip: string }> 
   estimate: { btn: 'Ссылка для клиента', qr: 'QR-код сметы', big: 'Смета слишком большая для QR-кода. Отправьте ссылку.', tip: 'Клиент увидит смету и итог «работы + материалы» с текущими ценами, без редактора. Кнопкой «Согласовать» он отправит вам подтверждение.' }
 };
 
-export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boolean; kind?: Kind }) {
+export function ShareBlock({ p, owner = false, kind, password = '' }: { p: Project; owner?: boolean; kind?: Kind; password?: string }) {
   const k: Kind = kind ?? (owner ? 'owner' : 'project');
   const { lib } = useLib();
   const [fallback, setFallback] = useState<string | null>(null);
   const [send, setSend] = useState<{ url: string; text: string } | null>(null);
-  const [qrAt, setQrAt] = useState<number | null>(null);
+  const [qr, setQr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const ta = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (fallback !== null && ta.current) {
@@ -33,6 +34,12 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
       ta.current.select();
     }
   }, [fallback]);
+  const locked = k !== 'estimate' && password !== '';
+  const withUrl = (run: (u: string) => void | Promise<void>): void | Promise<void> => {
+    if (!locked) return run(url());
+    setBusy(true);
+    return lockedUrl(p, window.location.href, password, k === 'owner').then(run).finally(() => setBusy(false));
+  };
   const url = (at: number = Date.now()): string => {
     const base = window.location.href;
     if (k === 'owner') return ownerUrl(p, base);
@@ -45,25 +52,31 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
     return estimateUrl({ p, prices, labor: lib.labor, company: lib.brand.company, contacts: lib.brand.contacts, at, ...(lib.tiers.on ? { tiers: lib.tiers.markup } : {}) }, base);
   };
   const t = TEXT[k];
-  const copy = async () => {
-    const u = url();
+  const copyUrl = async (u: string) => {
     try {
       await navigator.clipboard.writeText(u);
       setFallback(null);
-      toastOk('Ссылка скопирована');
+      toastOk(locked ? 'Ссылка с паролем скопирована. Пароль отправьте отдельно' : 'Ссылка скопирована');
     } catch (e) {
       void e;
       setFallback(u);
       toast('Ссылка выделена, скопируйте её вручную');
     }
   };
+  const copy = () => withUrl(copyUrl);
   const toggle = () => {
     if (send) {
       setSend(null);
       return;
     }
-    const u = url();
-    setSend({ url: u, text: shareText(k, p, u) });
+    return withUrl(u => setSend({ url: u, text: shareText(k, p, u, locked) }));
+  };
+  const toggleQr = () => {
+    if (qr !== null) {
+      setQr(null);
+      return;
+    }
+    return withUrl(setQr);
   };
   const copyText = async (text: string) => {
     try {
@@ -85,13 +98,13 @@ export function ShareBlock({ p, owner = false, kind }: { p: Project; owner?: boo
   return (
     <div className="share">
       <div className="data-row">
-        <Button variant="ghost" onClick={copy}><IconShare /> {t.btn}</Button>
-        <Button variant="ghost" aria-expanded={send !== null} onClick={toggle}>Отправить в Viber или Telegram</Button>
-        <Button variant="ghost" aria-pressed={qrAt !== null} onClick={() => setQrAt(qrAt === null ? Date.now() : null)}>QR-код</Button>
+        <Button variant="ghost" disabled={busy} onClick={() => { void copy(); }}><IconShare /> {locked ? t.btn + ' с паролем' : t.btn}</Button>
+        <Button variant="ghost" disabled={busy} aria-expanded={send !== null} onClick={() => { void toggle(); }}>Отправить в Viber или Telegram</Button>
+        <Button variant="ghost" disabled={busy} aria-pressed={qr !== null} onClick={() => { void toggleQr(); }}>QR-код</Button>
         <Tip>{t.tip}</Tip>
       </div>
       {fallback !== null && <textarea ref={ta} readOnly value={fallback} aria-label={t.btn} />}
-      {qrAt !== null && <Suspense fallback={null}><Qr text={url(qrAt)} label={t.qr} tooBig={t.big} /></Suspense>}
+      {qr !== null && <Suspense fallback={null}><Qr text={qr} label={t.qr} tooBig={t.big} /></Suspense>}
       {send && (
         <div className="send">
           <label className="lbl" htmlFor={'msg-' + k}>Текст сообщения</label>
