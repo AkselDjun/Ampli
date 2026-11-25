@@ -8,7 +8,7 @@ const SLUG: Partial<Record<AppSheet, string>> = {
 };
 
 const TABS: Partial<Record<AppSheet, readonly string[]>> = {
-  [APP_SHEET.REPORT]: ['groups', 'scheme', 'estimate', 'notes'],
+  [APP_SHEET.REPORT]: ['groups', 'scheme', 'assembly', 'estimate', 'notes'],
   [APP_SHEET.WORK]: ['check', 'meas', 'docs']
 };
 

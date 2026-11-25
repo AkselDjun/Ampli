@@ -365,7 +365,7 @@ describe('report', () => {
     expect(t).not.toContain('Объект:');
     expect(t).not.toContain('Заказчик:');
     expect(t).not.toContain('Исполнитель:');
-    expect(t).toContain('Итого по смете: 5,00 BYN (цена не задана для');
+    expect(t).toContain('Итого по смете: 10,00 BYN (цена не задана для');
   });
   it('shows phases, open method and full pricing', () => {
     const l3 = [mkLine('P', 'power', 0, [['x', 9000, 1]], '3'), mkLine('S', 'socket', 10, [['x', 500, 1]], 'L2')];

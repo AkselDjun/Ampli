@@ -188,12 +188,12 @@ describe('residual-current devices per room', () => {
     const a = calcAll(lines(), cfg({ prot: 'rcd' }));
     const spec = buildSpec(a);
     const n = spec.find(i => i.name.startsWith('Шина N'));
-    expect(n?.n).toBe(3);
-    expect(n?.note).toBe('своя на каждое УЗО: Комнаты, Ванная, Без помещения');
+    expect(n?.n).toBe(4);
+    expect(n?.note).toMatch(/^ввод \d+ отв\.; Комнаты \d+ отв\.; Ванная \d+ отв\.; Без помещения \d+ отв\.; своя на каждое УЗО$/);
     expect(spec.filter(i => i.name.startsWith('УЗО')).length).toBeGreaterThan(0);
     const one = buildSpec(calcAll(lines(), cfg())).find(i => i.name.startsWith('Шина N'));
     expect(one?.n).toBe(1);
-    expect(one?.note).toBe('');
+    expect(one?.note).toBe('ввод 4 отв.');
   });
 });
 

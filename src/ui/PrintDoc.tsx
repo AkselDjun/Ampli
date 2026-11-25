@@ -26,6 +26,7 @@ import { actDate, actsOf, hiddenMaterials, hiddenWorks, ruDate, warrantyText } f
 import { useNow } from './now';
 import { stamp } from '../core/version';
 import { isEvLine } from '../core/ev';
+import { AssemblyView } from './AssemblyView';
 
 function ProtoTable({ a }: { a: Calc }) {
   const rows = protocolRows(a);
@@ -208,6 +209,18 @@ function StickersDoc({ p, a }: { p: Project; a: Calc }) {
   );
 }
 
+function AssemblyDoc({ p, a }: { p: Project; a: Calc }) {
+  const now = useNow();
+  return (
+    <>
+      <h1>Сборка щитка</h1>
+      <p className="pd-sub">{p.name || 'Без названия'}{p.address ? ', ' + p.address : ''}. Порядок аппаратов, гребёнки, шины и подключение кабелей групп.</p>
+      <AssemblyView a={a} print />
+      <div className="pd-foot">{stamp(dfmt(now))}</div>
+    </>
+  );
+}
+
 const STK_MAX = 10;
 
 function TagsDoc({ p, a }: { p: Project; a: Calc }) {
@@ -239,6 +252,7 @@ export function PrintDoc({ p, a, mode = 'report' }: { p: Project; a: Calc; mode?
   if (mode === 'hidden') return <div className="printdoc act" aria-hidden="true"><HiddenDoc p={p} a={a} /></div>;
   if (mode === 'wiring') return <div className="printdoc" aria-hidden="true"><BrandHead /><WiringDoc p={p} /></div>;
   if (mode === 'old') return <div className="printdoc act" aria-hidden="true"><OldDoc p={p} a={a} /></div>;
+  if (mode === 'assembly') return <div className="printdoc" aria-hidden="true"><BrandHead /><AssemblyDoc p={p} a={a} /></div>;
   if (mode === 'accept') return <div className="printdoc act" aria-hidden="true"><AcceptDoc p={p} a={a} /></div>;
   return <ReportDoc p={p} a={a} />;
 }
