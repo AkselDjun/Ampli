@@ -24,6 +24,7 @@ import { IOS_STEPS, install, usePwa } from './pwa';
 import { PWA_ENABLED } from '../core/flags';
 import { ShareBlock } from './ShareBlock';
 import { LockSettings } from './LockSettings';
+import { ProblemBlock } from './ProblemBlock';
 import { LaborTable, Totals, totals } from './Labor';
 import { PowerFitBlock } from './PowerFit';
 import { TierSettings } from './Tiers';
@@ -388,6 +389,7 @@ export function ProjectsSheet({
       <div className="data-row">
         <Button variant="ghost" onClick={onLib}>Открыть мои данные</Button>
       </div>
+      <ProblemBlock />
       <InstallBlock />
       </TabPanel>
     </Sheet>
