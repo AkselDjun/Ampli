@@ -15,7 +15,7 @@ import { usePack } from './pack';
 import { Button, Field, IconButton } from './kit';
 import { SecTitle } from './fields';
 
-export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3' | 'hidden' | 'wiring' | 'accept' | 'old';
+export type PrintMode = 'report' | 'proto' | 'stickers' | 'tags' | 'passport' | 'a3' | 'hidden' | 'wiring' | 'accept' | 'old' | 'assembly';
 
 export function WorkSheet({
   open, onClose, p, a, dispatch, onPrint, tab: tabIn, onTab

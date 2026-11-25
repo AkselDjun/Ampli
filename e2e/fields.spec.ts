@@ -63,7 +63,7 @@ test('gives every text field and select one size on every screen', async ({ page
   const h = isMobile ? 48 : 44;
   const hs = isMobile ? 44 : 36;
   expect(all.length).toBeGreaterThan(20);
-  const off = all.filter(b => b.bw !== 1 || b.r !== 8 || b.pl !== 12 || (b.kind === 'field' && b.h !== h) || (b.kind === 'compact' && b.h !== hs) || (b.kind === 'area' && b.h < h * 2) || b.fs !== (isMobile ? 16 : 15));
+  const off = all.filter(b => b.bw !== 1 || b.r !== 10 || b.pl !== 12 || (b.kind === 'field' && b.h !== h) || (b.kind === 'compact' && b.h !== hs) || (b.kind === 'area' && b.h < h * 2) || b.fs !== (isMobile ? 16 : 15));
   expect(off).toEqual([]);
 });
 

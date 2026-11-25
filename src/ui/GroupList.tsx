@@ -93,7 +93,7 @@ const GroupRow = memo(function GroupRow({
         }}
         {...handlers}
       >
-        <span className="no">Г{i + 1}</span>
+        <span className="no" data-t={x.l.type}>Г{i + 1}</span>
         <span className="row-main">
           <span className="row-name">{x.l.name || 'Без названия'}</span>
           <span className="row-sub"><span className="row-ty" data-t={x.l.type}>{TYPE_IC[x.l.type]}<span className="vh">{TYPES[x.l.type].short}</span></span>{rowSub(x, three).map((t, k) => <span key={k}>{t}</span>)}</span>

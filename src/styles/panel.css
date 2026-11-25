@@ -2,7 +2,7 @@
 .schem-wrap:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .schem{display:block;width:100%;height:auto;max-width:640px;color:var(--ink)}
-.schem-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-m);padding:var(--s-3);background:var(--surface)}
+.schem-wrap{overflow-x:auto;border:1px solid transparent;border-radius:var(--r-m);padding:var(--s-3);background:var(--surface)}
 .chk{margin:0;padding:0;list-style:none;display:grid;gap:var(--s-2)}
 .chk li{font-size:var(--t-sm);line-height:1.4;padding:var(--s-2) var(--s-3);border-radius:var(--r-m);background:var(--surface-2);color:var(--ink-2);display:grid;gap:var(--s-2)}
 .chk li.ok{background:var(--ok-soft);color:var(--ok)}
@@ -32,7 +32,7 @@
 .mb>.pm:not(:last-child){margin-bottom:0}
 .mb-list[open] .ms-list{margin-top:var(--s-2)}
 .pm-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--s-3)}
-.pm{border:1px solid var(--line);border-radius:var(--r-l);padding:var(--s-4);background:var(--surface);display:grid;gap:var(--s-3)}
+.pm{border:1px solid transparent;border-radius:var(--r-l);padding:var(--s-4);background:var(--surface);display:grid;gap:var(--s-3)}
 .pm.bad{border-color:var(--bad)}
 .pm.ok{border-color:var(--ok)}
 .pm-head{display:flex;align-items:center;gap:var(--s-3)}
@@ -229,7 +229,7 @@ button.dev.sel{outline:3px solid var(--accent);outline-offset:2px;z-index:2}
 .bd-r.sel .bd-b{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
 @media (prefers-reduced-motion:reduce){button.dev.hot{transform:none}}
 .pack{list-style:none;margin:0 0 var(--s-3);padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-1-5)}
-.pack li{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
+.pack li{display:flex;align-items:stretch;border:1px solid transparent;border-radius:var(--r-m);background:var(--surface)}
 .pack label{flex:1;min-width:0;display:flex;gap:var(--s-3);align-items:center;padding:var(--s-2) var(--s-3);cursor:pointer}
 .pk-t{display:grid;min-width:0}
 .pk-t b{font-weight:600}

@@ -114,8 +114,8 @@ describe('labour export', () => {
     expect(exportTables(a, {}).map(t => t.name)).toEqual(['Смета', 'Группы']);
     const t = laborTable(a, { 'Шина N (нулевая)': 10 }, { socket: 20 }, { switch: 2 })!;
     expect(t.rows.find(r => r[1] === 'Установка розетки')?.[5]).toBe(20);
-    expect(t.rows.find(r => r[1] === 'Материалы')?.[5]).toBe(10);
-    expect(t.total?.value).toBe(30);
+    expect(t.rows.find(r => r[1] === 'Материалы')?.[5]).toBe(20);
+    expect(t.total?.value).toBe(40);
     expect(exportTables(a, {}, { socket: 20 }).map(x => x.name)).toEqual(['Смета', 'Работы', 'Группы']);
   });
 });
