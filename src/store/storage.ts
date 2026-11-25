@@ -1,6 +1,7 @@
 import type { Project } from '../core/types';
 import { normProject, sampleProject } from '../core/project';
 import { SCHEMA, needsMigration } from '../core/migrate';
+import { isSealedRecord, lockEnabled, openJson, openText, sealJson, sealText, vaultOpen } from './vault';
 
 export { SCHEMA };
 
@@ -24,7 +25,7 @@ export interface Boot extends Store {
   order: string[];
 }
 
-interface BootRecord {
+export interface BootRecord {
   schema: number;
   cur: string;
   order: string[];
@@ -33,7 +34,7 @@ interface BootRecord {
 
 export function keepPremigration(raw: unknown[]): void {
   const old = raw.filter(needsMigration);
-  if (!old.length) return;
+  if (!old.length || lockEnabled()) return;
   try {
     if (localStorage.getItem(PREMIGRATE_KEY)) return;
     localStorage.setItem(PREMIGRATE_KEY, JSON.stringify({ at: Date.now(), schema: SCHEMA, list: old }));
@@ -64,10 +65,27 @@ const fromOld = (): Store | null => {
   return null;
 };
 
+let openedBoot: { raw: string; rec: unknown } | null = null;
+
+const BOOT_ID = 'boot';
+
+export async function prepareLockedBoot(): Promise<void> {
+  openedBoot = null;
+  const raw = localStorage.getItem(BOOT_KEY);
+  if (!raw || !raw.includes('"vault"')) return;
+  try {
+    openedBoot = { raw, rec: await openText(raw, BOOT_ID) };
+  } catch (e) {
+    void e;
+  }
+}
+
 const fromBoot = (): Boot | null => {
   const r = localStorage.getItem(BOOT_KEY);
   if (!r) return null;
-  const o = JSON.parse(r) as Partial<BootRecord> | null;
+  const sealed = r.includes('"vault"');
+  if (sealed && openedBoot?.raw !== r) return null;
+  const o = (sealed ? openedBoot?.rec : JSON.parse(r)) as Partial<BootRecord> | null;
   if (o) keepPremigration([o.project]);
   const pr = o ? normProject(o.project, true) : null;
   if (!o || !pr) return null;
@@ -104,6 +122,7 @@ export function loadStore(): Store {
 }
 
 export function saveStore(s: Store): boolean {
+  if (lockEnabled()) return false;
   try {
     localStorage.setItem(KEY, JSON.stringify(s));
     return true;
@@ -113,9 +132,24 @@ export function saveStore(s: Store): boolean {
   }
 }
 
+let bootChain: Promise<void> = Promise.resolve();
+
+export function sealBoot(rec: BootRecord): Promise<void> {
+  bootChain = bootChain.then(async () => {
+    const text = await sealText(rec, BOOT_ID);
+    if (vaultOpen()) localStorage.setItem(BOOT_KEY, text);
+  }).catch(() => undefined);
+  return bootChain;
+}
+
 export function saveBoot(cur: Project, order: string[]): boolean {
   try {
     const rec: BootRecord = { schema: SCHEMA, cur: cur.id, order, project: cur };
+    if (lockEnabled()) {
+      if (!vaultOpen()) return false;
+      void sealBoot(rec);
+      return true;
+    }
     localStorage.setItem(BOOT_KEY, JSON.stringify(rec));
     return true;
   } catch (e) {
@@ -186,20 +220,41 @@ const done = (t: IDBTransaction): Promise<void> =>
     t.onabort = () => reject(t.error ?? new Error('aborted'));
   });
 
-export async function readProjects(): Promise<Project[]> {
+export async function readRawProjects(): Promise<unknown[]> {
   const t = await tx('readonly');
   const all = t.objectStore(STORE).getAll();
+  const keys = t.objectStore(STORE).getAllKeys();
   await done(t);
-  keepPremigration(all.result as unknown[]);
-  return (all.result as unknown[]).map(x => normProject(x, true)).filter((x): x is Project => !!x);
+  const ids = keys.result.map(String);
+  const out: unknown[] = [];
+  for (const [i, x] of (all.result as unknown[]).entries()) {
+    if (!isSealedRecord(x)) out.push(x);
+    else if (vaultOpen()) {
+      try {
+        out.push(await openJson(x, 'p:' + ids[i]));
+      } catch (e) {
+        void e;
+      }
+    }
+  }
+  return out;
+}
+
+export async function readProjects(): Promise<Project[]> {
+  const raw = await readRawProjects();
+  keepPremigration(raw);
+  return raw.map(x => normProject(x, true)).filter((x): x is Project => !!x);
 }
 
 export async function writeProjects(put: Project[], del: string[], clear = false): Promise<void> {
   if (!put.length && !del.length && !clear) return;
+  const lock = lockEnabled();
+  if (lock && !vaultOpen()) throw new Error('vault locked');
+  const recs = lock ? await Promise.all(put.map(p => sealJson(p, 'p:' + p.id))) : put;
   const t = await tx('readwrite');
   const s = t.objectStore(STORE);
   if (clear) s.clear();
-  put.forEach(p => s.put(p, p.id));
+  put.forEach((p, i) => s.put(recs[i], p.id));
   del.forEach(id => s.delete(id));
   await done(t);
 }

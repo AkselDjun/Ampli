@@ -1,9 +1,30 @@
+import { isSealedRecord, lockEnabled, openRecord, sealRecord, vaultOpen } from './vault';
+import type { SealedRecord } from './vault';
+
 const DB_NAME = 'ampli-photos';
 const STORE = 'p';
 
 interface Rec {
   type: string;
-  data: ArrayBuffer;
+  data?: ArrayBuffer;
+  sealed?: SealedRecord;
+}
+
+export async function toRec(id: string, type: string, data: ArrayBuffer): Promise<Rec> {
+  if (!lockEnabled()) return { type, data };
+  if (!vaultOpen()) throw new Error('vault locked');
+  return { type, sealed: await sealRecord(new Uint8Array(data), 'f:' + id) };
+}
+
+export async function fromRec(id: string, rec: Rec): Promise<Blob | null> {
+  if (rec.data) return new Blob([rec.data], { type: rec.type });
+  if (!isSealedRecord(rec.sealed) || !vaultOpen()) return null;
+  try {
+    return new Blob([await openRecord(rec.sealed, 'f:' + id)], { type: rec.type });
+  } catch (e) {
+    void e;
+    return null;
+  }
 }
 
 let dbp: Promise<IDBDatabase> | null = null;
@@ -37,13 +58,13 @@ async function run<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRe
 }
 
 export async function putPhoto(id: string, blob: Blob): Promise<void> {
-  const rec: Rec = { type: blob.type || 'image/jpeg', data: await blob.arrayBuffer() };
+  const rec = await toRec(id, blob.type || 'image/jpeg', await blob.arrayBuffer());
   await run('readwrite', s => s.put(rec, id));
 }
 
 export async function putPhotos(items: Map<string, Blob>): Promise<void> {
   if (!items.size) return;
-  const records = await Promise.all([...items].map(async ([id, blob]) => [id, { type: blob.type || 'image/jpeg', data: await blob.arrayBuffer() }] as const));
+  const records = await Promise.all([...items].map(async ([id, blob]) => [id, await toRec(id, blob.type || 'image/jpeg', await blob.arrayBuffer())] as const));
   const d = await db();
   await new Promise<void>((resolve, reject) => {
     const tx = d.transaction(STORE, 'readwrite');
@@ -57,7 +78,22 @@ export async function putPhotos(items: Map<string, Blob>): Promise<void> {
 
 export async function getPhoto(id: string): Promise<Blob | null> {
   const rec = await run<Rec | undefined>('readonly', s => s.get(id));
-  return rec ? new Blob([rec.data], { type: rec.type }) : null;
+  return rec ? fromRec(id, rec) : null;
+}
+
+export async function resealPhotos(): Promise<number> {
+  const ids = await photoKeys();
+  let n = 0;
+  for (const id of ids) {
+    const rec = await run<Rec | undefined>('readonly', s => s.get(id));
+    if (!rec) continue;
+    const blob = await fromRec(id, rec);
+    if (!blob) continue;
+    const next = await toRec(id, rec.type, await blob.arrayBuffer());
+    await run('readwrite', s => s.put(next, id));
+    n++;
+  }
+  return n;
 }
 
 export async function delPhoto(id: string): Promise<void> {
