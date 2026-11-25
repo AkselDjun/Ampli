@@ -4,6 +4,7 @@ import { assembly } from '../core/assembly';
 import { fs, plural } from '../core/format';
 import { DataTable } from './kit';
 import { Empty } from './fields';
+import '../styles/assembly.css';
 
 const SW: Record<Core, string> = { L: 'l1', L1: 'l1', L2: 'l2', L3: 'l3', N: 'n', PE: 'pe' };
 
