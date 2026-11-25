@@ -16,7 +16,7 @@
   --ease-out:cubic-bezier(.2,.8,.2,1);
   --ease-spring:cubic-bezier(.32,.72,0,1);--dur-sheet:.42s;
 
-  --z-menu:20;--z-safe:30;--z-bar:31;--z-dropdown:35;--z-tabs:40;--z-pop:45;--z-sheet:50;--z-tip:80;--z-hint:85;--z-toast:90;--z-skip:100;--z-tour:110;
+  --z-menu:20;--z-safe:30;--z-bar:31;--z-dropdown:35;--z-tabs:40;--z-pop:45;--z-sheet:50;--z-tip:80;--z-hint:85;--z-toast:90;--z-skip:100;--z-tour:110;--z-lock:120;
 
   --bg:#F2F2F7;
   --surface:#FFFFFF;

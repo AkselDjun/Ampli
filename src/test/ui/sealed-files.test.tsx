@@ -33,7 +33,7 @@ describe('files protected with a password', () => {
     render(<App />);
     await settle();
     const d = openShare();
-    expect(d.textContent).toContain('Без пароля файлы сохраняются открытыми');
+    expect(d.textContent).toContain('Без пароля ссылка и файлы открываются у любого');
     type(d.querySelector('#filePass') as HTMLInputElement, 'секрет');
     expect(d.textContent).toContain('Запишите пароль');
     click(d, 'Сохранить резервную копию');

@@ -14,6 +14,16 @@ describe('messages for messengers', () => {
     expect(shareText('project', proj(), 'U')).toBe('Проект «Без названия». Откройте ссылку, чтобы добавить его себе: U');
     expect(shareText('project', proj({ name: 'Кв. 5', address: 'Гродно' }), 'U')).toBe('Проект «Кв. 5» по адресу Гродно. Откройте ссылку, чтобы добавить его себе: U');
   });
+  it('keeps names, client and address out of the text of a locked link', () => {
+    const p = proj({ name: 'Кв. Петрова', client: 'Петров', address: 'Гродно' });
+    for (const k of ['project', 'owner'] as const) {
+      const t = shareText(k, p, 'U', true);
+      expect(t).toContain('защищён паролем');
+      expect(t).toContain('Пароль пришлю отдельным сообщением');
+      expect(t.endsWith('U')).toBe(true);
+      expect(t).not.toMatch(/Петров|Гродно/);
+    }
+  });
   it('builds a Viber forward link', () => {
     expect(viberUrl('Смета: https://a/#e=1')).toBe('viber://forward?text=' + encodeURIComponent('Смета: https://a/#e=1'));
   });

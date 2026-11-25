@@ -5,7 +5,9 @@ export type MsgKind = 'project' | 'owner' | 'estimate';
 const where = (p: Project): string => (p.address.trim() ? ' по адресу ' + p.address.trim() : '');
 const hello = (p: Project): string => (p.client.trim() ? 'Здравствуйте, ' + p.client.trim() + '!' : 'Здравствуйте!');
 
-export function shareText(kind: MsgKind, p: Project, url: string): string {
+export function shareText(kind: MsgKind, p: Project, url: string, locked = false): string {
+  if (locked && kind === 'owner') return 'Паспорт электрощитка защищён паролем. Пароль пришлю отдельным сообщением. Сохраните ссылку: ' + url;
+  if (locked && kind === 'project') return 'Проект Ampli защищён паролем. Пароль пришлю отдельным сообщением. Откройте ссылку, чтобы добавить проект себе: ' + url;
   if (kind === 'estimate') return hello(p) + ' Подготовил смету на электромонтаж' + where(p) + '. Посмотреть работы и материалы и согласовать можно по ссылке: ' + url;
   if (kind === 'owner') return hello(p) + ' Паспорт электрощитка' + where(p) + ': какая группа на каком автомате, сколько можно включать и что делать, если автомат выключился. Сохраните ссылку: ' + url;
   return 'Проект «' + (p.name.trim() || 'Без названия') + '»' + where(p) + '. Откройте ссылку, чтобы добавить его себе: ' + url;

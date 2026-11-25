@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Project } from '../core/types';
 import type { EstimateShare } from '../core/links';
+import { isLockedLink } from '../core/links';
 import { LINK_FAIL_TEXT, getCodec, loadCodec } from '../ui/linkCodec';
 import { toastBad } from '../ui/toast';
 import { useSheetStack } from './useSheetStack';
@@ -13,22 +14,34 @@ type Codec = NonNullable<ReturnType<typeof getCodec>>;
 
 export const BROKEN_LINK_TEXT = 'Ссылка повреждена или обрезана, её не удалось открыть. Попросите отправить её ещё раз.';
 
+export interface LockedLink {
+  kind: 'project' | 'owner';
+  data: string;
+}
+
+export type UnlockResult = 'ok' | 'wrong' | 'broken';
+
 interface Opened {
   incoming: Project | null;
   owner: Project | null;
   shared: EstimateShare | null;
+  locked: LockedLink | null;
 }
 
-const NONE: Opened = { incoming: null, owner: null, shared: null };
+const NONE: Opened = { incoming: null, owner: null, shared: null, locked: null };
+
+const lockedOf = (link: AppLink | undefined): LockedLink | null => (link && link.kind !== 'estimate' && isLockedLink(link.data) ? { kind: link.kind, data: link.data } : null);
 
 const unpack = (c: Codec, link: AppLink | undefined): Opened => {
   if (!link) return NONE;
+  const locked = lockedOf(link);
+  if (locked) return { ...NONE, locked };
   if (link.kind === 'project') return { ...NONE, incoming: c.unpackProject(link.data) };
   if (link.kind === 'owner') return { ...NONE, owner: c.unpackProject(link.data) };
   return { ...NONE, shared: c.unpackEstimate(link.data) };
 };
 
-const opened = (o: Opened): boolean => !!(o.incoming || o.owner || o.shared);
+const opened = (o: Opened): boolean => !!(o.incoming || o.owner || o.shared || o.locked);
 
 export interface AppLocationApi {
   sheet: SheetId;
@@ -41,6 +54,9 @@ export interface AppLocationApi {
   incoming: Project | null;
   owner: Project | null;
   shared: EstimateShare | null;
+  locked: LockedLink | null;
+  unlock: (password: string) => Promise<UnlockResult>;
+  dropLocked: () => void;
   dropIncoming: () => void;
   closeShared: () => void;
   ownerToIncoming: () => void;
@@ -59,7 +75,8 @@ export function useAppLocation({ bootSheet }: { bootSheet: boolean }): AppLocati
   const [tabs, setTabs] = useState<Partial<Record<AppSheet, string>>>({});
   const [links, setLinks] = useState<Opened>(() => {
     const c = getCodec();
-    return c ? unpack(c, readLocation().link) : NONE;
+    const link = readLocation().link;
+    return c ? unpack(c, link) : { ...NONE, locked: lockedOf(link) };
   });
 
   const openSheet = useCallback((id: AppSheet, tab?: string) => {
@@ -82,7 +99,7 @@ export function useAppLocation({ bootSheet }: { bootSheet: boolean }): AppLocati
     let live = true;
     const applyLink = (c: Codec, loc: AppLocation, full: boolean) => {
       const next = unpack(c, loc.link);
-      if (full) setLinks(prev => ({ incoming: loc.link?.kind === 'project' ? next.incoming : prev.incoming, owner: next.owner, shared: next.shared }));
+      if (full) setLinks(prev => ({ incoming: loc.link?.kind === 'project' ? next.incoming : prev.incoming, owner: next.owner, shared: next.shared, locked: next.locked && prev.locked?.data === next.locked.data ? prev.locked : next.locked }));
       if (!loc.link || opened(next)) return;
       toastBad(BROKEN_LINK_TEXT);
       clearLocation();
@@ -97,7 +114,7 @@ export function useAppLocation({ bootSheet }: { bootSheet: boolean }): AppLocati
         void loadCodec().then(m => { if (live) applyLink(m, loc, true); }, () => { if (live) toastBad(LINK_FAIL_TEXT); });
         return;
       }
-      if (full) setLinks(prev => ({ ...NONE, incoming: prev.incoming }));
+      if (full) setLinks(prev => ({ ...NONE, incoming: prev.incoming, locked: lockedOf(loc.link) }));
     };
     const boot = bootLoc.current;
     const t = window.setTimeout(() => { if (boot?.sheet) openSheet(boot.sheet, boot.tab); }, 0);
@@ -123,8 +140,33 @@ export function useAppLocation({ bootSheet }: { bootSheet: boolean }): AppLocati
   }, []);
   const ownerToIncoming = useCallback(() => {
     clearLocation();
-    setLinks(prev => ({ incoming: prev.owner, owner: null, shared: null }));
+    setLinks(prev => ({ incoming: prev.owner, owner: null, shared: null, locked: null }));
+  }, []);
+  const locked = links.locked;
+  const unlock = useCallback(async (password: string): Promise<UnlockResult> => {
+    if (!locked) return 'broken';
+    let p: Project | null;
+    try {
+      const c = await loadCodec();
+      p = await c.unlockProject(locked.data, password);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'wrong password') return 'wrong';
+      p = null;
+    }
+    if (!p) {
+      setLinks(prev => ({ ...prev, locked: null }));
+      clearLocation();
+      toastBad(BROKEN_LINK_TEXT);
+      return 'broken';
+    }
+    const found = p;
+    setLinks(prev => (locked.kind === 'owner' ? { ...prev, owner: found, locked: null } : { ...prev, incoming: found, locked: null }));
+    return 'ok';
+  }, [locked]);
+  const dropLocked = useCallback(() => {
+    setLinks(prev => ({ ...prev, locked: null }));
+    clearLocation();
   }, []);
 
-  return { sheet, nav, setSheet, pushSheet, openSheet, tabOf, setTab, ...links, dropIncoming, closeShared, ownerToIncoming };
+  return { sheet, nav, setSheet, pushSheet, openSheet, tabOf, setTab, ...links, unlock, dropLocked, dropIncoming, closeShared, ownerToIncoming };
 }

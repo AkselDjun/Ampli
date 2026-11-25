@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeAll, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { IDBFactory } from 'fake-indexeddb';
+import { resetVault } from '../store/vault';
 import { resetPhotoCache } from '../store/photos';
 import { resetProjectDb } from '../store/storage';
 import { dismissToast } from '../ui/toast';
@@ -44,6 +45,7 @@ beforeEach(() => {
   localStorage.setItem('ampli-onboarding-fresh', '2');
   resetPhotoCache();
   resetProjectDb();
+  resetVault();
   (globalThis as { indexedDB: IDBFactory }).indexedDB = new IDBFactory();
   URL.createObjectURL = (() => 'blob:test/' + ++seq) as typeof URL.createObjectURL;
   URL.revokeObjectURL = vi.fn();
