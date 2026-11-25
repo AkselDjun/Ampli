@@ -20,6 +20,7 @@ import { CompareSheet, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, O
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { IncomingSheet } from './IncomingSheet';
+import { LockedLinkSheet } from './LockedLinkSheet';
 import { uniqName } from '../core/project';
 import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
@@ -173,7 +174,7 @@ export function App() {
   const busy = sheet !== null || (view === APP_VIEW.EDITOR && !wide);
   const tour = useTour({
     atStart: tourAtStart,
-    quiet: !!incoming || viewOnly,
+    quiet: !!incoming || !!loc.locked || viewOnly,
     sheet,
     nav: loc.nav,
     busy,
@@ -307,6 +308,7 @@ export function App() {
         <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} tab={tabOf(APP_SHEET.WORK)} onTab={onWorkTab} /></Hold>
         </SheetNavContext.Provider>
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={loc.dropIncoming} />
+        <LockedLinkSheet link={loc.locked} onUnlock={loc.unlock} onCancel={loc.dropLocked} />
         <Hold open={tourOpen}>{tourOpen && <Onboarding onScene={tour.onTourScene} onClose={tour.closeTour} onFinish={tour.finishTour} chapter={tour.tourChapter} mode={tour.tourMode} />}</Hold>
       </div>
       <Hold open={printing}>{printModes.map(m => <PrintDoc key={m} p={p} a={a} mode={m} />)}</Hold>

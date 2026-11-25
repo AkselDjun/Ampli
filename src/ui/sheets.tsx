@@ -319,14 +319,13 @@ export function ProjectsSheet({
       </div>
       </TabPanel>
       <TabPanel scope="pj" id="share" cur={tab}>
-      <SecTitle tipLabel="Как перенести проект" tip="Ссылка и QR-код открывают этот проект на другом телефоне или компьютере. Файл подходит для архива и отправки почтой.">Перенести на другое устройство</SecTitle>
-      <ShareBlock p={p} />
-      <SecTitle tipLabel="Зачем пароль" tip="Файл проекта и резервная копия сохранятся зашифрованными. Открыть их можно только с этим паролем, восстановить забытый пароль нельзя.">Пароль для файлов</SecTitle>
+      <SecTitle tipLabel="Как перенести проект" tip="Ссылка и QR-код открывают этот проект на другом телефоне или компьютере. Файл подходит для архива и отправки почтой. С паролем проект шифруется, забытый пароль восстановить нельзя.">Перенести на другое устройство</SecTitle>
       <div className="meta-grid">
-        <Field id="filePass" label="Пароль, необязательно" wide hint={pass ? 'Файлы будут зашифрованы. Запишите пароль: без него файл не открыть.' : 'Без пароля файлы сохраняются открытыми.'}>
+        <Field id="filePass" label="Пароль для ссылки и файлов, необязательно" wide hint={pass ? 'Ссылка, файл проекта и резервная копия будут зашифрованы. Запишите пароль и отправляйте его отдельно от ссылки: без него их не открыть.' : 'Без пароля ссылка и файлы открываются у любого, кто их получит.'}>
           <input id="filePass" type="password" autoComplete="new-password" maxLength={128} value={pass} onChange={e => setPass(e.target.value)} />
         </Field>
       </div>
+      <ShareBlock p={p} password={pass} />
       <div className="data-row">
         <Button variant="ghost" onClick={() => { void exportFile(); }}>Сохранить в файл</Button>
         <Button variant="ghost" onClick={() => file.current?.click()}>Открыть из файла</Button>
