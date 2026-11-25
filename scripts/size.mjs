@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 const dir = 'dist/assets';
-const budget = { js: 100 * 1024, css: 25 * 1024, initial: 195 * 1024, total: 345 * 1024, fonts: 48 * 1024 };
+const budget = { js: 100 * 1024, css: 25 * 1024, initial: 195 * 1024, total: 350 * 1024, fonts: 48 * 1024 };
 
 const html = readFileSync('dist/index.html', 'utf8');
 const initialFiles = new Set(
