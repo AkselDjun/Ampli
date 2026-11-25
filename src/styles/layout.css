@@ -5,7 +5,7 @@
 .col{min-width:0;display:grid;gap:var(--s-4);align-content:start}
 .main-col{display:contents}
 
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:var(--s-4);min-width:0}
+.card{background:var(--surface);border:1px solid transparent;border-radius:var(--r-l);padding:var(--s-4);min-width:0}
 .card-head{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);margin-bottom:var(--s-3)}
 .pane-sum,.pane-panel{display:grid;gap:var(--s-4);align-content:start}
 
