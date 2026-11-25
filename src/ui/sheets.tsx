@@ -36,6 +36,8 @@ import { ChoiceField, Empty, SecTitle, StepField } from './fields';
 type CfgNum = Extract<Action, { t: 'cfgStep' }>['field'];
 import { APP_VERSION, NORMS_EDITION } from '../core/version';
 import { MAX_IMPORT_BYTES, lastBackup, restorePhotos, validateBackup } from '../store/backup';
+import { WrongPassword, isSealed, seal, unseal } from '../store/seal';
+import type { Sealed } from '../store/seal';
 import { isEvLine } from '../core/ev';
 
 export function NetSheet({
@@ -130,11 +132,21 @@ export function ProjectsSheet({
   const nameRef = useRef<HTMLInputElement>(null);
   const [last, setLast] = useState(lastBackup);
   const [wasOpen, setWasOpen] = useState(open);
+  const [pass, setPass] = useState('');
+  const [locked, setLocked] = useState<Sealed | null>(null);
+  const [unlock, setUnlock] = useState('');
+  const [unlockErr, setUnlockErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   if (open !== wasOpen) {
     setWasOpen(open);
     if (open) {
       setTplOpen(false);
       setLast(lastBackup());
+    } else {
+      setPass('');
+      setLocked(null);
+      setUnlock('');
+      setUnlockErr(null);
     }
   }
   const note = (t: string, bad = false) => (bad ? toastBad(t) : toastOk(t));
@@ -148,9 +160,10 @@ export function ProjectsSheet({
       nameRef.current?.select();
     }, 0);
   };
-  const exportFile = () => {
+  const exportFile = async () => {
     try {
-      const text = JSON.stringify({ app: 'ampli', version: 1, appVersion: APP_VERSION, norms: NORMS_EDITION, ...p }, null, 2);
+      const plain = JSON.stringify({ app: 'ampli', version: 1, appVersion: APP_VERSION, norms: NORMS_EDITION, ...p }, null, 2);
+      const text = pass ? await seal(plain, pass, 'project') : plain;
       const u = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
       const a = document.createElement('a');
       a.href = u;
@@ -159,7 +172,7 @@ export function ProjectsSheet({
       a.click();
       a.remove();
       window.setTimeout(() => URL.revokeObjectURL(u), 2000);
-      note('Файл сохранён');
+      note(pass ? 'Файл сохранён с паролем' : 'Файл сохранён');
     } catch (e) {
       void e;
       note('Не удалось сохранить файл на этом устройстве', true);
@@ -176,6 +189,13 @@ export function ProjectsSheet({
     } catch (e) {
       void e;
       note('Файл не похож на проект Ampli', true);
+      return;
+    }
+    if (isSealed(o)) {
+      setLocked(o);
+      setUnlock('');
+      setUnlockErr(null);
+      window.setTimeout(() => document.getElementById('unlockPass')?.focus(), 0);
       return;
     }
     const list = (o as { list?: unknown }).list;
@@ -207,6 +227,25 @@ export function ProjectsSheet({
     }
     dispatch({ t: 'importProjects', projects: added });
     note((restore ? 'Восстановлено проектов: ' : 'Добавлено проектов: ') + added.length);
+  };
+  const openLocked = async () => {
+    if (!locked || !unlock || busy) return;
+    setBusy(true);
+    try {
+      const text = await unseal(locked, unlock);
+      setLocked(null);
+      setUnlock('');
+      setUnlockErr(null);
+      await importText(text);
+    } catch (e) {
+      if (e instanceof WrongPassword) setUnlockErr('Пароль не подходит. Проверьте раскладку и регистр');
+      else {
+        setLocked(null);
+        note('Файл повреждён или создан несовместимой версией', true);
+      }
+    } finally {
+      setBusy(false);
+    }
   };
   const n = state.list.length;
   return (
@@ -282,8 +321,14 @@ export function ProjectsSheet({
       <TabPanel scope="pj" id="share" cur={tab}>
       <SecTitle tipLabel="Как перенести проект" tip="Ссылка и QR-код открывают этот проект на другом телефоне или компьютере. Файл подходит для архива и отправки почтой.">Перенести на другое устройство</SecTitle>
       <ShareBlock p={p} />
+      <SecTitle tipLabel="Зачем пароль" tip="Файл проекта и резервная копия сохранятся зашифрованными. Открыть их можно только с этим паролем, восстановить забытый пароль нельзя.">Пароль для файлов</SecTitle>
+      <div className="meta-grid">
+        <Field id="filePass" label="Пароль, необязательно" wide hint={pass ? 'Файлы будут зашифрованы. Запишите пароль: без него файл не открыть.' : 'Без пароля файлы сохраняются открытыми.'}>
+          <input id="filePass" type="password" autoComplete="new-password" maxLength={128} value={pass} onChange={e => setPass(e.target.value)} />
+        </Field>
+      </div>
       <div className="data-row">
-        <Button variant="ghost" onClick={exportFile}>Сохранить в файл</Button>
+        <Button variant="ghost" onClick={() => { void exportFile(); }}>Сохранить в файл</Button>
         <Button variant="ghost" onClick={() => file.current?.click()}>Открыть из файла</Button>
         <input
           className="pj-file"
@@ -311,13 +356,25 @@ export function ProjectsSheet({
           }}
         />
       </div>
+      {locked && (
+        <form className="meta-grid" aria-label="Файл защищён паролем" onSubmit={e => { e.preventDefault(); void openLocked(); }}>
+          <Field id="unlockPass" label="Файл защищён паролем. Введите пароль" wide>
+            <input id="unlockPass" type="password" autoComplete="current-password" maxLength={128} value={unlock} onChange={e => { setUnlock(e.target.value); setUnlockErr(null); }} {...errAttrs(unlockErr ? { msg: unlockErr, hard: true } : null, 'unlockErr')} />
+            <Err e={unlockErr ? { msg: unlockErr, hard: true } : null} id="unlockErr" />
+          </Field>
+          <div className="data-row">
+            <Button type="submit" variant="primary" disabled={!unlock || busy}>{busy ? 'Открываю…' : 'Открыть'}</Button>
+            <Button variant="ghost" onClick={() => { setLocked(null); setUnlock(''); setUnlockErr(null); }}>Отмена</Button>
+          </div>
+        </form>
+      )}
       <SecTitle tipLabel="Зачем резервная копия" tip="Все проекты в одном файле. Сохраняйте его раз в неделю: если браузер очистит данные или телефон сломается, проекты можно вернуть кнопкой «Открыть из файла».">Резервная копия</SecTitle>
       <p className="muted">{last ? 'Последняя копия: ' + dfmt(last) + '.' : 'Копия ещё не сохранялась.'}</p>
       <div className="data-row">
-        <Button variant="ghost" onClick={() => { void exportBackup(state.list).then(ok => {
+        <Button variant="ghost" onClick={() => { void exportBackup(state.list, Date.now(), pass).then(ok => {
           if (ok) {
             setLast(lastBackup());
-            note('Резервная копия подготовлена');
+            note(pass ? 'Резервная копия с паролем подготовлена' : 'Резервная копия подготовлена');
           } else note('Не удалось сохранить файл на этом устройстве', true);
         }); }}>Сохранить резервную копию</Button>
       </div>
