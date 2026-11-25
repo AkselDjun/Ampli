@@ -5,6 +5,7 @@ import printCss from './styles/print.css?url';
 import { registerSW } from 'virtual:pwa-register';
 import { App } from './ui/App';
 import { Boundary } from './ui/Boundary';
+import { LockGate } from './ui/LockGate';
 import { initPwa, retirePwa } from './ui/pwa';
 import { PWA_ENABLED } from './core/flags';
 import { initTheme } from './ui/theme';
@@ -23,7 +24,9 @@ const start = (): void => {
   createRoot(document.getElementById('root') as HTMLElement).render(
     <StrictMode>
       <Boundary>
-        <App />
+        <LockGate>
+          <App />
+        </LockGate>
       </Boundary>
     </StrictMode>
   );
