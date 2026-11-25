@@ -38,12 +38,13 @@ function Flash({ v }: { v: string }) {
   return <b key={n} className={n ? 'flash' : undefined}>{v}</b>;
 }
 
-function Tile({ label, val, sub }: { label: string; val: string; sub?: string }) {
+function Tile({ label, val, sub, load }: { label: string; val: string; sub?: string; load?: number }) {
   return (
     <div className="tile">
       <span className="lbl">{label}</span>
       <Flash v={val} />
       {sub && <small>{sub}</small>}
+      {load !== undefined && <i className={'ld' + (load > 0.9 ? ' hi' : '')} aria-hidden="true"><i style={{ inlineSize: Math.min(100, Math.round(load * 100)) + '%' }} /></i>}
     </div>
   );
 }
@@ -170,6 +171,9 @@ export function Editor({
     ['cos', showExt ? fieldErr('cos', ap.cos) : null, 'cos φ']
   ] as [string, FieldErr | null, string][]).flatMap(([f, e, label]) => (e ? [{ f, e: asLabel(label, e) }] : []));
   const measErr = { zs: fieldErr('zs', l.meas?.zs), ins: fieldErr('ins', l.meas?.ins), leak: fieldErr('leak', l.meas?.leak), rcd: fieldErr('rcd', l.meas?.rcd) };
+  const prot = r && !r.empty && r.In ? (r.rcbo ? 'дифавтомат ' + r.ma + ' мА' : r.rcd ? 'УЗО «' + r.zone + '» ' + r.ma + ' мА' : 'автомат') + (r.rcd && r.rcdA ? ', тип A' : '') : '';
+  const load = r && !r.empty && r.In ? r.I / r.In : 0;
+  const room = (l.zone ?? '').trim();
   const setLen = (v: number) => dispatch({ t: 'lineField', id: l.id, field: 'len', value: Math.max(0, Math.min(500, round2(v))) });
   return (
     <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы">
@@ -177,8 +181,16 @@ export function Editor({
         <h2 className="vh">Группа Г{idx + 1} {l.name || 'Без названия'}</h2>
         <p className="vh ed-say" aria-live="polite" aria-atomic="true">{say}</p>
         <div className="ed-head">
-          <span className="no">Г{idx + 1}</span>
-          <input className="ed-name" aria-label="Название группы" value={l.name} onChange={e => dispatch({ t: 'lineField', id: l.id, field: 'name', value: e.target.value })} />
+          <span className="no" data-t={l.type}>Г{idx + 1}</span>
+          <div className="ed-title">
+            <input className="ed-name" aria-label="Название группы" value={l.name} onChange={e => dispatch({ t: 'lineField', id: l.id, field: 'name', value: e.target.value })} />
+            {(room || prot) && (
+              <p className="ed-sub">
+                {room && <span>{room}</span>}
+                {prot && <span>{prot}</span>}
+              </p>
+            )}
+          </div>
           {r && !r.empty && <span className={'pill ' + r.status}>{STATUS[r.status]}</span>}
         </div>
         {r && (
@@ -203,9 +215,9 @@ export function Editor({
                   <Tile label="Ток" val={fmt(r.I, 1) + NB + 'А'} sub={'нагрузка ' + fmt(r.pd, 0) + NB + 'Вт'} />
                   {r.In ? (
                     <>
-                      <Tile label="Автомат" val={r.curve + r.In} sub={(r.rcbo ? 'дифавтомат ' + r.ma + ' мА' : r.rcd ? 'УЗО «' + r.zone + '» ' + r.ma + ' мА' : 'автомат') + (r.rcd && r.rcdA ? ', тип A' : '')} />
+                      <Tile label="Автомат" val={r.curve + r.In} sub={'загрузка ' + fmt(load * 100, 0) + NB + '%'} load={load} />
                       <Tile label="Кабель" val={fs(r.S as number) + NB + 'мм²'} sub={(r.three ? 5 : 3) + '-жильный'} />
-                      <Tile label="Потеря" val={fmt(r.drop, 1) + NB + '%'} sub={'напряжения, до ' + fmt(r.limit, 1) + NB + '%'} />
+                      <Tile label="Потеря" val={fmt(r.drop, 1) + NB + '%'} sub={'допустимо ' + fmt(r.limit, 1) + NB + '%'} />
                     </>
                   ) : (
                     <p style={{ gridColumn: 'span 3' }}>Подбор невозможен, см. замечание ниже.</p>
@@ -238,6 +250,7 @@ export function Editor({
             )}
           </>
         )}
+        <div className="ed-sec ed-set">
         <ChoiceField<LineType> className="blk" name={'t-' + l.id} label="Тип группы" value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', id: l.id, type: v })} />
         <div className="grid3 ed-core">
           <StepField
@@ -283,8 +296,12 @@ export function Editor({
             <Err e={perErr && asLabel('На розетку', perErr)} id={'e-per-' + l.id} />
           </div>
         )}
-        <div className="blk">
-          <span className="lbl">Приборы</span>
+        </div>
+        <div className="ed-sec blk">
+          <div className="ed-sec-h">
+            <span className="lbl">Приборы</span>
+            {r && !r.empty && <span className="muted">{fmt(r.pd, 0) + NB + 'Вт'}</span>}
+          </div>
           <div className={'apps' + (showBr ? '' : ' no-br')}>
             {l.apps.length > 0 && (
               <div className="app app-h">
@@ -419,6 +436,7 @@ export function Editor({
             </div>
           )}
         </div>
+        <div className="ed-sec ed-folds">
         {(moreZone || morePrio || moreCond) && (
           <div className="blk fold-in">
             <button className="why-t" type="button" aria-expanded={moreOpen} onClick={() => setMoreOpen(!moreOpen)}>
@@ -514,6 +532,7 @@ export function Editor({
             </dl>
           </div>
         )}
+        </div>
         <div className="ed-end">
           <Button onClick={() => { dispatch({ t: 'dupLine', id: l.id }); toastOk('Создана копия группы'); }} aria-label="Копировать группу">Копировать</Button>
           <ArmButton variant="danger" label="Удалить группу" armedLabel="Нажмите ещё раз, чтобы удалить" onRun={() => { dispatch({ t: 'delLine', id: l.id }); onDeleted(); toastOk('Группа удалена'); }} />
