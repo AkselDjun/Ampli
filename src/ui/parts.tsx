@@ -48,6 +48,8 @@ export function part<P extends object>(load: () => Promise<ComponentType<P>>): C
 
 export const preloadParts = (): Promise<unknown> => Promise.all(all.map(f => f()));
 
+export const ShortcutsSheet = part(() => import('./ShortcutsSheet').then(m => m.ShortcutsSheet));
+export const RowPeek = part(() => import('./RowPeek').then(m => m.RowPeek));
 export const Editor = part(() => import('./Editor').then(m => m.Editor));
 export const FloorSheet = part(() => import('./FloorSheet').then(m => m.FloorSheet));
 export const WeakSheet = part(() => import('./WeakSheet').then(m => m.WeakSheet));

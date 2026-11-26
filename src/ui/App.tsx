@@ -15,11 +15,10 @@ import { APP_VERSION } from '../core/version';
 import { GroupList } from './GroupList';
 import { PanelPane, Summary } from './Side';
 import { SheetNavContext } from './sheetnav';
-import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
+import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, RoomsSheet, ShopSheet, ShortcutsSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { IncomingSheet } from './IncomingSheet';
-import { ShortcutsSheet } from './ShortcutsSheet';
 import { hotkeyOf, stepIn } from '../core/hotkeys';
 import { LockedLinkSheet } from './LockedLinkSheet';
 import { uniqName } from '../core/project';
@@ -398,7 +397,7 @@ export function App() {
         <HoverTips />
         <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} tab={tabOf(APP_SHEET.WORK)} onTab={onWorkTab} /></Hold>
         </SheetNavContext.Provider>
-        <ShortcutsSheet open={keys} onClose={() => setKeys(false)} />
+        {keys && <Suspense fallback={null}><ShortcutsSheet open onClose={() => setKeys(false)} /></Suspense>}
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={loc.dropIncoming} />
         <LockedLinkSheet link={loc.locked} onUnlock={loc.unlock} onCancel={loc.dropLocked} />
         <Hold open={tourOpen}>{tourOpen && <Onboarding onScene={tour.onTourScene} onClose={tour.closeTour} onFinish={tour.finishTour} chapter={tour.tourChapter} mode={tour.tourMode} />}</Hold>

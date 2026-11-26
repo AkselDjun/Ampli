@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { Fragment, memo, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, Suspense, memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { Calc, CfgN, LineType, Project, Row } from '../core/types';
 import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
@@ -12,7 +12,7 @@ import { stageOf } from '../core/stage';
 import type { StageAct } from '../core/stage';
 import { whenLabel } from '../core/recent';
 import { StageBar } from './StageBar';
-import { RowPeek } from './RowPeek';
+import { RowPeek } from './parts';
 import { lineChanges } from '../core/sent';
 import { mediaMatches } from './media';
 import { useNow } from './now';
@@ -405,7 +405,7 @@ export const GroupList = memo(function GroupList({
         if (k < 0) return null;
         const x = a.rows[k];
         const since = showChg && p.sent ? lineChanges(p.sent.lines.find(y => y.id === x.l.id), x) : [];
-        return <RowPeek x={x} no={k + 1} top={peek.top} left={peek.left} since={since} notes={x.l.notes ?? []} />;
+        return <Suspense fallback={null}><RowPeek x={x} no={k + 1} top={peek.top} left={peek.left} since={since} notes={x.l.notes ?? []} /></Suspense>;
       })()}
       <AddMenu fab onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />
     </section>
