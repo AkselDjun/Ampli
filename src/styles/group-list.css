@@ -270,3 +270,9 @@
 .peek-f dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
 .peek-a,.peek-c{margin:var(--s-2) 0 0;padding-top:var(--s-2);border-top:1px solid var(--line);color:var(--ink-2)}
 .peek-c{color:var(--ink)}
+@media (--narrow) and (min-height:501px){
+  .stg{display:grid;grid-template-columns:minmax(0,1fr) auto;row-gap:0}
+  .stg-go{grid-area:1 / 2}
+  .stg-next{grid-column:1 / -1;padding-bottom:var(--s-1)}
+}
+@media (--upto-380){.stg-dots{display:none}}
