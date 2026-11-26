@@ -45,3 +45,4 @@
 .tabs .tab span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (--upto-380){.tabs .tab span{font-size:var(--t-2xs)}}
 @media (--narrow){.dd.tl{display:none}}
+#app:has(.ltb.bulk) .addmenu.fab{visibility:hidden}

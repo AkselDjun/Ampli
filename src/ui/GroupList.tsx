@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { Fragment, memo, useEffect, useRef, useState } from 'react';
+import { Fragment, memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { Calc, CfgN, LineType, Project, Row } from '../core/types';
 import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
@@ -10,6 +10,9 @@ import { floorSummary } from '../core/floor';
 import { weakSummary } from '../core/weak';
 import { roomGroups } from '../core/zonelist';
 import type { ZoneGroup } from '../core/zonelist';
+import { listCounts, listView } from '../core/listview';
+import type { ListFilter, ListSort } from '../core/listview';
+import { BulkBar, ListBar } from './ListBar';
 import { ArmButton } from './common';
 import { AddMenu } from './AddMenu';
 import { FixBar } from './FixBar';
@@ -44,14 +47,17 @@ type RowProps = {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
   onFix: (id: string, act: FixAct) => void;
+  picked?: boolean;
+  onPick?: (id: string) => void;
 };
 
 const sameRow = (a: RowProps, b: RowProps): boolean =>
-  a.i === b.i && a.three === b.three && a.sel === b.sel && a.hot === b.hot && a.tour === b.tour && a.onHot === b.onHot && a.onSelect === b.onSelect && a.onCopy === b.onCopy && a.onDelete === b.onDelete && a.onFix === b.onFix && a.x.l === b.x.l && same(a.x.r, b.x.r) && same(a.c, b.c);
+  a.i === b.i && a.three === b.three && a.sel === b.sel && a.hot === b.hot && a.tour === b.tour && a.onHot === b.onHot && a.onSelect === b.onSelect && a.onCopy === b.onCopy && a.onDelete === b.onDelete && a.onFix === b.onFix && a.picked === b.picked && a.onPick === b.onPick && a.x.l === b.x.l && same(a.x.r, b.x.r) && same(a.c, b.c);
 
 const GroupRow = memo(function GroupRow({
-  x, i, c, three, sel, hot, tour, onHot, onSelect, onCopy, onDelete, onFix
+  x, i, c, three, sel, hot, tour, onHot, onSelect, onCopy, onDelete, onFix, picked, onPick
 }: RowProps) {
+  const picking = picked !== undefined && !!onPick;
   const { dx, handlers } = useSwipe(() => onDelete(x.l.id), () => onCopy(x.l.id));
   const fix = fixFor(x.l, x.r, c);
   return (
@@ -61,12 +67,13 @@ const GroupRow = memo(function GroupRow({
         <span className="sw-del">Удалить</span>
       </div>
       <button
-        className={'row' + (sel ? ' sel' : '') + (hot ? ' hot' : '')}
+        className={'row' + (sel && !picking ? ' sel' : '') + (hot ? ' hot' : '') + (picking ? ' picking' : '') + (picked ? ' picked' : '')}
         type="button"
+        aria-pressed={picking ? picked : undefined}
         onMouseEnter={() => onHot(x.l.id)}
         onMouseLeave={() => onHot(null)}
         style={dx ? { transform: 'translateX(' + dx + 'px)', transition: 'none' } : undefined}
-        onClick={() => onSelect(x.l.id)}
+        onClick={() => (picking ? onPick(x.l.id) : onSelect(x.l.id))}
         aria-keyshortcuts="Control+D Delete"
         onKeyDown={e => {
           if (e.key === 'Delete') {
@@ -93,6 +100,7 @@ const GroupRow = memo(function GroupRow({
         }}
         {...handlers}
       >
+        {picking && <span className={'row-cb' + (picked ? ' on' : '')} aria-hidden="true" />}
         <span className="no" data-t={x.l.type}>Г{i + 1}</span>
         <span className="row-main">
           <span className="row-name">{x.l.name || 'Без названия'}</span>
@@ -119,15 +127,18 @@ const GroupRow = memo(function GroupRow({
         <button type="button" className="ra-b" tabIndex={-1} aria-label={'Копировать группу Г' + (i + 1)} data-tip="Копировать (Ctrl+D)" onClick={() => onCopy(x.l.id)}><IconCopy /></button>
         <button type="button" className="ra-b del" tabIndex={-1} aria-label={'Удалить группу Г' + (i + 1)} data-tip="Удалить (Delete)" onClick={() => onDelete(x.l.id)}><IconTrash /></button>
       </div>
-      {fix && <FixBar fix={fix} bad={x.r.status === 'bad'} onApply={() => fix.act && onFix(x.l.id, fix.act)} />}
+      {fix && !picking && <FixBar fix={fix} bad={x.r.status === 'bad'} onApply={() => fix.act && onFix(x.l.id, fix.act)} />}
     </div>
   );
 }, sameRow);
 
 export const GroupList = memo(function GroupList({
-  p, a, sel, onSelect, onAdd, onOpenProj, onOpenNet, onOpenOld, onOpenFloor = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix, onRenumber = () => undefined
+  p, a, sel, onSelect, onAdd, onBulkZone = () => undefined, onBulkCopy = () => undefined, onBulkDelete = () => undefined, onOpenProj, onOpenNet, onOpenOld, onOpenFloor = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix, onRenumber = () => undefined
 }: {
   onRenumber?: () => void;
+  onBulkZone?: (ids: string[], zone: string) => void;
+  onBulkCopy?: (ids: string[]) => void;
+  onBulkDelete?: (ids: string[]) => void;
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
   onFix: (id: string, act: FixAct) => void;
@@ -164,8 +175,22 @@ export const GroupList = memo(function GroupList({
   if (p.address) sub.push(p.address);
   sub.push(count + ' ' + plural(count, ['группа', 'группы', 'групп']));
   const zoned = roomGroups(a.rows.map(x => x.l));
-  const groups: ZoneGroup[] = zoned.length > 1 ? zoned : [{ zone: null, items: a.rows.map((_, i) => i) }];
-  const jumbled = groups.flatMap(g => g.items).some((k, j) => k !== j);
+  const base: ZoneGroup[] = zoned.length > 1 ? zoned : [{ zone: null, items: a.rows.map((_, i) => i) }];
+  const jumbled = base.flatMap(g => g.items).some((k, j) => k !== j);
+  const [filter, setFilter] = useState<ListFilter | null>(null);
+  const [sort, setSort] = useState<ListSort>('no');
+  const [picking, setPicking] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
+  const live = picked.filter(id => p.lines.some(l => l.id === id));
+  const groups = filter || sort !== 'no' ? listView(a.rows, filter, sort) : base;
+  const cnt = listCounts(a.rows);
+  const zones = [...new Set(p.lines.map(l => (l.zone ?? '').trim()).filter(Boolean))];
+  const togglePick = useCallback((id: string) => setPicked(v => (v.includes(id) ? v.filter(x => x !== id) : [...v, id])), []);
+  const stopPick = () => {
+    setPicking(false);
+    setPicked([]);
+  };
+  const uzoOf = (z: string) => a.uzos.find(u => u.zone.toLowerCase() === z.toLowerCase());
   const [shut, setShut] = useState<string[]>([]);
   const selZone = groups.find(g => g.zone !== null && g.items.some(k => a.rows[k].l.id === sel))?.zone ?? null;
   useEffect(() => {
@@ -182,7 +207,7 @@ export const GroupList = memo(function GroupList({
     ...(c.afdd !== 'off' ? [['УЗДП', c.afdd === 'sock' ? 'УЗДП на розетки' : 'УЗДП на группы'] as [string, string]] : [])
   ];
   return (
-    <section className="col col-list" id="groups" tabIndex={-1} aria-label="Группы линий">
+    <section className="col col-list" id="groups" tabIndex={-1} aria-label="Группы линий" onKeyDown={e => { if (picking && e.key === 'Escape' && !e.defaultPrevented) stopPick(); }}>
       <div className="proj-box">
         <button className="projbar" type="button" onClick={onOpenProj} data-tour="projects">
           <span className="vh">Проекты: </span>
@@ -243,8 +268,32 @@ export const GroupList = memo(function GroupList({
         </span>
       </div>
       <AddMenu down onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />
+      {count > 0 && (picking ? (
+        <BulkBar
+          n={live.length}
+          zones={zones}
+          onZone={z => { onBulkZone(live, z); stopPick(); }}
+          onCopy={() => { onBulkCopy(live); stopPick(); }}
+          onDelete={() => { onBulkDelete(live); stopPick(); }}
+          onDone={stopPick}
+        />
+      ) : (
+        <ListBar
+          chips={[{ id: 'bad', label: 'Нарушения', n: cnt.bad }, { id: 'warn', label: 'Советы', n: cnt.warn }]}
+          filter={filter}
+          onFilter={setFilter}
+          sort={sort}
+          onSort={setSort}
+          onPick={() => setPicking(true)}
+        />
+      ))}
       <div className="rows">
-        {count ? (
+        {count && !groups.length ? (
+          <div className="rows-none">
+            <p>Нет групп с таким отбором.</p>
+            <button type="button" className="link" onClick={() => setFilter(null)}>Показать все группы</button>
+          </div>
+        ) : count ? (
           groups.map((g, gi) => (
             <Fragment key={g.zone ?? '-'}>
               {g.zone !== null && (() => {
@@ -259,14 +308,20 @@ export const GroupList = memo(function GroupList({
                         <IconChev className="zone-chev" />
                         <b>{z}</b>
                         {worst && <span className={'flag ' + worst} aria-label={STATUS[worst]}>!</span>}
-                        <small>{g.items.length + ' ' + plural(g.items.length, ['группа', 'группы', 'групп']) + ' · ' + fmt(g.items.reduce((t, k) => t + a.rows[k].r.pd, 0) / 1000, 1) + NB + 'кВт'}</small>
+                        <small>{(() => {
+                          const u = uzoOf(z);
+                          const parts = [g.items.length + ' ' + plural(g.items.length, ['группа', 'группы', 'групп'])];
+                          if (u) parts.push('УЗО ' + u.In + NB + 'А · ' + u.ma + NB + 'мА' + (u.typeA ? ' · тип A' : ''));
+                          parts.push(fmt(g.items.reduce((t, k) => t + a.rows[k].r.pd, 0) / 1000, 1) + NB + 'кВт');
+                          return parts.join(' · ');
+                        })()}</small>
                         {closed && <span className="zone-brk" aria-hidden="true">{g.items.filter(k => a.rows[k].r.In).map(k => <i key={k} className={a.rows[k].r.rcbo ? 'rcd' : ''}>{a.rows[k].r.curve}{a.rows[k].r.In}</i>)}</span>}
                       </button>
                     </h3>
                     <div className="zone-b" id={bid} hidden={closed}>
                       {g.items.map(i => {
                         const x = a.rows[i];
-                        return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />;
+                        return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} picked={picking ? live.includes(x.l.id) : undefined} onPick={togglePick} />;
                       })}
                     </div>
                   </>
@@ -274,7 +329,7 @@ export const GroupList = memo(function GroupList({
               })()}
               {g.zone === null && g.items.map(i => {
                 const x = a.rows[i];
-                return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} />;
+                return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} picked={picking ? live.includes(x.l.id) : undefined} onPick={togglePick} />;
               })}
             </Fragment>
           ))

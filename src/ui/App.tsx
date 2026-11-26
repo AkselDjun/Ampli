@@ -137,6 +137,18 @@ export function App() {
     dispatch({ t: 'delLine', id });
     toastOk('Группа удалена');
   });
+  const bulkZone = useStable((ids: string[], zone: string) => {
+    ids.forEach(id => dispatch({ t: 'lineField', id, field: 'zone', value: zone }));
+    toastOk(zone ? 'Группы перенесены: ' + zone : 'Группы без помещения');
+  });
+  const bulkCopy = useStable((ids: string[]) => {
+    ids.forEach(id => dispatch({ t: 'dupLine', id }));
+    toastOk(ids.length > 1 ? 'Созданы копии групп: ' + ids.length : 'Создана копия группы');
+  });
+  const bulkDelete = useStable((ids: string[]) => {
+    ids.forEach(id => dispatch({ t: 'delLine', id }));
+    toastOk(ids.length > 1 ? 'Удалено групп: ' + ids.length : 'Группа удалена');
+  });
   const fixLine = useStable((id: string, act: FixAct) => {
     if (act.k === 'len') dispatch({ t: 'lineField', id, field: 'len', value: act.len });
     else dispatch({ t: 'splitLine', id, mode: act.k });
@@ -269,6 +281,9 @@ export function App() {
             onDelete={deleteLine}
             onFix={fixLine}
             onRenumber={renumber}
+            onBulkZone={bulkZone}
+            onBulkCopy={bulkCopy}
+            onBulkDelete={bulkDelete}
             onOpenProj={openProj}
             onOpenNet={openNet}
             onOpenOld={openOld}
