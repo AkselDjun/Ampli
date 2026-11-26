@@ -421,7 +421,7 @@ describe('keyboard', () => {
 describe('small window fixes', () => {
   it('splits the exchange tab into sections explained in tips', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /^Проекты:/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Проекты$/ }));
     const d = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Проекты') as HTMLElement;
     const share = d.querySelector('#pj-tp-share') as HTMLElement;
     expect(Array.from(share.querySelectorAll('h3')).map(h => h.textContent)).toEqual(['Перенести на другое устройство', 'Резервная копия', 'Замок на устройстве', 'Шаблон', 'Мои данные', 'Сообщить о проблеме']);

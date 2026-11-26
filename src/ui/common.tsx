@@ -223,7 +223,7 @@ export function TabPanel({ scope, id, cur, lazy = false, children }: { scope: st
 
 const STACK: object[] = [];
 
-export type SheetKind = 'dialog' | 'panel' | 'screen';
+export type SheetKind = 'dialog' | 'panel' | 'screen' | 'page';
 
 export function DoneFoot({ onDone, status = 'Изменения сохраняются сразу' }: { onDone: () => void; status?: ReactNode }) {
   return (
@@ -285,7 +285,7 @@ export function Sheet({
   const titleRef = useRef(title);
   const id = useId();
   const docked = useDocked();
-  const live = kind === 'panel' && docked;
+  const live = kind === 'page' || (kind === 'panel' && docked);
   const [leaving, setLeaving] = useState(false);
   const [was, setWas] = useState(open);
   if (was !== open) {

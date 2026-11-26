@@ -23,7 +23,7 @@ test('orders the group card by how often each part is used', async ({ page }) =>
   const ed = await openGroup(page, 'Варочная');
   const ys = [
     await top(ed.locator('.ed-res')),
-    await top(ed.getByText('Тип группы', { exact: true })),
+    await top(ed.getByText('Тип', { exact: true })),
     await top(ed.getByText('Длина до распредкоробки, м', { exact: true })),
     await top(ed.locator('.apps')),
     await top(fold(ed, 'Дополнительно')),

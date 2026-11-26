@@ -292,9 +292,9 @@ export const GroupList = memo(function GroupList({
       <div className={'box lst' + (picking ? ' picking' : '')}>
         {rooms.length > 0 && (
           <div className="folders" role="group" aria-label="Помещения">
-            <button type="button" className="fold" aria-pressed={!curRoom} onClick={() => setRoom(null)}>Все<span className="cnt mono">{count}</span></button>
+            <button type="button" className="rfold" aria-pressed={!curRoom} onClick={() => setRoom(null)}>Все<span className="cnt mono">{count}</span></button>
             {rooms.map(r => (
-              <button key={r.zone} type="button" className="fold" aria-pressed={roomKey(curRoom) === roomKey(r.zone)} onClick={() => setRoom(roomKey(curRoom) === roomKey(r.zone) ? null : r.zone)}>{r.zone}<span className="cnt mono">{r.n}</span></button>
+              <button key={r.zone} type="button" className="rfold" aria-pressed={roomKey(curRoom) === roomKey(r.zone)} onClick={() => setRoom(roomKey(curRoom) === roomKey(r.zone) ? null : r.zone)}>{r.zone}<span className="cnt mono">{r.n}</span></button>
             ))}
           </div>
         )}

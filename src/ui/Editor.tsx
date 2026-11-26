@@ -14,6 +14,7 @@ import { useMenuKeys } from './menu';
 import { PhotoStrip } from './PhotoStrip';
 import { FixBar } from './FixBar';
 import { fixFor } from '../core/fixes';
+import { cableName } from '../core/protection';
 import { ArmButton, Err, errAttrs } from './common';
 import { ChoiceField, Empty, FieldLabel, StepField } from './fields';
 import { asLabel, fieldErr } from '../core/limits';
@@ -278,7 +279,7 @@ export function Editor({
           );
         })()}
         <div className="ed-sec ed-set">
-        <ChoiceField<LineType> className="blk" name={'t-' + l.id} label="Тип группы" value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', id: l.id, type: v })} />
+        <ChoiceField<LineType> className="blk" name={'t-' + l.id} label="Тип" value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', id: l.id, type: v })} />
         <div className="grid3 ed-core">
           <StepField
             className="len-f"
@@ -309,6 +310,9 @@ export function Editor({
             </datalist>
           </div>
         )}
+        {r && !r.empty && r.S ? (
+          <div className="kvr ed-cab"><span className="lbl">Кабель</span><span className="mono">{cableName(r)}</span></div>
+        ) : null}
         {l.type === 'socket' && (
           <div className="grid3 sock">
             <label className="f">

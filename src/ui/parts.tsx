@@ -68,6 +68,7 @@ export const BulkBar = part(() => import('./BulkBar').then(m => m.BulkBar));
 export const StageBar = part(() => import('./StageBar').then(m => m.StageBar));
 export const PanelPane = part(() => import('./Side').then(m => m.PanelPane));
 export const Summary = part(() => import('./Side').then(m => m.Summary));
+export const PanelSel = part(() => import('./Side').then(m => m.PanelSel));
 export const Editor = part(() => import('./Editor').then(m => m.Editor));
 export const FloorSheet = part(() => import('./FloorSheet').then(m => m.FloorSheet));
 export const WeakSheet = part(() => import('./WeakSheet').then(m => m.WeakSheet));

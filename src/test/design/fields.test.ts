@@ -19,8 +19,8 @@ const media = (css: string, q: string): string => {
 
 describe('form fields', () => {
   it('defines one set of field tokens', () => {
-    for (const t of ['--field-h:44px', '--field-h-s:36px', '--field-px:var(--s-3)', '--field-r:var(--r-s)', '--field-fs:var(--t-base)', '--field-bw:1px', '--check-s:20px', '--check-bw:1.5px', '--check-edge:var(--line-strong)']) expect(tokens).toContain(t);
-    expect(media(tokens, '(--tablet)')).toContain('--field-h:48px;--field-h-s:44px');
+    for (const t of ['--field-h:40px', '--field-h-s:34px', '--field-px:var(--s-3)', '--field-r:var(--r-s)', '--field-fs:var(--t-base)', '--field-bw:1px', '--check-s:20px', '--check-bw:1.5px', '--check-edge:var(--line-strong)']) expect(tokens).toContain(t);
+    expect(media(tokens, '(--tablet)')).toContain('--field-h:44px;--field-h-s:40px');
     expect(media(tokens, '(--tablet),(pointer:coarse)')).toContain('--field-fs:16px');
   });
 

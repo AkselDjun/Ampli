@@ -29,7 +29,7 @@ describe('group editor order', () => {
     render(<App />);
     const ed = open('Варочная');
     const res = ed.querySelector('.ed-res') as Element;
-    const type = label(ed, 'Тип группы');
+    const type = label(ed, 'Тип');
     const len = label(ed, 'Длина до распредкоробки, м');
     const room = label(ed, 'Помещение');
     const apps = ed.querySelector('.apps') as Element;

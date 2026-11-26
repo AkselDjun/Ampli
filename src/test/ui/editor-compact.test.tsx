@@ -14,7 +14,7 @@ describe('compact group card', () => {
     wide(false);
     render(<App />);
     const ed = open('Варочная');
-    const type = Array.from(ed.querySelectorAll('.lbl')).find(x => x.textContent === 'Тип группы') as Element;
+    const type = Array.from(ed.querySelectorAll('.lbl')).find(x => x.textContent === 'Тип') as Element;
     const apps = ed.querySelector('.apps') as Element;
     expect(type.compareDocumentPosition(apps) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

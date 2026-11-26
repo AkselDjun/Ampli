@@ -1,5 +1,5 @@
 .tiers{display:grid;gap:var(--s-2);grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin:var(--s-3) 0}
-.tier{display:grid;gap:var(--s-1);align-content:start;padding:var(--s-3);border:1px solid transparent;border-radius:var(--r-m);background:var(--surface);cursor:pointer}
+.tier{display:grid;gap:var(--s-1);align-content:start;padding:var(--s-3);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);cursor:pointer}
 .tier.on{border-color:var(--accent);box-shadow:var(--ring)}
 .tier-h{display:flex;gap:var(--s-2);align-items:center}
 .tier-sum{font-size:var(--t-l);font-weight:700}

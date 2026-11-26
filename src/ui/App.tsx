@@ -14,7 +14,7 @@ import { updatedFrom } from './release';
 import { APP_VERSION } from '../core/version';
 import { GroupList } from './GroupList';
 import { SheetNavContext } from './sheetnav';
-import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, PanelPane, RoomsSheet, ShopSheet, ShortcutsSheet, Summary, SumBox, ChecksBox, WeakSheet, WorkSheet, preloadParts } from './parts';
+import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, PanelPane, RoomsSheet, ShopSheet, ShortcutsSheet, Summary, PanelSel, SumBox, ChecksBox, WeakSheet, WorkSheet, preloadParts } from './parts';
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { progress } from '../core/checklist';
@@ -378,7 +378,10 @@ export function App() {
               {view === APP_VIEW.PANEL ? (
                 <Suspense fallback={null}>
                   <PanelPane a={da} sel={state.sel} hot={hot} onHot={setHot} onPick={pick} onMove={moveLine} />
-                  <Summary key="s-panel" a={da} solo onBalance={balance} />
+                  <div className="pp-side">
+                    <PanelSel a={da} sel={state.sel} onOpen={id => { dispatch({ t: 'select', id }); tab(APP_VIEW.GROUPS); }} />
+                    <Summary key="s-panel" a={da} solo onBalance={balance} />
+                  </div>
                 </Suspense>
               ) : wide && (
                 <Suspense fallback={null}>

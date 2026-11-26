@@ -5,7 +5,7 @@ import { CHECK_ITEMS, progress } from '../core/checklist';
 import { protocolRows } from '../core/protocol';
 import { MeasBoard } from './MeasBoard';
 import type { Action } from '../store/reducer';
-import { Sheet, TabPanel, Tabs, Tip } from './common';
+import { Sheet, TabPanel, Tabs } from './common';
 import { ShareBlock } from './ShareBlock';
 import { actsOf, actsSummary } from '../core/acts';
 import { oldStarted } from '../core/oldwire';
@@ -61,7 +61,7 @@ export function WorkSheet({
   ];
   const chosen = docs.map(d => d.m).filter(m => pack.includes(m) && (m !== 'wiring' || walls > 0));
   return (
-    <Sheet open={open} onClose={onClose} title="Приёмка" tourId="work" sub={p.name || 'Без названия'} footer={tab === 'meas' ? undefined : (
+    <Sheet open={open} onClose={onClose} title="Приёмка" tourId="work" kind="page" sub={p.name || 'Без названия'} footer={tab === 'meas' ? undefined : (
       <>
         <span className="foot-st">Чек-лист <b>{pr.done}/{pr.total}</b>{rows.length ? <>, замеры <b>{done}/{rows.length}</b></> : null}</span>
         {tab === 'docs'
@@ -70,22 +70,28 @@ export function WorkSheet({
       </>
     )} bar={<Tabs scope="wk" label="Разделы приёмки" cur={tab} onChange={setTab} items={[{ id: 'check', label: 'Чек-лист ' + pr.done + '/' + pr.total }, { id: 'meas', label: rows.length ? 'Замеры ' + done + '/' + rows.length : 'Замеры' }, { id: 'docs', label: 'Документы' }]} />} tip="Во вкладке «Замеры» щиток показан так же, как он собран: нажмите на автомат и введите замеры. Цвет рычажка: зелёный соответствует, красный не соответствует, серый ещё не измерено. Те же значения есть в карточке группы.">
       <TabPanel scope="wk" id="check" cur={tab}>
-      <div className="wk-prog">
+      <div className="wk-grid">
+      <div className="box wk-prog">
+        <span>Выполнено <b>{pr.done}</b> из {pr.total}</span>
         <div className="meter" role="img" aria-label={'Выполнено ' + pr.done + ' из ' + pr.total}>
           <i style={{ width: (pr.total ? pr.done / pr.total * 100 : 0) + '%' }} />
         </div>
       </div>
-      <ul className="ck">
+      <section className="wk-ck" aria-labelledby="wk-ck-h">
+      <h3 id="wk-ck-h" className="grp-t">Чек-лист монтажа</h3>
+      <ul className="box ck">
         {CHECK_ITEMS.map(it => (
           <li key={it.id} className={checks[it.id] ? 'on' : undefined}>
             <label>
               <input type="checkbox" checked={!!checks[it.id]} onChange={e => dispatch({ t: 'check', id: it.id, on: e.target.checked })} />
-              <span className="ck-t"><b>{it.title}</b></span>
+              <span className="ck-t"><b>{it.title}</b><small>{it.hint}</small></span>
             </label>
-            <Tip label={'Что проверить: ' + it.title}>{it.hint}</Tip>
           </li>
         ))}
       </ul>
+      </section>
+      </div>
+      <p className="note wk-foot">Отметки сохраняются в проекте и попадают в акт сдачи-приёмки.</p>
       </TabPanel>
       <TabPanel scope="wk" id="meas" cur={tab}>
       <MeasBoard open={open} a={a} dispatch={dispatch}>

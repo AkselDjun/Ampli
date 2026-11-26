@@ -351,7 +351,7 @@ describe('GroupList', () => {
     expect(rows[2].querySelector('.flag')).toBeNull();
     await user.click(rows[2]);
     expect(h.onSelect).toHaveBeenCalledWith(p.lines[2].id);
-    await user.click(screen.getByRole('button', { name: /^Проекты:/ }));
+    await user.click(screen.getByRole('button', { name: /^Проекты$/ }));
     expect(h.onOpenProj).toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
     await user.click(screen.getByRole('menuitem', { name: 'Из комнат' }));
