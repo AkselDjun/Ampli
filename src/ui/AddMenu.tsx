@@ -2,7 +2,7 @@ import type { JSX } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import type { LineType } from '../core/types';
 import { TYPES } from '../core/norms';
-import { IconBolt, IconBulb, IconHeat, IconLan, IconRooms, IconSocket } from './Icons';
+import { IconBolt, IconBulb, IconHeat, IconLan, IconPlus, IconRooms, IconSocket } from './Icons';
 import { useScrollHide } from './useScrollHide';
 import { useMenuKeys } from './menu';
 import { Button } from './kit';
@@ -74,7 +74,7 @@ export function AddMenu({ onAdd, onRooms, onFloor, onWeak, fab, down }: { onAdd:
       {fab ? (
         <button className="fab-b" ref={triggerRef} type="button" aria-haspopup="menu" aria-expanded={open} aria-label="Добавить группу" onClick={() => setOpen(v => !v)}>+</button>
       ) : (
-        <Button variant="primary" className="add-b" ref={triggerRef} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(v => !v)}>+ Добавить группу</Button>
+        <Button variant="primary" size="sm" className="add-b" ref={triggerRef} aria-haspopup="menu" aria-expanded={open} aria-label="Добавить группу" data-tip="Новая группа (N)" onClick={() => setOpen(v => !v)}><IconPlus /><span className="add-t">Группа</span></Button>
       )}
     </div>
   );

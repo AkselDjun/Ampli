@@ -88,3 +88,6 @@ export const Onboarding = part(() => import('./Onboarding').then(m => m.Onboardi
 export const TraceSheet = part(() => import('./Traces').then(m => m.TraceSheet));
 export const Palette = part(() => import('./Palette').then(m => m.Palette));
 export const Qr = part(() => import('./Qr').then(m => m.Qr));
+export const SumBox = part(() => import('./Overview').then(m => m.SumBox));
+export const ChecksBox = part(() => import('./Overview').then(m => m.ChecksBox));
+export const HomeSum = part(() => import('./Overview').then(m => m.HomeSum));

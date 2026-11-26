@@ -107,13 +107,13 @@ const Module = memo(function Module({ d, i, cap, t, drag, over, sel, hot, prev, 
   );
 }, sameMod);
 
-export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = () => undefined }: { a: Calc; onPick?: (id: string) => void; onMove?: (id: string, to: string) => void; sel?: string | null; hot?: string | null; onHot?: (id: string | null) => void }) {
+export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null, hot = null, onHot = () => undefined, mini = false, onMore }: { a: Calc; onPick?: (id: string) => void; onMove?: (id: string, to: string) => void; sel?: string | null; hot?: string | null; onHot?: (id: string | null) => void; mini?: boolean; onMore?: () => void }) {
   const [drag, setDrag] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
   const kinds = new Set(a.devs.map(d => d.kind));
   const c = a.c;
   const rl = ROWLEN[a.size];
-  const [railRef, cols] = useFitCols<HTMLDivElement>(rl, 28, 3);
+  const [railRef, cols] = useFitCols<HTMLDivElement>(rl, mini ? 14 : 28, mini ? 1 : 3);
   const { gapBefore, free } = railCells(a.devs, cols, rl, a.size);
   const nameOf: Record<string, string> = {};
   const typeOf = new Map<string, LineType>();
@@ -125,15 +125,25 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
   const desktop = useMedia(BP.desktop, true);
   const [listPick, setListOpen] = useState<boolean | null>(null);
   const listOpen = listPick ?? desktop;
+  const rows = Math.max(1, Math.round(a.size / rl));
+  const selRow = sel ? a.rows.findIndex(x => x.l.id === sel) : -1;
+  const sr = selRow >= 0 ? a.rows[selRow] : null;
   return (
-    <div className="pane-panel">
-      <Fold title="Щиток" className="c-panel" open>
-        {a.rows.some(x => x.r.In) ? (
+    <section className={'box pane-panel' + (mini ? ' mini' : '')} aria-labelledby={mini ? 'pp-h-m' : 'pp-h'}>
+      <div className="box-h">
+        <h2 id={mini ? 'pp-h-m' : 'pp-h'}>Щиток</h2>
+        {!mini && <span className="note grow">{rows} {plural(rows, ['ряд', 'ряда', 'рядов'])} по {rl} {plural(rl, ['модулю', 'модуля', 'модулей'])}</span>}
+        {mini && <span className="grow" />}
+        <span className="mono note">{a.size} мод.</span>
+        {mini && onMore && <Button size="sm" onClick={onMore}>Подробно</Button>}
+      </div>
+      <div className="pp-body">
+        {!mini && (a.rows.some(x => x.r.In) ? (
           <p className="muted">
             Приборов на {a.modSum} мод. Нужен корпус на <b>{a.size}</b> мод. с запасом 20 %{a.fits ? '.' : ', но и он тесен: разделите щиток на два.'}
           </p>
-        ) : <p className="muted bd-empty">Щиток соберётся, когда в проекте появится группа с приборами.</p>}
-        <div className="rail-wrap">
+        ) : <p className="muted bd-empty">Щиток соберётся, когда в проекте появится группа с приборами.</p>)}
+        <div className="rail-wrap encl">
           <div className="rail" ref={railRef} data-rc={cols} style={{ ['--rc' as string]: cols }}>
             {a.devs.map((d, i) => {
               const lid = d.lid;
@@ -142,7 +152,7 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
               return (
                 <Fragment key={d.lid ?? d.kind + i}>
                   {Array.from({ length: gapBefore[i] }, (_, g) => <div key={'g' + g} className="dev dev-free" data-tip="Резерв" aria-hidden="true" />)}
-                  <Module d={d} i={i} cap={cap} t={lid ? typeOf.get(lid) : undefined} drag={drag} over={!!lid && over === lid} sel={!!lid && lid === sel} hot={!!lid && lid === hot} prev={k > 0 ? lids[k - 1] : undefined} next={k >= 0 ? lids[k + 1] : undefined} onPick={onPick} onMove={onMove} onHot={onHot} setDrag={setDrag} setOver={setOver} />
+                  <Module d={d} i={i} cap={cap} t={lid ? typeOf.get(lid) : undefined} drag={drag} over={!!lid && over === lid} sel={!!lid && lid === sel} hot={!!lid && lid === hot} prev={k > 0 ? lids[k - 1] : undefined} next={k >= 0 ? lids[k + 1] : undefined} onPick={onPick} onMove={mini ? undefined : onMove} onHot={onHot} setDrag={setDrag} setOver={setOver} />
                 </Fragment>
               );
             })}
@@ -151,6 +161,15 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
             ))}
           </div>
         </div>
+      </div>
+      {mini ? (sr && (
+        <div className="pp-sel">
+          <span className="no" data-t={sr.l.type}>{String(selRow + 1).padStart(2, '0')}</span>
+          <span className="grow">{sr.l.name || 'Без названия'}</span>
+          <span className="mono note">{sr.r.In ? sr.r.curve + sr.r.In : '—'}{sr.r.rcd && !sr.r.rcbo ? ' · УЗО «' + sr.r.zone + '»' : ''}</span>
+        </div>
+      )) : (
+      <>
         <div className="legend">
           <span><i className="dev-in" />Ввод</span>
           {(['light', 'socket', 'power'] as const).filter(t => a.rows.some(x => x.l.type === t && x.r.In)).map(t => <span key={t}><i className="lg-ty" data-t={t} />{t === 'light' ? 'Свет' : (t === 'socket' ? 'Розетки' : 'Силовая')}</span>)}
@@ -197,7 +216,8 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
           })}
         </ul>
         </details>
-      </Fold>
-    </div>
+      </>
+      )}
+    </section>
   );
 });

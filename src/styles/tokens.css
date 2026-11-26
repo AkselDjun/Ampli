@@ -3,11 +3,11 @@
   --font-num:'Ampli Mono','Ampli Sans',ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
   --t-hw-xs:8px;--t-hw-s:9px;--t-hw:10px;--t-2xs:11px;--t-xs:12px;--t-s:12px;--t-sm:13px;--t-m:15px;--t-base:15px;--t-l:18px;--t-xl:18px;--t-2xl:22px;--t-3xl:28px;--t-4xl:28px;
 
-  --s-0:0;--s-px:1px;--s-0-5:2px;--s-1:4px;--s-1-5:6px;--s-2:8px;--s-2-5:10px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-7:28px;--s-8:32px;--s-10:40px;--s-12:48px;
+  --s-0:0;--s-px:1px;--s-0-5:2px;--s-1:4px;--s-1-5:6px;--s-2:8px;--s-2-5:10px;--s-3:12px;--s-3-5:14px;--s-4:16px;--s-5:20px;--s-6:24px;--s-7:28px;--s-8:32px;--s-10:40px;--s-12:48px;
 
   --r-2xs:2px;--r-xs:4px;--r-6:6px;--r-s:8px;--r-seg:6px;--r-m:10px;--r-l:12px;--r-xl:14px;--r-pill:999px;--r-round:50%;
 
-  --bar:56px;
+  --bar:60px;--tabs:49px;
 
   --field-h:44px;--field-h-s:36px;--field-px:var(--s-3);--field-r:var(--r-s);--field-fs:var(--t-base);--field-bw:1px;--check-s:20px;--check-bw:1.5px;--check-edge:var(--line-strong);--check-mark-w:10px;--check-mark-h:6px;--check-mark-bw:2px;
   --gutter:16px;--gap:16px;--pad:16px;
@@ -153,7 +153,8 @@
   --toast-ink:#F0F3F6;
   --ring-c:rgba(11,98,214,0.28);
 }
-@media (--desktop){:root{--gutter:24px;--gap:20px;--pad:20px}}
+@media (--desktop){:root{--gutter:20px;--gap:16px;--pad:16px}}
+@media (--narrow){:root{--bar:64px}}
 @media (--tablet){:root{--field-h:48px;--field-h-s:44px}}
 @media (--tablet),(pointer:coarse){:root{--field-fs:16px}}
 @media (--wide-xl){:root{--gap:24px}}

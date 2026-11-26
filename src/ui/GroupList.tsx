@@ -3,15 +3,16 @@ import { Fragment, Suspense, memo, useCallback, useEffect, useRef, useState } fr
 import type { Calc, CfgN, LineType, Project, Row } from '../core/types';
 import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
-import { fixFor } from '../core/fixes';
 import type { FixAct } from '../core/fixes';
-import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconHeat, IconLan, IconNet, IconNote, IconRooms, IconSocket, IconTrash, IconWire } from './Icons';
+import { IconBolt, IconBulb, IconChev, IconCopy, IconDown, IconHeat, IconLan, IconNote, IconRooms, IconSocket, IconStBad, IconStOk, IconStWarn, IconTrash, IconWire } from './Icons';
 import { changedIds } from '../core/sent';
 import { openNotes } from '../core/notes';
 import { stageOf } from '../core/stage';
 import type { StageAct } from '../core/stage';
 import { whenLabel } from '../core/recent';
-import { BulkBar, RowPeek, StageBar } from './parts';
+import { BulkBar, HomeSum, PanelPane, RowPeek, StageBar } from './parts';
+import { MenuButton } from './MenuButton';
+import type { CheckFix } from './Checks';
 import { lineChanges } from '../core/sent';
 import { mediaMatches } from './media';
 import { useNow } from './now';
@@ -24,23 +25,23 @@ import type { ListFilter, ListSort } from '../core/listview';
 import { ListBar } from './ListBar';
 import { ArmButton } from './common';
 import { AddMenu } from './AddMenu';
-import { FixBar } from './FixBar';
 import { useSwipe } from './swipe';
 import { same } from './hold';
 
 const TYPE_IC: Record<LineType, JSX.Element> = { light: <IconBulb />, socket: <IconSocket />, power: <IconBolt /> };
+const ST_IC = { ok: <IconStOk />, warn: <IconStWarn />, bad: <IconStBad /> };
 
-function rowSub(x: Row, three: boolean): string[] {
+export const no2 = (i: number): string => String(i + 1).padStart(2, '0');
+
+function rowMeta(x: Row, three: boolean): string {
   const { l, r } = x;
+  if (r.empty) return 'нет приборов';
   const parts: string[] = [];
   if (three) parts.push(r.three ? '3Ф' : l.phase);
-  if (r.empty) parts.push('нет приборов');
-  else {
-    parts.push(fmt(r.pd, 0) + NB + 'Вт');
-    parts.push(fmt(r.I, 1) + NB + 'А');
-    if (r.S) parts.push(fs(r.S) + NB + 'мм²');
-  }
-  return parts;
+  if (r.In) parts.push(r.curve + r.In);
+  if (r.S) parts.push(fs(r.S) + NB + 'мм²');
+  parts.push(fmt(r.len, 0) + NB + 'м');
+  return parts.join(' · ');
 }
 
 type RowProps = {
@@ -66,11 +67,12 @@ const sameRow = (a: RowProps, b: RowProps): boolean =>
   a.i === b.i && a.three === b.three && a.sel === b.sel && a.hot === b.hot && a.tour === b.tour && a.onHot === b.onHot && a.onSelect === b.onSelect && a.onCopy === b.onCopy && a.onDelete === b.onDelete && a.onFix === b.onFix && a.picked === b.picked && a.onPick === b.onPick && a.chg === b.chg && a.notes === b.notes && a.x.l === b.x.l && same(a.x.r, b.x.r) && same(a.c, b.c);
 
 const GroupRow = memo(function GroupRow({
-  x, i, c, three, sel, hot, tour, onHot, onSelect, onCopy, onDelete, onFix, picked, onPick, chg, notes
+  x, i, three, sel, hot, tour, onHot, onSelect, onCopy, onDelete, picked, onPick, chg, notes
 }: RowProps) {
   const picking = picked !== undefined && !!onPick;
   const { dx, handlers } = useSwipe(() => onDelete(x.l.id), () => onCopy(x.l.id));
-  const fix = fixFor(x.l, x.r, c);
+  const st = x.r.empty ? 'ok' : x.r.status;
+  const load = x.r.In ? Math.round(x.r.I / x.r.In * 100) : null;
   return (
     <div className={'row-wrap' + (dx > 0 ? ' sw-r' : (dx < 0 ? ' sw-l' : ''))} data-tour={tour ? 'group' : undefined}>
       <div className="swipe-bg" aria-hidden="true">
@@ -113,43 +115,39 @@ const GroupRow = memo(function GroupRow({
         {...handlers}
       >
         {picking && <span className={'row-cb' + (picked ? ' on' : '')} aria-hidden="true" />}
-        <span className="no" data-t={x.l.type}>Г{i + 1}</span>
+        <span className="no" data-t={x.l.type}><span className="vh">Группа </span>{no2(i)}<span className="vh">, {TYPES[x.l.type].short}</span></span>
         <span className="row-main">
           <span className="row-name">{x.l.name || 'Без названия'}</span>
-          <span className="row-sub"><span className="row-ty" data-t={x.l.type}>{TYPE_IC[x.l.type]}<span className="vh">{TYPES[x.l.type].short}</span></span>{rowSub(x, three).map((t, k) => <span key={k}>{t}</span>)}</span>
+          <span className="row-sub">
+            <span className="row-meta mono">{rowMeta(x, three)}{!x.r.empty && <span className="row-du-s"> · ΔU {fmt(x.r.drop, 1)}{NB}%</span>}</span>
+            {chg && <span className="row-mk chg" data-tip="Изменено после отправки сметы">изменено<span className="vh"> после отправки сметы</span></span>}
+            {!!notes && <span className="row-mk note" data-tip={'Заметки: ' + notes}><IconNote /><b>{notes}</b><span className="vh"> {plural(notes, ['заметка', 'заметки', 'заметок'])}</span></span>}
+          </span>
+          {!x.r.empty && load !== null && <span className="row-bar" aria-hidden="true"><i className={load > 90 ? 'hot' : undefined} style={{ width: Math.min(100, load) + '%' }} /></span>}
         </span>
-        <span className="row-end">
-          {chg && <span className="row-mk chg" data-tip="Изменено после отправки сметы"><span className="vh">Изменено после отправки сметы</span></span>}
-          {!!notes && <span className="row-mk note" data-tip={'Заметки: ' + notes}><IconNote /><b>{notes}</b><span className="vh"> {plural(notes, ['заметка', 'заметки', 'заметок'])}</span></span>}
-          {x.r.status !== 'ok' && !x.r.empty && (
-            <span className={'flag ' + x.r.status} data-tip={STATUS[x.r.status]} aria-label={STATUS[x.r.status]}>!</span>
-          )}
-          {x.r.In && (() => {
-            const load = Math.round(x.r.I / x.r.In * 100);
-            const tip = 'Загрузка автомата ' + load + ' %' + (x.r.rcd ? (x.r.rcbo ? ', дифавтомат ' : ', УЗО «' + x.r.zone + '» ') + x.r.ma + ' мА' : '');
-            return (
-              <span className={'brk' + (x.r.rcbo ? ' rcd' : '')} data-tip={tip}>
-                {x.r.curve}{x.r.In}
-                <i className={'brk-load' + (load > 90 ? ' warn' : '')} aria-hidden="true"><i style={{ width: Math.min(100, load) + '%' }} /></i>
-              </span>
-            );
-          })()}
+        <span className="row-p mono">{x.r.empty ? '—' : fmt(x.r.pd, 0)}<span className="vh"> Вт</span></span>
+        <span className="row-i mono">
+          {x.r.empty ? '—' : fmt(x.r.I, 1)}<span className="row-u">{NB}А</span>
+          {!x.r.empty && load !== null && <span className="row-bar" aria-hidden="true"><i className={load > 90 ? 'hot' : undefined} style={{ width: Math.min(100, load) + '%' }} /></span>}
+          {load !== null && <span className="vh">, загрузка автомата {load} %</span>}
         </span>
-        <IconChev className="chev" />
+        <span className="row-du mono"><span className={x.r.drop > x.r.limit ? 'bad' : undefined}>{x.r.empty ? '—' : fmt(x.r.drop, 1)}</span><span className="vh"> % потери напряжения</span></span>
+        <span className={'st ' + st} data-tip={STATUS[st]}>{x.r.empty ? null : ST_IC[st]}<span className="vh">{x.r.empty ? '' : ', ' + STATUS[st]}</span></span>
       </button>
       <div className="row-act">
-        <button type="button" className="ra-b" tabIndex={-1} aria-label={'Копировать группу Г' + (i + 1)} data-tip="Копировать (Ctrl+D)" onClick={() => onCopy(x.l.id)}><IconCopy /></button>
-        <button type="button" className="ra-b del" tabIndex={-1} aria-label={'Удалить группу Г' + (i + 1)} data-tip="Удалить (Delete)" onClick={() => onDelete(x.l.id)}><IconTrash /></button>
+        <button type="button" className="ra-b" tabIndex={-1} aria-label={'Копировать группу ' + no2(i)} data-tip="Копировать (Ctrl+D)" onClick={() => onCopy(x.l.id)}><IconCopy /></button>
+        <button type="button" className="ra-b del" tabIndex={-1} aria-label={'Удалить группу ' + no2(i)} data-tip="Удалить (Delete)" onClick={() => onDelete(x.l.id)}><IconTrash /></button>
       </div>
-      {fix && !picking && <FixBar fix={fix} bad={x.r.status === 'bad'} onApply={() => fix.act && onFix(x.l.id, fix.act)} />}
     </div>
   );
 }, sameRow);
 
 export const GroupList = memo(function GroupList({
-  p, a, sel, onSelect, onAdd, onStage = () => undefined, onStageAct = () => undefined, onBulkZone = () => undefined, onBulkCopy = () => undefined, onBulkDelete = () => undefined, onOpenProj, onOpenNet, onOpenOld, onOpenFloor = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix, onRenumber = () => undefined
+  p, a, sel, onSelect, onAdd, onPanel = () => undefined, onCheckFix = () => undefined, onStage = () => undefined, onStageAct = () => undefined, onBulkZone = () => undefined, onBulkCopy = () => undefined, onBulkDelete = () => undefined, onOpenNet, onOpenOld, onOpenFloor = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix, onRenumber = () => undefined
 }: {
   onRenumber?: () => void;
+  onPanel?: () => void;
+  onCheckFix?: (f: CheckFix) => void;
   onStage?: (n: number) => void;
   onStageAct?: (a: StageAct) => void;
   onBulkZone?: (ids: string[], zone: string) => void;
@@ -244,60 +242,37 @@ export const GroupList = memo(function GroupList({
     if (selZone) setShut(v => (v.includes(selZone) ? v.filter(z => z !== selZone) : v));
   }, [sel, selZone]);
   const flip = (z: string) => setShut(v => (v.includes(z) ? v.filter(y => y !== z) : [...v, z]));
-  const net: [string, string][] = [
-    ['Питание', three ? '3 фазы, 400 В' : '1 фаза, 230 В'],
-    ['Прокладка', c.method === 'wall' ? 'Скрытая' : 'Открытая'],
-    ['Защита', c.rcdMode ? 'УЗО на помещение' : 'дифавтоматы'],
-    ['Выделено', fmt(c.alloc, 1) + ' кВт'],
-    ...(c.vr ? [['Реле', 'реле напряжения'] as [string, string]] : []),
-    ...(c.spd ? [['УЗИП', 'УЗИП'] as [string, string]] : []),
-    ...(c.afdd !== 'off' ? [['УЗДП', c.afdd === 'sock' ? 'УЗДП на розетки' : 'УЗДП на группы'] as [string, string]] : [])
-  ];
+  const [room, setRoom] = useState<string | null>(null);
+  const roomKey = (z: string | null) => (z ?? '').toLowerCase();
+  const rooms = zoned.length > 1 ? zoned.map(g => ({ zone: g.zone as string, n: g.items.length })) : [];
+  const curRoom = room && rooms.some(r => roomKey(r.zone) === roomKey(room)) ? room : null;
+  const shown = curRoom ? groups.filter(g => roomKey(g.zone) === roomKey(curRoom)) : groups;
+  const zoneHead = (g: ZoneGroup, gi: number) => {
+    const z = g.zone as string;
+    const closed = shut.includes(z);
+    const u = uzoOf(z);
+    const kw = fmt(g.items.reduce((t, k) => t + a.rows[k].r.pd, 0) / 1000, 1);
+    const worst = g.items.some(k => !a.rows[k].r.empty && a.rows[k].r.status === 'bad') ? 'bad' : (g.items.some(k => !a.rows[k].r.empty && a.rows[k].r.status === 'warn') ? 'warn' : '');
+    return (
+      <h3 className={'zone-h' + (closed ? ' shut' : '')}>
+        <button type="button" aria-expanded={!closed} aria-controls={'zone-' + gi} onClick={() => flip(z)}>
+          <IconChev className="zone-chev" />
+          <b>{z}</b>
+          <span className="cnt mono">{g.items.length}<span className="vh"> {plural(g.items.length, ['группа', 'группы', 'групп'])}</span></span>
+          {worst && <span className="vh">{STATUS[worst]}</span>}
+          <small className="zone-m">{u ? 'УЗО ' + u.In + NB + 'А · ' + u.ma + NB + 'мА' + (u.typeA ? ' · тип A' : '') : ''}</small>
+          <small className="zone-kw mono">{kw}{NB}кВт</small>
+        </button>
+      </h3>
+    );
+  };
+  const rowOf = (i: number) => {
+    const x = a.rows[i];
+    return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} picked={picking ? live.includes(x.l.id) : undefined} onPick={togglePick} chg={showChg && chg.has(x.l.id)} notes={openNotes(x.l.notes)} />;
+  };
   return (
     <section className="col col-list" id="groups" tabIndex={-1} aria-label="Группы линий" onKeyDown={e => { if (picking && e.key === 'Escape' && !e.defaultPrevented) stopPick(); }}>
-      <div className="proj-box">
-        <button className="projbar" type="button" onClick={onOpenProj} data-tour="projects">
-          <span className="vh">Проекты: </span>
-          <IconFolder />
-          <span className="pb-main">
-            <span className="pb-name">{p.name || 'Без названия'}</span>
-            <span className="pb-sub">{sub.join(' · ')}</span>
-          </span>
-          <span className="pb-more">Проекты</span>
-        </button>
-        <div className="netchips" data-tour="network">
-          <button className="netfold" type="button" onClick={onOpenNet}>
-            <IconNet />
-            <span className="nf-main">Параметры сети<span className="vh">: </span><small>{net.map(t => t[1]).join(', ')}</small></span>
-            <IconChev className="chev" />
-          </button>
-          {oldLabel && (
-            <button className="netfold" type="button" onClick={onOpenOld}>
-              <IconWire />
-              <span className="nf-main">Старая проводка<span className="vh">: </span><small>{oldLabel}</small></span>
-              <IconChev className="chev" />
-            </button>
-          )}
-          {(floorSummary(p.floor) || weakSummary(p.weak)) && (
-            <div className="nf-pair">
-              {floorSummary(p.floor) && (
-                <button className="netfold" type="button" onClick={onOpenFloor}>
-                  <IconHeat />
-                  <span className="nf-main">Тёплый пол<span className="vh">: </span><small>{floorSummary(p.floor)}</small></span>
-                  <IconChev className="chev" />
-                </button>
-              )}
-              {weakSummary(p.weak) && (
-                <button className="netfold" type="button" onClick={onOpenWeak}>
-                  <IconLan />
-                  <span className="nf-main">Слаботочка<span className="vh">: </span><small>{weakSummary(p.weak)}</small></span>
-                  <IconChev className="chev" />
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+      <h2 className="vh list-h" tabIndex={-1}>Группы линий</h2>
       {!p.sample && count > 0 && <Suspense fallback={<div className="stg stg-wait" aria-hidden="true" />}><StageBar n={stage} sentAt={p.sent ? whenLabel(p.sent.at, now) : undefined} onStage={onStage} onAct={onStageAct} /></Suspense>}
       {p.sample && (
         <div className="sample">
@@ -305,102 +280,95 @@ export const GroupList = memo(function GroupList({
           <ArmButton link className="js-blank" label="Начать с нуля" onRun={onBlank} />
         </div>
       )}
-      <div className="list-head">
-        <h2>Группы линий</h2>
-        <span className="hist">
-          {jumbled && (
-            <button className="lv-link" type="button" data-tip="Номера групп пойдут подряд по помещениям, как на щитке" onClick={onRenumber}>
-              <span>Номера по порядку</span>
-            </button>
-          )}
-        </span>
-        {count > 0 && !picking && (
-          <ListBar
-            chips={[{ id: 'bad', label: 'Нарушения', n: cnt.bad }, { id: 'warn', label: 'Советы', n: cnt.warn }, { id: 'chg', label: 'Изменено', n: showChg ? chg.size : 0 }, { id: 'note', label: 'Заметки', n: noted.size }]}
-            filter={filter}
-            onFilter={setFilter}
-            sort={sort}
-            onSort={setSort}
-            onPick={() => setPicking(true)}
-          />
-        )}
-      </div>
-      <AddMenu down onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />
-      {count > 0 && picking && (
-        <Suspense fallback={null}>
-          <BulkBar
-            n={live.length}
-            zones={zones}
-            onZone={z => { onBulkZone(live, z); stopPick(); }}
-            onCopy={() => { onBulkCopy(live); stopPick(); }}
-            onDelete={() => { onBulkDelete(live); stopPick(); }}
-            onDone={stopPick}
-          />
-        </Suspense>
+      {count > 0 && <div className="home" data-tour="summary"><Suspense fallback={<div className="home-wait" aria-hidden="true" />}><HomeSum a={a} onNet={onOpenNet} onGroup={onSelect} onFix={onCheckFix} /></Suspense></div>}
+      {count > 0 && <div className="home-panel"><Suspense fallback={null}><PanelPane mini a={a} sel={sel} hot={hot} onHot={onHot} onPick={onSelect} onMore={onPanel} /></Suspense></div>}
+      {(oldLabel || floorSummary(p.floor) || weakSummary(p.weak)) && (
+        <div className="extras">
+          {oldLabel && <button className="xchip" type="button" onClick={onOpenOld}><IconWire /><span className="vh">Старая проводка: </span>{oldLabel}</button>}
+          {floorSummary(p.floor) && <button className="xchip" type="button" onClick={onOpenFloor}><IconHeat /><span className="vh">Тёплый пол: </span>{floorSummary(p.floor)}</button>}
+          {weakSummary(p.weak) && <button className="xchip" type="button" onClick={onOpenWeak}><IconLan /><span className="vh">Слаботочка: </span>{weakSummary(p.weak)}</button>}
+        </div>
       )}
-      <div className="rows" onMouseOver={peekOver} onMouseLeave={peekOut} onPointerDown={peekOut} onScroll={peekOut}>
-        {count && !groups.length ? (
-          <div className="rows-none">
-            <p>Нет групп с таким отбором.</p>
-            <button type="button" className="link" onClick={() => setFilter(null)}>Показать все группы</button>
-          </div>
-        ) : count ? (
-          groups.map((g, gi) => (
-            <Fragment key={g.zone ?? '-'}>
-              {g.zone !== null && (() => {
-                const z = g.zone;
-                const closed = shut.includes(z);
-                const worst = g.items.some(k => !a.rows[k].r.empty && a.rows[k].r.status === 'bad') ? 'bad' : (g.items.some(k => !a.rows[k].r.empty && a.rows[k].r.status === 'warn') ? 'warn' : '');
-                const bid = 'zone-' + gi;
-                return (
-                  <>
-                    <h3 className={'zone-h' + (closed ? ' shut' : '')}>
-                      <button type="button" aria-expanded={!closed} aria-controls={bid} onClick={() => flip(z)}>
-                        <IconChev className="zone-chev" />
-                        <b>{z}</b>
-                        {worst && <span className={'flag ' + worst} aria-label={STATUS[worst]}>!</span>}
-                        <small>{(() => {
-                          const u = uzoOf(z);
-                          const parts = [g.items.length + ' ' + plural(g.items.length, ['группа', 'группы', 'групп'])];
-                          if (u) parts.push('УЗО ' + u.In + NB + 'А · ' + u.ma + NB + 'мА' + (u.typeA ? ' · тип A' : ''));
-                          parts.push(fmt(g.items.reduce((t, k) => t + a.rows[k].r.pd, 0) / 1000, 1) + NB + 'кВт');
-                          return parts.join(' · ');
-                        })()}</small>
-                        {closed && <span className="zone-brk" aria-hidden="true">{g.items.filter(k => a.rows[k].r.In).map(k => <i key={k} className={a.rows[k].r.rcbo ? 'rcd' : ''}>{a.rows[k].r.curve}{a.rows[k].r.In}</i>)}</span>}
-                      </button>
-                    </h3>
-                    <div className="zone-b" id={bid} hidden={closed}>
-                      {g.items.map(i => {
-                        const x = a.rows[i];
-                        return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} picked={picking ? live.includes(x.l.id) : undefined} onPick={togglePick} chg={showChg && chg.has(x.l.id)} notes={openNotes(x.l.notes)} />;
-                      })}
-                    </div>
-                  </>
-                );
-              })()}
-              {g.zone === null && g.items.map(i => {
-                const x = a.rows[i];
-                return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} picked={picking ? live.includes(x.l.id) : undefined} onPick={togglePick} chg={showChg && chg.has(x.l.id)} notes={openNotes(x.l.notes)} />;
-              })}
-            </Fragment>
-          ))
-        ) : (
-          <div className="start">
-            <h3 className="start-t">С чего начать</h3>
-            <button className="start-b main" type="button" onClick={onRooms}>
-              <span className="start-ic"><IconRooms /></span>
-              <span className="start-tx"><b>Собрать по комнатам</b><small>Отметьте помещения, группы и приборы появятся сами</small></span>
-            </button>
-            <div className="start-row" role="group" aria-label="Добавить группу вручную">
-              <span className="start-l">Или добавьте группу:</span>
-              {(['light', 'socket', 'power'] as LineType[]).map(t => (
-                <button key={t} className="start-ty" type="button" data-t={t} onClick={() => onAdd(t)}>{TYPE_IC[t]}{TYPES[t].short}</button>
-              ))}
-            </div>
-            {onSample && <button className="link start-s" type="button" onClick={onSample}>Посмотреть на примере двухкомнатной квартиры</button>}
+      <div className={'box lst' + (picking ? ' picking' : '')}>
+        {rooms.length > 0 && (
+          <div className="folders" role="group" aria-label="Помещения">
+            <button type="button" className="fold" aria-pressed={!curRoom} onClick={() => setRoom(null)}>Все<span className="cnt mono">{count}</span></button>
+            {rooms.map(r => (
+              <button key={r.zone} type="button" className="fold" aria-pressed={roomKey(curRoom) === roomKey(r.zone)} onClick={() => setRoom(roomKey(curRoom) === roomKey(r.zone) ? null : r.zone)}>{r.zone}<span className="cnt mono">{r.n}</span></button>
+            ))}
           </div>
         )}
+        <div className="list-head">
+          {rooms.length > 0 && (
+            <MenuButton
+              className="btn sm room-dd"
+              label={'Помещение: ' + (curRoom ?? 'все помещения')}
+              trigger={<><b>{curRoom ?? 'Все помещения'}</b><IconDown className="dd-c" /></>}
+              groups={[{ id: 'rooms', items: [{ id: '*', label: 'Все помещения', mark: String(count), current: !curRoom, run: () => setRoom(null) }, ...rooms.map(r => ({ id: r.zone, label: r.zone, mark: String(r.n), current: roomKey(curRoom) === roomKey(r.zone), run: () => setRoom(r.zone) }))] }]}
+            />
+          )}
+          {count > 0 && !picking && (
+            <ListBar
+              chips={[{ id: 'bad', label: 'Нарушения', n: cnt.bad }, { id: 'warn', label: 'Советы', n: cnt.warn }, { id: 'chg', label: 'Изменено', n: showChg ? chg.size : 0 }, { id: 'note', label: 'Заметки', n: noted.size }]}
+              filter={filter}
+              onFilter={setFilter}
+              sort={sort}
+              onSort={setSort}
+              onPick={() => setPicking(true)}
+              renumber={jumbled ? onRenumber : undefined}
+            />
+          )}
+          <AddMenu down onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />
+        </div>
+        {count > 0 && picking && (
+          <Suspense fallback={null}>
+            <BulkBar
+              n={live.length}
+              zones={zones}
+              onZone={z => { onBulkZone(live, z); stopPick(); }}
+              onCopy={() => { onBulkCopy(live); stopPick(); }}
+              onDelete={() => { onBulkDelete(live); stopPick(); }}
+              onDone={stopPick}
+            />
+          </Suspense>
+        )}
+        {count > 0 && (
+          <div className="lst-th" aria-hidden="true">
+            <span>№</span><span>Группа</span><span>P, Вт</span><span>I, А</span><span>ΔU, %</span><span />
+          </div>
+        )}
+        <div className="rows" onMouseOver={peekOver} onMouseLeave={peekOut} onPointerDown={peekOut} onScroll={peekOut}>
+          {count && !shown.length ? (
+            <div className="rows-none">
+              <p>Нет групп с таким отбором.</p>
+              <button type="button" className="link" onClick={() => { setFilter(null); setRoom(null); }}>Показать все группы</button>
+            </div>
+          ) : count ? (
+            shown.map((g, gi) => (
+              <Fragment key={g.zone ?? '-'}>
+                {g.zone !== null && zoneHead(g, gi)}
+                {g.zone !== null ? <div className="zone-b" id={'zone-' + gi} hidden={shut.includes(g.zone)}>{g.items.map(rowOf)}</div> : g.items.map(rowOf)}
+              </Fragment>
+            ))
+          ) : (
+            <div className="start">
+              <h3 className="start-t">С чего начать</h3>
+              <button className="start-b main" type="button" onClick={onRooms}>
+                <span className="start-ic"><IconRooms /></span>
+                <span className="start-tx"><b>Собрать по комнатам</b><small>Отметьте помещения, группы и приборы появятся сами</small></span>
+              </button>
+              <div className="start-row" role="group" aria-label="Добавить группу вручную">
+                <span className="start-l">Или добавьте группу:</span>
+                {(['light', 'socket', 'power'] as LineType[]).map(t => (
+                  <button key={t} className="start-ty" type="button" data-t={t} onClick={() => onAdd(t)}>{TYPE_IC[t]}{TYPES[t].short}</button>
+                ))}
+              </div>
+              {onSample && <button className="link start-s" type="button" onClick={onSample}>Посмотреть на примере двухкомнатной квартиры</button>}
+            </div>
+          )}
+        </div>
       </div>
+      {count > 0 && <p className="note lst-foot">Расчёт предварительный. ТКП 339-2022 с изм. № 1, СН 4.04.01-2019 с изм. № 1 и № 2.<span className="lst-keys"> <kbd>J</kbd> <kbd>K</kbd> по группам · <kbd>?</kbd> все клавиши</span></p>}
       {peek && !picking && peek.id !== sel && (() => {
         const k = a.rows.findIndex(y => y.l.id === peek.id);
         if (k < 0) return null;
