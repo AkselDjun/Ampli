@@ -1,4 +1,5 @@
 import type { StageAct } from '../core/stage';
+import '../styles/stage.css';
 import { STAGES } from '../core/stage';
 import { IconChev } from './Icons';
 import { MenuButton } from './MenuButton';

@@ -1,6 +1,6 @@
 import { IconCheck, IconDoc, IconList, IconPanel, IconTools } from '../ui/Icons';
 import { MenuButton } from '../ui/MenuButton';
-import { toolsMenu } from './navMenus';
+import { navMenus } from './navLoad';
 import { useScrollHide } from '../ui/useScrollHide';
 import { APP_VIEW } from './types';
 import type { AppTabsProps } from './types';
@@ -31,7 +31,8 @@ export function AppTabs({ nav, calc, view, onGroups, onPanel, onWork, onReport }
         label="Ещё"
         trigger={<><IconTools /><span>Ещё</span></>}
         menuClass="tl-menu"
-        groups={toolsMenu(nav)}
+        groups={() => navMenus.get()?.toolsMenu(nav) ?? null}
+        load={navMenus.load}
         up
         end
       />

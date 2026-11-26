@@ -185,6 +185,7 @@ describe('App', () => {
   });
 
   it('balance button on three phases', () => {
+    wide(true);
     render(<App />);
     click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
     fireEvent.click(dlg('Параметры сети').querySelector('input[name="sup"][value="3"]') as HTMLElement);

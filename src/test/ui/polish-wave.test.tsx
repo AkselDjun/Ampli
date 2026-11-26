@@ -6,7 +6,7 @@ import { defaultCfg, mkLine } from '../../core/templates';
 import { KEY } from '../../store/storage';
 import type { Line } from '../../core/types';
 import { currentToast } from '../../ui/toast';
-import { click, dlg, toastText } from './util';
+import { click, dlg, toastText, wide } from './util';
 import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
@@ -57,6 +57,7 @@ describe('projects window', () => {
 
 describe('empty project', () => {
   it('does not offer to print an empty report or size an empty board', () => {
+    wide(true);
     boot([]);
     render(<App />);
     expect(document.body.textContent).not.toContain('Приборов на 0 мод.');

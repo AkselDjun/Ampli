@@ -1,4 +1,5 @@
-import { HOTKEYS } from '../core/hotkeys';
+import { HOTKEYS } from '../core/hotkeyList';
+import '../styles/keys.css';
 import { Sheet } from './common';
 
 export function ShortcutsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {

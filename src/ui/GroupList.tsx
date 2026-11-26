@@ -11,8 +11,7 @@ import { openNotes } from '../core/notes';
 import { stageOf } from '../core/stage';
 import type { StageAct } from '../core/stage';
 import { whenLabel } from '../core/recent';
-import { StageBar } from './StageBar';
-import { RowPeek } from './parts';
+import { BulkBar, RowPeek, StageBar } from './parts';
 import { lineChanges } from '../core/sent';
 import { mediaMatches } from './media';
 import { useNow } from './now';
@@ -22,7 +21,7 @@ import { roomGroups } from '../core/zonelist';
 import type { ZoneGroup } from '../core/zonelist';
 import { listCounts, listView } from '../core/listview';
 import type { ListFilter, ListSort } from '../core/listview';
-import { BulkBar, ListBar } from './ListBar';
+import { ListBar } from './ListBar';
 import { ArmButton } from './common';
 import { AddMenu } from './AddMenu';
 import { FixBar } from './FixBar';
@@ -299,7 +298,7 @@ export const GroupList = memo(function GroupList({
           )}
         </div>
       </div>
-      {!p.sample && count > 0 && <StageBar n={stage} sentAt={p.sent ? whenLabel(p.sent.at, now) : undefined} onStage={onStage} onAct={onStageAct} />}
+      {!p.sample && count > 0 && <Suspense fallback={<div className="stg stg-wait" aria-hidden="true" />}><StageBar n={stage} sentAt={p.sent ? whenLabel(p.sent.at, now) : undefined} onStage={onStage} onAct={onStageAct} /></Suspense>}
       {p.sample && (
         <div className="sample">
           Пример двухкомнатной квартиры. Нажмите на группу, чтобы изменить её.{' '}
@@ -328,14 +327,16 @@ export const GroupList = memo(function GroupList({
       </div>
       <AddMenu down onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />
       {count > 0 && picking && (
-        <BulkBar
-          n={live.length}
-          zones={zones}
-          onZone={z => { onBulkZone(live, z); stopPick(); }}
-          onCopy={() => { onBulkCopy(live); stopPick(); }}
-          onDelete={() => { onBulkDelete(live); stopPick(); }}
-          onDone={stopPick}
-        />
+        <Suspense fallback={null}>
+          <BulkBar
+            n={live.length}
+            zones={zones}
+            onZone={z => { onBulkZone(live, z); stopPick(); }}
+            onCopy={() => { onBulkCopy(live); stopPick(); }}
+            onDelete={() => { onBulkDelete(live); stopPick(); }}
+            onDone={stopPick}
+          />
+        </Suspense>
       )}
       <div className="rows" onMouseOver={peekOver} onMouseLeave={peekOut} onPointerDown={peekOut} onScroll={peekOut}>
         {count && !groups.length ? (

@@ -3,12 +3,12 @@ import type { KeyboardEvent } from 'react';
 
 const items = (list: HTMLElement | null): HTMLElement[] => (list ? Array.from(list.querySelectorAll<HTMLElement>('[role^="menuitem"]:not([disabled])')) : []);
 
-export function useMenuKeys(open: boolean, close: () => void) {
+export function useMenuKeys(open: boolean, close: () => void, ready = true) {
   const listRef = useRef<HTMLElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
-    if (open) items(listRef.current)[0]?.focus();
-  }, [open]);
+    if (open && ready) items(listRef.current)[0]?.focus();
+  }, [open, ready]);
   const back = () => {
     close();
     triggerRef.current?.focus();

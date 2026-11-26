@@ -24,19 +24,6 @@ export function hotkeyOf(e: KeyLike): Hotkey | null {
   return CODES[e.code] ?? null;
 }
 
-export const HOTKEYS: readonly { keys: string[]; label: string }[] = [
-  { keys: ['J'], label: 'Следующая группа' },
-  { keys: ['K'], label: 'Предыдущая группа' },
-  { keys: ['E'], label: 'Перейти в карточку группы' },
-  { keys: ['N'], label: 'Добавить группу' },
-  { keys: ['S'], label: 'Выбрать несколько групп' },
-  { keys: ['Ctrl', 'D'], label: 'Копировать группу' },
-  { keys: ['Delete'], label: 'Удалить группу' },
-  { keys: ['Ctrl', 'K'], label: 'Команды и поиск' },
-  { keys: ['Esc'], label: 'Закрыть окно или выйти из выбора' },
-  { keys: ['?'], label: 'Эта справка' }
-];
-
 export function stepIn(ids: readonly string[], cur: string | null, d: 1 | -1): string | null {
   if (!ids.length) return null;
   const i = cur === null ? -1 : ids.indexOf(cur);

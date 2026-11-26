@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { Suspense, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { calcAll } from '../core/calc';
 import type { LineType } from '../core/types';
 import { blank, sample } from '../core/templates';
@@ -13,9 +13,8 @@ import { useBackClose } from './back';
 import { updatedFrom } from './release';
 import { APP_VERSION } from '../core/version';
 import { GroupList } from './GroupList';
-import { PanelPane, Summary } from './Side';
 import { SheetNavContext } from './sheetnav';
-import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, RoomsSheet, ShopSheet, ShortcutsSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
+import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, PanelPane, RoomsSheet, ShopSheet, ShortcutsSheet, Summary, WeakSheet, WorkSheet, preloadParts } from './parts';
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { IncomingSheet } from './IncomingSheet';
@@ -88,7 +87,7 @@ export function App() {
     window.scrollTo(0, 0);
   }, [state.cur]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const key = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null;
       const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
@@ -168,7 +167,7 @@ export function App() {
       setKeys(true);
     }
   });
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.addEventListener('keydown', onHotkey);
     return () => document.removeEventListener('keydown', onHotkey);
   }, [onHotkey]);
@@ -365,8 +364,12 @@ export function App() {
             </Suspense>
             ) : <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы" />}
             <aside className="col col-res" aria-label="Итоги расчёта">
-              <PanelPane a={da} sel={state.sel} hot={hot} onHot={setHot} onPick={pick} onMove={moveLine} />
-              <Summary key={'s' + (view === APP_VIEW.PANEL)} a={da} solo={view === APP_VIEW.PANEL} onBalance={balance} />
+              {(wide || view === APP_VIEW.PANEL) && (
+                <Suspense fallback={null}>
+                  <PanelPane a={da} sel={state.sel} hot={hot} onHot={setHot} onPick={pick} onMove={moveLine} />
+                  <Summary key={'s' + (view === APP_VIEW.PANEL)} a={da} solo={view === APP_VIEW.PANEL} onBalance={balance} />
+                </Suspense>
+              )}
             </aside>
           </div>
         </main>

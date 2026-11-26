@@ -19,13 +19,14 @@ export interface MenuGroup {
   items: MenuItem[];
 }
 
-export function MenuButton({ label, trigger, className, box, menuClass, groups, up, end, tour, tip }: {
+export function MenuButton({ label, trigger, className, box, menuClass, groups, load, up, end, tour, tip }: {
   label: string;
   trigger: ReactNode;
   className: string;
   box?: string;
   menuClass?: string;
-  groups: MenuGroup[];
+  groups: MenuGroup[] | (() => MenuGroup[] | null);
+  load?: () => Promise<unknown>;
   up?: boolean;
   end?: boolean;
   tour?: string;
@@ -42,12 +43,21 @@ export function MenuButton({ label, trigger, className, box, menuClass, groups, 
     document.addEventListener('pointerdown', away);
     return () => document.removeEventListener('pointerdown', away);
   }, [open]);
-  const { listRef, triggerRef, onKeyDown, back } = useMenuKeys(open, () => setOpen(false));
+  const [, bump] = useState(0);
+  const got = open ? (typeof groups === 'function' ? groups() : groups) : null;
+  const waiting = open && !got;
+  useEffect(() => {
+    if (!waiting || !load) return;
+    let live = true;
+    load().then(() => { if (live) bump(n => n + 1); }, () => undefined);
+    return () => { live = false; };
+  }, [waiting, load]);
+  const { listRef, triggerRef, onKeyDown, back } = useMenuKeys(open, () => setOpen(false), !waiting);
   const pick = (run: () => void) => {
     back();
     run();
   };
-  const shown = groups.filter(g => g.items.length);
+  const shown = (got ?? []).filter(g => g.items.length);
   return (
     <div className={'dd' + (box ? ' ' + box : '') + (up ? ' up' : '') + (end ? ' end' : '') + (open ? ' open' : '')} ref={ref}>
       <button

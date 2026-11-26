@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { HOTKEYS, hotkeyOf, stepIn } from '../../core/hotkeys';
+import { hotkeyOf, stepIn } from '../../core/hotkeys';
+import { HOTKEYS } from '../../core/hotkeyList';
 
 const k = (code: string, key = '', o: Partial<{ ctrl: boolean; meta: boolean; alt: boolean; shift: boolean }> = {}) => ({ code, key, ctrl: false, meta: false, alt: false, shift: false, ...o });
 

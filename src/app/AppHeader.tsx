@@ -4,7 +4,7 @@ import { useNow } from '../ui/now';
 import { Checks } from '../ui/Checks';
 import { Totals } from '../ui/Totals';
 import { Button } from '../ui/kit';
-import { projectMenu, settingsMenu, toolsMenu } from './navMenus';
+import { navMenus } from './navLoad';
 import type { AppHeaderProps } from './types';
 
 export function AppHeader({ list, cur, nav, selected, selectedIndex, saveStatus, calc, onBack, onNetwork, onGroup, onCheckFix, onPanel, onWork, onReport, onCompare }: AppHeaderProps) {
@@ -29,7 +29,8 @@ export function AppHeader({ list, cur, nav, selected, selectedIndex, saveStatus,
             label={'Проект: ' + (name || 'Без названия') + '. Сменить проект'}
             trigger={<><span className="pj-slash" aria-hidden="true">/</span><span className="pj-name">{name || 'Без названия'}</span><IconDown className="pj-chev" /></>}
             menuClass="pj-menu"
-            groups={projectMenu(list, cur, time, nav)}
+            groups={() => navMenus.get()?.projectMenu(list, cur, time, nav) ?? null}
+            load={navMenus.load}
           />
           <span className="save-indicator" aria-live="polite">{saveStatus === 'saving' ? 'Сохранение…' : saveStatus === 'saved' ? 'Сохранено' : saveStatus === 'conflict' ? 'Конфликт вкладок' : 'Ошибка сохранения проектов'}</span>
           <div className="hud" data-tour="summary">
@@ -55,7 +56,8 @@ export function AppHeader({ list, cur, nav, selected, selectedIndex, saveStatus,
             tip="Комнаты, сравнение, тёплый пол, закупка"
             trigger={<><IconTools /><span className="ab-txt">Инструменты</span></>}
             menuClass="tl-menu"
-            groups={toolsMenu(nav)}
+            groups={() => navMenus.get()?.toolsMenu(nav) ?? null}
+            load={navMenus.load}
             end
           />
           <MenuButton
@@ -63,7 +65,8 @@ export function AppHeader({ list, cur, nav, selected, selectedIndex, saveStatus,
             label="Настройки и обучение"
             tip="Мои данные, обмен, обучение"
             trigger={<IconGear />}
-            groups={settingsMenu(nav)}
+            groups={() => navMenus.get()?.settingsMenu(nav) ?? null}
+            load={navMenus.load}
             end
           />
         </div>

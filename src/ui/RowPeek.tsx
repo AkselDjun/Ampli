@@ -1,4 +1,5 @@
 import type { Row } from '../core/types';
+import '../styles/peek.css';
 import type { Note } from '../core/notes';
 import { peekOf } from '../core/peek';
 import { STATUS } from '../core/norms';
