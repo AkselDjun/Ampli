@@ -19,6 +19,8 @@ import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, Old
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { IncomingSheet } from './IncomingSheet';
+import { ShortcutsSheet } from './ShortcutsSheet';
+import { hotkeyOf, stepIn } from '../core/hotkeys';
 import { LockedLinkSheet } from './LockedLinkSheet';
 import { uniqName } from '../core/project';
 import { SENT_STAGE, STAGES, stageOf } from '../core/stage';
@@ -59,6 +61,7 @@ export function App() {
   const dp = useDeferredValue(p);
   const da = useDeferredValue(a);
   const [hot, setHot] = useState<string | null>(null);
+  const [keys, setKeys] = useState(false);
   const oldLabel = oldStarted(p.old) ? oldVerdict(p.old, a).label : '';
   const dOldLabel = oldStarted(dp.old) ? oldVerdict(dp.old, da).label : '';
   const selected = p.lines.find(l => l.id === state.sel) || null;
@@ -132,6 +135,44 @@ export function App() {
     toast('Добавлена группа: ' + TYPES[t].label, mediaMatches(BP.desktop) ? {} : { label: 'Открыть', run: goEdit });
   });
   const pick = useStable((id: string) => { dispatch({ t: 'select', id }); goEdit(); });
+  const onHotkey = useStable((e: KeyboardEvent) => {
+    const el = e.target;
+    if (el instanceof HTMLElement && (el.isContentEditable || el.closest('input, textarea, select, [role="menu"]'))) return;
+    if (document.querySelector('.sheet:not([hidden]) [role="dialog"], dialog[open], [role="menu"]')) return;
+    const k = hotkeyOf({ code: e.code, key: e.key, ctrl: e.ctrlKey, meta: e.metaKey, alt: e.altKey, shift: e.shiftKey });
+    if (!k) return;
+    const vis = (q: string) => Array.from(document.querySelectorAll<HTMLElement>(q)).find(x => x.getClientRects().length > 0);
+    if (k === 'next' || k === 'prev') {
+      const ids = Array.from(document.querySelectorAll<HTMLElement>('.rows .row[data-id]')).map(x => x.dataset.id as string);
+      const id = stepIn(ids, state.sel, k === 'next' ? 1 : -1);
+      if (!id) return;
+      e.preventDefault();
+      dispatch({ t: 'select', id });
+      requestAnimationFrame(() => document.querySelector<HTMLElement>('.rows .row[data-id="' + CSS.escape(id) + '"]')?.focus());
+    } else if (k === 'edit') {
+      if (!state.sel) return;
+      e.preventDefault();
+      goEdit();
+      requestAnimationFrame(() => document.querySelector<HTMLElement>('#editor input, #editor button')?.focus());
+    } else if (k === 'add') {
+      const b = vis('.addmenu .add-b');
+      if (!b) return;
+      e.preventDefault();
+      b.click();
+    } else if (k === 'pick') {
+      const b = vis('.ltb-pick');
+      if (!b) return;
+      e.preventDefault();
+      b.click();
+    } else {
+      e.preventDefault();
+      setKeys(true);
+    }
+  });
+  useEffect(() => {
+    document.addEventListener('keydown', onHotkey);
+    return () => document.removeEventListener('keydown', onHotkey);
+  }, [onHotkey]);
   const copyLine = useStable((id: string) => {
     dispatch({ t: 'dupLine', id });
     toastOk('Создана копия группы');
@@ -218,6 +259,7 @@ export function App() {
     share: () => projectsAt('share'),
     library: () => setSheet(APP_SHEET.LIBRARY),
     tour: tour.startTour,
+    keys: () => setKeys(true),
     rooms: openRooms,
     oldWiring: openOld,
     compare: () => setSheet(APP_SHEET.COMPARE),
@@ -356,6 +398,7 @@ export function App() {
         <HoverTips />
         <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} tab={tabOf(APP_SHEET.WORK)} onTab={onWorkTab} /></Hold>
         </SheetNavContext.Provider>
+        <ShortcutsSheet open={keys} onClose={() => setKeys(false)} />
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={loc.dropIncoming} />
         <LockedLinkSheet link={loc.locked} onUnlock={loc.unlock} onCancel={loc.dropLocked} />
         <Hold open={tourOpen}>{tourOpen && <Onboarding onScene={tour.onTourScene} onClose={tour.closeTour} onFinish={tour.finishTour} chapter={tour.tourChapter} mode={tour.tourMode} />}</Hold>

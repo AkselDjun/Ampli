@@ -55,7 +55,7 @@ describe('навигация в шапке', () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(gear());
-    expect(within(screen.getByRole('menu')).getAllByRole('menuitem').map(x => x.querySelector('.dd-l')?.textContent)).toEqual(['Мои данные', 'Обмен и резервные копии', 'Обучение']);
+    expect(within(screen.getByRole('menu')).getAllByRole('menuitem').map(x => x.querySelector('.dd-l')?.textContent)).toEqual(['Мои данные', 'Обмен и резервные копии', 'Обучение', 'Горячие клавиши']);
     await user.click(screen.getByRole('menuitem', { name: /^Обмен и резервные копии/ }));
     expect(isOpen('Проекты')).toBe(true);
     expect(screen.getByRole('tab', { name: 'Обмен и данные' })).toHaveAttribute('aria-selected', 'true');

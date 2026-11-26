@@ -12,6 +12,9 @@ import { stageOf } from '../core/stage';
 import type { StageAct } from '../core/stage';
 import { whenLabel } from '../core/recent';
 import { StageBar } from './StageBar';
+import { RowPeek } from './RowPeek';
+import { lineChanges } from '../core/sent';
+import { mediaMatches } from './media';
 import { useNow } from './now';
 import { floorSummary } from '../core/floor';
 import { weakSummary } from '../core/weak';
@@ -78,6 +81,7 @@ const GroupRow = memo(function GroupRow({
       <button
         className={'row' + (sel && !picking ? ' sel' : '') + (hot ? ' hot' : '') + (picking ? ' picking' : '') + (picked ? ' picked' : '')}
         type="button"
+        data-id={x.l.id}
         aria-pressed={picking ? picked : undefined}
         onMouseEnter={() => onHot(x.l.id)}
         onMouseLeave={() => onHot(null)}
@@ -177,6 +181,32 @@ export const GroupList = memo(function GroupList({
   const count = p.lines.length;
   const mounted = useRef(false);
   const now = useNow();
+  const [peek, setPeek] = useState<{ id: string; top: number; left: number } | null>(null);
+  const peekT = useRef(0);
+  useEffect(() => () => window.clearTimeout(peekT.current), []);
+  const peekOver = (e: { target: EventTarget }) => {
+    const el = (e.target as HTMLElement).closest<HTMLElement>('.row[data-id]');
+    const id = el?.dataset.id;
+    if (!el || !id || peek?.id === id) return;
+    window.clearTimeout(peekT.current);
+    setPeek(null);
+    if (!mediaMatches('(hover: hover) and (pointer: fine) and (min-width: 1000px)')) return;
+    peekT.current = window.setTimeout(() => {
+      if (!el.isConnected || !el.matches(':hover')) return;
+      const b = el.getBoundingClientRect();
+      setPeek({ id, top: Math.max(64, Math.min(b.top, window.innerHeight - 280)), left: b.right + 12 });
+    }, 450);
+  };
+  useEffect(() => {
+    if (!peek) return;
+    const off = () => setPeek(null);
+    window.addEventListener('scroll', off, { passive: true });
+    return () => window.removeEventListener('scroll', off);
+  }, [peek]);
+  const peekOut = () => {
+    window.clearTimeout(peekT.current);
+    setPeek(null);
+  };
   useEffect(() => {
     if (!mounted.current) {
       mounted.current = true;
@@ -307,7 +337,7 @@ export const GroupList = memo(function GroupList({
           onDone={stopPick}
         />
       )}
-      <div className="rows">
+      <div className="rows" onMouseOver={peekOver} onMouseLeave={peekOut} onPointerDown={peekOut} onScroll={peekOut}>
         {count && !groups.length ? (
           <div className="rows-none">
             <p>Нет групп с таким отбором.</p>
@@ -370,6 +400,13 @@ export const GroupList = memo(function GroupList({
           </div>
         )}
       </div>
+      {peek && !picking && peek.id !== sel && (() => {
+        const k = a.rows.findIndex(y => y.l.id === peek.id);
+        if (k < 0) return null;
+        const x = a.rows[k];
+        const since = showChg && p.sent ? lineChanges(p.sent.lines.find(y => y.id === x.l.id), x) : [];
+        return <RowPeek x={x} no={k + 1} top={peek.top} left={peek.left} since={since} notes={x.l.notes ?? []} />;
+      })()}
       <AddMenu fab onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />
     </section>
   );

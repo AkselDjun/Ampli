@@ -2,7 +2,7 @@ import { plural } from '../core/format';
 import { initials, recentProjects, whenLabel } from '../core/recent';
 import type { Project } from '../core/types';
 import { STAGES, stageOf } from '../core/stage';
-import { IconBook, IconCap, IconCart, IconCompare, IconFolder, IconGrid, IconHeat, IconLan, IconPlus, IconRooms, IconWire } from '../ui/Icons';
+import { IconBook, IconCap, IconCart, IconCompare, IconFolder, IconGrid, IconHeat, IconKeys, IconLan, IconPlus, IconRooms, IconWire } from '../ui/Icons';
 import type { MenuGroup } from '../ui/MenuButton';
 import type { NavActions } from './types';
 
@@ -69,6 +69,9 @@ export const settingsMenu = (go: NavActions): MenuGroup[] => [
   },
   {
     id: 'help',
-    items: [{ id: 'tour', label: 'Обучение', hint: 'Короткий тур по приложению', icon: <IconCap />, run: go.tour }]
+    items: [
+      { id: 'tour', label: 'Обучение', hint: 'Короткий тур по приложению', icon: <IconCap />, run: go.tour },
+      { id: 'keys', label: 'Горячие клавиши', hint: 'J, K, E, N, S и другие', icon: <IconKeys />, run: go.keys }
+    ]
   }
 ];

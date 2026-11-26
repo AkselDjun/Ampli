@@ -48,6 +48,7 @@ export interface NavActions {
   share: () => void;
   library: () => void;
   tour: () => void;
+  keys: () => void;
   rooms: () => void;
   oldWiring: () => void;
   compare: () => void;
