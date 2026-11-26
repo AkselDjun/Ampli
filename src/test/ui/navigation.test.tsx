@@ -8,7 +8,7 @@ vi.setConfig({ testTimeout: 60000 });
 
 const switcher = () => screen.getByRole('button', { name: /^Проект: .*Сменить проект$/ });
 const gear = () => screen.getByRole('button', { name: 'Настройки и обучение' });
-const tools = () => within(document.querySelector('.ab-main') as HTMLElement).getByRole('button', { name: 'Инструменты' });
+const tools = () => within(screen.getByRole('navigation', { name: 'Разделы' })).getByRole('button', { name: 'Инструменты' });
 
 const addProject = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(switcher());
@@ -112,11 +112,11 @@ describe('навигация в шапке', () => {
     expect(screen.queryByRole('menu')).toBeNull();
   });
 
-  it('на телефоне инструменты в пятой вкладке «Ещё»', async () => {
+  it('на телефоне инструменты в пятой вкладке', async () => {
     const user = userEvent.setup();
     render(<App />);
     const nav = screen.getByRole('navigation', { name: 'Разделы' });
-    await user.click(within(nav).getByRole('button', { name: 'Ещё' }));
+    await user.click(within(nav).getByRole('button', { name: 'Инструменты' }));
     expect(within(nav).getAllByRole('group').map(g => g.getAttribute('aria-label'))).toEqual(['Собрать', 'Сравнить', 'Посчитать', 'Закупка']);
     await user.click(within(nav).getByRole('menuitem', { name: /^Комнаты/ }));
     expect(isOpen('Комнаты')).toBe(true);

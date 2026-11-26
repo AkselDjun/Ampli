@@ -4,7 +4,7 @@ import { App } from '../../ui/App';
 import { DataTable, MoneyInput } from '../../ui/kit';
 import { KEY } from '../../store/storage';
 import { sampleProject } from '../../core/project';
-import { click, dlg } from './util';
+import { click, dlg, openCompare } from './util';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -61,11 +61,10 @@ describe('data tables', () => {
     expect(t.querySelector('tfoot')?.textContent).toMatch(/\d+,\d{2} BYN/);
   });
 
-  it('shows the comparison above the choices and dims what does not change', () => {
+  it('shows the comparison above the choices and dims what does not change', async () => {
     seed();
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /^Итого по квартире/ }));
-    click(document.querySelector('.tot-pop') as HTMLElement, 'Сравнить варианты');
+    await openCompare();
     const d = dlg('Сравнение вариантов');
     const res = within(d).getByRole('region', { name: 'Итог сравнения' });
     expect(res.compareDocumentPosition(within(d).getByText('Убрать из расчёта')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

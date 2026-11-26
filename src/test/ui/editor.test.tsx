@@ -63,7 +63,7 @@ describe('Editor', () => {
     expect(radio('w', 'wet').checked).toBe(true);
     fireEvent.click(radio('w', 'dry'));
     expect(ed().textContent).not.toContain('Фаза');
-    click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
+    click(document.querySelector('.appbar') as HTMLElement, 'Параметры сети');
     fireEvent.click(document.querySelector('input[name="sup"][value="3"]') as HTMLElement);
     expect(ed().textContent).toContain('Фаза');
     fireEvent.click(radio('p', '3'));
@@ -159,7 +159,7 @@ describe('Editor', () => {
     change(byLabel(ed(), 'Мощность, Вт'), '50000');
     expect(ed().textContent).toContain('Подбор невозможен');
     ed().querySelectorAll('.a-del').forEach(b => fireEvent.click(b));
-    expect(ed().querySelector('.ed-res')?.textContent).toContain('Добавьте приборы');
+    expect(ed().querySelector('.ed-empty')?.textContent).toContain('Добавьте приборы');
   });
 
   it('duplicates a group', () => {

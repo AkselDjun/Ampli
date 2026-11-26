@@ -27,7 +27,7 @@ describe('form fields', () => {
   it('styles inputs, selects and textareas from one base rule', () => {
     const base = rules(app).find(r => r.sel.startsWith('input:where('));
     expect(base?.sel).toBe('input:where(:not([type=checkbox],[type=radio],[type=range],[type=file],[type=color])),select,textarea');
-    for (const d of ['font-size:var(--field-fs)', 'border:var(--field-bw) solid var(--line-strong)', 'border-radius:var(--field-r)', 'padding:0 var(--field-px)', 'height:var(--field-h)', 'background:var(--field)']) expect(base?.body).toContain(d);
+    for (const d of ['font-size:var(--field-fs)', 'border:var(--field-bw) solid var(--line)', 'border-radius:var(--field-r)', 'padding:0 var(--field-px)', 'height:var(--field-h)', 'background:var(--field)']) expect(base?.body).toContain(d);
   });
 
   it('never sizes a field with raw pixels outside the panel keypad and the palette', () => {

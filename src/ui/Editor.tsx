@@ -209,7 +209,7 @@ export function Editor({
           <>
             {mini && !r.empty && r.In && document.getElementById('ab-sub') && createPortal(
               <button type="button" className={'ed-mini ' + r.status} onClick={() => resRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}>
-                <span className="vh">{'Г' + (idx + 1) + ': '}</span>
+                <span className="vh">{'Группа ' + String(idx + 1).padStart(2, '0') + ': '}</span>
                 <i className="dot" aria-hidden="true">{r.status === 'ok' ? '' : '!'}</i>
                 <Flash v={fmt(r.I, 1) + NB + 'А'} />
                 <Flash v={r.curve + r.In} />
@@ -236,7 +236,7 @@ export function Editor({
                     <div className="fx-h"><b>{fxRow.title}</b><button type="button" className="fx-x" aria-label="Скрыть формулу" onClick={() => setFx(null)}><IconClose /></button></div>
                     <pre className="fx-code mono">{fxRow.formula}{fxRow.note ? '\n' + fxRow.note : ''}</pre>
                   </div>
-                ) : <p className="fx-hint">Нажмите на значение, чтобы увидеть формулу</p>}
+                ) : <p className="fx-hint">{r.In ? 'Нажмите на значение, чтобы увидеть формулу' : 'Подбор невозможен, см. замечание ниже.'}</p>}
               </>
             )}
           </>

@@ -38,14 +38,16 @@ describe('renumbering groups by rooms', () => {
     expect(reducer(next, { t: 'sortByZone' })).toBe(next);
   });
 
-  it('offers the button only when the numbers jump inside rooms and renumbers on click', () => {
+  it('offers the item only when the numbers jump inside rooms and renumbers on click', () => {
     wide(true);
     save(proj(mixed()));
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Номера по порядку' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Порядок групп/ }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /^Номера по порядку/ }));
     expect(stored().list[0].lines.map((l: Line) => l.name)).toEqual(['Свет кухни', 'Розетки кухни', 'Свет комнат', 'Розетки коридора']);
     expect(toastText()).toBe('Группы перенумерованы по помещениям');
-    expect(screen.queryByRole('button', { name: 'Номера по порядку' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /^Порядок групп/ }));
+    expect(screen.queryByRole('menuitem', { name: /^Номера по порядку/ })).toBeNull();
   });
 });
 
@@ -57,19 +59,19 @@ describe('breaker load in the group list', () => {
       mkLine('Духовка', 'power', 5, [['Духовка', 3600, 1]])
     ]));
     render(<App />);
-    const brk = Array.from(document.querySelectorAll<HTMLElement>('.rows .brk'));
-    expect(brk).toHaveLength(2);
-    expect(brk[0].getAttribute('data-tip')).toMatch(/^Загрузка автомата \d+ %, дифавтомат 30 мА$/);
-    expect(brk[0].querySelector('.brk-load')).not.toHaveClass('warn');
-    expect(brk[1].querySelector('.brk-load')).toHaveClass('warn');
-    expect((brk[1].querySelector('.brk-load i') as HTMLElement).style.width).toMatch(/^(9[1-9]|100)%$/);
+    const bars = Array.from(document.querySelectorAll<HTMLElement>('.rows .row-i .row-bar i'));
+    expect(bars).toHaveLength(2);
+    expect(document.querySelector('.rows .row-i .vh')?.textContent).toMatch(/^, загрузка автомата \d+ %$/);
+    expect(bars[0]).not.toHaveClass('hot');
+    expect(bars[1]).toHaveClass('hot');
+    expect(bars[1].style.width).toMatch(/^(9[1-9]|100)%$/);
   });
 
   it('names the RCD zone when groups share an RCD', () => {
     wide(true);
     save(proj([zl(mkLine('Лампы', 'light', 5, [['Лампа', 100, 1]]), 'Комнаты')], { prot: 'rcd' }));
     render(<App />);
-    expect(document.querySelector('.rows .brk')?.getAttribute('data-tip')).toMatch(/УЗО «Комнаты» 30 мА$/);
+    expect(document.querySelector('.col-edit .ed-sub')?.textContent).toContain('УЗО «Комнаты» 30');
   });
 });
 

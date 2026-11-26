@@ -245,7 +245,6 @@
 .ed-sec-h{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);margin:calc(-1 * var(--s-3)) calc(-1 * var(--s-3-5)) 0;padding:var(--s-2) var(--s-3-5);min-height:44px;background:var(--subtle);border-bottom:1px solid var(--line);border-radius:var(--r-m) var(--r-m) 0 0}
 .ed-sec-h .lbl{font-size:var(--t-base);font-weight:600;color:var(--ink)}
 .ed-sec-h .muted{font-family:var(--font-num);font-size:var(--t-sm)}
-.ed-set>*+*{border-top:1px solid var(--line-soft);padding-top:var(--s-3)}
 .ed-set{gap:0;padding-block:0}
 .ed-set>*+*{border-top:1px solid var(--line-soft)}
 .ed-set>*{padding-block:var(--s-2-5)}
@@ -277,7 +276,7 @@
 .ed-sec .app .a-del{grid-area:del;justify-self:end}
 .ed-sec .app .a-lbl{display:block;font-size:var(--t-xs);font-weight:400;color:var(--ink-2)}
 .ed-sec .app:not(.app-h)~.app .a-lbl{display:none}
-.ed-sec .app input.a-name{height:32px;padding-inline:var(--s-1);margin-left:calc(-1 * var(--s-1));border-color:transparent;box-shadow:none;background:none;font-weight:500}
+.ed-sec .app input.a-name{height:var(--field-h-s);padding-inline:var(--s-1);margin-left:calc(-1 * var(--s-1));border-color:transparent;box-shadow:none;background:none;font-weight:500}
 .ed-sec .app input.a-name:hover{border-color:var(--line-soft)}
 .ed-sec .app input.a-name:focus{border-color:var(--accent);background:var(--field)}
 .ed-sec .app .fld input,.ed-sec .app .step input{font-family:var(--font-num)}

@@ -412,7 +412,7 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
 .problem-pre{margin:0;max-height:240px;overflow:auto;padding:var(--s-3);border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface-2);color:var(--ink);font-family:var(--font-num);font-size:var(--t-xs);white-space:pre-wrap;overflow-wrap:anywhere}
 .problem-pre:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .problem-act a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
-.sheet[data-kind=page]{top:calc(var(--bar) + var(--tabs) + env(safe-area-inset-top,0px));z-index:calc(var(--z-bar) - 1);display:block;padding:0;background:var(--bg);pointer-events:auto}
+.sheet[data-kind=page]{top:calc(var(--bar) + var(--tabs) + env(safe-area-inset-top,0px));z-index:var(--z-safe);display:block;padding:0;background:var(--bg);pointer-events:auto}
 .sheet[data-kind=page][hidden]{display:none}
 .sheet[data-kind=page] .sheet-panel{width:100%;height:100%;max-height:none;border:0;border-radius:0;box-shadow:none;background:var(--bg);animation:page-in var(--dur-screen) var(--ease-screen)}
 .sheet[data-kind=page] .sheet-head{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);padding:0;border:0}

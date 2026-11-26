@@ -77,7 +77,7 @@ describe('first-run onboarding in the app', () => {
     expect(localStorage.getItem(ONBOARDING_KEY)).toBe('done');
     expect(localStorage.getItem(ONBOARDING_STEP_KEY)).toBeNull();
     expect(document.documentElement.style.overflow).toBe('');
-    expect(document.querySelector('.pb-name')).toHaveTextContent('Пример: двухкомнатная квартира');
+    expect(document.querySelector('.pj-name')).toHaveTextContent('Пример: двухкомнатная квартира');
   });
 
   it('creates the first own project and opens the room quick start', async () => {
@@ -90,7 +90,7 @@ describe('first-run onboarding in the app', () => {
     expect(screen.queryByRole('dialog', { name: 'Готово, основное вы знаете' })).toBeNull();
     await waitFor(() => expect(document.querySelector('[data-tour-view="rooms"]')).toBeVisible());
     expect(toastText()).toBe('Создан проект: Мой объект');
-    expect(document.querySelector('.pb-name')).toHaveTextContent('Мой объект');
+    expect(document.querySelector('.pj-name')).toHaveTextContent('Мой объект');
   });
 
   it('jumps straight into a chapter from the welcome screen', async () => {
@@ -324,7 +324,7 @@ describe('what is new for those who already know Ampli', () => {
     await user.click(within(done).getByRole('button', { name: 'Понятно' }));
     expect(document.querySelector('.tour')).toBeNull();
     expect(localStorage.getItem(ONBOARDING_STEP_KEY)).toBe('4');
-    expect(document.querySelector('.pb-name')).toHaveTextContent('Пример: двухкомнатная квартира');
+    expect(document.querySelector('.pj-name')).toHaveTextContent('Пример: двухкомнатная квартира');
 
     await user.click(screen.getByRole('button', { name: 'Настройки и обучение' }));
     await user.click(screen.getByRole('menuitem', { name: /^Обучение/ }));

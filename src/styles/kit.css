@@ -144,7 +144,7 @@ a.chip{color:var(--ink);text-decoration:none}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:var(--ring)}
 input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 input,select,textarea{transition:border-color var(--dur-fast) ease,box-shadow var(--dur-fast) ease,background-color var(--dur-fast) ease}
-input:hover:not(:focus),select:hover:not(:focus){border-color:var(--line-strong)}
+input:hover:not(:focus),select:hover:not(:focus){border-color:var(--check-edge)}
 
 .seg{display:flex;overflow:hidden;width:100%;padding:var(--s-0-5);gap:var(--s-0-5);border:1px solid var(--line-soft);border-radius:var(--r-s);background:var(--surface-2)}
 .seg label+label span{border-left:0}

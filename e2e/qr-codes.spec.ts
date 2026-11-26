@@ -53,7 +53,7 @@ test('в окне «Комнаты» нет кнопки диктовки', asyn
   await done(page);
   await page.goto('/');
   await expect(page.locator('.rows .row').first()).toBeVisible();
-  await page.getByRole('button', { name: isMobile ? 'Добавить группу' : '+ Добавить группу' }).click();
+  await page.getByRole('button', { name: isMobile ? 'Добавить группу' : 'Добавить группу' }).click();
   await page.getByRole('menuitem', { name: 'Из комнат' }).click();
   const rooms = page.getByRole('dialog', { name: 'Комнаты' });
   await rooms.getByRole('button', { name: 'Из сообщения клиента' }).click();

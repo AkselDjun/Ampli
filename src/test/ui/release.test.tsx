@@ -29,7 +29,7 @@ describe('release notice', () => {
     localStorage.setItem(SEEN_KEY, '1.9.0');
     render(<App />);
     expect(toastText()).toContain('обновлён до версии ' + APP_VERSION);
-    click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
+    click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
     click(dlg('Проекты'), 'Открыть мои данные');
     fireEvent.click(screen.getByRole('tab', { name: 'Оформление' }));
     expect(dlg('Мои данные').textContent).toContain('Ampli ' + APP_VERSION);

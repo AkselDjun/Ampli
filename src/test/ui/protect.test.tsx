@@ -25,14 +25,13 @@ describe('panel protection switches', () => {
   it('turns the relay and the surge protector on from the network sheet', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(document.querySelector('.col-list .netfold') as HTMLElement);
+    fireEvent.click(document.querySelector('.net-chip') as HTMLElement);
     const d = dlg('Параметры сети');
     fireEvent.click(within(d).getByLabelText(/Реле контроля напряжения/));
     fireEvent.click(within(d).getByLabelText(/УЗИП тип 2/));
     expect(stored().list[0].cfg.vr).toBe('on');
     expect(stored().list[0].cfg.spd).toBe('on');
-    expect((document.querySelector('.col-list .netfold') as HTMLElement).textContent).toContain('реле напряжения, УЗИП');
-    expect(document.querySelectorAll('.rail .dev-vr, .rail .dev-spd').length).toBe(2);
+    expect(document.querySelectorAll('.col-res .rail .dev-vr, .col-res .rail .dev-spd').length).toBe(2);
     fireEvent.click(within(d).getByLabelText(/УЗИП тип 2/));
     expect(stored().list[0].cfg.spd).toBe('');
   });

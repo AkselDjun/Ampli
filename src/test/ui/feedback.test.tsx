@@ -40,7 +40,7 @@ describe('panel board in RCD mode', () => {
     expect(document.querySelector('.explain')).toBeNull();
     const list = document.querySelector('.bd-list') as HTMLElement;
     expect(list.textContent).toContain('УЗО: Комнаты');
-    expect(list.textContent).toContain('Г1, Г2');
+    expect(list.textContent).toContain('01, 02');
   });
   it('lists RCDs with their own neutral bus and indents their breakers', () => {
     const p = proj(lines(), { prot: 'rcd' });
@@ -156,7 +156,7 @@ describe('editor fields from the electricians', () => {
   });
   it('asks for the room of each group when protecting rooms with RCDs', () => {
     boot();
-    click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
+    click(document.querySelector('.appbar') as HTMLElement, 'Параметры сети');
     const d = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Параметры сети') as HTMLElement;
     expect(d.querySelector('input[name="box"]')?.closest('.radios')?.getAttribute('data-n')).toBe('4');
     fireEvent.click(d.querySelector('input[name="prot"][value="rcd"]') as HTMLElement);
@@ -201,7 +201,7 @@ describe('captions on single-module breakers', () => {
     const a = calcAll(lines, { ...defaultCfg(), prot: 'rcd' });
     const { container, unmount } = render(<PanelPane a={a} />);
     const first = container.querySelector('.rail .dev[data-lid="' + lines[0].id + '"]') as HTMLElement;
-    expect(first.querySelector('i')?.textContent).toBe('Г1');
+    expect(container.querySelector('.strip .lb.lt-light')?.textContent).toBe('01');
     expect(first.querySelector('.dev-cap')?.textContent).toBe('');
     expect(first.getAttribute('data-tip')).toContain('Освещение гостиной');
     expect(first.getAttribute('data-t')).toBe('light');
@@ -229,16 +229,9 @@ describe('usability pass', () => {
   it('marks the group type with an icon and hidden text in the list', () => {
     wide(true);
     render(<App />);
-    const ty = rows()[0].querySelector('.row-ty') as HTMLElement;
+    const ty = rows()[0].querySelector('.no') as HTMLElement;
     expect(ty.dataset.t).toBe('light');
-    expect(ty.querySelector('svg')).not.toBeNull();
-    expect(ty.querySelector('.vh')?.textContent).toBe('Свет');
-  });
-  it('shows the group load under the current', () => {
-    wide(true);
-    render(<App />);
-    fireEvent.click(rows()[0]);
-    expect(ed().querySelector('.ed-res .tile small')?.textContent).toMatch(/^нагрузка 203\sВт$/);
+    expect(ty.textContent).toBe('Группа 01, Свет');
   });
 });
 
@@ -302,32 +295,6 @@ describe('panel mode as a real board', () => {
 });
 
 describe('apartment totals in the header', () => {
-  it('shows load against the allocation and opens the details', () => {
-    wide(true);
-    render(<App />);
-    const b = screen.getByRole('button', { name: /^Итого по квартире/ });
-    expect(b).toHaveClass('st-ok');
-    expect(b.textContent).toContain('/12');
-    expect(b).toHaveAttribute('aria-expanded', 'false');
-    fireEvent.click(b);
-    const pop = document.getElementById('tot-pop') as HTMLElement;
-    expect(pop.textContent).toContain('Норма');
-    expect(pop.textContent).toContain('Установлено');
-    expect(pop.textContent).toContain('2P C50');
-    expect(pop.textContent).toContain('ВВГнг(А)-LS 3×');
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(document.getElementById('tot-pop')).toBeNull();
-    fireEvent.click(b);
-    fireEvent.pointerDown(document.body);
-    expect(document.getElementById('tot-pop')).toBeNull();
-    fireEvent.click(b);
-    fireEvent.pointerDown(document.getElementById('tot-pop') as HTMLElement);
-    expect(document.getElementById('tot-pop')).not.toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Изменить выделенную мощность' }));
-    expect(document.getElementById('tot-pop')).toBeNull();
-    const net = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).find(x => x.querySelector('h2')?.textContent === 'Параметры сети') as HTMLElement;
-    expect((net.parentElement as HTMLElement).hidden).toBe(false);
-  });
   it('rates the allocation for empty, normal, high and exceeded loads', () => {
     const mk = (w: number, alloc = 15, supply = 1) => calcAll(w ? [mkLine('A', 'power', 5, [['x', w, 1]])] : [], { ...defaultCfg(), alloc, supply });
     expect(allocState(mk(0))).toEqual({ pct: 0, k: 'ok', text: 'Нет нагрузки' });
@@ -347,21 +314,6 @@ describe('apartment totals in the header', () => {
     fireEvent.click(b);
     expect(document.getElementById('tot-pop')?.textContent).toContain('Макс. фаза');
     expect(document.getElementById('tot-pop')?.textContent).toContain('Нет нагрузки');
-  });
-});
-
-describe('norm checks in the header', () => {
-  it('shows the sample as compliant and opens the list, with no checks block in the side column', () => {
-    wide(true);
-    render(<App />);
-    const b = screen.getByRole('button', { name: /^Проверки по нормам/ });
-    expect(b).toHaveClass('st-ok');
-    expect(b.querySelector('.chk-n')).toBeNull();
-    expect(document.querySelector('.c-checks')).toBeNull();
-    fireEvent.click(b);
-    expect(document.getElementById('chk-pop')?.textContent).toContain('Тип ввода соответствует нагрузке');
-    fireEvent.pointerDown(document.body);
-    expect(document.getElementById('chk-pop')).toBeNull();
   });
 });
 

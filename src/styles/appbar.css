@@ -79,7 +79,7 @@
   .tabs.hide{transform:translateY(100%)}
   .tabs.hide:focus-within{transform:none}
 }
-@media (--upto-380){.tabs .tab{font-size:var(--t-hw)}}
+@media (--upto-380){.tabs .tab{letter-spacing:-.01em}}
 @media (prefers-reduced-motion:reduce){.tabs,.tabs .tab::after{transition:none}}
 
 .tot{margin:var(--s-1-5) 0 0;display:grid;gap:var(--s-1-5);padding:var(--s-3) var(--s-4);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}

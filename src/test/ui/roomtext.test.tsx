@@ -8,7 +8,7 @@ describe('Rooms from a client message', () => {
   it('adds rooms from pasted text and keeps what it could not read', () => {
     render(<App />);
     const lst = document.querySelector('.col-list') as HTMLElement;
-    click(lst, '+ Добавить группу');
+    click(lst, 'Добавить группу');
     click(lst, 'Из комнат');
     const d = dlg('Комнаты');
     click(d, 'Из сообщения клиента');

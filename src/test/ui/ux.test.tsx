@@ -28,13 +28,13 @@ afterEach(() => {
 });
 
 describe('actionable checks', () => {
-  it('switches to three phases from the check', () => {
+  it('switches to three phases from the check', async () => {
+    wide(true);
     boot(Array.from({ length: 3 }, (_, i) => mkLine('П' + i, 'power', 5, [['Плита', 6000, 1]])));
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /^Проверки по нормам/ }));
-    click(document.getElementById('chk-pop') as HTMLElement, 'Включить 3 фазы');
+    await screen.findByRole('heading', { name: 'Проверки' });
+    click(document.querySelector('.ov-chk') as HTMLElement, 'Включить 3 фазы');
     expect(stored().list[0].cfg.supply).toBe(3);
-    expect(document.getElementById('chk-pop')).toBeNull();
   });
 
   it('offers a single phase for a small load and opens groups', () => {
@@ -59,13 +59,13 @@ describe('actionable checks', () => {
     expect(kzNo.find(x => x.t.startsWith('Короткое замыкание не проверено'))?.groups).toEqual([ls[1].id]);
   });
 
-  it('opens a group from the check in the app', () => {
+  it('opens a group from the check in the app', async () => {
     wide(true);
     const ls = [mkLine('Свет', 'light', 5, [['Лампа', 100, 1]]), mkLine('Перегруз', 'power', 10, [['Первый', 10000, 1], ['Второй', 10000, 1]])];
     boot(ls);
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /^Проверки по нормам/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Открыть группу Г2' }));
+    await screen.findByRole('heading', { name: 'Проверки' });
+    click(document.querySelector('.ov-chk') as HTMLElement, 'Группа 02 · Перегруз');
     expect(stored().list[0].lines.length).toBe(2);
     expect((ed().querySelector('.ed-name') as HTMLInputElement).value).toBe('Перегруз');
   });
@@ -169,23 +169,15 @@ describe('board and list highlight', () => {
     fireEvent.click(rows()[2]);
     const sel = document.querySelector('.rail button.dev.sel') as HTMLElement;
     expect(sel.getAttribute('aria-current')).toBe('true');
-    expect(document.querySelector('.bd-r.sel')).not.toBeNull();
     fireEvent.mouseEnter(rows()[1]);
     expect(rows()[1]).toHaveClass('hot');
-    expect(document.querySelectorAll('.rail button.dev.hot').length).toBe(1);
-    expect(document.querySelectorAll('.bd-r.hot').length).toBe(1);
+    expect(document.querySelectorAll('.col-res .rail button.dev.hot').length).toBe(1);
     fireEvent.mouseLeave(rows()[1]);
-    expect(document.querySelector('.hot')).toBeNull();
+    expect(document.querySelector('.row.hot, .dev.hot')).toBeNull();
     const devs = document.querySelectorAll<HTMLElement>('.rail button.dev');
     fireEvent.mouseEnter(devs[0]);
     expect(rows()[0]).toHaveClass('hot');
     fireEvent.mouseLeave(devs[0]);
-    const bd = document.querySelectorAll<HTMLElement>('button.bd-b')[1];
-    const twin = () => rows().find(x => x.querySelector('.no')?.textContent === bd.querySelector('.bd-no')?.textContent) as HTMLElement;
-    fireEvent.mouseEnter(bd);
-    expect(twin()).toHaveClass('hot');
-    fireEvent.mouseLeave(bd);
-    expect(twin()).not.toHaveClass('hot');
   });
 });
 

@@ -237,8 +237,6 @@
     --rcd-mark:#7FB0FF;
     --pn-encl:linear-gradient(180deg,#3a3f46,#2a2e34);
     --pn-encl-sh:inset 0 0 0 1px #4a5058,0 4px 14px rgba(0,0,0,.4);
-    --pn-encl:linear-gradient(180deg,#3a3f46,#2a2e34);
-  --pn-encl-sh:inset 0 0 0 1px #4a5058,0 4px 14px rgba(0,0,0,.4);
   --hw-box:linear-gradient(180deg,#2a3540,#1f2932);
     --hw-box-edge:#3b4a58;
     --hw-rail:#16202a;
@@ -303,6 +301,8 @@
   --din-3:#33404b;
   --din-4:#232d37;
   --rcd-mark:#7FB0FF;
+  --pn-encl:linear-gradient(180deg,#3a3f46,#2a2e34);
+  --pn-encl-sh:inset 0 0 0 1px #4a5058,0 4px 14px rgba(0,0,0,.4);
   --hw-box:linear-gradient(180deg,#2a3540,#1f2932);
   --hw-box-edge:#3b4a58;
   --hw-rail:#16202a;

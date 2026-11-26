@@ -35,10 +35,9 @@
   .workspace{padding-inline:0;padding-top:0}
   .col-list,.col-edit,.col-res{display:none}
   #app[data-view="groups"] .col-list{display:grid}
-  #app[data-view="edit"] .col-edit{display:grid;padding:var(--s-3) max(var(--s-4),env(safe-area-inset-right,0px)) var(--s-6) max(var(--s-4),env(safe-area-inset-left,0px))}
+  #app[data-view="edit"] .col-edit{display:grid;padding:var(--s-3) max(var(--s-4),env(safe-area-inset-right,0px)) var(--s-6) max(var(--s-4),env(safe-area-inset-left,0px));animation:screen-in var(--dur-screen) var(--ease-screen)}
   #app[data-view="panel"] .col-res{display:grid;padding:var(--s-3) var(--s-4)}
   #app[data-view="edit"] .workspace{padding-bottom:calc(var(--s-6) + env(safe-area-inset-bottom,0px))}
-  #app[data-view="edit"] .col-edit{animation:screen-in var(--dur-screen) var(--ease-screen)}
 }
 @keyframes screen-in{from{transform:translateX(24%);opacity:.4}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){#app[data-view="edit"] .col-edit{animation:none}}

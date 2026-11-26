@@ -34,7 +34,7 @@ describe('hostile saved project', () => {
     const t = performance.now();
     render(<App />);
     expect(performance.now() - t).toBeLessThan(20000);
-    const k = document.querySelector('.kpis')?.textContent ?? '';
+    const k = document.querySelector('.net-sub')?.textContent ?? '';
     expect(k).toContain('кВт');
     expect(k).not.toContain('∞');
     expect(document.querySelector('.crash')).toBeNull();

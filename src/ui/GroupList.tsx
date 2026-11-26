@@ -14,7 +14,7 @@ import { BulkBar, HomeSum, PanelPane, RowPeek, StageBar } from './parts';
 import { MenuButton } from './MenuButton';
 import type { CheckFix } from './Checks';
 import { lineChanges } from '../core/sent';
-import { mediaMatches } from './media';
+import { BP, mediaMatches, useMedia } from './media';
 import { useNow } from './now';
 import { floorSummary } from '../core/floor';
 import { weakSummary } from '../core/weak';
@@ -174,6 +174,7 @@ export const GroupList = memo(function GroupList({
   onSample?: () => void;
 }) {
   const c = a.c;
+  const phone = useMedia(BP.tablet);
   const three = c.supply === 3;
   const count = p.lines.length;
   const mounted = useRef(false);
@@ -318,7 +319,7 @@ export const GroupList = memo(function GroupList({
               renumber={jumbled ? onRenumber : undefined}
             />
           )}
-          <AddMenu down onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />
+          {!phone && <AddMenu down onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />}
         </div>
         {count > 0 && picking && (
           <Suspense fallback={null}>
@@ -376,7 +377,7 @@ export const GroupList = memo(function GroupList({
         const since = showChg && p.sent ? lineChanges(p.sent.lines.find(y => y.id === x.l.id), x) : [];
         return <Suspense fallback={null}><RowPeek x={x} no={k + 1} top={peek.top} left={peek.left} since={since} notes={x.l.notes ?? []} /></Suspense>;
       })()}
-      <AddMenu fab onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />
+      {phone && <AddMenu fab onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />}
     </section>
   );
 });

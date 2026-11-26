@@ -14,7 +14,7 @@ vi.setConfig({ testTimeout: 60000 });
 const project = () => ({ ...newProject({ ...sample(), sample: false }, 'Квартира Петрова'), client: 'Петров П. П.', address: 'Гродно, ул. Советская, 5' });
 const settle = (ms = 30) => act(async () => { await new Promise(r => setTimeout(r, ms)); });
 const openShare = () => {
-  click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
+  click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
   const d = dlg('Проекты');
   click(d, 'Обмен и данные');
   return d;

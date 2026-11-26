@@ -79,7 +79,7 @@ describe('group editor order', () => {
   it('places the phase next to the line length on a three-phase supply', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(Array.from(document.querySelectorAll<HTMLElement>('.col-list button')).find(x => x.textContent?.includes('Параметры сети')) as HTMLElement);
+    fireEvent.click(Array.from(document.querySelectorAll<HTMLElement>('.appbar button')).find(x => x.textContent?.includes('Параметры сети')) as HTMLElement);
     fireEvent.click(document.querySelector('input[name="sup"][value="3"]') as HTMLElement);
     fireEvent.click(dlg('Параметры сети').querySelector('.sheet-close') as HTMLElement);
     const ed = open('Варочная');

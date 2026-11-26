@@ -41,7 +41,7 @@ test('opens the sample apartment with groups and totals', async ({ page }) => {
 test('adds a socket group and keeps it after reload', async ({ page, isMobile }) => {
   await page.goto('/');
   const n0 = await rows(page).count();
-  await page.getByRole('button', { name: isMobile ? 'Добавить группу' : '+ Добавить группу' }).click();
+  await page.getByRole('button', { name: isMobile ? 'Добавить группу' : 'Добавить группу' }).click();
   await page.getByRole('menuitem', { name: 'Розетки' }).click();
   await expect(rows(page)).toHaveCount(n0 + 1);
   await page.reload();

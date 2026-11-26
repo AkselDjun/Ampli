@@ -49,7 +49,7 @@ describe('menu keyboard', () => {
   it('moves through the add menu with arrows and returns focus on Escape', () => {
     const onAdd = vi.fn();
     render(<AddMenu onAdd={onAdd} onRooms={() => undefined} />);
-    const trigger = screen.getByRole('button', { name: '+ Добавить группу' });
+    const trigger = screen.getByRole('button', { name: 'Добавить группу' });
     fireEvent.click(trigger);
     const items = screen.getAllByRole('menuitem');
     expect(document.activeElement).toBe(items[0]);
@@ -140,7 +140,7 @@ describe('screen reader feedback in the editor', () => {
     act(() => cb([{ isIntersecting: false, boundingClientRect: { top: -200 }, rootBounds: { top: 56 } }]));
     const mini = document.querySelector<HTMLElement>('.ed-mini');
     expect(mini).not.toHaveAttribute('aria-label');
-    expect(mini?.textContent?.replace(/\s+/g, ' ')).toMatch(/^Г7: .*А.*C32.*мм².*%, норма\. Показать расчёт$/);
+    expect(mini?.textContent?.replace(/\s+/g, ' ')).toMatch(/^Группа 07: .*А.*C32.*мм².*%, норма\. Показать расчёт$/);
     vi.unstubAllGlobals();
   });
 });
