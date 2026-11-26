@@ -266,3 +266,18 @@
   .ed-set .ed-zone{width:150px}
   .ed-set .len-note{text-align:right}
 }
+.ed-sec .apps .app{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,.9fr) 32px;grid-template-areas:"name name name del" "w n br .";gap:var(--s-1-5) var(--s-2);padding-block:var(--s-2-5)}
+.ed-sec .apps.no-br .app{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 32px;grid-template-areas:"name name del" "w n ."}
+.ed-sec .apps .app-h{display:none}
+.ed-sec .apps .app-h+.app{border-top:0}
+.ed-sec .app .a-name{grid-area:name}
+.ed-sec .app .a-w{grid-area:w}
+.ed-sec .app .a-n{grid-area:n}
+.ed-sec .app .a-br{grid-area:br}
+.ed-sec .app .a-del{grid-area:del;justify-self:end}
+.ed-sec .app .a-lbl{display:block;font-size:var(--t-xs);font-weight:400;color:var(--ink-2)}
+.ed-sec .app:not(.app-h)~.app .a-lbl{display:none}
+.ed-sec .app input.a-name{height:32px;padding-inline:var(--s-1);margin-left:calc(-1 * var(--s-1));border-color:transparent;box-shadow:none;background:none;font-weight:500}
+.ed-sec .app input.a-name:hover{border-color:var(--line-soft)}
+.ed-sec .app input.a-name:focus{border-color:var(--accent);background:var(--field)}
+.ed-sec .app .fld input,.ed-sec .app .step input{font-family:var(--font-num)}
