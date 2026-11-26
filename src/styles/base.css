@@ -1,4 +1,6 @@
 @font-face{font-family:'Ampli Sans';font-style:normal;font-display:swap;font-weight:400 700;src:url(./ampli-sans-wght.woff2) format('woff2')}
+@font-face{font-family:'Ampli Mono';font-style:normal;font-display:swap;font-weight:400;src:url(./ampli-mono-400.woff2) format('woff2')}
+@font-face{font-family:'Ampli Mono';font-style:normal;font-display:swap;font-weight:600;src:url(./ampli-mono-600.woff2) format('woff2')}
 @font-face{font-family:'Ampli Sans Fallback';src:local('Arial'),local('Helvetica Neue'),local('Roboto'),local('Liberation Sans');size-adjust:101.65%;ascent-override:100.83%;descent-override:27.05%;line-gap-override:0%}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
