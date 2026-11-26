@@ -17,7 +17,8 @@ for (const scheme of ['light', 'dark'] as const) {
     await done(page);
     await page.goto('/');
     await expect(page.locator('.rows .row').first()).toBeVisible();
-    await page.getByRole('button', { name: 'Проекты' }).first().click();
+    await page.getByRole('button', { name: 'Настройки и обучение' }).click();
+    await page.getByRole('menuitem', { name: /^Обмен и резервные копии/ }).click();
     await sheet(page).getByRole('tab', { name: 'Обмен и данные' }).click();
     const btn = sheet(page).getByRole('button', { name: 'QR-код' });
     await btn.click();

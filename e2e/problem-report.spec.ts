@@ -10,7 +10,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 const openShare = async (page: Page) => {
-  await page.getByRole('button', { name: 'Проекты' }).first().click();
+  await page.getByRole('button', { name: 'Настройки и обучение' }).click();
+  await page.getByRole('menuitem', { name: /^Обмен и резервные копии/ }).click();
   await sheet(page).getByRole('tab', { name: 'Обмен и данные' }).click();
   await expect(sheet(page).getByRole('heading', { name: 'Сообщить о проблеме' })).toBeVisible();
 };

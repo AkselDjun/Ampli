@@ -1,9 +1,7 @@
 .ab-main{display:flex;align-items:center;gap:var(--s-4);width:100%;min-width:0}
 .save-indicator{font-size:var(--t-sm);color:var(--ink-2);white-space:nowrap}
-.tour-help{font-size:var(--t-l);font-weight:700}
 
 @media (--upto-600){
-  .tour-help{display:flex}
   .save-indicator{display:none}
 }
 .ab-edit{display:none;align-items:center;gap:var(--s-2);width:100%;min-width:0}

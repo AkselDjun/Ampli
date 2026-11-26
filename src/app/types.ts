@@ -1,4 +1,4 @@
-import type { Calc, Line } from '../core/types';
+import type { Calc, Line, Project } from '../core/types';
 
 export const APP_VIEW = {
   GROUPS: 'groups',
@@ -41,7 +41,25 @@ export interface SheetNav {
   hint?: SheetHint;
 }
 
+export interface NavActions {
+  project: (id: string) => void;
+  newProject: () => void;
+  projects: () => void;
+  share: () => void;
+  library: () => void;
+  tour: () => void;
+  rooms: () => void;
+  oldWiring: () => void;
+  compare: () => void;
+  floor: () => void;
+  weak: () => void;
+  shop: () => void;
+}
+
 export interface AppHeaderProps {
+  list: readonly Project[];
+  cur: string;
+  nav: NavActions;
   selected: Line | null;
   selectedIndex: number;
   saveStatus: SaveStatus;
@@ -50,7 +68,6 @@ export interface AppHeaderProps {
   onNetwork: () => void;
   onGroup: (id: string) => void;
   onCheckFix: (fix: HeaderCheckFix) => void;
-  onTour: () => void;
   onPanel: () => void;
   onWork: () => void;
   onReport: () => void;
@@ -59,6 +76,7 @@ export interface AppHeaderProps {
 }
 
 export interface AppTabsProps {
+  nav: NavActions;
   calc: Calc;
   view: AppView;
   onGroups: () => void;
@@ -66,3 +84,5 @@ export interface AppTabsProps {
   onWork: () => void;
   onReport: () => void;
 }
+
+export type ProjStart = 'main' | 'share' | 'new';

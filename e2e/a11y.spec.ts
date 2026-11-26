@@ -65,7 +65,8 @@ for (const scheme of ['light', 'dark'] as const) {
     });
 
     test('guided onboarding from welcome to finish', async ({ page }) => {
-      await page.getByRole('button', { name: 'Открыть обучение' }).click();
+      await page.getByRole('button', { name: 'Настройки и обучение' }).click();
+      await page.getByRole('menuitem', { name: /^Обучение/ }).click();
       const tour = page.locator('.tour [role="dialog"]');
       await expect(tour).toHaveAccessibleName('Добро пожаловать в Ampli');
       expect(await scan(page), 'welcome').toEqual([]);

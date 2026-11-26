@@ -25,7 +25,7 @@ import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
 import { onboardingPending } from '../features/onboarding/storage';
 import { APP_SHEET, APP_VIEW } from '../app/types';
-import type { AppView } from '../app/types';
+import type { AppView, NavActions, ProjStart } from '../app/types';
 import { AppHeader } from '../app/AppHeader';
 import { AppTabs } from '../app/AppTabs';
 import { readLocation } from '../app/location';
@@ -48,6 +48,7 @@ export function App() {
   const beside = useMedia(BP.aboveTablet);
   const [whyOpen, setWhyOpen] = useState(false);
   const [pal, setPal] = useState(false);
+  const [projStart, setProjStart] = useState<ProjStart>('main');
   const scrollPos = useRef(0);
   const p = cur(state);
   const { lines: pLines, cfg: pCfg, weak: pWeak, floor: pFloor } = p;
@@ -144,13 +145,14 @@ export function App() {
   const moveLine = useStable((id: string, to: string) => { dispatch({ t: 'moveLine', id, to }); toastOk('Порядок групп изменён'); });
   const renumber = useStable(() => { dispatch({ t: 'sortByZone' }); toastOk('Группы перенумерованы по помещениям'); });
   const balance = useStable(() => { dispatch({ t: 'balance' }); toastOk('Фазы выровнены'); });
-  const openProj = useStable(() => setSheet(APP_SHEET.PROJECTS));
+  const openProj = useStable(() => { setProjStart('main'); setSheet(APP_SHEET.PROJECTS); });
   const openNet = useStable(() => setSheet(APP_SHEET.NETWORK));
   const openOld = useStable(() => setSheet(APP_SHEET.OLD_WIRING));
   const openFloor = useStable(() => setSheet(APP_SHEET.FLOOR));
   const openWeak = useStable(() => setSheet(APP_SHEET.WEAK));
   const openMeas = useStable(() => openSheet(APP_SHEET.WORK, 'meas'));
   const openRooms = useStable(() => setSheet(APP_SHEET.ROOMS));
+  const projectsAt = useStable((at: ProjStart) => { setProjStart(at); setSheet(APP_SHEET.PROJECTS); });
   const onBlank = useStable(() => {
     const was = { sample: !!p.sample, cfg: p.cfg, lines: p.lines };
     const name = p.name;
@@ -188,6 +190,20 @@ export function App() {
     closePalette,
     onBlank
   });
+  const nav: NavActions = useMemo(() => ({
+    project: (id: string) => dispatch({ t: 'openProject', id }),
+    newProject: () => projectsAt('new'),
+    projects: () => projectsAt('main'),
+    share: () => projectsAt('share'),
+    library: () => setSheet(APP_SHEET.LIBRARY),
+    tour: tour.startTour,
+    rooms: openRooms,
+    oldWiring: openOld,
+    compare: () => setSheet(APP_SHEET.COMPARE),
+    floor: openFloor,
+    weak: openWeak,
+    shop: () => setSheet(APP_SHEET.SHOP)
+  }), [dispatch, projectsAt, setSheet, tour.startTour, openRooms, openOld, openFloor, openWeak]);
   const { tourOpen, sheetNav } = tour;
   const cmds = paletteCommands({ p, a, dispatch, setSheet, openSheet, pick, addGroup, doPrint });
   const tab = (v: AppView) => {
@@ -225,6 +241,9 @@ export function App() {
           <a href="#editor" className="skip-ed">К карточке группы</a>
         </nav>
         <AppHeader
+          list={state.list}
+          cur={state.cur}
+          nav={nav}
           selected={selected}
           selectedIndex={idx}
           saveStatus={saveStatus}
@@ -233,7 +252,6 @@ export function App() {
           onNetwork={openNet}
           onGroup={pick}
           onCheckFix={onCheckFix}
-          onTour={tour.startTour}
           onPanel={openMeas}
           onWork={() => setSheet(APP_SHEET.WORK)}
           onReport={() => setSheet(APP_SHEET.REPORT)}
@@ -287,6 +305,7 @@ export function App() {
         </main>
 
         <AppTabs
+          nav={nav}
           calc={da}
           view={view}
           onGroups={() => tab(APP_VIEW.GROUPS)}
@@ -300,7 +319,7 @@ export function App() {
         <Hold open={sheet === APP_SHEET.FLOOR}><FloorSheet open={sheet === APP_SHEET.FLOOR} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
         <Hold open={sheet === APP_SHEET.WEAK}><WeakSheet open={sheet === APP_SHEET.WEAK} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
         <Hold open={sheet === APP_SHEET.OLD_WIRING}><OldSheet open={sheet === APP_SHEET.OLD_WIRING} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} /></Hold>
-        <Hold open={sheet === APP_SHEET.PROJECTS}><ProjectsSheet open={sheet === APP_SHEET.PROJECTS} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet(APP_SHEET.LIBRARY)} onBlank={onBlank} onSample={onSample} /></Hold>
+        <Hold open={sheet === APP_SHEET.PROJECTS}><ProjectsSheet open={sheet === APP_SHEET.PROJECTS} onClose={closeSheet} start={projStart} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet(APP_SHEET.LIBRARY)} onBlank={onBlank} onSample={onSample} /></Hold>
         <Hold open={sheet === APP_SHEET.LIBRARY}><LibSheet open={sheet === APP_SHEET.LIBRARY} onClose={closeSheet} /></Hold>
         <Hold open={sheet === APP_SHEET.COMPARE}><CompareSheet open={sheet === APP_SHEET.COMPARE} onClose={closeSheet} p={p} a={a} /></Hold>
         <Hold open={sheet === APP_SHEET.ROOMS}><RoomsSheet open={sheet === APP_SHEET.ROOMS} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>

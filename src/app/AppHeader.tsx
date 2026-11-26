@@ -1,10 +1,15 @@
-import { Brand, IconBack, IconCheck, IconDoc, IconMeter, IconSearch } from '../ui/Icons';
+import { Brand, IconBack, IconCheck, IconDoc, IconDown, IconGear, IconMeter, IconSearch, IconTools } from '../ui/Icons';
+import { MenuButton } from '../ui/MenuButton';
+import { useNow } from '../ui/now';
 import { Checks } from '../ui/Checks';
 import { Totals } from '../ui/Totals';
 import { Button } from '../ui/kit';
+import { projectMenu, settingsMenu, toolsMenu } from './navMenus';
 import type { AppHeaderProps } from './types';
 
-export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, onNetwork, onGroup, onCheckFix, onTour, onPanel, onWork, onReport, onCompare, onSearch }: AppHeaderProps) {
+export function AppHeader({ list, cur, nav, selected, selectedIndex, saveStatus, calc, onBack, onNetwork, onGroup, onCheckFix, onPanel, onWork, onReport, onCompare, onSearch }: AppHeaderProps) {
+  const time = useNow();
+  const name = list.find(x => x.id === cur)?.name ?? '';
   return (
     <header className="appbar">
       <div className="in">
@@ -18,6 +23,14 @@ export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, o
         </div>
         <div className="ab-main">
           <h1 className="brand"><Brand /><span>Ampli</span></h1>
+          <MenuButton
+            className="pj-switch"
+            box="pj"
+            label={'Проект: ' + (name || 'Без названия') + '. Сменить проект'}
+            trigger={<><span className="pj-slash" aria-hidden="true">/</span><span className="pj-name">{name || 'Без названия'}</span><IconDown className="pj-chev" /></>}
+            menuClass="pj-menu"
+            groups={projectMenu(list, cur, time, nav)}
+          />
           <span className="save-indicator" aria-live="polite">{saveStatus === 'saving' ? 'Сохранение…' : saveStatus === 'saved' ? 'Сохранено' : saveStatus === 'conflict' ? 'Конфликт вкладок' : 'Ошибка сохранения проектов'}</span>
           <div className="hud" data-tour="summary">
             <Totals a={calc} onNet={onNetwork} onCompare={onCompare} />
@@ -28,8 +41,7 @@ export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, o
             <span className="ab-txt">Найти<span className="vh"> действие или группу</span></span>
             <kbd className="ab-kbd" aria-hidden="true">Ctrl K</kbd>
           </button>
-          <button className="ab-btn tour-help" type="button" data-tip="Обучение" aria-label="Открыть обучение" onClick={onTour}>?</button>
-          <button className="ab-btn" type="button" data-tour="panel" data-tip="Приёмка: замеры на щитке" aria-label="Замеры на щитке" onClick={onPanel}>
+          <button className="ab-btn ab-meas" type="button" data-tour="panel" data-tip="Приёмка: замеры на щитке" aria-label="Замеры на щитке" onClick={onPanel}>
             <IconMeter />
             <span className="ab-txt">Замеры</span>
           </button>
@@ -41,6 +53,24 @@ export function AppHeader({ selected, selectedIndex, saveStatus, calc, onBack, o
             <IconDoc />
             <span className="ab-txt">Отчёт</span>
           </button>
+          <MenuButton
+            className="ab-btn desk ab-tools"
+            box="tl"
+            label="Инструменты"
+            tip="Комнаты, сравнение, тёплый пол, закупка"
+            trigger={<><IconTools /><span className="ab-txt">Инструменты</span></>}
+            menuClass="tl-menu"
+            groups={toolsMenu(nav)}
+            end
+          />
+          <MenuButton
+            className="ab-btn ab-gear"
+            label="Настройки и обучение"
+            tip="Мои данные, обмен, обучение"
+            trigger={<IconGear />}
+            groups={settingsMenu(nav)}
+            end
+          />
         </div>
       </div>
     </header>

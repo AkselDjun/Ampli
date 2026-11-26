@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
 
-const items = (list: HTMLElement | null): HTMLElement[] => (list ? Array.from(list.querySelectorAll<HTMLElement>('[role="menuitem"]:not([disabled])')) : []);
+const items = (list: HTMLElement | null): HTMLElement[] => (list ? Array.from(list.querySelectorAll<HTMLElement>('[role^="menuitem"]:not([disabled])')) : []);
 
 export function useMenuKeys(open: boolean, close: () => void) {
   const listRef = useRef<HTMLElement | null>(null);
