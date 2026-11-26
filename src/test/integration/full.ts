@@ -6,7 +6,7 @@ import { mkLine } from '../../core/templates';
 
 export const PROJECT_KEYS = {
   schema: 1, id: 1, name: 1, address: 1, client: 1, author: 1, created: 1, updated: 1, sample: 1, cfg: 1, lines: 1,
-  checks: 1, proto: 1, rooms: 1, photos: 1, work: 1, acts: 1, old: 1, weak: 1, floor: 1
+  checks: 1, proto: 1, rooms: 1, photos: 1, work: 1, acts: 1, old: 1, weak: 1, floor: 1, stage: 1, sent: 1
 } satisfies Record<keyof Project, 1>;
 
 export const CFG_KEYS = {
@@ -15,7 +15,7 @@ export const CFG_KEYS = {
 } satisfies Record<keyof Cfg, 1>;
 
 export const LINE_KEYS = {
-  id: 1, name: 1, type: 1, phase: 1, wet: 1, out: 1, meas: 1, zone: 1, sockets: 1, perSocket: 1, len: 1, apps: 1, prio: 1
+  id: 1, name: 1, type: 1, phase: 1, wet: 1, out: 1, meas: 1, zone: 1, sockets: 1, perSocket: 1, len: 1, apps: 1, prio: 1, notes: 1
 } satisfies Record<keyof Line, 1>;
 
 export const APP_KEYS = { id: 1, name: 1, w: 1, n: 1, br: 1, m: 1, cos: 1, alt: 1 } satisfies Record<keyof Appliance, 1>;
@@ -47,7 +47,8 @@ function raw(): Project {
       ...lines[i].apps,
       { id: 'x', name: 'Компрессор', w: 900, n: 1, cos: 0.8, alt: true },
       { id: 'y', name: 'LED-лента', w: 9.6, n: 1, br: 2, m: 4 }
-    ]
+    ],
+    notes: [{ id: 'n1', t: 'Заказчик просит розетку у окна', at: T }, { id: 'n2', t: 'Проверить коробку за шкафом', at: T + 60_000, done: true }]
   };
   const ids = lines.map((_, k) => 'i' + (900 + k));
   return {
@@ -67,6 +68,8 @@ function raw(): Project {
       obj: 'house', sip: 35, rz: 8
     },
     lines: lines.map((l, k) => ({ ...l, id: ids[k], apps: l.apps.map((a, j) => ({ ...a, id: ids[k] + '-' + j })) })),
+    stage: 2,
+    sent: { at: T + 1800_000, lines: [{ id: ids[0], name: lines[0].name, zone: lines[0].zone ?? '', pd: 1200, In: 16, curve: 'C', S: 2.5, len: 20 }] },
     checks: { 'Затяжка клемм': true, 'Маркировка групп': false },
     proto: { date: '2026-11-10', device: 'MPI-540, зав. № 123', by: 'Сидоров С. С.' },
     rooms: [

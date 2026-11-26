@@ -5,7 +5,14 @@ import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
 import { fixFor } from '../core/fixes';
 import type { FixAct } from '../core/fixes';
-import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconHeat, IconLan, IconNet, IconRooms, IconSocket, IconTrash, IconWire } from './Icons';
+import { IconBolt, IconBulb, IconChev, IconCopy, IconFolder, IconHeat, IconLan, IconNet, IconNote, IconRooms, IconSocket, IconTrash, IconWire } from './Icons';
+import { changedIds } from '../core/sent';
+import { openNotes } from '../core/notes';
+import { stageOf } from '../core/stage';
+import type { StageAct } from '../core/stage';
+import { whenLabel } from '../core/recent';
+import { StageBar } from './StageBar';
+import { useNow } from './now';
 import { floorSummary } from '../core/floor';
 import { weakSummary } from '../core/weak';
 import { roomGroups } from '../core/zonelist';
@@ -49,13 +56,15 @@ type RowProps = {
   onFix: (id: string, act: FixAct) => void;
   picked?: boolean;
   onPick?: (id: string) => void;
+  chg?: boolean;
+  notes?: number;
 };
 
 const sameRow = (a: RowProps, b: RowProps): boolean =>
-  a.i === b.i && a.three === b.three && a.sel === b.sel && a.hot === b.hot && a.tour === b.tour && a.onHot === b.onHot && a.onSelect === b.onSelect && a.onCopy === b.onCopy && a.onDelete === b.onDelete && a.onFix === b.onFix && a.picked === b.picked && a.onPick === b.onPick && a.x.l === b.x.l && same(a.x.r, b.x.r) && same(a.c, b.c);
+  a.i === b.i && a.three === b.three && a.sel === b.sel && a.hot === b.hot && a.tour === b.tour && a.onHot === b.onHot && a.onSelect === b.onSelect && a.onCopy === b.onCopy && a.onDelete === b.onDelete && a.onFix === b.onFix && a.picked === b.picked && a.onPick === b.onPick && a.chg === b.chg && a.notes === b.notes && a.x.l === b.x.l && same(a.x.r, b.x.r) && same(a.c, b.c);
 
 const GroupRow = memo(function GroupRow({
-  x, i, c, three, sel, hot, tour, onHot, onSelect, onCopy, onDelete, onFix, picked, onPick
+  x, i, c, three, sel, hot, tour, onHot, onSelect, onCopy, onDelete, onFix, picked, onPick, chg, notes
 }: RowProps) {
   const picking = picked !== undefined && !!onPick;
   const { dx, handlers } = useSwipe(() => onDelete(x.l.id), () => onCopy(x.l.id));
@@ -107,6 +116,8 @@ const GroupRow = memo(function GroupRow({
           <span className="row-sub"><span className="row-ty" data-t={x.l.type}>{TYPE_IC[x.l.type]}<span className="vh">{TYPES[x.l.type].short}</span></span>{rowSub(x, three).map((t, k) => <span key={k}>{t}</span>)}</span>
         </span>
         <span className="row-end">
+          {chg && <span className="row-mk chg" data-tip="Изменено после отправки сметы"><span className="vh">Изменено после отправки сметы</span></span>}
+          {!!notes && <span className="row-mk note" data-tip={'Заметки: ' + notes}><IconNote /><b>{notes}</b><span className="vh"> {plural(notes, ['заметка', 'заметки', 'заметок'])}</span></span>}
           {x.r.status !== 'ok' && !x.r.empty && (
             <span className={'flag ' + x.r.status} data-tip={STATUS[x.r.status]} aria-label={STATUS[x.r.status]}>!</span>
           )}
@@ -133,9 +144,11 @@ const GroupRow = memo(function GroupRow({
 }, sameRow);
 
 export const GroupList = memo(function GroupList({
-  p, a, sel, onSelect, onAdd, onBulkZone = () => undefined, onBulkCopy = () => undefined, onBulkDelete = () => undefined, onOpenProj, onOpenNet, onOpenOld, onOpenFloor = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix, onRenumber = () => undefined
+  p, a, sel, onSelect, onAdd, onStage = () => undefined, onStageAct = () => undefined, onBulkZone = () => undefined, onBulkCopy = () => undefined, onBulkDelete = () => undefined, onOpenProj, onOpenNet, onOpenOld, onOpenFloor = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix, onRenumber = () => undefined
 }: {
   onRenumber?: () => void;
+  onStage?: (n: number) => void;
+  onStageAct?: (a: StageAct) => void;
   onBulkZone?: (ids: string[], zone: string) => void;
   onBulkCopy?: (ids: string[]) => void;
   onBulkDelete?: (ids: string[]) => void;
@@ -163,6 +176,7 @@ export const GroupList = memo(function GroupList({
   const three = c.supply === 3;
   const count = p.lines.length;
   const mounted = useRef(false);
+  const now = useNow();
   useEffect(() => {
     if (!mounted.current) {
       mounted.current = true;
@@ -182,8 +196,12 @@ export const GroupList = memo(function GroupList({
   const [picking, setPicking] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
   const live = picked.filter(id => p.lines.some(l => l.id === id));
-  const groups = filter || sort !== 'no' ? listView(a.rows, filter, sort) : base;
+  const chg = changedIds(p.sent, a.rows);
+  const noted = new Set(p.lines.filter(l => openNotes(l.notes) > 0).map(l => l.id));
+  const groups = filter || sort !== 'no' ? listView(a.rows, filter, sort, { chg, note: noted }) : base;
   const cnt = listCounts(a.rows);
+  const stage = stageOf(p);
+  const showChg = !!p.sent && stage > 0;
   const zones = [...new Set(p.lines.map(l => (l.zone ?? '').trim()).filter(Boolean))];
   const togglePick = useCallback((id: string) => setPicked(v => (v.includes(id) ? v.filter(x => x !== id) : [...v, id])), []);
   const stopPick = () => {
@@ -251,6 +269,7 @@ export const GroupList = memo(function GroupList({
           )}
         </div>
       </div>
+      {!p.sample && count > 0 && <StageBar n={stage} sentAt={p.sent ? whenLabel(p.sent.at, now) : undefined} onStage={onStage} onAct={onStageAct} />}
       {p.sample && (
         <div className="sample">
           Пример двухкомнатной квартиры. Нажмите на группу, чтобы изменить её.{' '}
@@ -268,7 +287,7 @@ export const GroupList = memo(function GroupList({
         </span>
         {count > 0 && !picking && (
           <ListBar
-            chips={[{ id: 'bad', label: 'Нарушения', n: cnt.bad }, { id: 'warn', label: 'Советы', n: cnt.warn }]}
+            chips={[{ id: 'bad', label: 'Нарушения', n: cnt.bad }, { id: 'warn', label: 'Советы', n: cnt.warn }, { id: 'chg', label: 'Изменено', n: showChg ? chg.size : 0 }, { id: 'note', label: 'Заметки', n: noted.size }]}
             filter={filter}
             onFilter={setFilter}
             sort={sort}
@@ -322,7 +341,7 @@ export const GroupList = memo(function GroupList({
                     <div className="zone-b" id={bid} hidden={closed}>
                       {g.items.map(i => {
                         const x = a.rows[i];
-                        return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} picked={picking ? live.includes(x.l.id) : undefined} onPick={togglePick} />;
+                        return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} picked={picking ? live.includes(x.l.id) : undefined} onPick={togglePick} chg={showChg && chg.has(x.l.id)} notes={openNotes(x.l.notes)} />;
                       })}
                     </div>
                   </>
@@ -330,7 +349,7 @@ export const GroupList = memo(function GroupList({
               })()}
               {g.zone === null && g.items.map(i => {
                 const x = a.rows[i];
-                return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} picked={picking ? live.includes(x.l.id) : undefined} onPick={togglePick} />;
+                return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} picked={picking ? live.includes(x.l.id) : undefined} onPick={togglePick} chg={showChg && chg.has(x.l.id)} notes={openNotes(x.l.notes)} />;
               })}
             </Fragment>
           ))

@@ -17,6 +17,9 @@ import { normOld } from '../core/oldwire';
 import type { OldKey } from '../core/oldwire';
 import type { OldSign } from '../core/types';
 import type { Store } from './storage';
+import type { Sent } from '../core/sent';
+import { NOTE_MAX, NOTES_MAX } from '../core/notes';
+import { normStage } from '../core/stage';
 import { mergeLists } from './storage';
 import { WEAK_EMPTY, newWeakPt } from '../core/weak';
 import { MAT_WPM, defaultWpm, floorAppName, floorCalc, newFloorRoom } from '../core/floor';
@@ -36,6 +39,10 @@ export type Action =
   | { t: 'moveLine'; id: string; to: string }
   | { t: 'sortByZone' }
   | { t: 'dupLine'; id: string }
+  | { t: 'stage'; n: number; sent?: Sent }
+  | { t: 'noteAdd'; line: string; text: string }
+  | { t: 'noteToggle'; line: string; id: string }
+  | { t: 'noteDel'; line: string; id: string }
   | { t: 'splitLine'; id: string; mode: 'largest' | 'half' }
   | { t: 'roomAdd'; room: Room }
   | { t: 'roomDel'; id: string }
@@ -218,7 +225,7 @@ export function reducer(s: State, a: Action): State {
       const i = p.lines.findIndex(l => l.id === a.id);
       if (i < 0) return s;
       const src = p.lines[i];
-      const cp: Line = { ...src, id: nid(), name: (src.name || 'Без названия') + ' (копия)', apps: src.apps.map(x => ({ ...x, id: nid() })), meas: undefined };
+      const cp: Line = { ...src, id: nid(), name: (src.name || 'Без названия') + ' (копия)', apps: src.apps.map(x => ({ ...x, id: nid() })), meas: undefined, notes: undefined };
       const lines = [...p.lines];
       lines.splice(i + 1, 0, cp);
       let next = patch(s, q => ({ ...q, lines }));
@@ -359,6 +366,28 @@ export function reducer(s: State, a: Action): State {
           return next;
         })
       }));
+    case 'stage':
+      return patch(s, q => {
+        const next: Project = { ...q, ...(a.sent ? { sent: a.sent } : {}) };
+        const n = normStage(a.n);
+        if (n === undefined) delete next.stage;
+        else next.stage = n;
+        return next;
+      });
+    case 'noteAdd': {
+      const t = a.text.trim().slice(0, NOTE_MAX);
+      if (!t) return s;
+      return patchLine(s, a.line, l => ((l.notes?.length ?? 0) >= NOTES_MAX ? l : { ...l, notes: [...(l.notes ?? []), { id: nid(), t, at: Date.now() }] }));
+    }
+    case 'noteToggle':
+      return patchLine(s, a.line, l => ({ ...l, notes: l.notes?.map(n => (n.id === a.id ? (n.done ? { id: n.id, t: n.t, at: n.at } : { ...n, done: true }) : n)) }));
+    case 'noteDel':
+      return patchLine(s, a.line, l => {
+        const notes = l.notes?.filter(n => n.id !== a.id) ?? [];
+        const next: Line = { ...l, notes };
+        if (!notes.length) delete next.notes;
+        return next;
+      });
     case 'lineWet':
       return patchLine(s, a.id, l => {
         const next: Line = { ...l, wet: a.wet };

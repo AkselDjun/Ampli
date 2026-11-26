@@ -22,6 +22,11 @@ import { useLib } from '../store/LibContext';
 import { parseApps } from '../core/quick';
 import { appCos, zoneOf } from '../core/calc';
 import { Button, IconButton } from './kit';
+import type { Sent } from '../core/sent';
+import { lineChanges } from '../core/sent';
+import { whenLabel } from '../core/recent';
+import { LineNotes } from './LineNotes';
+import { useNow } from './now';
 import { BP, useMedia } from './media';
 
 const CHIP_MAX = 6;
@@ -50,8 +55,9 @@ function Tile({ label, val, sub, load }: { label: string; val: string; sub?: str
 }
 
 export function Editor({
-  l, idx, a, dispatch, whyOpen, setWhyOpen, onDeleted, photos
+  l, idx, a, dispatch, whyOpen, setWhyOpen, onDeleted, photos, sent
 }: {
+  sent?: Sent;
   photos: Photo[];
   l: Line | null;
   idx: number;
@@ -62,6 +68,7 @@ export function Editor({
   onDeleted: () => void;
 }) {
   const { lib, dispatch: libDispatch } = useLib();
+  const now = useNow();
   const chips = useRef<HTMLDivElement>(null);
   const focusNew = useRef(false);
   const [measOpen, setMeasOpen] = useState(false);
@@ -250,6 +257,15 @@ export function Editor({
             )}
           </>
         )}
+        {sent && x && (() => {
+          const since = lineChanges(sent.lines.find(y => y.id === l.id), x);
+          return since.length > 0 && (
+            <div className="since" role="note">
+              <b>Изменено после отправки сметы {whenLabel(sent.at, now)}</b>
+              <ul>{since.map(t => <li key={t}>{t}</li>)}</ul>
+            </div>
+          );
+        })()}
         <div className="ed-sec ed-set">
         <ChoiceField<LineType> className="blk" name={'t-' + l.id} label="Тип группы" value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', id: l.id, type: v })} />
         <div className="grid3 ed-core">
@@ -465,6 +481,14 @@ export function Editor({
             </div>
           </div>
         )}
+        <LineNotes
+          key={l.id}
+          notes={l.notes ?? []}
+          now={now}
+          onAdd={text => dispatch({ t: 'noteAdd', line: l.id, text })}
+          onToggle={id => dispatch({ t: 'noteToggle', line: l.id, id })}
+          onDel={id => dispatch({ t: 'noteDel', line: l.id, id })}
+        />
         <div className="blk meas fold-in">
           <button className="why-t" type="button" aria-expanded={measOpen} onClick={() => setMeasOpen(!measOpen)}>
             <span>Замеры и фото</span>

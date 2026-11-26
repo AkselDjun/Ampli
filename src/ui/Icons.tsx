@@ -180,3 +180,4 @@ export const IconBook = make(0, <path d="M5 4.5h9.5A2.5 2.5 0 0 1 17 7v13H7.5A2.
 export const IconCap = make(0, <path d="m2.5 9.5 9.5-5 9.5 5-9.5 5zM6.5 11.6v4.4c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3v-4.4M21.5 9.5v5" />);
 export const IconSort = make(0, <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3" />);
 export const IconMove = make(0, <path d="M4 7.5A1.5 1.5 0 0 1 5.5 6H10l2 2h6.5A1.5 1.5 0 0 1 20 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5zM10 13.5h6M13.5 11l2.5 2.5-2.5 2.5" />);
+export const IconNote = make(0, <path d="M5 4.5h14v11l-4 4H5zM15 19.5v-4h4M8.5 9h7M8.5 12.5h4" />);

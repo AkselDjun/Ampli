@@ -11,6 +11,9 @@ import { normWork } from './labor';
 import { normWeak, weakStarted } from './weak';
 import { normFloor } from './floor';
 import { SCHEMA, migrate } from './migrate';
+import { normNotes } from './notes';
+import { normSent } from './sent';
+import { normStage } from './stage';
 
 const str = (v: unknown, n: number): string => (typeof v === 'string' ? v.slice(0, n) : typeof v === 'number' ? String(v) : '');
 const PHASES: readonly string[] = ['L1', 'L2', 'L3', '3'];
@@ -70,6 +73,7 @@ function normLine(l: Loose, id: string, z: string | undefined): Line {
   const meas = normMeas(l.meas);
   const sockets = when(l.sockets, LINE_MAX.sockets);
   const perSocket = when(l.perSocket, LINE_MAX.perSocket);
+  const notes = normNotes(l.notes);
   return {
     id,
     name: str(l.name, 80),
@@ -83,7 +87,8 @@ function normLine(l: Loose, id: string, z: string | undefined): Line {
     ...(sockets !== undefined ? { sockets } : {}),
     ...(perSocket !== undefined ? { perSocket } : {}),
     len: numField(l.len, LINE_MAX.len),
-    apps: (l.apps as unknown[]).slice(0, MAX_APPS).map(obj).filter((a): a is Loose => !!a).map(normApp)
+    apps: (l.apps as unknown[]).slice(0, MAX_APPS).map(obj).filter((a): a is Loose => !!a).map(normApp),
+    ...(notes.length ? { notes } : {})
   };
 }
 
@@ -163,7 +168,9 @@ export function normProject(o: unknown, keep = false): Project | null {
     ...(x.acts ? { acts: normActs(x.acts) } : {}),
     ...(x.old && oldStarted(normOld(x.old)) ? { old: normOld(x.old) } : {}),
     ...(normFloor(x.floor).length ? { floor: normFloor(x.floor) } : {}),
-    ...(weakStarted(normWeak(x.weak)) ? { weak: normWeak(x.weak) } : {})
+    ...(weakStarted(normWeak(x.weak)) ? { weak: normWeak(x.weak) } : {}),
+    ...(normStage(x.stage) !== undefined ? { stage: normStage(x.stage) } : {}),
+    ...(normSent(x.sent) ? { sent: normSent(x.sent) } : {})
   };
 }
 

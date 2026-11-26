@@ -11,11 +11,13 @@ import { LABOR, MARKUP, PRICES, documents } from './docs';
 
 const fileText = (p: Project): string => JSON.stringify({ app: 'ampli', version: 1, appVersion: APP_VERSION, norms: NORMS_EDITION, ...p }, null, 2);
 const shared = (p: Project) => withoutIds({ ...p, photos: [] });
+const linked = (p: Project) => withoutIds({ ...p, photos: [], stage: undefined, sent: undefined, lines: p.lines.map(l => ({ ...l, notes: undefined })) });
 const kept = (p: Project) => ({ id: p.id, lines: p.lines.map(l => l.id), photos: p.photos, content: withoutIds(p) });
 
 describe('a project with every feature keeps its calculation and documents', () => {
   const p = fullProject();
   const docs = documents(p);
+  const linkDocs = documents({ ...p, lines: p.lines.map(l => ({ ...l, notes: undefined })) });
 
   it('through a project file', () => {
     const q = normProject(JSON.parse(fileText(p))) as Project;
@@ -28,8 +30,10 @@ describe('a project with every feature keeps its calculation and documents', () 
   it('through a project link', () => {
     const q = unpackProject(packProject(p)) as Project;
     expect(q.photos).toEqual([]);
-    expect(shared({ ...q, created: p.created })).toEqual(shared(p));
-    expect(documents(q)).toEqual(docs);
+    expect(linked({ ...q, created: p.created })).toEqual(linked(p));
+    expect(q.stage).toBeUndefined();
+    expect(q.lines.some(l => l.notes)).toBe(false);
+    expect(documents(q)).toEqual(linkDocs);
   });
 
   it('through a client estimate link with tiers, prices and work rates', () => {
@@ -38,8 +42,9 @@ describe('a project with every feature keeps its calculation and documents', () 
     expect(e?.prices).toEqual(PRICES);
     expect(e?.labor).toEqual(LABOR);
     expect(e?.tiers).toEqual(MARKUP);
-    expect(e && shared({ ...e.p, created: p.created })).toEqual(shared(p));
-    expect(e && documents(e.p)).toEqual(docs);
+    expect(e && linked({ ...e.p, created: p.created })).toEqual(linked(p));
+    expect(e?.p.lines.some(l => l.notes)).toBe(false);
+    expect(e && documents(e.p)).toEqual(linkDocs);
   });
 
   it('through the browser storage', async () => {

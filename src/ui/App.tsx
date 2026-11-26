@@ -21,6 +21,9 @@ import { oldStarted, oldVerdict } from '../core/oldwire';
 import { IncomingSheet } from './IncomingSheet';
 import { LockedLinkSheet } from './LockedLinkSheet';
 import { uniqName } from '../core/project';
+import { SENT_STAGE, STAGES, stageOf } from '../core/stage';
+import type { StageAct } from '../core/stage';
+import { snapshot } from '../core/sent';
 import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
 import { onboardingPending } from '../features/onboarding/storage';
@@ -137,6 +140,12 @@ export function App() {
     dispatch({ t: 'delLine', id });
     toastOk('Группа удалена');
   });
+  const onStage = useStable((n: number) => {
+    const from = stageOf(p);
+    dispatch({ t: 'stage', n, ...(n === SENT_STAGE && from < SENT_STAGE ? { sent: snapshot(a.rows, Date.now()) } : {}) });
+    toastOk('Этап: ' + STAGES[n].name);
+  });
+  const onStageAct = useStable((x: StageAct) => openSheet(x.sheet === 'report' ? APP_SHEET.REPORT : APP_SHEET.WORK, x.tab));
   const bulkZone = useStable((ids: string[], zone: string) => {
     ids.forEach(id => dispatch({ t: 'lineField', id, field: 'zone', value: zone }));
     toastOk(zone ? 'Группы перенесены: ' + zone : 'Группы без помещения');
@@ -281,6 +290,8 @@ export function App() {
             onDelete={deleteLine}
             onFix={fixLine}
             onRenumber={renumber}
+            onStage={onStage}
+            onStageAct={onStageAct}
             onBulkZone={bulkZone}
             onBulkCopy={bulkCopy}
             onBulkDelete={bulkDelete}
@@ -308,6 +319,7 @@ export function App() {
               setWhyOpen={setWhyOpen}
               onDeleted={() => { if (!mediaMatches(BP.desktop)) goBack(); }}
               photos={p.photos ?? []}
+              sent={stageOf(p) > 0 ? p.sent : undefined}
             />
             </Suspense>
             ) : <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы" />}

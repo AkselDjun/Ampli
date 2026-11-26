@@ -1,6 +1,7 @@
 import { plural } from '../core/format';
 import { initials, recentProjects, whenLabel } from '../core/recent';
 import type { Project } from '../core/types';
+import { STAGES, stageOf } from '../core/stage';
 import { IconBook, IconCap, IconCart, IconCompare, IconFolder, IconGrid, IconHeat, IconLan, IconPlus, IconRooms, IconWire } from '../ui/Icons';
 import type { MenuGroup } from '../ui/MenuButton';
 import type { NavActions } from './types';
@@ -14,7 +15,7 @@ export const projectMenu = (list: readonly Project[], cur: string, now: number, 
     items: recentProjects(list, cur, RECENT_LIMIT).map(x => ({
       id: x.id,
       label: x.name || 'Без названия',
-      hint: x.lines.length + ' ' + plural(x.lines.length, ['группа', 'группы', 'групп']) + ' · ' + whenLabel(x.updated, now),
+      hint: x.lines.length + ' ' + plural(x.lines.length, ['группа', 'группы', 'групп']) + (stageOf(x) ? ' · ' + STAGES[stageOf(x)].name : '') + ' · ' + whenLabel(x.updated, now),
       mark: initials(x.name),
       current: x.id === cur,
       run: () => go.project(x.id)

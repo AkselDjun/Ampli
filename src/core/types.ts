@@ -2,6 +2,8 @@ import type { WorkQty } from './labor';
 import type { Weak, WeakCalc } from './weak';
 import type { FloorRoom } from './floor';
 import type { House } from './house';
+import type { Note } from './notes';
+import type { Sent } from './sent';
 
 export type LineType = 'light' | 'socket' | 'power';
 export type Phase = 'L1' | 'L2' | 'L3' | '3';
@@ -99,6 +101,7 @@ export interface Line {
   len: Num;
   apps: Appliance[];
   prio?: 'p' | 's';
+  notes?: Note[];
 }
 
 export interface Cfg {
@@ -145,6 +148,8 @@ export interface Project {
   old?: OldWiring;
   weak?: Weak;
   floor?: FloorRoom[];
+  stage?: number;
+  sent?: Sent;
 }
 
 export interface Content {
