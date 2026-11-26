@@ -22,7 +22,7 @@ describe('Board', () => {
     render(<PanelPane a={a} onPick={() => undefined} onMove={() => undefined} />);
     expect(mods()).toHaveLength(3);
     expect(document.querySelector('.dev-in')).not.toBeNull();
-    expect(mods()[0].className).toMatch(/st-(ok|warn|bad)/);
+    expect(mods()[0].className).toMatch(/is-(ok|warn|bad)/);
     expect(mods().every(m => m.getAttribute('data-ph'))).toBe(true);
     expect(a.devs.filter(d => d.lid).map(d => d.lid)).toEqual(ls.map(l => l.id));
   });

@@ -12,8 +12,7 @@ import { SWIPE_MAX, SWIPE_TRIGGER, useSwipe } from '../../ui/swipe';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
-import { BOOT_KEY, KEY } from '../../store/storage';
-import { flushSaves } from '../stored';
+import { KEY } from '../../store/storage';
 import type { Cfg, Line, Project } from '../../core/types';
 import { wide } from './util';
 
@@ -302,24 +301,9 @@ describe('GroupList', () => {
     return { h, el: <GroupList p={p} a={calcAll(p.lines, p.cfg)} sel={p.lines[0]?.id ?? null} {...h} /> };
   };
 
-  it('summarises the network and opens the settings in one tap', async () => {
-    const user = userEvent.setup();
-    const { h, el } = props(proj([mkLine('A', 'light', 5, [['x', 100, 1]])]));
-    render(el);
-    const b = screen.getByRole('button', { name: /^Параметры сети ?:/ });
-    expect(b).toHaveTextContent('1 фаза, 230 В');
-    expect(b).toHaveTextContent('Скрытая');
-    expect(b).toHaveTextContent('дифавтоматы');
-    await user.click(b);
-    expect(h.onOpenNet).toHaveBeenCalledTimes(1);
-  });
   it('describes an open three-phase network with residual-current devices per room', () => {
     const { el } = props(proj([mkLine('A', 'power', 5, [['x', 100, 1]], '3')], { supply: 3, method: 'open', prot: 'rcd' }));
     render(el);
-    const b = screen.getByRole('button', { name: /^Параметры сети ?:/ });
-    expect(b).toHaveTextContent('3 фазы, 400 В');
-    expect(b).toHaveTextContent('Открытая');
-    expect(b).toHaveTextContent('УЗО на помещение');
     expect(document.querySelector('.row-sub')).toHaveTextContent('3Ф');
   });
   it('shows the start screen and hides the count', () => {
@@ -332,7 +316,6 @@ describe('GroupList', () => {
     expect(h.onAdd).toHaveBeenCalledWith('power');
     expect(screen.queryByRole('button', { name: /на примере/ })).toBeNull();
     expect(document.querySelector('.list-head .count')).toBeNull();
-    expect(document.querySelector('.pb-sub')?.textContent).toBe('0 групп');
   });
   it('shows project info, row details, flags, and routes the buttons', async () => {
     const user = userEvent.setup();
@@ -340,43 +323,20 @@ describe('GroupList', () => {
     const p = proj([bad, mkLine('', 'light', 5, []), mkLine('Свет', 'light', 5, [['x', 100, 1]])], {}, { name: '', address: 'ул. Тестовая' });
     const { h, el } = props(p);
     render(el);
-    expect(document.querySelector('.pb-name')?.textContent).toBe('Без названия');
-    expect(document.querySelector('.pb-sub')?.textContent).toBe('ул. Тестовая · 3 группы');
     expect(document.querySelector('.list-head .count')).toBeNull();
     const rows = rowsOf();
-    expect(rows[0].querySelector('.flag')).toHaveTextContent('!');
-    expect(rows[1].querySelector('.flag')).toBeNull();
+    expect(rows[0].querySelector('.st')?.className).toMatch(/bad|warn/);
     expect(rows[1]).toHaveTextContent('Без названия');
     expect(rows[1]).toHaveTextContent('нет приборов');
-    expect(rows[2].querySelector('.flag')).toBeNull();
+    expect(rows[2].querySelector('.st')?.className).toContain('ok');
     await user.click(rows[2]);
     expect(h.onSelect).toHaveBeenCalledWith(p.lines[2].id);
-    await user.click(screen.getByRole('button', { name: /^Проекты:/ }));
-    expect(h.onOpenProj).toHaveBeenCalled();
-    await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
+    await user.click(screen.getByRole('button', { name: 'Добавить группу' }));
     await user.click(screen.getByRole('menuitem', { name: 'Из комнат' }));
     expect(h.onRooms).toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Добавить группу' }));
     await user.click(screen.getByRole('menuitem', { name: 'Силовая' }));
     expect(h.onAdd).toHaveBeenCalledWith('power');
-  });
-  it('applies a row fix through onFix with the line id', async () => {
-    const user = userEvent.setup();
-    const p = proj([longLine(), overload()]);
-    const { h, el } = props(p);
-    render(el);
-    const notes = screen.getAllByRole('note');
-    expect(notes).toHaveLength(2);
-    await user.click(within(notes[0]).getByRole('button', { name: /Сократить до \d+ м/ }));
-    expect(h.onFix).toHaveBeenCalledWith(p.lines[0].id, expect.objectContaining({ k: 'len' }));
-    await user.click(within(notes[1]).getByRole('button', { name: 'Разделить' }));
-    expect(h.onFix).toHaveBeenLastCalledWith(p.lines[1].id, { k: 'half' });
-  });
-  it('shows a fix note without a button when nothing can be applied', () => {
-    const { el } = props(proj([mkLine('Огромная', 'power', 10, [['x', 30000, 1]])]));
-    render(el);
-    expect(screen.getByRole('note')).toHaveTextContent('уменьшите мощность');
-    expect(within(screen.getByRole('note')).queryByRole('button')).toBeNull();
   });
   it('shows the sample hint and starts blank after two clicks', async () => {
     const user = userEvent.setup();
@@ -471,7 +431,8 @@ describe('Side folds', () => {
     const a = calcAll(p.lines, p.cfg);
     render(<><Summary a={a} solo onBalance={() => undefined} /><PanelPane a={a} /></>);
     expect(screen.queryByRole('heading', { name: 'Проверки по нормам' })).toBeNull();
-    ['Нагрузка по фазам', 'Щиток'].forEach(t => {
+    expect(screen.getByRole('heading', { name: 'Щиток' })).toBeInTheDocument();
+    ['Нагрузка по фазам'].forEach(t => {
       expect(foldBtn(t)).toHaveAttribute('aria-expanded', 'true');
     });
     expect(screen.queryByRole('heading', { name: 'Запас автоматов' })).toBeNull();
@@ -552,7 +513,7 @@ describe('App flows', () => {
     const user = userEvent.setup();
     render(<App />);
     const n0 = rowsOf().length;
-    await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
+    await user.click(screen.getByRole('button', { name: 'Добавить группу' }));
     await user.click(screen.getByRole('menuitem', { name: 'Силовая' }));
     expect(rowsOf().length).toBe(n0 + 1);
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'groups');
@@ -623,30 +584,6 @@ describe('App flows', () => {
     expect(r.closest('.row-wrap')).not.toHaveClass('sw-l');
     expect(r.closest('.row-wrap')).not.toHaveClass('sw-r');
   });
-  it('the row fix button shortens the line', async () => {
-    const user = userEvent.setup();
-    const p = proj([longLine()]);
-    seed(p);
-    render(<App />);
-    const wrap = document.querySelector('.row-wrap') as HTMLElement;
-    const b = within(wrap).getByRole('button', { name: /Сократить до \d+ м/ });
-    const L = Number(/(\d+) м/.exec(b.textContent as string)?.[1]);
-    await user.click(b);
-    expect(screen.getByRole('status')).toHaveTextContent('Исправлено');
-    flushSaves();
-    const stored = JSON.parse(localStorage.getItem(BOOT_KEY) as string).project.lines[0];
-    expect(Number(stored.len)).toBe(L);
-    expect(document.querySelector('.row-wrap .fixbar')).toBeNull();
-    expect(within(screen.getByRole('status')).queryByRole('button', { name: 'Отменить' })).toBeNull();
-  });
-  it('the row fix button splits an overloaded line', async () => {
-    const user = userEvent.setup();
-    seed(proj([overload()]));
-    render(<App />);
-    await user.click(within(document.querySelector('.row-wrap') as HTMLElement).getByRole('button', { name: 'Разделить' }));
-    expect(rowsOf().length).toBe(2);
-    expect(rowsOf()[1].querySelector('.row-name')?.textContent).toBe('Перегруз (2)');
-  });
   it('the editor fix bar shortens the selected line', async () => {
     wide(true);
     const user = userEvent.setup();
@@ -698,10 +635,10 @@ describe('row action buttons', () => {
     seed(proj([mkLine('Первая', 'socket', 10, [['Чайник', 1000, 1]]), mkLine('Вторая', 'light', 10, [['Лампа', 60, 1]])]));
     render(<App />);
     expect(rowsOf()).toHaveLength(2);
-    await user.click(screen.getByRole('button', { name: 'Копировать группу Г2' }));
+    await user.click(screen.getByRole('button', { name: 'Копировать группу 02' }));
     expect(rowsOf()).toHaveLength(3);
     expect(screen.getByText('Создана копия группы')).toBeTruthy();
-    await user.click(screen.getByRole('button', { name: 'Удалить группу Г1' }));
+    await user.click(screen.getByRole('button', { name: 'Удалить группу 01' }));
     expect(rowsOf()).toHaveLength(2);
     expect(rowsOf()[0].textContent).not.toContain('Первая');
     expect(screen.getByText('Группа удалена')).toBeTruthy();
@@ -711,7 +648,7 @@ describe('row action buttons', () => {
     wide(true);
     seed(proj([mkLine('А', 'socket', 10, [['Чайник', 1000, 1]]), mkLine('Б', 'light', 10, [['Лампа', 60, 1]])]));
     render(<App />);
-    ['Г1', 'Г2'].forEach(g => {
+    ['01', '02'].forEach(g => {
       expect(screen.getByRole('button', { name: 'Копировать группу ' + g })).toBeTruthy();
       expect(screen.getByRole('button', { name: 'Удалить группу ' + g })).toBeTruthy();
     });

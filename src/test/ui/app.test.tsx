@@ -13,7 +13,7 @@ describe('App', () => {
   it('renders the sample project with kpis and persists to storage', () => {
     render(<App />);
     expect(rowsOf().length).toBeGreaterThan(3);
-    expect(document.querySelector('.kpis')?.textContent).toContain('кВт');
+    expect(document.querySelector('.net-sub')?.textContent).toContain('кВт');
     expect(stored().order).toHaveLength(1);
     expect(screen.getByText(/Пример двухкомнатной/)).toBeInTheDocument();
   });
@@ -23,7 +23,7 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const n0 = rowsOf().length;
-    await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
+    await user.click(screen.getByRole('button', { name: 'Добавить группу' }));
     await user.click(screen.getByRole('menuitem', { name: 'Освещение' }));
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'groups');
     expect(rowsOf().length).toBe(n0 + 1);
@@ -47,7 +47,7 @@ describe('App', () => {
     render(<App />);
     fireEvent.click(rowsOf()[0]);
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'edit');
-    fireEvent.click(screen.getByRole('button', { name: 'Назад к группам' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Группы, назад к списку' }));
     act(() => { vi.advanceTimersByTime(10); });
     expect(window.scrollTo).toHaveBeenCalled();
     fireEvent.click(rowsOf()[1]);
@@ -71,7 +71,7 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const nav = screen.getByRole('navigation', { name: 'Разделы' });
-    expect(within(nav).getAllByRole('button').map(b => b.textContent)).toEqual(['Группы', 'Щиток', 'Приёмка', 'Отчёт', 'Ещё']);
+    expect(within(nav).getAllByRole('button').map(b => b.querySelector('span')?.textContent)).toEqual(['Группы', 'Щиток', 'Приёмка', 'Отчёт', 'Инструменты']);
     await user.click(within(nav).getByRole('button', { name: /Щиток/ }));
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'panel');
     await user.click(within(nav).getByRole('button', { name: /Группы/ }));
@@ -86,7 +86,7 @@ describe('App', () => {
     expect(screen.queryByRole('group', { name: 'История изменений' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Отменить' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Вернуть' })).toBeNull();
-    await user.click(screen.getByRole('button', { name: '+ Добавить группу' }));
+    await user.click(screen.getByRole('button', { name: 'Добавить группу' }));
     await user.click(screen.getByRole('menuitem', { name: 'Розетки' }));
     expect(rowsOf().length).toBe(n0 + 1);
     fireEvent.keyDown(document.body, { key: 'z', ctrlKey: true });
@@ -112,33 +112,28 @@ describe('App', () => {
     render(<App />);
     const bar = document.querySelector('.ab-main') as HTMLElement;
     const nav = document.querySelector('nav.tabs') as HTMLElement;
-    click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
+    click(document.querySelector('.appbar') as HTMLElement, 'Параметры сети');
     expect(isOpen('Параметры сети')).toBe(true);
     void bar;
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(isOpen('Параметры сети')).toBe(false);
-    click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
+    click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
     expect(isOpen('Проекты')).toBe(true);
     click(dlg('Проекты'), 'Открыть мои данные');
     expect(isOpen('Мои данные')).toBe(true);
     click(dlg('Мои данные'), 'Закрыть');
-    click(document.querySelector('.col-list') as HTMLElement, '+ Добавить группу');
+    click(document.querySelector('.col-list') as HTMLElement, 'Добавить группу');
     click(document.querySelector('.col-list') as HTMLElement, 'Из комнат');
     expect(isOpen('Комнаты')).toBe(true);
     fireEvent.click(dlg('Комнаты').parentElement as HTMLElement);
     expect(isOpen('Комнаты')).toBe(false);
-    fireEvent.click(screen.getByRole('button', { name: /^Итого по квартире/ }));
-    click(document.querySelector('.tot-pop') as HTMLElement, 'Сравнить варианты');
-    expect(isOpen('Сравнение вариантов')).toBe(true);
-    fireEvent.keyDown(document, { key: 'Escape' });
     click(nav, /Приёмка/);
     expect(isOpen('Приёмка')).toBe(true);
     fireEvent.keyDown(document, { key: 'Escape' });
-    click(bar, /Приёмка/);
+    click(nav, /Отчёт/);
+    expect(isOpen('Отчёт и спецификация')).toBe(true);
     fireEvent.keyDown(document, { key: 'Escape' });
-    click(bar, /Отчёт/);
-    fireEvent.keyDown(document, { key: 'Escape' });
-    click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
+    click(document.querySelector('.appbar') as HTMLElement, 'Параметры сети');
     expect(isOpen('Параметры сети')).toBe(true);
   });
 
@@ -176,7 +171,7 @@ describe('App', () => {
 
   it('switching project resets the view', () => {
     render(<App />);
-    click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
+    click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
     const d = dlg('Проекты');
     click(d, '+ Новый проект');
     click(d, /Студия/);
@@ -187,7 +182,7 @@ describe('App', () => {
   it('balance button on three phases', () => {
     wide(true);
     render(<App />);
-    click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
+    click(document.querySelector('.appbar') as HTMLElement, 'Параметры сети');
     fireEvent.click(dlg('Параметры сети').querySelector('input[name="sup"][value="3"]') as HTMLElement);
     fireEvent.keyDown(document, { key: 'Escape' });
     const fold = document.querySelector('.c-phase .fold-h') as HTMLElement;

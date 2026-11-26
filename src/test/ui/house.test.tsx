@@ -11,7 +11,7 @@ vi.setConfig({ testTimeout: 60000 });
 
 const ed = () => document.querySelector('.col-edit') as HTMLElement;
 const net = () => {
-  fireEvent.click(document.querySelector('.col-list .netfold') as HTMLElement);
+  fireEvent.click(document.querySelector('.net-chip') as HTMLElement);
   return dlg('Параметры сети');
 };
 

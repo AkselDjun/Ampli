@@ -29,7 +29,7 @@ describe('group editor order', () => {
     render(<App />);
     const ed = open('Варочная');
     const res = ed.querySelector('.ed-res') as Element;
-    const type = label(ed, 'Тип группы');
+    const type = label(ed, 'Тип');
     const len = label(ed, 'Длина до распредкоробки, м');
     const room = label(ed, 'Помещение');
     const apps = ed.querySelector('.apps') as Element;
@@ -79,7 +79,7 @@ describe('group editor order', () => {
   it('places the phase next to the line length on a three-phase supply', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(Array.from(document.querySelectorAll<HTMLElement>('.col-list button')).find(x => x.textContent?.includes('Параметры сети')) as HTMLElement);
+    fireEvent.click(Array.from(document.querySelectorAll<HTMLElement>('.appbar button')).find(x => x.textContent?.includes('Параметры сети')) as HTMLElement);
     fireEvent.click(document.querySelector('input[name="sup"][value="3"]') as HTMLElement);
     fireEvent.click(dlg('Параметры сети').querySelector('.sheet-close') as HTMLElement);
     const ed = open('Варочная');

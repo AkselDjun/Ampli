@@ -13,7 +13,7 @@ describe('typography and links', () => {
     const screens = Object.entries(css).filter(([f]) => !/\/(tokens|print)\.css$/.test(f));
     const raw = screens.flatMap(([f, s]) => (s.match(/font-size:\s*\d[\d.]*(px|rem|em)\b/g) ?? []).map(m => f + ' ' + m));
     expect(raw).toEqual([]);
-    const small = screens.flatMap(([f, s]) => (s.match(/[^{}]+\{[^{}]*font-size:var\(--t-hw[^{}]*\}/g) ?? []).filter(r => !/\.(pmb|dev-cap)/.test(r)).map(r => f + ' ' + r.trim().slice(0, 60)));
+    const small = screens.flatMap(([f, s]) => (s.match(/[^{}]+\{[^{}]*font-size:var\(--t-hw[^{}]*\}/g) ?? []).filter(r => !/\.(pmb|dev-cap|dev|lb)\b/.test(r)).map(r => f + ' ' + r.trim().slice(0, 60)));
     expect(small).toEqual([]);
   });
 

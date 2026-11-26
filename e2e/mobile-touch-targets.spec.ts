@@ -42,6 +42,7 @@ test('keeps every button inside the screen and at least 44 px high on a 320 px p
 
 test('lets a finger hit the small hint button next to a label', async ({ page }) => {
   await open(page, 'Параметры сети');
+  await page.waitForFunction(() => document.getAnimations().every(a => a.playState !== 'running'));
   const tip = page.locator('[role="dialog"]:visible .tip-b').first();
   const r = (await tip.boundingBox())!;
   const hit = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest('.tip-b') !== null, [r.x + r.width + 8, r.y - 8]);

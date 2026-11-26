@@ -455,7 +455,7 @@ export function ReportSheet({
     onTab?.(t);
   };
   return (
-    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" sub={p.name || 'Без названия'} footer={tab === 'scheme' ? (
+    <Sheet open={open} onClose={onClose} title="Отчёт и спецификация" tourId="report" kind="page" sub={p.name || 'Без названия'} footer={tab === 'scheme' ? (
       <>
         <span className="foot-st">Лист А3 по ГОСТ 21.613</span>
         <Button variant="primary" disabled={empty} onClick={() => onPrint('a3')}>Печать А3 по ГОСТ</Button>

@@ -59,7 +59,7 @@ describe('theme', () => {
 
   it('switches the theme from my data and from quick actions', () => {
     render(<App />);
-    click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
+    click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
     click(dlg('Проекты'), 'Открыть мои данные');
     const d = dlg('Мои данные');
     fireEvent.click(screen.getByRole('tab', { name: 'Оформление' }));

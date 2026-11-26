@@ -16,10 +16,11 @@ describe('group list by rooms', () => {
   it('always groups rows under rooms with totals and has no switch', () => {
     render(<App />);
     expect(heads()).toEqual(['Комнаты', 'Кухня', 'Ванная']);
-    const first = document.querySelector('.rows .zone-h small')?.textContent;
-    expect(first).toMatch(/^4 группы · УЗО \d+\s?А · 30\s?мА · тип A · \d+,\d\s?кВт$/);
-    const nos = Array.from(document.querySelectorAll('.rows .row .no')).map(n => n.textContent);
-    expect(nos).toEqual(['Г1', 'Г3', 'Г4', 'Г14', 'Г2', 'Г5', 'Г6', 'Г7', 'Г8', 'Г9', 'Г10', 'Г11', 'Г12', 'Г13']);
+    expect(document.querySelector('.rows .zone-h .cnt')?.textContent).toBe('4 группы');
+    expect(document.querySelector('.rows .zone-h .zone-m')?.textContent).toMatch(/^УЗО \d+\s?А · 30\s?мА · тип A$/);
+    expect(document.querySelector('.rows .zone-h .zone-kw')?.textContent).toMatch(/^\d+,\d\s?кВт$/);
+    const nos = Array.from(document.querySelectorAll('.rows .row .no')).map(n => /\d\d/.exec(n.textContent ?? '')?.[0]);
+    expect(nos).toEqual(['01', '03', '04', '14', '02', '05', '06', '07', '08', '09', '10', '11', '12', '13']);
     expect(screen.queryByRole('button', { name: 'По помещениям' })).toBeNull();
   });
 
@@ -60,10 +61,10 @@ describe('group list by rooms', () => {
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
     render(<App />);
     expect(heads()).toEqual(['Кухня', 'Ванная']);
-    expect(document.querySelector('.rows .zone-h small')?.textContent).toMatch(/^2 группы/);
+    expect(document.querySelector('.rows .zone-h .cnt')?.textContent).toMatch(/^2 группы/);
   });
 
-  it('folds a room like an accordion and opens it again when its group is selected', () => {
+  it('folds a room like an accordion and opens it again when its group is selected', async () => {
     wide(true);
     const ls: Line[] = [
       { ...mkLine('Свет', 'light', 5, [['Лампа', 100, 1]]), zone: 'Комнаты' },
@@ -73,23 +74,21 @@ describe('group list by rooms', () => {
     const p = newProject({ cfg: { ...defaultCfg(), prot: 'rcbo' }, lines: ls, sample: false }, 'Т');
     localStorage.setItem(KEY, JSON.stringify({ cur: p.id, list: [p] }));
     render(<App />);
-    const head = screen.getByRole('button', { name: /^Кухня/ });
+    const zh = (t: string) => Array.from(document.querySelectorAll<HTMLElement>('.zone-h button')).find(b => b.querySelector('b')?.textContent === t) as HTMLElement;
+    const head = zh('Кухня');
     expect(head).toHaveAttribute('aria-expanded', 'true');
     const body = document.getElementById(head.getAttribute('aria-controls') as string) as HTMLElement;
     expect(body.querySelectorAll('.row').length).toBe(2);
-    expect(head.querySelector('.flag.bad')).not.toBeNull();
-    expect(head.querySelector('.zone-brk')).toBeNull();
+    expect(head.textContent).toContain('Нарушение');
     fireEvent.click(head);
     expect(head).toHaveAttribute('aria-expanded', 'false');
     expect(body.hidden).toBe(true);
-    expect(Array.from(head.querySelectorAll('.zone-brk i')).map(i => i.textContent)).toEqual(['C16']);
-    expect(head.querySelector('.zone-brk i.rcd')).not.toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: /^Комнаты/ }));
-    expect(screen.getByRole('button', { name: /^Комнаты/ })).toHaveAttribute('aria-expanded', 'false');
-    fireEvent.click(screen.getByRole('button', { name: /^Проверки по нормам/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Открыть группу Г2' }));
+    fireEvent.click(zh('Комнаты'));
+    expect(zh('Комнаты')).toHaveAttribute('aria-expanded', 'false');
+    await screen.findByRole('heading', { name: 'Проверки' });
+    fireEvent.click(Array.from(document.querySelectorAll<HTMLElement>('.ov-chk button.iss-t')).find(b => b.textContent === 'Группа 02 · Перегруз') as HTMLElement);
     expect(head).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('button', { name: /^Комнаты/ })).toHaveAttribute('aria-expanded', 'false');
+    expect(zh('Комнаты')).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(head);
     expect(head).toHaveAttribute('aria-expanded', 'false');
   });

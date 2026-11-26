@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { App } from '../../ui/App';
-import { dlg, isOpen, wide } from './util';
+import { dlg, isOpen, openCompare, openMeas, wide } from './util';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -34,7 +34,7 @@ describe('back arrow between sheets', () => {
   it('goes back from a nested sheet and has no arrow on the first one', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(document.querySelector('.col-list .netfold') as HTMLElement);
+    fireEvent.click(document.querySelector('.net-chip') as HTMLElement);
     expect(dlg('Параметры сети').querySelector('.sheet-back')).toBeNull();
     fireEvent.click(dlg('Параметры сети').querySelector('.net-old') as HTMLElement);
     expect(isOpen('Старая проводка')).toBe(true);
@@ -55,20 +55,19 @@ describe('back arrow between sheets', () => {
     fireEvent.click(within(dlg('Приёмка')).getByRole('button', { name: 'Закрыть' }));
     expect(isOpen('Приёмка')).toBe(false);
     fireEvent.click(nav().getByRole('button', { name: /Щиток/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
+    openMeas();
     expect(isOpen('Приёмка')).toBe(true);
     expect(screen.getByRole('tab', { name: /^Замеры/ })).toHaveAttribute('aria-selected', 'true');
     expect(dlg('Приёмка').querySelector('.sheet-back')).toBeNull();
   });
 
-  it('opens compare from totals and chains projects to my data', () => {
+  it('opens compare from totals and chains projects to my data', async () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /^Итого по квартире/ }));
-    fireEvent.click(within(document.querySelector('.tot-pop') as HTMLElement).getByRole('button', { name: 'Сравнить варианты' }));
+    await openCompare();
     expect(isOpen('Сравнение вариантов')).toBe(true);
     expect(dlg('Сравнение вариантов').querySelector('.sheet-back')).toBeNull();
     fireEvent.keyDown(document, { key: 'Escape' });
-    fireEvent.click(document.querySelector('.projbar') as HTMLElement);
+    fireEvent.click(document.querySelector('.crumb-a') as HTMLElement);
     fireEvent.click(screen.getByRole('tab', { name: /Обмен|Перенос|Поделиться/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Открыть мои данные' }));
     expect(within(dlg('Мои данные')).getByRole('button', { name: 'Назад: Проекты' })).toBeTruthy();

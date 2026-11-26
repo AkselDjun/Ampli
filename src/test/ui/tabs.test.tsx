@@ -94,7 +94,7 @@ describe('sheets use tabs and one panel at a time', () => {
   it('projects and data: two sections each and Мои данные has three', () => {
     seed();
     render(<App />);
-    click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
+    click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
     const d = dlg('Проекты');
     expect(within(d).getAllByRole('tab').map(t => t.textContent)).toEqual(['Проекты', 'Обмен и данные']);
     click(d, 'Открыть мои данные');

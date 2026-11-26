@@ -18,7 +18,6 @@ vi.setConfig({ testTimeout: 60000 });
 
 const lib = () => JSON.parse(localStorage.getItem(LIB_KEY) as string);
 const ed = () => document.querySelector('.col-edit') as HTMLElement;
-const list = () => document.querySelector('.col-list') as HTMLElement;
 const nav = () => document.querySelector('nav.tabs') as HTMLElement;
 
 const seed = (mut: (p: Project) => void) => {
@@ -46,7 +45,8 @@ describe('MeasBoard', () => {
   it('opens from the header and updates verdicts while typing', () => {
     render(<App />);
     expect(isOpen('Приёмка')).toBe(false);
-    fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Разделы' })).getByRole('button', { name: /Приёмка/ }));
+    fireEvent.click(within(dlg('Приёмка')).getByRole('tab', { name: /^Замеры/, hidden: true }));
     expect(isOpen('Приёмка')).toBe(true);
     const d = dlg('Приёмка');
     expect(within(d).getByRole('tab', { name: /^Замеры/, hidden: true })).toHaveAttribute('aria-selected', 'true');
@@ -158,7 +158,7 @@ describe('incoming project flow', () => {
 
 describe('ShareBlock', () => {
   const openProj = () => {
-    click(list(), 'Проекты');
+    click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
     fireEvent.click(within(dlg('Проекты')).getByRole('tab', { name: 'Обмен и данные' }));
     return dlg('Проекты');
   };
@@ -418,7 +418,8 @@ describe('Owner passport', () => {
 describe('RCD trip time measurement', () => {
   it('is entered in panel mode and shows in the acceptance list', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Разделы' })).getByRole('button', { name: /Приёмка/ }));
+    fireEvent.click(within(dlg('Приёмка')).getByRole('tab', { name: /^Замеры/, hidden: true }));
     const d = dlg('Приёмка');
     const first = d.querySelector('.pm') as HTMLElement;
     change(byLabel(d, 'Г1: Отключение УЗО, мс'), '28');

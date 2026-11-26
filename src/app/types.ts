@@ -1,4 +1,5 @@
 import type { Calc, Line, Project } from '../core/types';
+import type { StageAct } from '../core/stage';
 
 export const APP_VIEW = {
   GROUPS: 'groups',
@@ -58,6 +59,9 @@ export interface NavActions {
 }
 
 export interface AppHeaderProps {
+  p: Project;
+  onStage: (n: number) => void;
+  onStageAct: (a: StageAct) => void;
   list: readonly Project[];
   cur: string;
   nav: NavActions;
@@ -67,18 +71,14 @@ export interface AppHeaderProps {
   calc: Calc;
   onBack: () => void;
   onNetwork: () => void;
-  onGroup: (id: string) => void;
-  onCheckFix: (fix: HeaderCheckFix) => void;
-  onPanel: () => void;
-  onWork: () => void;
-  onReport: () => void;
-  onCompare: () => void;
 }
 
 export interface AppTabsProps {
   nav: NavActions;
   calc: Calc;
   view: AppView;
+  page: SheetId;
+  open: number;
   onGroups: () => void;
   onPanel: () => void;
   onWork: () => void;

@@ -31,7 +31,7 @@ describe('отбор, порядок и выбор групп', () => {
     await user.click(chip);
     expect(chip).toHaveAttribute('aria-pressed', 'true');
     expect(names()).toHaveLength(n);
-    expect(document.querySelectorAll('.rows .flag.warn').length).toBeGreaterThanOrEqual(n);
+    expect(document.querySelectorAll('.rows .row .st.warn').length).toBeGreaterThanOrEqual(n);
     await user.click(chip);
     expect(names()).toHaveLength(all);
   });

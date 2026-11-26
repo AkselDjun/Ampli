@@ -75,7 +75,7 @@ describe('project links protected with a password', () => {
     Object.defineProperty(navigator, 'clipboard', { value: { writeText: write }, configurable: true });
     render(<App />);
     await settle();
-    click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
+    click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
     const d = dlg('Проекты');
     click(d, 'Обмен и данные');
     expect(d.textContent).toContain('Без пароля ссылка и файлы открываются у любого');

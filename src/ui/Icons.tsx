@@ -87,16 +87,8 @@ export const IconPanel = make(0, (
 
 export function Brand() {
   return (
-    <svg width="30" height="22" viewBox="0 0 30 22" aria-hidden="true">
-      <defs>
-        <pattern id="pe" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <rect width="3" height="6" fill="#2E9B4E" />
-          <rect x="3" width="3" height="6" fill="#E7C71B" />
-        </pattern>
-      </defs>
-      <rect x="0" y="0" width="30" height="6" rx="3" fill="#8B5A2B" />
-      <rect x="0" y="8" width="30" height="6" rx="3" fill="#1F6FD6" />
-      <rect x="0" y="16" width="30" height="6" rx="3" fill="url(#pe)" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M13 3 5 14h6l-1 7 8-11h-6z" />
     </svg>
   );
 }
@@ -182,3 +174,15 @@ export const IconSort = make(0, <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4
 export const IconMove = make(0, <path d="M4 7.5A1.5 1.5 0 0 1 5.5 6H10l2 2h6.5A1.5 1.5 0 0 1 20 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5zM10 13.5h6M13.5 11l2.5 2.5-2.5 2.5" />);
 export const IconNote = make(0, <path d="M5 4.5h14v11l-4 4H5zM15 19.5v-4h4M8.5 9h7M8.5 12.5h4" />);
 export const IconKeys = make(0, <path d="M3.5 7h17v10h-17zM7 10.5h1M10.5 10.5h1M14 10.5h1M17 10.5h0M8 14h8" />);
+export const IconMoon = make(0, <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />);
+export const IconSun = make(0, <path d="M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M5.6 18.4l-1.4 1.4M19.8 4.2l-1.4 1.4M12 7a5 5 0 1 0 0 10 5 5 0 1 0 0-10z" />);
+export const IconStOk = make(0, <path d="M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18zM8 12l3 3 5-6" />);
+export const IconStWarn = make(0, <path d="M12 4l9 16H3zM12 10v4M12 17h.01" />);
+export const IconStBad = make(0, <path d="M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18zM9 9l6 6M15 9l-6 6" />);
+export function IconTick({ wait }: { wait?: boolean }) {
+  return (
+    <svg className={'tick' + (wait ? ' wait' : '')} viewBox="0 0 22 14" width="20" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={wait ? 'M5 7l4 4 8-9' : 'M1 7l4 4 8-9M9 10l1 1 9-10'} />
+    </svg>
+  );
+}

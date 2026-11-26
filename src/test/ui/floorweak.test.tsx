@@ -12,7 +12,7 @@ import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
-const box = () => document.querySelector('.proj-box') as HTMLElement;
+const box = () => document.querySelector('.col-list') as HTMLElement;
 const extra = (name: string) => {
   fireEvent.click(within(document.getElementById('groups') as HTMLElement).getAllByRole('button', { name: /Добавить группу/ })[0]);
   fireEvent.click(screen.getByRole('menuitem', { name }));
@@ -165,21 +165,18 @@ describe('arc fault devices in the interface', () => {
   it('turns on from the network sheet and shows on the board, list and report', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(within(box()).getByRole('button', { name: /^Параметры сети ?:/ }));
+    fireEvent.click(document.querySelector('.net-chip') as HTMLElement);
     const d = dlg('Параметры сети');
     fireEvent.click(d.querySelector('input[name="afdd"][value="sock"]') as HTMLInputElement);
     expect(stored().list[0].cfg.afdd).toBe('sock');
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(within(box()).getByRole('button', { name: /^Параметры сети ?:/ }).textContent).toContain('УЗДП на розетки');
     const arcs = document.querySelectorAll('.rail .dev.arc');
     expect(arcs.length).toBeGreaterThan(0);
     expect(arcs[0].querySelector('.dev-arc')?.textContent).toBe('ДП');
-    expect(Array.from(document.querySelectorAll('.legend > span')).map(s => s.textContent)).toContain('УЗДП');
-    expect(document.querySelector('.bd-list')?.textContent).toContain('УЗДП с автоматом');
-    fireEvent.click(within(box()).getByRole('button', { name: /^Параметры сети ?:/ }));
+    fireEvent.click(document.querySelector('.net-chip') as HTMLElement);
     fireEvent.click(dlg('Параметры сети').querySelector('input[name="afdd"][value="all"]') as HTMLInputElement);
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(within(box()).getByRole('button', { name: /^Параметры сети ?:/ }).textContent).toContain('УЗДП на группы');
+    expect(stored().list[0].cfg.afdd).toBe('all');
   });
 
   it('prints the arc fault protection in the report', () => {

@@ -14,9 +14,10 @@ import { updatedFrom } from './release';
 import { APP_VERSION } from '../core/version';
 import { GroupList } from './GroupList';
 import { SheetNavContext } from './sheetnav';
-import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, PanelPane, RoomsSheet, ShopSheet, ShortcutsSheet, Summary, WeakSheet, WorkSheet, preloadParts } from './parts';
+import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, PanelPane, RoomsSheet, ShopSheet, ShortcutsSheet, Summary, PanelSel, SumBox, ChecksBox, WeakSheet, WorkSheet, preloadParts } from './parts';
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
+import { progress } from '../core/checklist';
 import { IncomingSheet } from './IncomingSheet';
 import { hotkeyOf, stepIn } from '../core/hotkeys';
 import { LockedLinkSheet } from './LockedLinkSheet';
@@ -60,6 +61,7 @@ export function App() {
   const da = useDeferredValue(a);
   const [hot, setHot] = useState<string | null>(null);
   const [keys, setKeys] = useState(false);
+  const checkOpen = (() => { const pr = progress(dp.checks); return pr.total - pr.done; })();
   const oldLabel = oldStarted(p.old) ? oldVerdict(p.old, a).label : '';
   const dOldLabel = oldStarted(dp.old) ? oldVerdict(dp.old, da).label : '';
   const selected = p.lines.find(l => l.id === state.sel) || null;
@@ -210,7 +212,6 @@ export function App() {
   const openOld = useStable(() => setSheet(APP_SHEET.OLD_WIRING));
   const openFloor = useStable(() => setSheet(APP_SHEET.FLOOR));
   const openWeak = useStable(() => setSheet(APP_SHEET.WEAK));
-  const openMeas = useStable(() => openSheet(APP_SHEET.WORK, 'meas'));
   const openRooms = useStable(() => setSheet(APP_SHEET.ROOMS));
   const projectsAt = useStable((at: ProjStart) => { setProjStart(at); setSheet(APP_SHEET.PROJECTS); });
   const onBlank = useStable(() => {
@@ -302,6 +303,7 @@ export function App() {
           <a href="#editor" className="skip-ed">К карточке группы</a>
         </nav>
         <AppHeader
+          p={dp}
           list={state.list}
           cur={state.cur}
           nav={nav}
@@ -311,12 +313,19 @@ export function App() {
           calc={da}
           onBack={goBack}
           onNetwork={openNet}
-          onGroup={pick}
-          onCheckFix={onCheckFix}
-          onPanel={openMeas}
+          onStage={onStage}
+          onStageAct={onStageAct}
+        />
+        <AppTabs
+          nav={nav}
+          calc={da}
+          view={view}
+          page={sheet === APP_SHEET.WORK || sheet === APP_SHEET.REPORT ? sheet : null}
+          open={checkOpen}
+          onGroups={() => { setSheet(null); tab(APP_VIEW.GROUPS); }}
+          onPanel={() => { setSheet(null); tab(APP_VIEW.PANEL); }}
           onWork={() => setSheet(APP_SHEET.WORK)}
           onReport={() => setSheet(APP_SHEET.REPORT)}
-          onCompare={() => setSheet(APP_SHEET.COMPARE)}
         />
 
         <main className="workspace">
@@ -330,6 +339,8 @@ export function App() {
             onDelete={deleteLine}
             onFix={fixLine}
             onRenumber={renumber}
+            onPanel={() => tab(APP_VIEW.PANEL)}
+            onCheckFix={onCheckFix}
             onStage={onStage}
             onStageAct={onStageAct}
             onBulkZone={bulkZone}
@@ -364,25 +375,25 @@ export function App() {
             </Suspense>
             ) : <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы" />}
             <aside className="col col-res" aria-label="Итоги расчёта">
-              {(wide || view === APP_VIEW.PANEL) && (
+              {view === APP_VIEW.PANEL ? (
                 <Suspense fallback={null}>
                   <PanelPane a={da} sel={state.sel} hot={hot} onHot={setHot} onPick={pick} onMove={moveLine} />
-                  <Summary key={'s' + (view === APP_VIEW.PANEL)} a={da} solo={view === APP_VIEW.PANEL} onBalance={balance} />
+                  <div className="pp-side">
+                    <PanelSel a={da} sel={state.sel} onOpen={id => { dispatch({ t: 'select', id }); tab(APP_VIEW.GROUPS); }} />
+                    <Summary key="s-panel" a={da} solo onBalance={balance} />
+                  </div>
+                </Suspense>
+              ) : wide && (
+                <Suspense fallback={null}>
+                  <PanelPane mini a={da} sel={state.sel} hot={hot} onHot={setHot} onPick={pick} onMore={() => tab(APP_VIEW.PANEL)} />
+                  <SumBox a={da} onNet={openNet} />
+                  <ChecksBox a={da} onGroup={pick} onFix={onCheckFix} />
+                  <Summary key="s-side" a={da} onBalance={balance} />
                 </Suspense>
               )}
             </aside>
           </div>
         </main>
-
-        <AppTabs
-          nav={nav}
-          calc={da}
-          view={view}
-          onGroups={() => tab(APP_VIEW.GROUPS)}
-          onPanel={() => tab(APP_VIEW.PANEL)}
-          onWork={() => setSheet(APP_SHEET.WORK)}
-          onReport={() => setSheet(APP_SHEET.REPORT)}
-        />
 
         <SheetNavContext.Provider value={sheetNav}>
         <Hold open={sheet === APP_SHEET.NETWORK}><NetSheet open={sheet === APP_SHEET.NETWORK} onClose={closeSheet} p={p} dispatch={dispatch} onOld={() => pushSheet(APP_SHEET.OLD_WIRING)} oldLabel={oldLabel} /></Hold>

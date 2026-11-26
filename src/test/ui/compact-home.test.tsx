@@ -39,7 +39,7 @@ describe('add menu extras', () => {
 
   it('leaves the extras out when there is nothing to open', () => {
     render(<AddMenu onAdd={vi.fn()} onRooms={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { name: '+ Добавить группу' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Добавить группу' }));
     expect(screen.queryByRole('separator')).toBeNull();
     expect(screen.queryByRole('menuitem', { name: 'Тёплый пол' })).toBeNull();
   });

@@ -66,10 +66,10 @@ describe('WorkSheet', () => {
 });
 
 describe('CompareSheet', () => {
-  it('toggles exclusions and add-ons and resets', () => {
+  it('toggles exclusions and add-ons and resets', async () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /^Итого по квартире/ }));
-    click(document.querySelector('.tot-pop') as HTMLElement, 'Сравнить варианты');
+    fireEvent.click(screen.getByRole('button', { name: 'Инструменты' }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: /Сравнение вариантов/ }));
     const d = dlg('Сравнение вариантов');
     const reset = Array.from(d.querySelectorAll('button')).find(b => b.textContent === 'Сбросить') as HTMLButtonElement;
     expect(reset.disabled).toBe(true);
@@ -94,7 +94,7 @@ describe('CompareSheet', () => {
 describe('RoomsSheet', () => {
   it('adds rooms, edits apps and assembles groups', () => {
     render(<App />);
-    click(list(), '+ Добавить группу');
+    click(list(), 'Добавить группу');
     click(list(), 'Из комнат');
     const d = dlg('Комнаты');
     const asm = () => d.querySelector('.sheet-foot .btn') as HTMLButtonElement;
@@ -145,7 +145,7 @@ describe('RoomsSheet', () => {
 
 describe('LibSheet', () => {
   const openLib = () => {
-    click(list(), 'Проекты');
+    click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
     click(dlg('Проекты'), 'Открыть мои данные');
     return dlg('Мои данные');
   };
@@ -166,7 +166,7 @@ describe('LibSheet', () => {
   it('manages templates and prices', () => {
     wide(true);
     render(<App />);
-    click(list(), 'Проекты');
+    click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
     const pj = dlg('Проекты');
     click(pj, 'Сохранить как шаблон');
     click(pj, 'Открыть мои данные');
@@ -180,7 +180,7 @@ describe('LibSheet', () => {
     fireEvent.click(within(dlg('Отчёт и спецификация')).getByRole('tab', { name: 'Смета' }));
     change(dlg('Отчёт и спецификация').querySelector('.price-in') as HTMLElement, '5');
     fireEvent.keyDown(document, { key: 'Escape' });
-    click(list(), 'Проекты');
+    click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
     click(pj, 'Открыть мои данные');
     expect(d.textContent).toContain('1 позиция');
     click(d, 'Очистить все цены');
@@ -208,7 +208,7 @@ describe('LibSheet', () => {
     vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,BBBB');
     vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => undefined);
     render(<App />);
-    click(list(), 'Проекты');
+    click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
     click(dlg('Проекты'), 'Открыть мои данные');
     const d = dlg('Мои данные');
     click(d, 'Загрузить логотип');

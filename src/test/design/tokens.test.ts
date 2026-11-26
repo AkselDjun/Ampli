@@ -4,7 +4,7 @@ const files = import.meta.glob<string>(['../../**/*.{ts,tsx,css}', '!../../test/
 const tokens = files['../../styles/tokens.css'];
 const core = new Set(['../../styles/app.css', '../../styles/print.css', ...[...files['../../styles/app.css'].matchAll(/@import '\.\/([\w-]+\.css)'/g)].map(m => '../../styles/' + m[1])]);
 const app = [...core].filter(f => !f.endsWith('/tokens.css')).map(f => files[f]).join('\n');
-const runtime = new Set(['--rc', '--i', '--cols', '--arrow']);
+const runtime = new Set(['--rc', '--i', '--cols', '--arrow', '--n', '--u', '--h']);
 
 const decls = (css: string): Map<string, string> => {
   const out = new Map<string, string>();
@@ -62,7 +62,7 @@ describe('design tokens', () => {
     const gap = (a: string, b: string) => Math.hypot(...rgb(a).map((v, i) => v - rgb(b)[i]));
     expect(gap(light.get('--warn-mark') as string, light.get('--l1') as string)).toBeGreaterThan(60);
     expect(gap(darkMedia.get('--warn-mark') as string, darkMedia.get('--l1') as string)).toBeGreaterThan(60);
-    for (const sel of ['.brk-load.warn>i', '.meter i.warn', '.gl-bar i.warn']) expect(app).toContain(sel + '{background:var(--warn-mark)');
+    for (const sel of ['.row-bar i.hot', '.meter i.warn', '.gl-bar i.warn']) expect(app).toContain(sel + '{background:var(--warn-mark)');
   });
 
   it('keeps raw colors out of component styles', () => {

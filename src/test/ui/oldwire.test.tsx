@@ -16,7 +16,7 @@ describe('old wiring survey', () => {
   it('opens from the network sheet, gives a verdict and shows it in the project box', () => {
     vi.useFakeTimers();
     render(<App />);
-    click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
+    click(document.querySelector('.appbar') as HTMLElement, 'Параметры сети');
     const net = dlg('Параметры сети');
     expect(net.querySelector('.net-old')?.textContent).toContain('что оставить и что заменить');
     fireEvent.click(net.querySelector('.net-old') as HTMLElement);

@@ -25,7 +25,7 @@ const restart = () => {
 };
 
 const enable = async (pass: string): Promise<string> => {
-  click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
+  click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
   const d = dlg('Проекты');
   click(d, 'Обмен и данные');
   click(d, 'Включить замок');

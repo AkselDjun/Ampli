@@ -14,6 +14,7 @@ import { useMenuKeys } from './menu';
 import { PhotoStrip } from './PhotoStrip';
 import { FixBar } from './FixBar';
 import { fixFor } from '../core/fixes';
+import { cableName } from '../core/protection';
 import { ArmButton, Err, errAttrs } from './common';
 import { ChoiceField, Empty, FieldLabel, StepField } from './fields';
 import { asLabel, fieldErr } from '../core/limits';
@@ -43,14 +44,15 @@ function Flash({ v }: { v: string }) {
   return <b key={n} className={n ? 'flash' : undefined}>{v}</b>;
 }
 
-function Tile({ label, val, sub, load }: { label: string; val: string; sub?: string; load?: number }) {
+type FxKey = 'i' | 'in' | 's' | 'du' | 'load' | 'z';
+const FX_TITLE: Record<FxKey, string> = { i: 'Ток', in: 'Автомат', s: 'Кабель', du: 'Потеря напряжения', load: 'Автомат', z: 'Короткое замыкание' };
+
+function Tile({ k, on, onFx, label, val, unit, tone }: { k: FxKey; on: FxKey | null; onFx: (k: FxKey | null) => void; label: string; val: string; unit?: string; tone?: 'warn' | 'bad' }) {
   return (
-    <div className="tile">
+    <button type="button" className={'tile' + (on === k ? ' on' : '')} aria-pressed={on === k} onClick={() => onFx(on === k ? null : k)}>
       <span className="lbl">{label}</span>
-      <Flash v={val} />
-      {sub && <small>{sub}</small>}
-      {load !== undefined && <i className={'ld' + (load > 0.9 ? ' hi' : '')} aria-hidden="true"><i style={{ inlineSize: Math.min(100, Math.round(load * 100)) + '%' }} /></i>}
-    </div>
+      <span className={'tv mono' + (tone ? ' ' + tone : '')}><Flash v={val} />{unit && <small>{unit}</small>}</span>
+    </button>
   );
 }
 
@@ -79,6 +81,7 @@ export function Editor({
   const [allChips, setAllChips] = useState(false);
   const chipMax = useMedia(BP.aboveTablet, true) ? CHIP_MAX : CHIP_MAX_PHONE;
   const resRef = useRef<HTMLDivElement>(null);
+  const [fxPick, setFx] = useState<{ id: string; k: FxKey } | null>(null);
   const [mini, setMini] = useState(false);
   const [brOn, setBrOn] = useState(false);
   const [extOn, setExtOn] = useState(false);
@@ -181,30 +184,32 @@ export function Editor({
   const prot = r && !r.empty && r.In ? (r.rcbo ? 'дифавтомат ' + r.ma + ' мА' : r.rcd ? 'УЗО «' + r.zone + '» ' + r.ma + ' мА' : 'автомат') + (r.rcd && r.rcdA ? ', тип A' : '') : '';
   const load = r && !r.empty && r.In ? r.I / r.In : 0;
   const room = (l.zone ?? '').trim();
+  const fx = fxPick && fxPick.id === l.id ? fxPick.k : null;
+  const fxRow = fx && r && !r.empty ? whyRows(l, r, a.c).find(w => w.title === FX_TITLE[fx]) ?? null : null;
   const setLen = (v: number) => dispatch({ t: 'lineField', id: l.id, field: 'len', value: Math.max(0, Math.min(500, round2(v))) });
   return (
     <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы">
       <div className="ed">
         <h2 className="vh">Группа Г{idx + 1} {l.name || 'Без названия'}</h2>
         <p className="vh ed-say" aria-live="polite" aria-atomic="true">{say}</p>
+        <div className="box ed-top">
         <div className="ed-head">
-          <span className="no" data-t={l.type}>Г{idx + 1}</span>
-          <div className="ed-title">
+          <div className="ed-n">
+            <span className="no" data-t={l.type}>{String(idx + 1).padStart(2, '0')}</span>
             <input className="ed-name" aria-label="Название группы" value={l.name} onChange={e => dispatch({ t: 'lineField', id: l.id, field: 'name', value: e.target.value })} />
-            {(room || prot) && (
-              <p className="ed-sub">
-                {room && <span>{room}</span>}
-                {prot && <span>{prot}</span>}
-              </p>
-            )}
+            {r && !r.empty && <span className={'pill ' + r.status}>{STATUS[r.status]}</span>}
           </div>
-          {r && !r.empty && <span className={'pill ' + r.status}>{STATUS[r.status]}</span>}
+          <p className="ed-sub">
+            <span className={'pill ty'} data-t={l.type}>{TYPES[l.type].short}</span>
+            {room && <span className="pill none">{room}</span>}
+            {prot && <span className="note">{prot}</span>}
+          </p>
         </div>
         {r && (
           <>
             {mini && !r.empty && r.In && document.getElementById('ab-sub') && createPortal(
               <button type="button" className={'ed-mini ' + r.status} onClick={() => resRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}>
-                <span className="vh">{'Г' + (idx + 1) + ': '}</span>
+                <span className="vh">{'Группа ' + String(idx + 1).padStart(2, '0') + ': '}</span>
                 <i className="dot" aria-hidden="true">{r.status === 'ok' ? '' : '!'}</i>
                 <Flash v={fmt(r.I, 1) + NB + 'А'} />
                 <Flash v={r.curve + r.In} />
@@ -214,24 +219,31 @@ export function Editor({
               </button>,
               document.getElementById('ab-sub') as HTMLElement
             )}
-            <div className={'ed-res' + (r.empty ? '' : ' ' + r.status)} ref={resRef} key={l.id}>
-              {r.empty ? (
-                <p>Добавьте приборы ниже, расчёт появится здесь.</p>
-              ) : (
-                <>
-                  <Tile label="Ток" val={fmt(r.I, 1) + NB + 'А'} sub={'нагрузка ' + fmt(r.pd, 0) + NB + 'Вт'} />
-                  {r.In ? (
-                    <>
-                      <Tile label="Автомат" val={r.curve + r.In} sub={'загрузка ' + fmt(load * 100, 0) + NB + '%'} load={load} />
-                      <Tile label="Кабель" val={fs(r.S as number) + NB + 'мм²'} sub={(r.three ? 5 : 3) + '-жильный'} />
-                      <Tile label="Потеря" val={fmt(r.drop, 1) + NB + '%'} sub={'допустимо ' + fmt(r.limit, 1) + NB + '%'} />
-                    </>
-                  ) : (
-                    <p style={{ gridColumn: 'span 3' }}>Подбор невозможен, см. замечание ниже.</p>
-                  )}
-                </>
-              )}
-            </div>
+            {r.empty ? (
+              <p className="ed-empty">Добавьте приборы ниже, расчёт появится здесь.</p>
+            ) : (
+              <>
+                <div className={'ed-res ' + r.status} ref={resRef} key={l.id}>
+                  <Tile k="i" on={fx} onFx={k => setFx(k ? { id: l.id, k } : null)} label="Ток" val={fmt(r.I, 1)} unit="А" />
+                  <Tile k="in" on={fx} onFx={k => setFx(k ? { id: l.id, k } : null)} label="Автомат" val={r.In ? r.curve + r.In : '—'} tone={r.In ? undefined : 'bad'} />
+                  <Tile k="s" on={fx} onFx={k => setFx(k ? { id: l.id, k } : null)} label="Сечение" val={r.S ? fs(r.S) : '—'} unit={r.S ? 'мм²' : undefined} />
+                  <Tile k="du" on={fx} onFx={k => setFx(k ? { id: l.id, k } : null)} label="ΔU" val={fmt(r.drop, 1)} unit="%" tone={r.drop > r.limit ? 'bad' : undefined} />
+                  <Tile k="load" on={fx} onFx={k => setFx(k ? { id: l.id, k } : null)} label="Загрузка" val={r.In ? fmt(load * 100, 0) : '—'} unit={r.In ? '%' : undefined} tone={load > 1 ? 'bad' : load > 0.9 ? 'warn' : undefined} />
+                  <Tile k="z" on={fx} onFx={k => setFx(k ? { id: l.id, k } : null)} label="Zф-0" val={r.ik > 0 ? fmt(230 / r.ik, 2) : '—'} unit={r.ik > 0 ? 'Ом' : undefined} />
+                </div>
+                {fxRow ? (
+                  <div className="fx" role="region" aria-label={'Формула: ' + fxRow.title}>
+                    <div className="fx-h"><b>{fxRow.title}</b><button type="button" className="fx-x" aria-label="Скрыть формулу" onClick={() => setFx(null)}><IconClose /></button></div>
+                    <pre className="fx-code mono">{fxRow.formula}{fxRow.note ? '\n' + fxRow.note : ''}</pre>
+                  </div>
+                ) : <p className="fx-hint">{r.In ? 'Нажмите на значение, чтобы увидеть формулу' : 'Подбор невозможен, см. замечание ниже.'}</p>}
+              </>
+            )}
+          </>
+        )}
+        </div>
+        {r && (
+          <>
             {fix && (
               <FixBar
                 fix={fix}
@@ -267,7 +279,7 @@ export function Editor({
           );
         })()}
         <div className="ed-sec ed-set">
-        <ChoiceField<LineType> className="blk" name={'t-' + l.id} label="Тип группы" value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', id: l.id, type: v })} />
+        <ChoiceField<LineType> className="blk" name={'t-' + l.id} label="Тип" value={l.type} items={TYPE_KEYS.map(k => [k, TYPES[k].short])} onChange={v => dispatch({ t: 'lineType', id: l.id, type: v })} />
         <div className="grid3 ed-core">
           <StepField
             className="len-f"
@@ -298,6 +310,9 @@ export function Editor({
             </datalist>
           </div>
         )}
+        {r && !r.empty && r.S ? (
+          <div className="kvr ed-cab"><span className="lbl">Кабель</span><span className="mono">{cableName(r)}</span></div>
+        ) : null}
         {l.type === 'socket' && (
           <div className="grid3 sock">
             <label className="f">

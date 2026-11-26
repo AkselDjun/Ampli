@@ -68,6 +68,7 @@ export const BulkBar = part(() => import('./BulkBar').then(m => m.BulkBar));
 export const StageBar = part(() => import('./StageBar').then(m => m.StageBar));
 export const PanelPane = part(() => import('./Side').then(m => m.PanelPane));
 export const Summary = part(() => import('./Side').then(m => m.Summary));
+export const PanelSel = part(() => import('./Side').then(m => m.PanelSel));
 export const Editor = part(() => import('./Editor').then(m => m.Editor));
 export const FloorSheet = part(() => import('./FloorSheet').then(m => m.FloorSheet));
 export const WeakSheet = part(() => import('./WeakSheet').then(m => m.WeakSheet));
@@ -88,3 +89,6 @@ export const Onboarding = part(() => import('./Onboarding').then(m => m.Onboardi
 export const TraceSheet = part(() => import('./Traces').then(m => m.TraceSheet));
 export const Palette = part(() => import('./Palette').then(m => m.Palette));
 export const Qr = part(() => import('./Qr').then(m => m.Qr));
+export const SumBox = part(() => import('./Overview').then(m => m.SumBox));
+export const ChecksBox = part(() => import('./Overview').then(m => m.ChecksBox));
+export const HomeSum = part(() => import('./Overview').then(m => m.HomeSum));

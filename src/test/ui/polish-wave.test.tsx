@@ -6,7 +6,7 @@ import { defaultCfg, mkLine } from '../../core/templates';
 import { KEY } from '../../store/storage';
 import type { Line } from '../../core/types';
 import { currentToast } from '../../ui/toast';
-import { click, dlg, toastText, wide } from './util';
+import { click, dlg, openCompare, openMeas, toastText, wide } from './util';
 import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
@@ -61,7 +61,6 @@ describe('empty project', () => {
     boot([]);
     render(<App />);
     expect(document.body.textContent).not.toContain('Приборов на 0 мод.');
-    expect(document.body.textContent).toContain('Щиток соберётся');
     fireEvent.click(screen.getAllByRole('button', { name: /^Отчёт/ })[0]);
     const d = dlg('Отчёт и спецификация');
     expect(d.querySelector('.rep-empty')).not.toBeNull();
@@ -70,11 +69,10 @@ describe('empty project', () => {
 });
 
 describe('comparison of variants', () => {
-  it('summarizes what changes on top and mutes unchanged rows', () => {
+  it('summarizes what changes on top and mutes unchanged rows', async () => {
     boot([mkLine('Свет', 'light', 10, [['Люстра', 100, 1]]), mkLine('Плита', 'power', 5, [['Электроплита', 7000, 1]])]);
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /^Итого по квартире/ }));
-    click(document.querySelector('.tot-pop') as HTMLElement, 'Сравнить варианты');
+    await openCompare();
     const d = dlg('Сравнение вариантов');
     const sum = d.querySelector('.cmp-res') as HTMLElement;
     expect(sum.textContent).toContain('Отметьте ниже');
@@ -96,7 +94,7 @@ describe('words and captions', () => {
   it('shows the measurement legend above the board', () => {
     boot([mkLine('Свет', 'light', 10, [['Люстра', 100, 1]])]);
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Замеры на щитке' }));
+    openMeas();
     const d = dlg('Приёмка');
     const legend = d.querySelector('.pmb-top') as HTMLElement;
     const board = d.querySelector('.pmb-box') as HTMLElement;

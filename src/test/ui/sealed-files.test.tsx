@@ -14,7 +14,7 @@ const project = (name: string) => ({ ...newProject({ ...sample(), sample: false 
 const seed = (...list: ReturnType<typeof project>[]) => localStorage.setItem(KEY, JSON.stringify({ cur: list[0].id, list }));
 const settle = (ms = 30) => act(async () => { await new Promise(r => setTimeout(r, ms)); });
 const openShare = () => {
-  click(document.querySelector('.col-list') as HTMLElement, 'Проекты');
+  click(document.querySelector('.appbar') as HTMLElement, 'Проекты');
   const d = dlg('Проекты');
   click(d, 'Обмен и данные');
   return d;
