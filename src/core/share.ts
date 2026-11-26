@@ -33,7 +33,7 @@ const slimProject = (p: Project) => ({
   client: p.client,
   author: p.author,
   cfg: p.cfg,
-  lines: p.lines.map(l => ({ ...l, id: undefined, apps: l.apps.map(a => ({ ...a, id: undefined })) })),
+  lines: p.lines.map(l => ({ ...l, id: undefined, notes: undefined, apps: l.apps.map(a => ({ ...a, id: undefined })) })),
   rooms: p.rooms,
   checks: p.checks,
   proto: p.proto,

@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { Suspense, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { calcAll } from '../core/calc';
 import type { LineType } from '../core/types';
 import { blank, sample } from '../core/templates';
@@ -13,19 +13,22 @@ import { useBackClose } from './back';
 import { updatedFrom } from './release';
 import { APP_VERSION } from '../core/version';
 import { GroupList } from './GroupList';
-import { PanelPane, Summary } from './Side';
 import { SheetNavContext } from './sheetnav';
-import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, RoomsSheet, ShopSheet, WeakSheet, WorkSheet, preloadParts } from './parts';
+import { CompareSheet, Editor, EstimateView, FloorSheet, LibSheet, NetSheet, OldSheet, OwnerView, Palette, PrintDoc, ProjectsSheet, Onboarding, ReportSheet, PanelPane, RoomsSheet, ShopSheet, ShortcutsSheet, Summary, WeakSheet, WorkSheet, preloadParts } from './parts';
 import { Hold, useStable } from './hold';
 import { oldStarted, oldVerdict } from '../core/oldwire';
 import { IncomingSheet } from './IncomingSheet';
+import { hotkeyOf, stepIn } from '../core/hotkeys';
 import { LockedLinkSheet } from './LockedLinkSheet';
 import { uniqName } from '../core/project';
+import { SENT_STAGE, STAGES, stageOf } from '../core/stage';
+import type { StageAct } from '../core/stage';
+import { snapshot } from '../core/sent';
 import type { FixAct } from '../core/fixes';
 import type { CheckFix } from './Checks';
 import { onboardingPending } from '../features/onboarding/storage';
 import { APP_SHEET, APP_VIEW } from '../app/types';
-import type { AppView } from '../app/types';
+import type { AppView, NavActions, ProjStart } from '../app/types';
 import { AppHeader } from '../app/AppHeader';
 import { AppTabs } from '../app/AppTabs';
 import { readLocation } from '../app/location';
@@ -48,6 +51,7 @@ export function App() {
   const beside = useMedia(BP.aboveTablet);
   const [whyOpen, setWhyOpen] = useState(false);
   const [pal, setPal] = useState(false);
+  const [projStart, setProjStart] = useState<ProjStart>('main');
   const scrollPos = useRef(0);
   const p = cur(state);
   const { lines: pLines, cfg: pCfg, weak: pWeak, floor: pFloor } = p;
@@ -55,6 +59,7 @@ export function App() {
   const dp = useDeferredValue(p);
   const da = useDeferredValue(a);
   const [hot, setHot] = useState<string | null>(null);
+  const [keys, setKeys] = useState(false);
   const oldLabel = oldStarted(p.old) ? oldVerdict(p.old, a).label : '';
   const dOldLabel = oldStarted(dp.old) ? oldVerdict(dp.old, da).label : '';
   const selected = p.lines.find(l => l.id === state.sel) || null;
@@ -82,7 +87,7 @@ export function App() {
     window.scrollTo(0, 0);
   }, [state.cur]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const key = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null;
       const typing = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
@@ -128,6 +133,44 @@ export function App() {
     toast('Добавлена группа: ' + TYPES[t].label, mediaMatches(BP.desktop) ? {} : { label: 'Открыть', run: goEdit });
   });
   const pick = useStable((id: string) => { dispatch({ t: 'select', id }); goEdit(); });
+  const onHotkey = useStable((e: KeyboardEvent) => {
+    const el = e.target;
+    if (el instanceof HTMLElement && (el.isContentEditable || el.closest('input, textarea, select, [role="menu"]'))) return;
+    if (document.querySelector('.sheet:not([hidden]) [role="dialog"], dialog[open], [role="menu"]')) return;
+    const k = hotkeyOf({ code: e.code, key: e.key, ctrl: e.ctrlKey, meta: e.metaKey, alt: e.altKey, shift: e.shiftKey });
+    if (!k) return;
+    const vis = (q: string) => Array.from(document.querySelectorAll<HTMLElement>(q)).find(x => x.getClientRects().length > 0);
+    if (k === 'next' || k === 'prev') {
+      const ids = Array.from(document.querySelectorAll<HTMLElement>('.rows .row[data-id]')).map(x => x.dataset.id as string);
+      const id = stepIn(ids, state.sel, k === 'next' ? 1 : -1);
+      if (!id) return;
+      e.preventDefault();
+      dispatch({ t: 'select', id });
+      requestAnimationFrame(() => document.querySelector<HTMLElement>('.rows .row[data-id="' + CSS.escape(id) + '"]')?.focus());
+    } else if (k === 'edit') {
+      if (!state.sel) return;
+      e.preventDefault();
+      goEdit();
+      requestAnimationFrame(() => document.querySelector<HTMLElement>('#editor input, #editor button')?.focus());
+    } else if (k === 'add') {
+      const b = vis('.addmenu .add-b');
+      if (!b) return;
+      e.preventDefault();
+      b.click();
+    } else if (k === 'pick') {
+      const b = vis('.ltb-pick');
+      if (!b) return;
+      e.preventDefault();
+      b.click();
+    } else {
+      e.preventDefault();
+      setKeys(true);
+    }
+  });
+  useLayoutEffect(() => {
+    document.addEventListener('keydown', onHotkey);
+    return () => document.removeEventListener('keydown', onHotkey);
+  }, [onHotkey]);
   const copyLine = useStable((id: string) => {
     dispatch({ t: 'dupLine', id });
     toastOk('Создана копия группы');
@@ -135,6 +178,24 @@ export function App() {
   const deleteLine = useStable((id: string) => {
     dispatch({ t: 'delLine', id });
     toastOk('Группа удалена');
+  });
+  const onStage = useStable((n: number) => {
+    const from = stageOf(p);
+    dispatch({ t: 'stage', n, ...(n === SENT_STAGE && from < SENT_STAGE ? { sent: snapshot(a.rows, Date.now()) } : {}) });
+    toastOk('Этап: ' + STAGES[n].name);
+  });
+  const onStageAct = useStable((x: StageAct) => openSheet(x.sheet === 'report' ? APP_SHEET.REPORT : APP_SHEET.WORK, x.tab));
+  const bulkZone = useStable((ids: string[], zone: string) => {
+    ids.forEach(id => dispatch({ t: 'lineField', id, field: 'zone', value: zone }));
+    toastOk(zone ? 'Группы перенесены: ' + zone : 'Группы без помещения');
+  });
+  const bulkCopy = useStable((ids: string[]) => {
+    ids.forEach(id => dispatch({ t: 'dupLine', id }));
+    toastOk(ids.length > 1 ? 'Созданы копии групп: ' + ids.length : 'Создана копия группы');
+  });
+  const bulkDelete = useStable((ids: string[]) => {
+    ids.forEach(id => dispatch({ t: 'delLine', id }));
+    toastOk(ids.length > 1 ? 'Удалено групп: ' + ids.length : 'Группа удалена');
   });
   const fixLine = useStable((id: string, act: FixAct) => {
     if (act.k === 'len') dispatch({ t: 'lineField', id, field: 'len', value: act.len });
@@ -144,13 +205,14 @@ export function App() {
   const moveLine = useStable((id: string, to: string) => { dispatch({ t: 'moveLine', id, to }); toastOk('Порядок групп изменён'); });
   const renumber = useStable(() => { dispatch({ t: 'sortByZone' }); toastOk('Группы перенумерованы по помещениям'); });
   const balance = useStable(() => { dispatch({ t: 'balance' }); toastOk('Фазы выровнены'); });
-  const openProj = useStable(() => setSheet(APP_SHEET.PROJECTS));
+  const openProj = useStable(() => { setProjStart('main'); setSheet(APP_SHEET.PROJECTS); });
   const openNet = useStable(() => setSheet(APP_SHEET.NETWORK));
   const openOld = useStable(() => setSheet(APP_SHEET.OLD_WIRING));
   const openFloor = useStable(() => setSheet(APP_SHEET.FLOOR));
   const openWeak = useStable(() => setSheet(APP_SHEET.WEAK));
   const openMeas = useStable(() => openSheet(APP_SHEET.WORK, 'meas'));
   const openRooms = useStable(() => setSheet(APP_SHEET.ROOMS));
+  const projectsAt = useStable((at: ProjStart) => { setProjStart(at); setSheet(APP_SHEET.PROJECTS); });
   const onBlank = useStable(() => {
     const was = { sample: !!p.sample, cfg: p.cfg, lines: p.lines };
     const name = p.name;
@@ -188,6 +250,21 @@ export function App() {
     closePalette,
     onBlank
   });
+  const nav: NavActions = useMemo(() => ({
+    project: (id: string) => dispatch({ t: 'openProject', id }),
+    newProject: () => projectsAt('new'),
+    projects: () => projectsAt('main'),
+    share: () => projectsAt('share'),
+    library: () => setSheet(APP_SHEET.LIBRARY),
+    tour: tour.startTour,
+    keys: () => setKeys(true),
+    rooms: openRooms,
+    oldWiring: openOld,
+    compare: () => setSheet(APP_SHEET.COMPARE),
+    floor: openFloor,
+    weak: openWeak,
+    shop: () => setSheet(APP_SHEET.SHOP)
+  }), [dispatch, projectsAt, setSheet, tour.startTour, openRooms, openOld, openFloor, openWeak]);
   const { tourOpen, sheetNav } = tour;
   const cmds = paletteCommands({ p, a, dispatch, setSheet, openSheet, pick, addGroup, doPrint });
   const tab = (v: AppView) => {
@@ -225,6 +302,9 @@ export function App() {
           <a href="#editor" className="skip-ed">К карточке группы</a>
         </nav>
         <AppHeader
+          list={state.list}
+          cur={state.cur}
+          nav={nav}
           selected={selected}
           selectedIndex={idx}
           saveStatus={saveStatus}
@@ -233,7 +313,6 @@ export function App() {
           onNetwork={openNet}
           onGroup={pick}
           onCheckFix={onCheckFix}
-          onTour={tour.startTour}
           onPanel={openMeas}
           onWork={() => setSheet(APP_SHEET.WORK)}
           onReport={() => setSheet(APP_SHEET.REPORT)}
@@ -251,6 +330,11 @@ export function App() {
             onDelete={deleteLine}
             onFix={fixLine}
             onRenumber={renumber}
+            onStage={onStage}
+            onStageAct={onStageAct}
+            onBulkZone={bulkZone}
+            onBulkCopy={bulkCopy}
+            onBulkDelete={bulkDelete}
             onOpenProj={openProj}
             onOpenNet={openNet}
             onOpenOld={openOld}
@@ -275,17 +359,23 @@ export function App() {
               setWhyOpen={setWhyOpen}
               onDeleted={() => { if (!mediaMatches(BP.desktop)) goBack(); }}
               photos={p.photos ?? []}
+              sent={stageOf(p) > 0 ? p.sent : undefined}
             />
             </Suspense>
             ) : <section className="col col-edit" id="editor" tabIndex={-1} aria-label="Редактор группы" />}
             <aside className="col col-res" aria-label="Итоги расчёта">
-              <PanelPane a={da} sel={state.sel} hot={hot} onHot={setHot} onPick={pick} onMove={moveLine} />
-              <Summary key={'s' + (view === APP_VIEW.PANEL)} a={da} solo={view === APP_VIEW.PANEL} onBalance={balance} />
+              {(wide || view === APP_VIEW.PANEL) && (
+                <Suspense fallback={null}>
+                  <PanelPane a={da} sel={state.sel} hot={hot} onHot={setHot} onPick={pick} onMove={moveLine} />
+                  <Summary key={'s' + (view === APP_VIEW.PANEL)} a={da} solo={view === APP_VIEW.PANEL} onBalance={balance} />
+                </Suspense>
+              )}
             </aside>
           </div>
         </main>
 
         <AppTabs
+          nav={nav}
           calc={da}
           view={view}
           onGroups={() => tab(APP_VIEW.GROUPS)}
@@ -299,7 +389,7 @@ export function App() {
         <Hold open={sheet === APP_SHEET.FLOOR}><FloorSheet open={sheet === APP_SHEET.FLOOR} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
         <Hold open={sheet === APP_SHEET.WEAK}><WeakSheet open={sheet === APP_SHEET.WEAK} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
         <Hold open={sheet === APP_SHEET.OLD_WIRING}><OldSheet open={sheet === APP_SHEET.OLD_WIRING} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} /></Hold>
-        <Hold open={sheet === APP_SHEET.PROJECTS}><ProjectsSheet open={sheet === APP_SHEET.PROJECTS} onClose={closeSheet} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet(APP_SHEET.LIBRARY)} onBlank={onBlank} onSample={onSample} /></Hold>
+        <Hold open={sheet === APP_SHEET.PROJECTS}><ProjectsSheet open={sheet === APP_SHEET.PROJECTS} onClose={closeSheet} start={projStart} state={state} p={p} dispatch={dispatch} onLib={() => pushSheet(APP_SHEET.LIBRARY)} onBlank={onBlank} onSample={onSample} /></Hold>
         <Hold open={sheet === APP_SHEET.LIBRARY}><LibSheet open={sheet === APP_SHEET.LIBRARY} onClose={closeSheet} /></Hold>
         <Hold open={sheet === APP_SHEET.COMPARE}><CompareSheet open={sheet === APP_SHEET.COMPARE} onClose={closeSheet} p={p} a={a} /></Hold>
         <Hold open={sheet === APP_SHEET.ROOMS}><RoomsSheet open={sheet === APP_SHEET.ROOMS} onClose={closeSheet} p={p} dispatch={dispatch} /></Hold>
@@ -310,6 +400,7 @@ export function App() {
         <HoverTips />
         <Hold open={sheet === APP_SHEET.WORK}><WorkSheet open={sheet === APP_SHEET.WORK} onClose={closeSheet} p={p} a={a} dispatch={dispatch} onPrint={doPrint} tab={tabOf(APP_SHEET.WORK)} onTab={onWorkTab} /></Hold>
         </SheetNavContext.Provider>
+        {keys && <Suspense fallback={null}><ShortcutsSheet open onClose={() => setKeys(false)} /></Suspense>}
         <IncomingSheet project={incoming} onAccept={acceptIncoming} onDecline={loc.dropIncoming} />
         <LockedLinkSheet link={loc.locked} onUnlock={loc.unlock} onCancel={loc.dropLocked} />
         <Hold open={tourOpen}>{tourOpen && <Onboarding onScene={tour.onTourScene} onClose={tour.closeTour} onFinish={tour.finishTour} chapter={tour.tourChapter} mode={tour.tourMode} />}</Hold>

@@ -71,7 +71,7 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
     const nav = screen.getByRole('navigation', { name: 'Разделы' });
-    expect(within(nav).getAllByRole('button').map(b => b.textContent)).toEqual(['Группы', 'Щиток', 'Приёмка', 'Отчёт']);
+    expect(within(nav).getAllByRole('button').map(b => b.textContent)).toEqual(['Группы', 'Щиток', 'Приёмка', 'Отчёт', 'Ещё']);
     await user.click(within(nav).getByRole('button', { name: /Щиток/ }));
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'panel');
     await user.click(within(nav).getByRole('button', { name: /Группы/ }));
@@ -185,6 +185,7 @@ describe('App', () => {
   });
 
   it('balance button on three phases', () => {
+    wide(true);
     render(<App />);
     click(document.querySelector('.col-list') as HTMLElement, 'Параметры сети');
     fireEvent.click(dlg('Параметры сети').querySelector('input[name="sup"][value="3"]') as HTMLElement);

@@ -132,8 +132,9 @@ describe('first-run onboarding in the app', () => {
     expect(localStorage.getItem(ONBOARDING_KEY)).toBe('done');
     expect(localStorage.getItem(ONBOARDING_STEP_KEY)).toBe('2');
 
-    const help = screen.getByRole('button', { name: 'Открыть обучение' });
+    const help = screen.getByRole('button', { name: 'Настройки и обучение' });
     await user.click(help);
+    await user.click(screen.getByRole('menuitem', { name: /^Обучение/ }));
     await screen.findByRole('dialog', { name: 'С возвращением в обучение' });
     const back = screen.getByRole('dialog', { name: 'С возвращением в обучение' });
     expect(within(back).getByRole('button', { name: 'Продолжить с шага 3' })).toHaveFocus();
@@ -143,6 +144,7 @@ describe('first-run onboarding in the app', () => {
     expect(help).toHaveFocus();
 
     await user.click(help);
+    await user.click(screen.getByRole('menuitem', { name: /^Обучение/ }));
     await user.click(await screen.findByRole('button', { name: 'Сначала' }));
     expect(title()).toBe(ONBOARDING_STEPS[0].title);
   });
@@ -159,7 +161,7 @@ describe('first-run onboarding in the app', () => {
     expect(buttons[0]).toHaveFocus();
     await user.tab({ shift: true });
     expect(last).toHaveFocus();
-    act(() => screen.getByRole('button', { name: 'Открыть обучение' }).focus());
+    act(() => screen.getByRole('button', { name: 'Настройки и обучение' }).focus());
     expect(last).toHaveFocus();
   });
 
@@ -324,7 +326,8 @@ describe('what is new for those who already know Ampli', () => {
     expect(localStorage.getItem(ONBOARDING_STEP_KEY)).toBe('4');
     expect(document.querySelector('.pb-name')).toHaveTextContent('Пример: двухкомнатная квартира');
 
-    await user.click(screen.getByRole('button', { name: 'Открыть обучение' }));
+    await user.click(screen.getByRole('button', { name: 'Настройки и обучение' }));
+    await user.click(screen.getByRole('menuitem', { name: /^Обучение/ }));
     const back = await screen.findByRole('dialog', { name: 'С возвращением в обучение' });
     expect(within(back).getByRole('button', { name: 'Продолжить с шага 5' })).toBeInTheDocument();
   });

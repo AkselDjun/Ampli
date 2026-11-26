@@ -152,3 +152,33 @@ export const IconHeat = make(0, (
     <path d="M8 15c-1.5-1.7 1.5-3.3 0-5s1.5-3.3 0-5M12 15c-1.5-1.7 1.5-3.3 0-5s1.5-3.3 0-5M16 15c-1.5-1.7 1.5-3.3 0-5s1.5-3.3 0-5" />
   </>
 ));
+export const IconGear = make(0, (
+  <>
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+    <circle cx="12" cy="12" r="3" />
+  </>
+));
+export const IconTools = make(0, <path d="M14.7 6.3a4 4 0 0 0-5.4 5.1L4 16.7 7.3 20l5.3-5.3a4 4 0 0 0 5.1-5.4l-2.6 2.6-2.3-.7-.7-2.3z" />);
+export const IconPlus = make(0, <path d="M12 5v14M5 12h14" />, 2);
+export const IconGrid = make(0, (
+  <>
+    <rect x="4" y="4" width="7" height="7" rx="1.5" />
+    <rect x="13" y="4" width="7" height="7" rx="1.5" />
+    <rect x="4" y="13" width="7" height="7" rx="1.5" />
+    <rect x="13" y="13" width="7" height="7" rx="1.5" />
+  </>
+));
+export const IconCompare = make(0, <path d="M8 4v16M8 4 5 7M8 4l3 3M16 20V4M16 20l-3-3M16 20l3-3" />);
+export const IconCart = make(0, (
+  <>
+    <path d="M3 4h2.5l2.2 10.5h10L20 7H7" />
+    <circle cx="9" cy="19" r="1.4" />
+    <circle cx="17" cy="19" r="1.4" />
+  </>
+));
+export const IconBook = make(0, <path d="M5 4.5h9.5A2.5 2.5 0 0 1 17 7v13H7.5A2.5 2.5 0 0 1 5 17.5zM5 17.5A2.5 2.5 0 0 1 7.5 15H17M19 6v14" />);
+export const IconCap = make(0, <path d="m2.5 9.5 9.5-5 9.5 5-9.5 5zM6.5 11.6v4.4c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3v-4.4M21.5 9.5v5" />);
+export const IconSort = make(0, <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3" />);
+export const IconMove = make(0, <path d="M4 7.5A1.5 1.5 0 0 1 5.5 6H10l2 2h6.5A1.5 1.5 0 0 1 20 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5zM10 13.5h6M13.5 11l2.5 2.5-2.5 2.5" />);
+export const IconNote = make(0, <path d="M5 4.5h14v11l-4 4H5zM15 19.5v-4h4M8.5 9h7M8.5 12.5h4" />);
+export const IconKeys = make(0, <path d="M3.5 7h17v10h-17zM7 10.5h1M10.5 10.5h1M14 10.5h1M17 10.5h0M8 14h8" />);

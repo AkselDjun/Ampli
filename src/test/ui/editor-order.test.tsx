@@ -73,7 +73,7 @@ describe('group editor order', () => {
     const ed = open('Варочная');
     ed.querySelectorAll('.a-del').forEach(b => fireEvent.click(b));
     expect(ed.querySelector('.why-b')).toBeNull();
-    expect(Array.from(ed.querySelectorAll('.fold-in > .why-t')).map(x => x.firstElementChild?.textContent)).toEqual(['Дополнительно', 'Замеры и фото']);
+    expect(Array.from(ed.querySelectorAll('.fold-in > .why-t')).map(x => x.firstElementChild?.textContent)).toEqual(['Дополнительно', 'Заметки', 'Замеры и фото']);
   });
 
   it('places the phase next to the line length on a three-phase supply', () => {

@@ -16,6 +16,7 @@ import { download, exportBackup } from './download';
 import { IconChev, IconDownload, IconWire } from './Icons';
 import { normProject, slug } from '../core/project';
 import type { Action } from '../store/reducer';
+import type { ProjStart } from '../app/types';
 import { Assumptions } from './Assumptions';
 import { ArmButton, DoneFoot, Err, Seg, errAttrs, Sheet, TabPanel, Tabs, Tip } from './common';
 import { Schematic } from './Schematic';
@@ -116,10 +117,11 @@ export function NetSheet({
 }
 
 export function ProjectsSheet({
-  open, onClose, state, p, dispatch, onLib, onBlank, onSample
+  open, onClose, start = 'main', state, p, dispatch, onLib, onBlank, onSample
 }: {
   open: boolean;
   onClose: () => void;
+  start?: ProjStart;
   state: { list: Project[]; cur: string };
   p: Project;
   dispatch: (a: Action) => void;
@@ -128,8 +130,8 @@ export function ProjectsSheet({
   onSample: () => void;
 }) {
   const { lib, dispatch: libDispatch } = useLib();
-  const [tplOpen, setTplOpen] = useState(false);
-  const [tab, setTab] = useState('main');
+  const [tplOpen, setTplOpen] = useState(open && start === 'new');
+  const [tab, setTab] = useState(open && start === 'share' ? 'share' : 'main');
   const [elec, setElec] = useState(true);
   const file = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -143,7 +145,8 @@ export function ProjectsSheet({
   if (open !== wasOpen) {
     setWasOpen(open);
     if (open) {
-      setTplOpen(false);
+      setTplOpen(start === 'new');
+      setTab(start === 'share' ? 'share' : 'main');
       setLast(lastBackup());
     } else {
       setPass('');
@@ -152,6 +155,11 @@ export function ProjectsSheet({
       setUnlockErr(null);
     }
   }
+  useEffect(() => {
+    if (!open || start !== 'new') return;
+    const t = window.setTimeout(() => document.getElementById('tpl')?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }), 0);
+    return () => window.clearTimeout(t);
+  }, [open, start]);
   const note = (t: string, bad = false) => (bad ? toastBad(t) : toastOk(t));
   const create = (k: TplKey) => {
     const nm = k === 'blank' ? 'Проект ' + (state.list.length + 1) : TPL_NAME[k];

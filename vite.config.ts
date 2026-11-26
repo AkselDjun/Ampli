@@ -58,7 +58,7 @@ export default defineConfig({
   build: {
     rolldownOptions: {
       output: {
-        codeSplitting: { groups: [{ name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ }] }
+        codeSplitting: { groups: [{ name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ }, { name: 'base', test: /src[\\/](core[\\/](zonelist|norms|format|ids|weak|floor|protection|templates|oldwire|limits|traces|stage|project|crypto)|store[\\/]vault)\.ts$/ }] }
       }
     }
   },

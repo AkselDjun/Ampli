@@ -1,29 +1,41 @@
-import { IconCheck, IconDoc, IconList, IconPanel } from '../ui/Icons';
+import { IconCheck, IconDoc, IconList, IconPanel, IconTools } from '../ui/Icons';
+import { MenuButton } from '../ui/MenuButton';
+import { navMenus } from './navLoad';
 import { useScrollHide } from '../ui/useScrollHide';
 import { APP_VIEW } from './types';
 import type { AppTabsProps } from './types';
 
-export function AppTabs({ calc, view, onGroups, onPanel, onWork, onReport }: AppTabsProps) {
+export function AppTabs({ nav, calc, view, onGroups, onPanel, onWork, onReport }: AppTabsProps) {
   const hide = useScrollHide(view === APP_VIEW.GROUPS || view === APP_VIEW.PANEL, 120);
   return (
     <nav className={'tabs' + (hide ? ' hide' : '')} aria-label="Разделы" data-tour="reports">
-      <button type="button" onClick={onGroups} aria-current={view === APP_VIEW.GROUPS || view === APP_VIEW.EDITOR ? 'page' : undefined}>
+      <button className="tab" type="button" onClick={onGroups} aria-current={view === APP_VIEW.GROUPS || view === APP_VIEW.EDITOR ? 'page' : undefined}>
         <IconList />
         <span>Группы</span>
         {calc.issues > 0 && <em className="badge">{calc.issues}</em>}
       </button>
-      <button type="button" data-tour="panel" onClick={onPanel} aria-current={view === APP_VIEW.PANEL ? 'page' : undefined}>
+      <button className="tab" type="button" data-tour="panel" onClick={onPanel} aria-current={view === APP_VIEW.PANEL ? 'page' : undefined}>
         <IconPanel />
         <span>Щиток</span>
       </button>
-      <button type="button" data-tour="work" onClick={onWork}>
+      <button className="tab" type="button" data-tour="work" onClick={onWork}>
         <IconCheck />
         <span>Приёмка</span>
       </button>
-      <button type="button" data-tour="report" onClick={onReport}>
+      <button className="tab" type="button" data-tour="report" onClick={onReport}>
         <IconDoc />
         <span>Отчёт</span>
       </button>
+      <MenuButton
+        className="tab"
+        label="Ещё"
+        trigger={<><IconTools /><span>Ещё</span></>}
+        menuClass="tl-menu"
+        groups={() => navMenus.get()?.toolsMenu(nav) ?? null}
+        load={navMenus.load}
+        up
+        end
+      />
     </nav>
   );
 }

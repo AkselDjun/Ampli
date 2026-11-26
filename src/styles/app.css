@@ -10,3 +10,4 @@
 @import './editor.css' layer(components);
 @import './panel.css' layer(components);
 @import './sheets.css' layer(components);
+@import './menus.css' layer(components);

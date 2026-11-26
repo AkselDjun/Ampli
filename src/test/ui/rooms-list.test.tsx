@@ -17,7 +17,7 @@ describe('group list by rooms', () => {
     render(<App />);
     expect(heads()).toEqual(['Комнаты', 'Кухня', 'Ванная']);
     const first = document.querySelector('.rows .zone-h small')?.textContent;
-    expect(first).toMatch(/^4 группы · \d+,\d\s?кВт$/);
+    expect(first).toMatch(/^4 группы · УЗО \d+\s?А · 30\s?мА · тип A · \d+,\d\s?кВт$/);
     const nos = Array.from(document.querySelectorAll('.rows .row .no')).map(n => n.textContent);
     expect(nos).toEqual(['Г1', 'Г3', 'Г4', 'Г14', 'Г2', 'Г5', 'Г6', 'Г7', 'Г8', 'Г9', 'Г10', 'Г11', 'Г12', 'Г13']);
     expect(screen.queryByRole('button', { name: 'По помещениям' })).toBeNull();

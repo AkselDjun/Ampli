@@ -134,7 +134,8 @@ test('works from the keyboard and resumes where the user stopped', async ({ page
   await page.reload();
   await expect(page.locator('.rows .row').first()).toBeVisible();
   await expect(page.locator('.tour')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Открыть обучение' }).click();
+  await page.getByRole('button', { name: 'Настройки и обучение' }).click();
+  await page.getByRole('menuitem', { name: /^Обучение/ }).click();
   await expect(card(page)).toHaveAccessibleName('С возвращением в обучение');
   await expect(card(page).getByRole('button', { name: 'Продолжить с шага 2' })).toBeFocused();
   await page.keyboard.press('Enter');
