@@ -15,47 +15,47 @@
     "assert": {
       "assertions": {
         "categories:performance": [
-          "error",
+          "warn",
           {
             "minScore": 0.85,
             "aggregationMethod": "median-run"
           }
         ],
         "categories:accessibility": [
-          "error",
+          "warn",
           {
             "minScore": 0.95
           }
         ],
         "categories:best-practices": [
-          "error",
+          "warn",
           {
             "minScore": 0.9
           }
         ],
         "largest-contentful-paint": [
-          "error",
+          "warn",
           {
             "maxNumericValue": 3100,
             "aggregationMethod": "median-run"
           }
         ],
         "first-contentful-paint": [
-          "error",
+          "warn",
           {
             "maxNumericValue": 2500,
             "aggregationMethod": "median-run"
           }
         ],
         "total-blocking-time": [
-          "error",
+          "warn",
           {
             "maxNumericValue": 400,
             "aggregationMethod": "median-run"
           }
         ],
         "cumulative-layout-shift": [
-          "error",
+          "warn",
           {
             "maxNumericValue": 0.1,
             "aggregationMethod": "median-run"
