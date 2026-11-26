@@ -179,7 +179,7 @@
   --ty-socket-soft:#F1ECFC;
   --ty-socket-ink:#6640C4;
   --toast:#1F2328;
-  --toast-ink:#F0F3F6;
+  --toast-ink:#F0F3F6;--toast-link:#9CC3FF;
   --ring-c:rgba(11,98,214,0.28);
 }
 @media (--desktop){:root{--gutter:20px;--gap:16px;--pad:16px}}
@@ -249,7 +249,7 @@
   --ty-socket-soft:#211A3A;
   --ty-socket-ink:#A88BFF;
   --toast:#E6EDF3;
-  --toast-ink:#0E1116;
+  --toast-ink:#0E1116;--toast-link:#0B62D6;
   --ring-c:rgba(74,155,255,0.35);
 }
 }
@@ -315,6 +315,6 @@
   --ty-socket-soft:#211A3A;
   --ty-socket-ink:#A88BFF;
   --toast:#E6EDF3;
-  --toast-ink:#0E1116;
+  --toast-ink:#0E1116;--toast-link:#0B62D6;
   --ring-c:rgba(74,155,255,0.35);
 }
