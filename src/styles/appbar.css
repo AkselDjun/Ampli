@@ -2,6 +2,7 @@
 .appbar .in{height:var(--bar);padding:0 max(var(--s-5),env(safe-area-inset-right,0px)) 0 max(var(--s-5),env(safe-area-inset-left,0px))}
 .ab-main{display:flex;align-items:center;gap:var(--s-3);height:100%;min-width:0}
 .ab-main>.grow{flex:1;min-width:0}
+.ab-main>.dd{flex:none}
 .logo{flex:none;width:32px;height:32px;border-radius:var(--r-s);background:var(--ink);color:var(--surface);display:grid;place-items:center}
 .pj-ava{display:none;flex:none;width:40px;height:40px;border-radius:var(--r-round);background:var(--ty-socket);color:var(--accent-ink);font-size:var(--t-m);font-weight:600;place-items:center;letter-spacing:.02em}
 .crumb{display:flex;align-items:center;gap:var(--s-1-5);min-width:0;font-size:var(--t-base);white-space:nowrap}
@@ -17,7 +18,7 @@
 .save-tick{display:none;color:var(--ok)}
 .tick{flex:none;color:var(--ok)}
 .tick.wait{color:var(--ink-2)}
-.net-sub{display:none;align-items:center;gap:var(--s-0-5);border:0;background:none;padding:0;color:var(--ink-2);font-size:var(--t-xs);cursor:pointer;max-width:100%}
+.net-sub{display:none;align-items:center;gap:var(--s-0-5);min-height:24px;border:0;background:none;padding:0;color:var(--ink-2);font-size:var(--t-xs);cursor:pointer;max-width:100%}
 .net-sub .mono{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.01em}
 .net-sub .chev{width:14px;height:14px}
 .net-sub:hover{color:var(--ink)}
@@ -31,7 +32,7 @@
 .ab-ib:hover{background:var(--hover);color:var(--ink)}
 .ab-ib:active{transform:scale(.9)}
 .ab-edit{display:none;align-items:center;gap:var(--s-2);height:100%}
-.ab-back{display:inline-flex;align-items:center;gap:var(--s-0-5);height:40px;padding:0 var(--s-2) 0 0;margin-left:calc(-1 * var(--s-1-5));border:0;background:none;color:var(--accent);font:inherit;font-weight:500;cursor:pointer;border-radius:var(--r-s)}
+.ab-back{display:inline-flex;align-items:center;gap:var(--s-0-5);height:44px;padding:0 var(--s-2) 0 0;margin-left:calc(-1 * var(--s-1-5));border:0;background:none;color:var(--accent);font:inherit;font-weight:500;cursor:pointer;border-radius:var(--r-s)}
 .ab-back svg{width:22px;height:22px}
 .ab-tw{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;align-content:center}
 .ab-tw .ab-title{font-size:var(--t-base);font-weight:600;font-family:var(--font-body);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -92,3 +93,11 @@
 .tot .tot-all dd.tot-none{font-size:var(--t-m);font-weight:600;color:var(--ink-2)}
 #rep-tp-estimate .tot{position:sticky;bottom:calc(-1 * var(--pad));z-index:2;margin:0 calc(-1 * var(--pad)) calc(-1 * var(--pad));padding:var(--s-3) var(--pad);border-width:1px 0 0;border-radius:0;box-shadow:var(--sh-2)}
 #rep-tp-estimate>.tot{max-width:none}
+@media (--tablet) and (max-height:500px){
+  .tabs{padding-block:var(--s-0-5) calc(var(--s-0-5) + env(safe-area-inset-bottom,0px));transition:transform var(--dur) ease}
+  .tabs .tab{flex-direction:row;min-height:44px;gap:var(--s-2)}
+  .tabs.hide{transform:translateY(calc(100% + var(--s-6)))}
+  .tabs.hide:focus-within{transform:none}
+  #app[data-view="groups"] .addmenu.fab{bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+}
+@media (--tablet) and (max-height:500px) and (prefers-reduced-motion:reduce){.tabs{transition:none}}

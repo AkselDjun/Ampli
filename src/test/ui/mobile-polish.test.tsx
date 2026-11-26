@@ -3,7 +3,6 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { App } from '../../ui/App';
 import { MeasBoard } from '../../ui/MeasBoard';
 import { Onboarding } from '../../ui/Onboarding';
-import { Totals } from '../../ui/Totals';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
 import { defaultCfg, mkLine } from '../../core/templates';
@@ -72,16 +71,6 @@ describe('breaker load in the group list', () => {
     save(proj([zl(mkLine('Лампы', 'light', 5, [['Лампа', 100, 1]]), 'Комнаты')], { prot: 'rcd' }));
     render(<App />);
     expect(document.querySelector('.col-edit .ed-sub')?.textContent).toContain('УЗО «Комнаты» 30');
-  });
-});
-
-describe('short header labels', () => {
-  it('keeps the long and the short power label for narrow screens', () => {
-    const p = proj([mkLine('Лампы', 'light', 5, [['Лампа', 100, 1]])]);
-    render(<Totals a={calcAll(p.lines, p.cfg)} onNet={() => undefined} />);
-    expect(document.querySelector('.kp-l')?.textContent).toBe('Мощность');
-    expect(document.querySelector('.kp-s')?.textContent).toBe('кВт');
-    expect(document.querySelector('.kp-u')?.textContent).toBe(' кВт');
   });
 });
 

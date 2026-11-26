@@ -27,7 +27,7 @@ test('renders interface text and electrical symbols with the app font only', asy
   expect(fonts.map(f => f.familyName)).toEqual(['Ampli Sans']);
 });
 
-test('ships one preloaded self-hosted font file', async ({ page }) => {
+test('preloads the self-hosted text and number fonts', async ({ page }) => {
   const fontUrls: string[] = [];
   page.on('request', r => {
     if (r.resourceType() === 'font') fontUrls.push(r.url());
@@ -35,9 +35,12 @@ test('ships one preloaded self-hosted font file', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.rows .row').first()).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
-  const preload = await page.locator('link[rel="preload"][as="font"]').getAttribute('href');
-  expect(preload).toMatch(/ampli-sans-wght-[^/]+\.woff2$/);
+  const preload = await page.locator('link[rel="preload"][as="font"]').evaluateAll(ls => ls.map(l => l.getAttribute('href') ?? ''));
+  expect(preload).toHaveLength(3);
+  expect(preload[0]).toMatch(/ampli-mono-600-[^/]+\.woff2$/);
+  expect(preload[1]).toMatch(/ampli-mono-400-[^/]+\.woff2$/);
+  expect(preload[2]).toMatch(/ampli-sans-wght-[^/]+\.woff2$/);
   expect(fontUrls.length).toBeGreaterThan(0);
   for (const u of fontUrls) expect(new URL(u).origin).toBe(new URL(page.url()).origin);
-  expect(new Set(fontUrls).size).toBe(1);
+  expect(new Set(fontUrls).size).toBe(3);
 });

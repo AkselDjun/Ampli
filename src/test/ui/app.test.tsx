@@ -47,7 +47,7 @@ describe('App', () => {
     render(<App />);
     fireEvent.click(rowsOf()[0]);
     expect(document.getElementById('app')).toHaveAttribute('data-view', 'edit');
-    fireEvent.click(screen.getByRole('button', { name: 'Назад к группам' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Группы, назад к списку' }));
     act(() => { vi.advanceTimersByTime(10); });
     expect(window.scrollTo).toHaveBeenCalled();
     fireEvent.click(rowsOf()[1]);

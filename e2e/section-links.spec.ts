@@ -33,7 +33,7 @@ test('shows the open section in the address and clears it on close', async ({ pa
   await expect.poll(() => hash(page)).toBe('#work/check');
   await page.reload();
   await expect(title(page)).toHaveText('Приёмка');
-  await page.locator('.sheet:not([hidden])').getByRole('button', { name: 'Закрыть' }).click();
+  await page.getByRole('navigation', { name: 'Разделы' }).getByRole('button', { name: /^Группы/ }).click();
   await expect(title(page)).toHaveCount(0);
   await expect.poll(() => hash(page)).toBe('');
 });
@@ -50,9 +50,6 @@ test.describe('landscape phone 740 × 360', () => {
     const tabs = page.locator('nav.tabs');
     const top = (await tabs.boundingBox())!.y;
     expect((await row.boundingBox())!.y).toBeLessThan(top);
-    const fab = (await page.locator('.fab-b').boundingBox())!;
-    const link = (await page.locator('.lv-link').boundingBox())!;
-    expect(fab.y > link.y + link.height || fab.x > link.x + link.width).toBe(true);
     await page.mouse.move(300, 200);
     await page.mouse.wheel(0, 400);
     await expect(tabs).toHaveClass(/hide/);

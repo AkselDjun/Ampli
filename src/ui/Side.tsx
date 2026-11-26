@@ -34,6 +34,7 @@ export const Summary = memo(function Summary({ a, onBalance, solo = false }: { a
 const EXTRA: Record<string, [string, string]> = { spd: ['УЗИП', 'Защита от перенапряжений'], vr: ['Реле U', 'Реле контроля напряжения'], prio: ['Приоритет', 'Реле приоритета нагрузки'] };
 
 type ModProps = {
+  still?: boolean;
   d: Device;
   i: number;
   cap: string;
@@ -57,19 +58,20 @@ const sameMod = (a: ModProps, b: ModProps): boolean => {
   return same(ra, rb) && same(da, db);
 };
 
-const Module = memo(function Module({ d, i, cap, t, drag, over, sel, hot, prev, next, onPick, onMove, onHot, setDrag, setOver }: ModProps) {
+const Module = memo(function Module({ still, d, i, cap, t, drag, over, sel, hot, prev, next, onPick, onMove, onHot, setDrag, setOver }: ModProps) {
   const cls = 'dev dev-' + d.kind + (d.arc ? ' arc' : '') + (d.st ? ' is-' + d.st : '') + (d.lid && drag === d.lid ? ' drag' : '') + (over && drag !== d.lid ? ' over' : '') + (sel ? ' sel' : '') + (hot ? ' hot' : '');
   const style = { ['--n' as string]: d.mod, ['--i' as string]: i };
-  if (!d.lid) {
+  if (!d.lid || still) {
     return (
-      <div className={cls} style={style} data-tip={d.title}>
+      <div className={cls} style={style} data-tip={d.title} data-t={d.lid ? t : undefined}>
+        {d.arc && <span className="dev-arc" aria-hidden="true">ДП</span>}
         <i className="scr" aria-hidden="true" />
         <b>{d.label}</b>
-        <i>{d.sub}</i>
-        <span className="slot" aria-hidden="true"><i className="lv" /></span>
+        <i>{d.lid && d.mod <= 1 ? '' : d.sub}</i>
+        <span className="slot" aria-hidden="true"><i className={'lv' + (d.st && d.st !== 'ok' ? ' ' + d.st : '')} /></span>
         {d.kind === 'uzo' || d.kind === 'rcd' ? <span className="tbt" aria-hidden="true">T</span> : null}
         <i className="scr b" aria-hidden="true" />
-        <em className="dev-cap">{d.kind === 'in' ? 'Ввод' : (vrContactor(d) ? 'Контактор' : (d.kind === 'spd' || d.kind === 'vr' || d.kind === 'prio' ? EXTRA[d.kind][0] : d.zone))}</em>
+        <em className="dev-cap">{d.lid ? cap : d.kind === 'in' ? 'Ввод' : (vrContactor(d) ? 'Контактор' : (d.kind === 'spd' || d.kind === 'vr' || d.kind === 'prio' ? EXTRA[d.kind][0] : d.zone))}</em>
       </div>
     );
   }
@@ -152,7 +154,7 @@ export const PanelPane = memo(function PanelPane({ a, onPick, onMove, sel = null
       n: d.mod,
       lb: ' k-' + d.kind + (t ? ' lt-' + t : '') + (lid && lid === sel ? ' sel' : ''),
       txt,
-      node: <Module key={lid ?? d.kind + i} d={d} i={i} cap={cap} t={t} drag={drag} over={!!lid && over === lid} sel={!!lid && lid === sel} hot={!!lid && lid === hot} prev={k > 0 ? lids[k - 1] : undefined} next={k >= 0 ? lids[k + 1] : undefined} onPick={onPick} onMove={mini ? undefined : onMove} onHot={onHot} setDrag={setDrag} setOver={setOver} />
+      node: <Module key={lid ?? d.kind + i} still={mini && !onPick} d={d} i={i} cap={cap} t={t} drag={drag} over={!!lid && over === lid} sel={!!lid && lid === sel} hot={!!lid && lid === hot} prev={k > 0 ? lids[k - 1] : undefined} next={k >= 0 ? lids[k + 1] : undefined} onPick={onPick} onMove={mini ? undefined : onMove} onHot={onHot} setDrag={setDrag} setOver={setOver} />
     });
   });
   for (let i = 0; i < free; i++) cells.push(free1('f' + i));

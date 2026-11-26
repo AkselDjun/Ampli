@@ -187,9 +187,9 @@ input:hover:not(:focus),select:hover:not(:focus){border-color:var(--check-edge)}
 @media (--tablet){.chips{flex-wrap:nowrap;overflow-x:auto;padding:var(--s-0-5) var(--s-4) var(--s-2);scroll-snap-type:x proximity;scrollbar-width:none;margin-inline:calc(-1 * var(--pad));padding-inline:var(--pad)}}
 .no{font-family:var(--font-num);font-weight:600;flex:none;font-variant-numeric:tabular-nums;display:inline-grid;place-items:center;min-width:28px;height:24px;background:var(--surface-2);color:var(--ink-2);border:0;border-radius:var(--r-6);font-size:var(--t-xs);padding:0 var(--s-1);letter-spacing:0}
 .no[data-t]{background:color-mix(in srgb,currentColor 13%,transparent)}
-.no[data-t="light"]{color:var(--ty-light)}
-.no[data-t="socket"]{color:var(--ty-socket)}
-.no[data-t="power"]{color:var(--ty-power)}
+.no[data-t="light"]{color:var(--ty-light-ink)}
+.no[data-t="socket"]{color:var(--ty-socket-ink)}
+.no[data-t="power"]{color:var(--ty-power-ink)}
 @media (--upto-520){
   .seg[data-n="4"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
   .seg[data-n="4"] label+label span{border-left:0}

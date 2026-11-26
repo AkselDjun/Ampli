@@ -25,7 +25,7 @@ export function AppHeader({ p, list, cur, nav, selected, selectedIndex, saveStat
     <header className="appbar">
       <div className="in">
         <div className="ab-edit">
-          <button className="ab-back" type="button" onClick={onBack} aria-label="Назад к группам"><IconBack /><span aria-hidden="true">Группы</span></button>
+          <button className="ab-back" type="button" onClick={onBack} aria-label="Группы, назад к списку"><IconBack /><span aria-hidden="true">Группы</span></button>
           <div className="ab-tw">
             <h1 className="ab-title">{selected ? 'Группа ' + String(selectedIndex + 1).padStart(2, '0') : ''}</h1>
             <div id="ab-sub" className="ab-sub" />

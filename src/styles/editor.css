@@ -206,9 +206,9 @@
 .ed-name{flex:1;min-width:0;height:34px;font-size:var(--t-l);font-weight:600;background:transparent;padding:0 var(--s-1-5);margin-left:calc(-1 * var(--s-1));border-color:transparent;box-shadow:none}
 .ed-name:hover{border-color:var(--line)}
 .ed-sub{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-1-5)}
-.pill.ty[data-t="light"]{color:var(--ty-light);background:var(--ty-light-soft)}
-.pill.ty[data-t="socket"]{color:var(--ty-socket);background:var(--ty-socket-soft)}
-.pill.ty[data-t="power"]{color:var(--ty-power);background:var(--ty-power-soft)}
+.pill.ty[data-t="light"]{color:var(--ty-light-ink);background:var(--ty-light-soft)}
+.pill.ty[data-t="socket"]{color:var(--ty-socket-ink);background:var(--ty-socket-soft)}
+.pill.ty[data-t="power"]{color:var(--ty-power-ink);background:var(--ty-power-soft)}
 .ed-empty{margin:0;padding:var(--s-3-5);color:var(--ink-2);font-size:var(--t-sm)}
 .ed-res{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
 .tile{display:flex;flex-direction:column;gap:var(--s-0-5);min-width:0;padding:var(--s-3) var(--s-3-5);border:0;border-right:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background-color var(--dur-fast)}
@@ -265,8 +265,10 @@
   .ed-set .ed-zone{width:150px}
   .ed-set .len-note{text-align:right}
 }
-.ed-sec .apps .app{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,.9fr) 32px;grid-template-areas:"name name name del" "w n br .";gap:var(--s-1-5) var(--s-2);padding-block:var(--s-2-5)}
-.ed-sec .apps.no-br .app{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 32px;grid-template-areas:"name name del" "w n ."}
+@media (--above-tablet){
+  .ed-sec .apps .app{grid-template-columns:minmax(0,1fr) 120px minmax(0,1fr) 32px;grid-template-areas:"name name name del" "w n br br";gap:var(--s-1-5) var(--s-2);padding-block:var(--s-2-5)}
+  .ed-sec .apps.no-br .app{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 32px;grid-template-areas:"name name del" "w n n"}
+}
 .ed-sec .apps .app-h{display:none}
 .ed-sec .apps .app-h+.app{border-top:0}
 .ed-sec .app .a-name{grid-area:name}

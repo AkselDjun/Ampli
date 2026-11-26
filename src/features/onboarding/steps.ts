@@ -16,7 +16,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     title: 'Главное всегда на виду',
     text: 'Табло показывает мощность объекта, ток, вводной автомат и проверку по нормам. Зелёный цвет значит, что всё в порядке.',
     tip: 'Нажмите на табло, чтобы увидеть расшифровку.',
-    targets: ['[data-tour="summary"]']
+    targets: ['[data-tour="summary"]', '.ov-sum']
   },
   {
     id: 'group',

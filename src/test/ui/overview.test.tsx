@@ -45,3 +45,33 @@ describe('overview boxes', () => {
     }
   });
 });
+
+describe('selected device on the panel tab', () => {
+  it('asks to pick a device until a group is selected', async () => {
+    const { PanelSel } = await import('../../ui/Side');
+    const a = calc(3500);
+    render(<PanelSel a={a} sel={null} onOpen={vi.fn()} />);
+    expect(document.querySelector('.pp-hint')?.textContent).toMatch(/^Выберите аппарат на рейке/);
+  });
+
+  it('shows the breaker, cable, load and phase of the selected group and opens it', async () => {
+    const { PanelSel } = await import('../../ui/Side');
+    const ls = [mkLine('Плита', 'power', 5, [['x', 7000, 1]]), mkLine('', 'socket', 10, [['Чайник', 2000, 1]])];
+    ls[0].phase = 'L2';
+    const a = calcAll(ls, { ...defaultCfg(), supply: 3, alloc: 15 });
+    const onOpen = vi.fn();
+    const { unmount } = render(<PanelSel a={a} sel={ls[0].id} onOpen={onOpen} />);
+    const box = document.querySelector('.pp-dev') as HTMLElement;
+    expect(box.querySelector('.no')?.textContent).toBe('01');
+    expect(box.querySelector('h2')?.textContent).toBe('Плита');
+    const kv = Array.from(box.querySelectorAll('.kv dt')).map(d => d.textContent);
+    expect(kv).toEqual(expect.arrayContaining(['Автомат', 'Кабель', 'Ток', 'Загрузка', 'Фаза']));
+    expect(box.querySelector('.kv dd.warn')).not.toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Открыть группу' }));
+    expect(onOpen).toHaveBeenCalledWith(ls[0].id);
+    unmount();
+    render(<PanelSel a={a} sel={ls[1].id} onOpen={onOpen} />);
+    expect(document.querySelector('.pp-dev h2')?.textContent).toBe('Без названия');
+    expect(document.querySelector('.pp-dev .kv dd.warn')).toBeNull();
+  });
+});

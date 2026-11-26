@@ -5,7 +5,7 @@ type Box = { where: string; kind: string; h: number; pl: number; bw: number; r: 
 
 const measure = async (page: Page, where: string): Promise<Box[]> =>
   page.evaluate(w => {
-    const skip = '.seg input, .step input, .search input, .pal-in input, .pm-in input, input.ed-name, select.type-chip';
+    const skip = '.seg input, .step input, .search input, .pal-in input, .pm-in input, input.ed-name, input.a-name, select.type-chip';
     const top = document.querySelector('[role="dialog"]:not([hidden] *)') ?? document;
     return [...top.querySelectorAll<HTMLElement>('input, select, textarea')]
       .filter(e => !['checkbox', 'radio', 'hidden', 'file', 'range', 'color'].includes((e as HTMLInputElement).type) && !e.matches(skip) && !e.closest('[hidden]') && e.getBoundingClientRect().height > 0)
@@ -60,24 +60,24 @@ test('gives every text field and select one size on every screen', async ({ page
   await palette(page, 'Мои данные');
   all.push(...(await measure(page, 'my')));
 
-  const h = isMobile ? 48 : 44;
-  const hs = isMobile ? 44 : 36;
+  const h = isMobile ? 44 : 40;
+  const hs = isMobile ? 40 : 34;
   expect(all.length).toBeGreaterThan(20);
-  const off = all.filter(b => b.bw !== 1 || b.r !== 10 || b.pl !== 12 || (b.kind === 'field' && b.h !== h) || (b.kind === 'compact' && b.h !== hs) || (b.kind === 'area' && b.h < h * 2) || b.fs !== (isMobile ? 16 : 15));
+  const off = all.filter(b => b.bw !== 1 || b.r !== 8 || b.pl !== 12 || (b.kind === 'field' && b.h !== h) || (b.kind === 'compact' && b.h !== hs) || (b.kind === 'area' && b.h < h * 2) || b.fs !== (isMobile ? 16 : 15));
   expect(off).toEqual([]);
 });
 
 test('keeps the search box and steppers at field height', async ({ page, isMobile }) => {
   await page.locator('.rows .row').filter({ hasText: 'Варочная' }).first().click();
   const ed = page.locator('#editor');
-  const h = isMobile ? 48 : 44;
+  const h = isMobile ? 44 : 40;
   for (const sel of ['.search', '.len-f .step', '.a-n .step']) {
     const box = await ed.locator(sel).first().boundingBox();
     expect(Math.round(box?.height ?? 0), sel).toBe(h);
   }
-  const name = await ed.locator('.a-name').first().boundingBox();
+  const power = await ed.locator('.a-w input').first().boundingBox();
   const step = await ed.locator('.a-n .step').first().boundingBox();
-  expect(Math.round(step?.height ?? 0)).toBe(Math.round(name?.height ?? 0));
+  expect(Math.round(step?.height ?? 0)).toBe(Math.round(power?.height ?? 0));
 });
 
 test('draws every checkbox at one size', async ({ page }) => {

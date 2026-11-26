@@ -106,11 +106,11 @@ test('turns the finish into the first own project', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Комнаты' })).toBeVisible();
   await expect(page.locator('.toast')).toContainText('Создан проект: Мой объект');
   await page.getByRole('dialog', { name: 'Комнаты' }).getByRole('button', { name: 'Закрыть' }).click();
-  await expect(page.locator('.pb-name')).toHaveText('Мой объект');
+  await expect(page.locator('.appbar .pj-name')).toHaveText('Мой объект');
   await expect(page.locator('.sheet:not([hidden])')).toHaveCount(0);
   await page.waitForFunction(() => !(history.state as { ampliLayer?: boolean } | null)?.ampliLayer);
   await page.reload();
-  await expect(page.locator('.pb-name')).toHaveText('Мой объект');
+  await expect(page.locator('.appbar .pj-name')).toHaveText('Мой объект');
   await expect(page.locator('.tour')).toHaveCount(0);
 });
 

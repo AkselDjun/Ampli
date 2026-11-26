@@ -11,26 +11,14 @@ for (const width of [320, 375]) {
   test.describe(`phone ${width} px`, () => {
     test.use({ viewport: { width, height: 700 } });
 
-    test('puts the renumber link beside the heading on one line', async ({ page, isMobile }) => {
+    test('cuts the long project name in the header to one line', async ({ page, isMobile }) => {
       test.skip(!isMobile, 'phone layout');
       await start(page);
-      const head = (await page.locator('.list-head h2').boundingBox())!;
-      await expect(page.locator('.list-head .lv-link')).toHaveCount(1);
-      const link = (await page.locator('.list-head .lv-link').boundingBox())!;
-      expect(link.x).toBeGreaterThan(head.x + head.width);
-      expect(Math.abs(link.y + link.height / 2 - (head.y + head.height / 2))).toBeLessThan(4);
-      expect(link.x + link.width).toBeLessThanOrEqual(width);
-      expect(Math.round(link.height)).toBeGreaterThanOrEqual(44);
-    });
-
-    test('shows the project name up to the edge of its line', async ({ page, isMobile }) => {
-      test.skip(!isMobile, 'phone layout');
-      await start(page);
-      const name = page.locator('.pb-name');
-      const m = await name.evaluate(e => ({ shown: e.clientWidth, full: e.scrollWidth, slack: (e.parentElement as HTMLElement).clientWidth - e.clientWidth, lines: Math.round(e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).lineHeight)) }));
+      const name = page.locator('.appbar .pj-name');
+      const m = await name.evaluate(e => ({ shown: e.clientWidth, full: e.scrollWidth, right: e.getBoundingClientRect().right, lines: Math.round(e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).lineHeight)) }));
       expect(m.lines).toBe(1);
       expect(m.full).toBeGreaterThan(m.shown);
-      expect(m.slack).toBeLessThanOrEqual(1);
+      expect(m.right).toBeLessThanOrEqual(width);
     });
 
     test('puts measurement fields of one row on one line and fits the photo tags', async ({ page, isMobile }) => {

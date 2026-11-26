@@ -33,7 +33,7 @@ test('opens the sample apartment with groups and totals', async ({ page }) => {
   await page.goto('/');
   await expect(rows(page).first()).toBeVisible();
   expect(await rows(page).count()).toBeGreaterThan(5);
-  await expect(page.locator('.hud')).toContainText('кВт');
+  await expect(page.locator('.ov-sum:visible, .home-sum:visible').first()).toContainText('кВт');
   await noSideScroll(page);
   expect(errs).toEqual([]);
 });

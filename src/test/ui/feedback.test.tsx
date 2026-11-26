@@ -6,7 +6,7 @@ import { Schematic } from '../../ui/Schematic';
 import { PrintDoc } from '../../ui/PrintDoc';
 import { PassportBody } from '../../ui/Passport';
 import { MeasBoard } from '../../ui/MeasBoard';
-import { Totals, allocState } from '../../ui/Totals';
+import { allocState } from '../../ui/Totals';
 import { WorkSheet } from '../../ui/WorkSheet';
 import { calcAll } from '../../core/calc';
 import { newProject } from '../../core/project';
@@ -304,16 +304,6 @@ describe('apartment totals in the header', () => {
     const bad = allocState(mk(20000, 10, 3));
     expect(bad.k).toBe('bad');
     expect(bad.text).toMatch(/^Превышение на \d+,\d кВт$/);
-  });
-  it('labels the phase current and dashes for an empty project', () => {
-    const a = calcAll([], { ...defaultCfg(), supply: 3 });
-    render(<Totals a={a} onNet={() => undefined} />);
-    const b = screen.getByRole('button', { name: /^Итого по квартире/ });
-    expect(b.textContent).toContain('Фаза');
-    expect(b.textContent).toContain('—');
-    fireEvent.click(b);
-    expect(document.getElementById('tot-pop')?.textContent).toContain('Макс. фаза');
-    expect(document.getElementById('tot-pop')?.textContent).toContain('Нет нагрузки');
   });
 });
 

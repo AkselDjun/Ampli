@@ -16,7 +16,7 @@ const ownProject = async (page: Page) => {
   await len.press('Tab');
   const back = page.locator('.ab-back');
   if (await back.isVisible()) await back.click();
-  await expect(page.getByRole('group', { name: 'Этап проекта' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Этап: Расчёт. Сменить этап' })).toBeVisible();
 };
 
 for (const scheme of ['light', 'dark'] as const) {
@@ -36,7 +36,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await expect(page.getByRole('toolbar', { name: 'Отбор и порядок групп' }).getByRole('button', { name: /^Заметки/ })).toBeVisible();
       expect(await scan(page)).toEqual([]);
       if (!isMobile) {
-        await page.locator('.col-list h2').click();
+        await page.locator('.col-list .list-h').focus();
         await page.keyboard.press('Shift+Slash');
         await expect(page.getByRole('dialog', { name: 'Горячие клавиши' })).toBeVisible();
         expect(await scan(page)).toEqual([]);

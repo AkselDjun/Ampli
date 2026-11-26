@@ -420,12 +420,14 @@ html:has(.sheet:not([hidden]) :is(input,textarea):focus) .toast{top:calc(12px + 
 .sheet[data-kind=page] .sheet-body{width:100%;max-width:1320px;margin:0 auto;padding:var(--s-5) max(var(--gutter),env(safe-area-inset-right,0px)) var(--s-8) max(var(--gutter),env(safe-area-inset-left,0px))}
 .sheet[data-kind=page] .sheet-foot{width:100%;max-width:1320px;margin:0 auto;border:1px solid var(--line);border-bottom:0;border-radius:var(--r-m) var(--r-m) 0 0;background:var(--surface);box-shadow:var(--sh-2)}
 .sheet[data-kind=page].out{display:none}
-@keyframes page-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes page-in{from{transform:translateY(6px)}to{transform:none}}
 @media (--tablet){
   .sheet[data-kind=page]{top:calc(var(--bar) + env(safe-area-inset-top,0px));bottom:0}
   .sheet[data-kind=page] .sheet-panel{height:100%;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));border-radius:0;animation:page-in var(--dur-screen) var(--ease-screen)}
   .sheet[data-kind=page] .sheet-foot{border-radius:0;border-inline:0}
   .sheet[data-kind=page] .tabbar{padding-inline:var(--s-2)}
+  .sheet[data-kind=page] .sheet-panel:has(.tabpanel:not([hidden]) .pm){padding-bottom:env(safe-area-inset-bottom,0px)}
+  html:has(.sheet[data-kind=page]:not([hidden]) .tabpanel:not([hidden]) .pm) .tabs{display:none}
 }
 @media (prefers-reduced-motion:reduce){.sheet[data-kind=page] .sheet-panel{animation:none}}
 html:has(.sheet[data-kind=page]:not([hidden])) .addmenu.fab{visibility:hidden}

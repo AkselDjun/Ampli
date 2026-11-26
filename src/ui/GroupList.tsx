@@ -282,7 +282,7 @@ export const GroupList = memo(function GroupList({
         </div>
       )}
       {count > 0 && <div className="home" data-tour="summary"><Suspense fallback={<div className="home-wait" aria-hidden="true" />}><HomeSum a={a} onNet={onOpenNet} onGroup={onSelect} onFix={onCheckFix} /></Suspense></div>}
-      {count > 0 && <div className="home-panel"><Suspense fallback={null}><PanelPane mini a={a} sel={sel} hot={hot} onHot={onHot} onPick={onSelect} onMore={onPanel} /></Suspense></div>}
+      {count > 0 && <div className="home-panel"><Suspense fallback={null}><PanelPane mini a={a} sel={sel} hot={hot} onHot={onHot} onMore={onPanel} /></Suspense></div>}
       {(oldLabel || floorSummary(p.floor) || weakSummary(p.weak)) && (
         <div className="extras">
           {oldLabel && <button className="xchip" type="button" onClick={onOpenOld}><IconWire /><span className="vh">Старая проводка: </span>{oldLabel}</button>}
