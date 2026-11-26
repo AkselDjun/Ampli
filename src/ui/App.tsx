@@ -256,7 +256,6 @@ export function App() {
           onWork={() => setSheet(APP_SHEET.WORK)}
           onReport={() => setSheet(APP_SHEET.REPORT)}
           onCompare={() => setSheet(APP_SHEET.COMPARE)}
-          onSearch={() => setPal(true)}
         />
 
         <main className="workspace">

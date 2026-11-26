@@ -1,4 +1,4 @@
-import { Brand, IconBack, IconCheck, IconDoc, IconDown, IconGear, IconMeter, IconSearch, IconTools } from '../ui/Icons';
+import { Brand, IconBack, IconCheck, IconDoc, IconDown, IconGear, IconMeter, IconTools } from '../ui/Icons';
 import { MenuButton } from '../ui/MenuButton';
 import { useNow } from '../ui/now';
 import { Checks } from '../ui/Checks';
@@ -7,7 +7,7 @@ import { Button } from '../ui/kit';
 import { projectMenu, settingsMenu, toolsMenu } from './navMenus';
 import type { AppHeaderProps } from './types';
 
-export function AppHeader({ list, cur, nav, selected, selectedIndex, saveStatus, calc, onBack, onNetwork, onGroup, onCheckFix, onPanel, onWork, onReport, onCompare, onSearch }: AppHeaderProps) {
+export function AppHeader({ list, cur, nav, selected, selectedIndex, saveStatus, calc, onBack, onNetwork, onGroup, onCheckFix, onPanel, onWork, onReport, onCompare }: AppHeaderProps) {
   const time = useNow();
   const name = list.find(x => x.id === cur)?.name ?? '';
   return (
@@ -36,11 +36,6 @@ export function AppHeader({ list, cur, nav, selected, selectedIndex, saveStatus,
             <Totals a={calc} onNet={onNetwork} onCompare={onCompare} />
             <Checks a={calc} onGroup={onGroup} onFix={onCheckFix} />
           </div>
-          <button className="ab-btn desk ab-find" type="button" aria-keyshortcuts="Control+K" onClick={onSearch}>
-            <IconSearch />
-            <span className="ab-txt">Найти<span className="vh"> действие или группу</span></span>
-            <kbd className="ab-kbd" aria-hidden="true">Ctrl K</kbd>
-          </button>
           <button className="ab-btn ab-meas" type="button" data-tour="panel" data-tip="Приёмка: замеры на щитке" aria-label="Замеры на щитке" onClick={onPanel}>
             <IconMeter />
             <span className="ab-txt">Замеры</span>

@@ -72,7 +72,6 @@ export interface AppHeaderProps {
   onWork: () => void;
   onReport: () => void;
   onCompare: () => void;
-  onSearch: () => void;
 }
 
 export interface AppTabsProps {

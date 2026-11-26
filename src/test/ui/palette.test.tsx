@@ -29,10 +29,11 @@ describe('filterCmds', () => {
 });
 
 describe('Header search', () => {
-  it('opens the palette from the header button', () => {
+  it('has no search button in the header and still opens the palette with Ctrl+K', () => {
     wide(true);
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Найти действие или группу' }));
+    expect(screen.queryByRole('button', { name: /Найти/ })).toBeNull();
+    fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
     expect(pal().open).toBe(true);
     expect(opts()[0]).not.toMatch(/^Г\d/);
   });
