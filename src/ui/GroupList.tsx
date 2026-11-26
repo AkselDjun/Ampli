@@ -266,9 +266,19 @@ export const GroupList = memo(function GroupList({
             </button>
           )}
         </span>
+        {count > 0 && !picking && (
+          <ListBar
+            chips={[{ id: 'bad', label: 'Нарушения', n: cnt.bad }, { id: 'warn', label: 'Советы', n: cnt.warn }]}
+            filter={filter}
+            onFilter={setFilter}
+            sort={sort}
+            onSort={setSort}
+            onPick={() => setPicking(true)}
+          />
+        )}
       </div>
       <AddMenu down onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />
-      {count > 0 && (picking ? (
+      {count > 0 && picking && (
         <BulkBar
           n={live.length}
           zones={zones}
@@ -277,16 +287,7 @@ export const GroupList = memo(function GroupList({
           onDelete={() => { onBulkDelete(live); stopPick(); }}
           onDone={stopPick}
         />
-      ) : (
-        <ListBar
-          chips={[{ id: 'bad', label: 'Нарушения', n: cnt.bad }, { id: 'warn', label: 'Советы', n: cnt.warn }]}
-          filter={filter}
-          onFilter={setFilter}
-          sort={sort}
-          onSort={setSort}
-          onPick={() => setPicking(true)}
-        />
-      ))}
+      )}
       <div className="rows">
         {count && !groups.length ? (
           <div className="rows-none">
