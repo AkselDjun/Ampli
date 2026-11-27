@@ -32,7 +32,6 @@ body:has(.lock) :popover-open{display:none}
 #app:has(.tabs .dd.open) .addmenu.fab{visibility:hidden}
 .tabs .tab span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (--upto-380){.tabs .tab span{font-size:var(--t-2xs)}}
-#app:has(.ltb.bulk) .addmenu.fab{visibility:hidden}
 @media (--tablet){
   .tabs .dd.up .dd-pop,.tabs .dd.end .dd-pop{--pop:sheet;position:fixed;inset:auto 0 0;margin:0;z-index:var(--z-dropdown);width:auto;max-width:none;min-width:0;max-height:min(80dvh,620px);padding:var(--s-2) var(--s-3) calc(var(--s-4) + env(safe-area-inset-bottom,0px));border-width:1px 0 0;border-radius:var(--r-xl) var(--r-xl) 0 0;box-shadow:0 0 0 100vmax var(--scrim),var(--sh-2);animation:sheet-up var(--dur-sheet) var(--ease-spring)}
   .tabs .dd-pop::before{content:"";display:block;width:36px;height:5px;margin:0 auto var(--s-2);border-radius:var(--r-pill);background:var(--line)}

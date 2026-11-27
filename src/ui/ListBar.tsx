@@ -15,13 +15,12 @@ export interface ChipDef {
   n: number;
 }
 
-export function ListBar({ chips, filter, onFilter, sort, onSort, onPick, renumber }: {
+export function ListBar({ chips, filter, onFilter, sort, onSort, renumber }: {
   chips: ChipDef[];
   filter: ListFilter | null;
   onFilter: (f: ListFilter | null) => void;
   sort: ListSort;
   onSort: (s: ListSort) => void;
-  onPick: () => void;
   renumber?: () => void;
 }) {
   const shown = chips.filter(c => c.n > 0 || c.id === filter);
@@ -49,7 +48,6 @@ export function ListBar({ chips, filter, onFilter, sort, onSort, onPick, renumbe
           ...(renumber ? [{ id: 'renum', items: [{ id: 'renum', label: 'Номера по порядку', hint: 'Номера пойдут подряд по помещениям, как на щитке', run: renumber }] }] : [])
         ]}
       />
-      <button type="button" className="ltb-b ltb-pick" onClick={onPick}>Выбрать</button>
     </div>
   );
 }

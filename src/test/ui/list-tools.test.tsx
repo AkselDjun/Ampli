@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { App } from '../../ui/App';
 import { KEY } from '../../store/storage';
 import { sampleProject } from '../../core/project';
-import { stored } from '../stored';
 
 vi.setConfig({ testTimeout: 60000 });
 
@@ -58,54 +57,10 @@ describe('отбор, порядок и выбор групп', () => {
     expect([...names()].sort()).toEqual([...before].sort());
   });
 
-  it('выбранные группы переносятся в помещение, копируются и удаляются', async () => {
-    const p = seed();
-    const user = userEvent.setup();
+  it('в панели списка нет режима выбора нескольких групп', () => {
+    seed();
     render(<App />);
-    await user.click(within(bar()).getByRole('button', { name: 'Выбрать' }));
-    const bulk = () => screen.getByRole('toolbar', { name: 'Действия с выбранными группами' });
-    expect(bulk()).toHaveTextContent('Выбрано: 0');
-    const rows = () => Array.from(document.querySelectorAll<HTMLElement>('.rows .row'));
-    await user.click(rows()[0]);
-    await user.click(rows()[1]);
-    expect(rows()[0]).toHaveAttribute('aria-pressed', 'true');
-    expect(bulk()).toHaveTextContent('Выбрано: 2');
-    const picked = [rows()[0], rows()[1]].map(r => r.querySelector('.row-name')?.textContent);
-
-    await user.click(within(bulk()).getByRole('button', { name: 'Перенести в помещение' }));
-    await user.click(screen.getByRole('menuitem', { name: 'Кухня' }));
+    expect(within(bar()).queryByRole('button', { name: 'Выбрать' })).toBeNull();
     expect(screen.queryByRole('toolbar', { name: 'Действия с выбранными группами' })).toBeNull();
-    const lines = stored().list[0].lines;
-    for (const nm of picked) expect(lines.find((l: { name: string }) => l.name === nm)?.zone).toBe('Кухня');
-
-    await user.click(within(bar()).getByRole('button', { name: 'Выбрать' }));
-    await user.click(rows()[0]);
-    await user.click(within(bulk()).getByRole('button', { name: 'Копировать выбранные' }));
-    expect(rows()).toHaveLength(p.lines.length + 1);
-
-    await user.click(within(bar()).getByRole('button', { name: 'Выбрать' }));
-    await user.click(rows()[0]);
-    await user.click(rows()[1]);
-    const del = within(bulk()).getByRole('button', { name: 'Удалить' });
-    await user.click(del);
-    expect(del).toHaveTextContent('Удалить 2?');
-    await user.click(del);
-    expect(rows()).toHaveLength(p.lines.length - 1);
-  });
-
-  it('Escape и «Готово» выходят из выбора, не меняя проект', async () => {
-    const p = seed();
-    const user = userEvent.setup();
-    render(<App />);
-    await user.click(within(bar()).getByRole('button', { name: 'Выбрать' }));
-    const first = document.querySelector<HTMLElement>('.rows .row') as HTMLElement;
-    await user.click(first);
-    await user.keyboard('{Escape}');
-    expect(screen.queryByRole('toolbar', { name: 'Действия с выбранными группами' })).toBeNull();
-    expect(first).not.toHaveAttribute('aria-pressed');
-    await user.click(within(bar()).getByRole('button', { name: 'Выбрать' }));
-    await user.click(within(screen.getByRole('toolbar', { name: 'Действия с выбранными группами' })).getByRole('button', { name: 'Готово' }));
-    expect(screen.queryByRole('toolbar', { name: 'Действия с выбранными группами' })).toBeNull();
-    expect(stored().list[0].lines).toHaveLength(p.lines.length);
   });
 });

@@ -64,7 +64,6 @@ export const preloadParts = (): Promise<unknown> => Promise.all(all.map(f => f()
 
 export const ShortcutsSheet = part(() => import('./ShortcutsSheet').then(m => m.ShortcutsSheet));
 export const RowPeek = part(() => import('./RowPeek').then(m => m.RowPeek));
-export const BulkBar = part(() => import('./BulkBar').then(m => m.BulkBar));
 export const StageBar = part(() => import('./StageBar').then(m => m.StageBar));
 export const PanelPane = part(() => import('./Side').then(m => m.PanelPane));
 export const Summary = part(() => import('./Side').then(m => m.Summary));
