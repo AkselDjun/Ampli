@@ -179,7 +179,7 @@
 .ed-more-b{text-decoration:none;display:inline-flex;align-items:center;gap:var(--s-1);min-height:44px}
 .ed-more-b svg{width:16px;height:16px;transition:transform var(--dur-fast)}
 .ed-more-b[aria-expanded="true"] svg{transform:rotate(180deg)}
-.ed-menu{position:absolute;z-index:var(--z-menu);left:0;top:calc(100% + 4px);display:grid;min-width:260px;padding:var(--s-1-5);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);box-shadow:0 10px 30px rgba(0,0,0,.14);animation:pop .12s ease-out}
+.ed-menu{position:absolute;z-index:var(--z-dropdown);left:0;top:calc(100% + 4px);display:grid;min-width:260px;padding:var(--s-1-5);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);box-shadow:0 10px 30px rgba(0,0,0,.14);animation:pop .12s ease-out}
 .ed-menu button{min-height:44px;padding:var(--s-2) var(--s-3);border:0;border-radius:var(--r-s);background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
 .ed-menu button:hover,.ed-menu button:focus-visible{background:var(--field)}
 @media (--tablet){.apps.no-br .app{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 40px;grid-template-areas:"name name del" "w n n"}}

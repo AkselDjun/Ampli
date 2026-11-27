@@ -91,7 +91,7 @@
 .tot .tot-all dt{color:var(--ink);font-weight:700}
 .tot .tot-all dd{font-size:var(--t-xl);font-weight:600}
 .tot .tot-all dd.tot-none{font-size:var(--t-m);font-weight:600;color:var(--ink-2)}
-#rep-tp-estimate .tot{position:sticky;bottom:calc(-1 * var(--pad));z-index:2;margin:0 calc(-1 * var(--pad)) calc(-1 * var(--pad));padding:var(--s-3) var(--pad);border-width:1px 0 0;border-radius:0;box-shadow:var(--sh-2)}
+#rep-tp-estimate .tot{position:sticky;bottom:calc(-1 * var(--pad));z-index:var(--z-local-2);margin:0 calc(-1 * var(--pad)) calc(-1 * var(--pad));padding:var(--s-3) var(--pad);border-width:1px 0 0;border-radius:0;box-shadow:var(--sh-2)}
 #rep-tp-estimate>.tot{max-width:none}
 @media (--tablet) and (max-height:500px){
   .tabs{padding-block:var(--s-0-5) calc(var(--s-0-5) + env(safe-area-inset-bottom,0px));transition:transform var(--dur) ease}

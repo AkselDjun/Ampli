@@ -1,6 +1,6 @@
 @import './media.css';
 
-.ltb.bulk{position:sticky;top:0;z-index:2;gap:var(--s-1);padding:var(--s-1-5) var(--s-3);border:1px solid var(--accent);border-radius:var(--r-l);background:var(--accent-soft)}
+.ltb.bulk{position:sticky;top:0;z-index:var(--z-local-2);gap:var(--s-1);padding:var(--s-1-5) var(--s-3);border:1px solid var(--accent);border-radius:var(--r-l);background:var(--accent-soft)}
 .bulk-n{font-weight:700;margin-right:auto;white-space:nowrap}
 .ltb.bulk .ltb-b{color:var(--ink)}
 .bulk .dd{margin-left:0}

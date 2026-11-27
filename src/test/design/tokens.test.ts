@@ -4,7 +4,7 @@ const files = import.meta.glob<string>(['../../**/*.{ts,tsx,css}', '!../../test/
 const tokens = files['../../styles/tokens.css'];
 const core = new Set(['../../styles/app.css', '../../styles/print.css', ...[...files['../../styles/app.css'].matchAll(/@import '\.\/([\w-]+\.css)'/g)].map(m => '../../styles/' + m[1])]);
 const app = [...core].filter(f => !f.endsWith('/tokens.css')).map(f => files[f]).join('\n');
-const runtime = new Set(['--rc', '--i', '--cols', '--arrow', '--n', '--u', '--h']);
+const runtime = new Set(['--rc', '--i', '--cols', '--arrow', '--n', '--u', '--h', '--pop']);
 
 const decls = (css: string): Map<string, string> => {
   const out = new Map<string, string>();
@@ -63,6 +63,14 @@ describe('design tokens', () => {
     expect(gap(light.get('--warn-mark') as string, light.get('--l1') as string)).toBeGreaterThan(60);
     expect(gap(darkMedia.get('--warn-mark') as string, darkMedia.get('--l1') as string)).toBeGreaterThan(60);
     for (const sel of ['.row-bar i.hot', '.meter i.warn', '.gl-bar i.warn']) expect(app).toContain(sel + '{background:var(--warn-mark)');
+  });
+
+  it('keeps every z-index on the token scale in the right order', () => {
+    const css = Object.entries(files).filter(([f]) => f.endsWith('.css') && !f.endsWith('/tokens.css')).map(([, t]) => t).join('\n');
+    expect([...css.matchAll(/z-index:\s*([^;}]+)/g)].map(m => m[1].trim()).filter(v => !/^var\(--z-[a-z0-9-]+\)$/.test(v))).toEqual([]);
+    const z = (k: string) => Number(light.get('--z-' + k));
+    const order = ['local-3', 'page', 'bar', 'tabs', 'fab', 'peek', 'open', 'sheet', 'tip', 'hint', 'toast', 'skip', 'tour', 'lock'];
+    for (let i = 1; i < order.length; i++) expect(z(order[i]), order[i]).toBeGreaterThan(z(order[i - 1]));
   });
 
   it('keeps raw colors out of component styles', () => {

@@ -4,7 +4,7 @@ import type { LineType } from '../core/types';
 import { TYPES } from '../core/norms';
 import { IconBolt, IconBulb, IconHeat, IconLan, IconPlus, IconRooms, IconSocket } from './Icons';
 import { useScrollHide } from './useScrollHide';
-import { useMenuKeys } from './menu';
+import { useMenuKeys, usePopLayer } from './menu';
 import { Button } from './kit';
 
 export function AddMenu({ onAdd, onRooms, onFloor, onWeak, fab, down }: { onAdd: (t: LineType) => void; onRooms: () => void; onFloor?: () => void; onWeak?: () => void; fab?: boolean; down?: boolean }) {
@@ -26,6 +26,7 @@ export function AddMenu({ onAdd, onRooms, onFloor, onWeak, fab, down }: { onAdd:
     };
   }, [open]);
   const { listRef, triggerRef, onKeyDown, back } = useMenuKeys(open, () => setOpen(false));
+  usePopLayer(open, triggerRef, listRef, { up: !down, end: true });
   const hide = useScrollHide(!!fab);
   const pick = (t: LineType) => {
     back();
@@ -43,7 +44,7 @@ export function AddMenu({ onAdd, onRooms, onFloor, onWeak, fab, down }: { onAdd:
   return (
     <div className={'addmenu' + (fab ? ' fab' : '') + (down ? ' down' : '') + (hide && !open ? ' hide' : '')} ref={ref} data-tour="add">
       {open && (
-        <ul className="am-list" role="menu" aria-label="Добавить в проект" ref={el => { listRef.current = el; }} onKeyDown={onKeyDown}>
+        <ul className="am-list" popover="manual" role="menu" aria-label="Добавить в проект" ref={el => { listRef.current = el; }} onKeyDown={onKeyDown}>
           {types.map(([t, label, hint, icon]) => (
             <li key={t} role="none">
               <button type="button" role="menuitem" className={'am-' + t} aria-label={label} onClick={() => pick(t)}>
