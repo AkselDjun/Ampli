@@ -10,7 +10,7 @@ import type { Action } from '../store/reducer';
 import { toastOk } from './toast';
 import { IconClose, IconDown, IconSearch } from './Icons';
 import { usePop } from './pop';
-import { useMenuKeys } from './menu';
+import { useMenuKeys, usePopLayer } from './menu';
 import { PhotoStrip } from './PhotoStrip';
 import { FixBar } from './FixBar';
 import { fixFor } from '../core/fixes';
@@ -87,6 +87,7 @@ export function Editor({
   const [extOn, setExtOn] = useState(false);
   const { ref: menuRef, open: menuOpen, setOpen: setMenuOpen } = usePop<HTMLDivElement>();
   const { listRef: mkListRef, triggerRef: mkTriggerRef, onKeyDown: mkKeyDown, back: mkBack } = useMenuKeys(menuOpen, () => setMenuOpen(false));
+  usePopLayer(menuOpen, mkTriggerRef, mkListRef);
   const powRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const lid = l?.id;
   const [lidSeen, setLidSeen] = useState(lid);
@@ -443,7 +444,7 @@ export function Editor({
           <div className="ed-more" ref={menuRef}>
             <button className="link ed-more-b" ref={mkTriggerRef} type="button" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>Ещё действия<IconDown /></button>
             {menuOpen && (
-              <div className="ed-menu" role="menu" aria-label="Действия с группой" ref={el => { mkListRef.current = el; }} onKeyDown={mkKeyDown}>
+              <div className="ed-menu" popover="manual" role="menu" aria-label="Действия с группой" ref={el => { mkListRef.current = el; }} onKeyDown={mkKeyDown}>
                 <button type="button" role="menuitem" onClick={() => { mkBack(); setQuick(quick === null ? '' : null); setQuickMsg(''); }}>{quick === null ? 'Вставить список текстом' : 'Скрыть вставку списком'}</button>
                 {(brOn || !showBr) && <button type="button" role="menuitem" onClick={() => { mkBack(); setBrOn(!brOn); }}>{brOn ? 'Скрыть отводы к точкам' : 'Указать отводы к точкам'}</button>}
                 {(extOn || !showExt) && <button type="button" role="menuitem" onClick={() => { mkBack(); setExtOn(!extOn); }}>{extOn ? 'Скрыть cos φ и одновременность' : 'Указать cos φ и одновременность'}</button>}

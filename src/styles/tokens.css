@@ -17,7 +17,7 @@
   --ease-spring:cubic-bezier(.32,.72,0,1);--dur-sheet:.46s;
   --ease-screen:cubic-bezier(.2,.85,.25,1);--ease-pop:cubic-bezier(.34,1.4,.64,1);--dur-screen:.42s;--dur-pop:.3s;--dur-flash:.5s;--dur-new:1.6s;
 
-  --z-menu:20;--z-safe:30;--z-bar:31;--z-dropdown:35;--z-tabs:40;--z-pop:45;--z-sheet:50;--z-tip:80;--z-hint:85;--z-toast:90;--z-skip:100;--z-tour:110;--z-lock:120;
+  --z-local-1:1;--z-local-2:2;--z-local-3:3;--z-safe:30;--z-page:30;--z-bar:31;--z-dropdown:35;--z-tabs:40;--z-fab:45;--z-peek:46;--z-open:48;--z-sheet:50;--z-tip:80;--z-hint:85;--z-toast:90;--z-skip:100;--z-tour:110;--z-lock:120;
 
   --bg:#F6F8FA;
   --surface:#FFFFFF;

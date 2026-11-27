@@ -1,4 +1,4 @@
-.peek{position:fixed;z-index:var(--z-pop);width:300px;padding:var(--s-3);border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);box-shadow:var(--sh-2);font-size:var(--t-sm);pointer-events:none;animation:dd-in var(--dur-fast) var(--ease-out)}
+.peek{position:fixed;z-index:var(--z-peek);width:300px;padding:var(--s-3);border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);box-shadow:var(--sh-2);font-size:var(--t-sm);pointer-events:none;animation:dd-in var(--dur-fast) var(--ease-out)}
 .peek-h{display:flex;align-items:center;gap:var(--s-2);margin-bottom:var(--s-2)}
 .peek-n{display:grid;min-width:0}
 .peek-n b,.peek-n small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

@@ -55,7 +55,7 @@
 .pmb-leg i:first-child{margin-left:0}
 .pmb-box{container-type:inline-size;padding:14px;border-radius:var(--r-l);background:var(--hw-box);box-shadow:inset 0 0 0 1px var(--hw-box-edge),inset 0 2px 6px rgba(14,24,34,.18);overflow-x:auto}
 .pmb-rail{--cols:var(--rc);display:grid;grid-template-columns:repeat(var(--cols),minmax(42px,1fr));grid-auto-rows:196px;gap:22px var(--s-0-5);padding:10px var(--s-2);border-radius:var(--r-s);background-color:var(--hw-rail);background-image:linear-gradient(to bottom,transparent 0 100px,var(--hw-din-1) 100px,var(--hw-din-2) 103px,var(--hw-din-3) 106px,var(--hw-din-4) 112px,transparent 112px 218px);background-size:100% 218px;background-position:0 10px;box-shadow:inset 0 1px 3px rgba(14,24,34,.2)}
-.pmb-dev{position:relative;z-index:1;display:grid;grid-template-rows:38px 14px 1fr 64px 18px 14px;justify-items:center;align-items:center;min-width:0;padding:0 0 var(--s-1-5);border:1px solid var(--hw-dev-edge);border-radius:var(--r-s);background:var(--hw-dev-body);color:var(--hw-dev-ink);font-family:var(--font-num);box-shadow:0 2px 4px rgba(14,24,34,.25),inset 0 1px 0 var(--hw-shine);appearance:none;margin:0;cursor:default;text-align:center;font-variant-numeric:tabular-nums}
+.pmb-dev{position:relative;z-index:var(--z-local-1);display:grid;grid-template-rows:38px 14px 1fr 64px 18px 14px;justify-items:center;align-items:center;min-width:0;padding:0 0 var(--s-1-5);border:1px solid var(--hw-dev-edge);border-radius:var(--r-s);background:var(--hw-dev-body);color:var(--hw-dev-ink);font-family:var(--font-num);box-shadow:0 2px 4px rgba(14,24,34,.25),inset 0 1px 0 var(--hw-shine);appearance:none;margin:0;cursor:default;text-align:center;font-variant-numeric:tabular-nums}
 button.pmb-dev{cursor:pointer;font:inherit;font-family:var(--font-num);transition:transform var(--dur-fast) ease,box-shadow var(--dur-fast) ease;font-variant-numeric:tabular-nums}
 button.pmb-dev:hover{transform:translateY(-2px);box-shadow:0 6px 12px rgba(14,24,34,.25),inset 0 1px 0 var(--hw-shine)}
 button.pmb-dev:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -104,7 +104,7 @@ button.pmb-dev:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .pmb-scr{width:9px;height:9px}
   .pmb-strip{font-size:var(--t-2xs);margin:3px var(--s-0-5) 0}
   .pmb-strip b{font-size:var(--t-2xs)}
-  .pm{position:sticky;bottom:-18px;z-index:3;margin:0 -20px -20px;padding:var(--s-3) var(--s-4) var(--s-4);border-radius:var(--r-l) var(--r-l) 0 0;border-width:2px 0 0;box-shadow:0 -8px 24px rgba(14,24,34,.18);gap:var(--s-2)}
+  .pm{position:sticky;bottom:-18px;z-index:var(--z-local-3);margin:0 -20px -20px;padding:var(--s-3) var(--s-4) var(--s-4);border-radius:var(--r-l) var(--r-l) 0 0;border-width:2px 0 0;box-shadow:0 -8px 24px rgba(14,24,34,.18);gap:var(--s-2)}
   .pm-prot b{font-size:var(--t-xl)}
   .pm-name{font-size:var(--t-base)}
   .pm-in input{height:48px}
@@ -138,7 +138,7 @@ button.bd-b:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 
 .fold-h{display:flex;align-items:center;gap:var(--s-3);width:100%;min-height:52px;padding:var(--s-2) var(--s-4);border:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer;padding-inline:var(--pad)}
 .fold-b{display:grid;gap:var(--s-3);padding:0 var(--pad) var(--pad)}
-@media (--tablet){.pm{position:sticky;z-index:3;border-radius:var(--r-l) var(--r-l) 0 0;border-width:2px 0 0;box-shadow:0 -8px 24px rgba(14,24,34,.18);gap:var(--s-2);bottom:calc(-1 * var(--pad));margin:0 calc(-1 * var(--pad)) calc(-1 * var(--pad));padding:var(--s-3) var(--pad) var(--pad)}}
+@media (--tablet){.pm{position:sticky;z-index:var(--z-local-3);border-radius:var(--r-l) var(--r-l) 0 0;border-width:2px 0 0;box-shadow:0 -8px 24px rgba(14,24,34,.18);gap:var(--s-2);bottom:calc(-1 * var(--pad));margin:0 calc(-1 * var(--pad)) calc(-1 * var(--pad));padding:var(--s-3) var(--pad) var(--pad)}}
 
 @media (--phone){
   .chk-b{padding:var(--s-1-5) var(--s-1-5) var(--s-2);min-width:44px;justify-content:center}
@@ -234,7 +234,7 @@ button.bd-b:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .cut{position:relative;padding:calc(var(--u) * .16) calc(var(--u) * .2);border-radius:calc(var(--u) * .14);background:var(--pn-cut);box-shadow:var(--pn-cut-sh)}
 .cut::before{content:"";position:absolute;left:calc(var(--u) * .08);right:calc(var(--u) * .08);top:50%;height:calc(var(--h) * .3);transform:translateY(-50%);border-radius:var(--r-2xs);background:var(--pn-rail)}
 .mods{position:relative;display:flex}
-.dev{position:relative;z-index:1;flex:none;width:calc(var(--n,1) * var(--u));height:var(--h);display:flex;flex-direction:column;align-items:center;gap:calc(var(--u) * .06);margin:0;padding:calc(var(--u) * .06) 0;border:0;border-radius:calc(var(--u) * .09);background:var(--pn-dev);box-shadow:var(--pn-dev-sh);color:var(--pn-ink);font-family:var(--font-num);font-variant-numeric:tabular-nums;overflow:hidden;min-width:0;transition:transform var(--dur-fast) var(--ease-pop),box-shadow var(--dur-fast)}
+.dev{position:relative;z-index:var(--z-local-1);flex:none;width:calc(var(--n,1) * var(--u));height:var(--h);display:flex;flex-direction:column;align-items:center;gap:calc(var(--u) * .06);margin:0;padding:calc(var(--u) * .06) 0;border:0;border-radius:calc(var(--u) * .09);background:var(--pn-dev);box-shadow:var(--pn-dev-sh);color:var(--pn-ink);font-family:var(--font-num);font-variant-numeric:tabular-nums;overflow:hidden;min-width:0;transition:transform var(--dur-fast) var(--ease-pop),box-shadow var(--dur-fast)}
 button.dev{appearance:none;cursor:pointer}
 .dev b{font-size:clamp(var(--t-hw),calc(var(--u) * .26),var(--t-m));font-weight:700;line-height:1;letter-spacing:-.02em;white-space:nowrap}
 .dev>i:not(.scr){font-style:normal;font-size:clamp(var(--t-hw),calc(var(--u) * .18),var(--t-2xs));line-height:1;color:var(--pn-ink-2);white-space:nowrap}
@@ -256,7 +256,7 @@ button.dev{appearance:none;cursor:pointer}
 .dev .dev-ph{position:absolute;top:calc(var(--u) * .28);left:2px;padding:0 2px;border-radius:var(--r-2xs);background:var(--toast);color:var(--toast-ink);font:600 var(--t-2xs)/12px var(--font-num);pointer-events:none}
 .mini .dev-arc,.mini .dev-ph{display:none}
 button.dev:hover,button.dev.hot{transform:translateY(-2px)}
-button.dev.sel{z-index:2;transform:translateY(-3px) scale(1.04);box-shadow:var(--pn-dev-hot)}
+button.dev.sel{z-index:var(--z-local-2);transform:translateY(-3px) scale(1.04);box-shadow:var(--pn-dev-hot)}
 button.dev:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .dev.drag{opacity:.35}
 .dev.over{outline:2px dashed var(--accent);outline-offset:2px}

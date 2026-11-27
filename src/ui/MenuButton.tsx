@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
-import { useMenuKeys } from './menu';
+import { useMenuKeys, usePopLayer } from './menu';
 import { IconDone } from './Icons';
 
 export interface MenuItem {
@@ -53,6 +53,7 @@ export function MenuButton({ label, trigger, className, box, menuClass, groups, 
     return () => { live = false; };
   }, [waiting, load]);
   const { listRef, triggerRef, onKeyDown, back } = useMenuKeys(open, () => setOpen(false), !waiting);
+  usePopLayer(open, triggerRef, listRef, { up, end });
   const pick = (run: () => void) => {
     back();
     run();
@@ -81,7 +82,7 @@ export function MenuButton({ label, trigger, className, box, menuClass, groups, 
         {trigger}
       </button>
       {open && (
-        <ul id={id} className={'dd-pop' + (menuClass ? ' ' + menuClass : '')} role="menu" aria-label={label} ref={el => { listRef.current = el; }} onKeyDown={onKeyDown}>
+        <ul id={id} className={'dd-pop' + (menuClass ? ' ' + menuClass : '')} popover="manual" role="menu" aria-label={label} ref={el => { listRef.current = el; }} onKeyDown={onKeyDown}>
           {shown.map((g, gi) => (
             <li key={g.id} role="none" className={'dd-g' + (gi && !g.title ? ' sep' : '')}>
               {g.title && <span className="dd-h" aria-hidden="true">{g.title}</span>}
