@@ -9,7 +9,7 @@ describe('горячие клавиши', () => {
     expect(hotkeyOf(k('KeyJ', 'о'))).toBe('next');
     expect(hotkeyOf(k('KeyK', 'k'))).toBe('prev');
     expect(hotkeyOf(k('KeyN', 'т'))).toBe('add');
-    expect(hotkeyOf(k('KeyS', 'ы'))).toBe('pick');
+    expect(hotkeyOf(k('KeyS', 'ы'))).toBeNull();
     expect(hotkeyOf(k('KeyE', 'у'))).toBe('edit');
     expect(hotkeyOf(k('Slash', '?', { shift: true }))).toBe('help');
     expect(hotkeyOf(k('Comma', 'б', { shift: true }))).toBe('help');

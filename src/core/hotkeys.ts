@@ -1,4 +1,4 @@
-export type Hotkey = 'next' | 'prev' | 'add' | 'pick' | 'edit' | 'help';
+export type Hotkey = 'next' | 'prev' | 'add' | 'edit' | 'help';
 
 export interface KeyLike {
   code: string;
@@ -13,7 +13,6 @@ const CODES: Record<string, Hotkey> = {
   KeyJ: 'next',
   KeyK: 'prev',
   KeyN: 'add',
-  KeyS: 'pick',
   KeyE: 'edit'
 };
 

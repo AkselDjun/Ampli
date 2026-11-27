@@ -159,11 +159,6 @@ export function App() {
       if (!b) return;
       e.preventDefault();
       b.click();
-    } else if (k === 'pick') {
-      const b = vis('.ltb-pick');
-      if (!b) return;
-      e.preventDefault();
-      b.click();
     } else {
       e.preventDefault();
       setKeys(true);
@@ -187,18 +182,6 @@ export function App() {
     toastOk('Этап: ' + STAGES[n].name);
   });
   const onStageAct = useStable((x: StageAct) => openSheet(x.sheet === 'report' ? APP_SHEET.REPORT : APP_SHEET.WORK, x.tab));
-  const bulkZone = useStable((ids: string[], zone: string) => {
-    ids.forEach(id => dispatch({ t: 'lineField', id, field: 'zone', value: zone }));
-    toastOk(zone ? 'Группы перенесены: ' + zone : 'Группы без помещения');
-  });
-  const bulkCopy = useStable((ids: string[]) => {
-    ids.forEach(id => dispatch({ t: 'dupLine', id }));
-    toastOk(ids.length > 1 ? 'Созданы копии групп: ' + ids.length : 'Создана копия группы');
-  });
-  const bulkDelete = useStable((ids: string[]) => {
-    ids.forEach(id => dispatch({ t: 'delLine', id }));
-    toastOk(ids.length > 1 ? 'Удалено групп: ' + ids.length : 'Группа удалена');
-  });
   const fixLine = useStable((id: string, act: FixAct) => {
     if (act.k === 'len') dispatch({ t: 'lineField', id, field: 'len', value: act.len });
     else dispatch({ t: 'splitLine', id, mode: act.k });
@@ -343,9 +326,6 @@ export function App() {
             onCheckFix={onCheckFix}
             onStage={onStage}
             onStageAct={onStageAct}
-            onBulkZone={bulkZone}
-            onBulkCopy={bulkCopy}
-            onBulkDelete={bulkDelete}
             onOpenProj={openProj}
             onOpenNet={openNet}
             onOpenOld={openOld}

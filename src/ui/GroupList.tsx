@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { Fragment, Suspense, memo, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, Suspense, memo, useEffect, useRef, useState } from 'react';
 import type { Calc, CfgN, LineType, Project, Row } from '../core/types';
 import { NB, fmt, fs, plural } from '../core/format';
 import { STATUS, TYPES } from '../core/norms';
@@ -10,7 +10,7 @@ import { openNotes } from '../core/notes';
 import { stageOf } from '../core/stage';
 import type { StageAct } from '../core/stage';
 import { whenLabel } from '../core/recent';
-import { BulkBar, HomeSum, PanelPane, RowPeek, StageBar } from './parts';
+import { HomeSum, PanelPane, RowPeek, StageBar } from './parts';
 import { MenuButton } from './MenuButton';
 import type { CheckFix } from './Checks';
 import { lineChanges } from '../core/sent';
@@ -57,19 +57,16 @@ type RowProps = {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
   onFix: (id: string, act: FixAct) => void;
-  picked?: boolean;
-  onPick?: (id: string) => void;
   chg?: boolean;
   notes?: number;
 };
 
 const sameRow = (a: RowProps, b: RowProps): boolean =>
-  a.i === b.i && a.three === b.three && a.sel === b.sel && a.hot === b.hot && a.tour === b.tour && a.onHot === b.onHot && a.onSelect === b.onSelect && a.onCopy === b.onCopy && a.onDelete === b.onDelete && a.onFix === b.onFix && a.picked === b.picked && a.onPick === b.onPick && a.chg === b.chg && a.notes === b.notes && a.x.l === b.x.l && same(a.x.r, b.x.r) && same(a.c, b.c);
+  a.i === b.i && a.three === b.three && a.sel === b.sel && a.hot === b.hot && a.tour === b.tour && a.onHot === b.onHot && a.onSelect === b.onSelect && a.onCopy === b.onCopy && a.onDelete === b.onDelete && a.onFix === b.onFix && a.chg === b.chg && a.notes === b.notes && a.x.l === b.x.l && same(a.x.r, b.x.r) && same(a.c, b.c);
 
 const GroupRow = memo(function GroupRow({
-  x, i, three, sel, hot, tour, onHot, onSelect, onCopy, onDelete, picked, onPick, chg, notes
+  x, i, three, sel, hot, tour, onHot, onSelect, onCopy, onDelete, chg, notes
 }: RowProps) {
-  const picking = picked !== undefined && !!onPick;
   const { dx, handlers } = useSwipe(() => onDelete(x.l.id), () => onCopy(x.l.id));
   const st = x.r.empty ? 'ok' : x.r.status;
   const load = x.r.In ? Math.round(x.r.I / x.r.In * 100) : null;
@@ -80,14 +77,13 @@ const GroupRow = memo(function GroupRow({
         <span className="sw-del">Удалить</span>
       </div>
       <button
-        className={'row' + (sel && !picking ? ' sel' : '') + (hot ? ' hot' : '') + (picking ? ' picking' : '') + (picked ? ' picked' : '')}
+        className={'row' + (sel ? ' sel' : '') + (hot ? ' hot' : '')}
         type="button"
         data-id={x.l.id}
-        aria-pressed={picking ? picked : undefined}
         onMouseEnter={() => onHot(x.l.id)}
         onMouseLeave={() => onHot(null)}
         style={dx ? { transform: 'translateX(' + dx + 'px)', transition: 'none' } : undefined}
-        onClick={() => (picking ? onPick(x.l.id) : onSelect(x.l.id))}
+        onClick={() => onSelect(x.l.id)}
         aria-keyshortcuts="Control+D Delete"
         onKeyDown={e => {
           if (e.key === 'Delete') {
@@ -114,7 +110,6 @@ const GroupRow = memo(function GroupRow({
         }}
         {...handlers}
       >
-        {picking && <span className={'row-cb' + (picked ? ' on' : '')} aria-hidden="true" />}
         <span className="no" data-t={x.l.type}><span className="vh">Группа </span>{no2(i)}<span className="vh">, {TYPES[x.l.type].short}</span></span>
         <span className="row-main">
           <span className="row-name">{x.l.name || 'Без названия'}</span>
@@ -143,16 +138,13 @@ const GroupRow = memo(function GroupRow({
 }, sameRow);
 
 export const GroupList = memo(function GroupList({
-  p, a, sel, onSelect, onAdd, onPanel = () => undefined, onCheckFix = () => undefined, onStage = () => undefined, onStageAct = () => undefined, onBulkZone = () => undefined, onBulkCopy = () => undefined, onBulkDelete = () => undefined, onOpenNet, onOpenOld, onOpenFloor = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix, onRenumber = () => undefined
+  p, a, sel, onSelect, onAdd, onPanel = () => undefined, onCheckFix = () => undefined, onStage = () => undefined, onStageAct = () => undefined, onOpenNet, onOpenOld, onOpenFloor = () => undefined, onOpenWeak = () => undefined, oldLabel, hot = null, onHot = () => undefined, onSample, onRooms, onBlank, onCopy, onDelete, onFix, onRenumber = () => undefined
 }: {
   onRenumber?: () => void;
   onPanel?: () => void;
   onCheckFix?: (f: CheckFix) => void;
   onStage?: (n: number) => void;
   onStageAct?: (a: StageAct) => void;
-  onBulkZone?: (ids: string[], zone: string) => void;
-  onBulkCopy?: (ids: string[]) => void;
-  onBulkDelete?: (ids: string[]) => void;
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
   onFix: (id: string, act: FixAct) => void;
@@ -221,21 +213,12 @@ export const GroupList = memo(function GroupList({
   const jumbled = base.flatMap(g => g.items).some((k, j) => k !== j);
   const [filter, setFilter] = useState<ListFilter | null>(null);
   const [sort, setSort] = useState<ListSort>('no');
-  const [picking, setPicking] = useState(false);
-  const [picked, setPicked] = useState<string[]>([]);
-  const live = picked.filter(id => p.lines.some(l => l.id === id));
   const chg = changedIds(p.sent, a.rows);
   const noted = new Set(p.lines.filter(l => openNotes(l.notes) > 0).map(l => l.id));
   const groups = filter || sort !== 'no' ? listView(a.rows, filter, sort, { chg, note: noted }) : base;
   const cnt = listCounts(a.rows);
   const stage = stageOf(p);
   const showChg = !!p.sent && stage > 0;
-  const zones = [...new Set(p.lines.map(l => (l.zone ?? '').trim()).filter(Boolean))];
-  const togglePick = useCallback((id: string) => setPicked(v => (v.includes(id) ? v.filter(x => x !== id) : [...v, id])), []);
-  const stopPick = () => {
-    setPicking(false);
-    setPicked([]);
-  };
   const uzoOf = (z: string) => a.uzos.find(u => u.zone.toLowerCase() === z.toLowerCase());
   const [shut, setShut] = useState<string[]>([]);
   const selZone = groups.find(g => g.zone !== null && g.items.some(k => a.rows[k].l.id === sel))?.zone ?? null;
@@ -269,10 +252,10 @@ export const GroupList = memo(function GroupList({
   };
   const rowOf = (i: number) => {
     const x = a.rows[i];
-    return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} picked={picking ? live.includes(x.l.id) : undefined} onPick={togglePick} chg={showChg && chg.has(x.l.id)} notes={openNotes(x.l.notes)} />;
+    return <GroupRow key={x.l.id} x={x} i={i} c={c} three={three} sel={x.l.id === sel} hot={x.l.id === hot} tour={i === 0} onHot={onHot} onSelect={onSelect} onCopy={onCopy} onDelete={onDelete} onFix={onFix} chg={showChg && chg.has(x.l.id)} notes={openNotes(x.l.notes)} />;
   };
   return (
-    <section className="col col-list" id="groups" tabIndex={-1} aria-label="Группы линий" onKeyDown={e => { if (picking && e.key === 'Escape' && !e.defaultPrevented) stopPick(); }}>
+    <section className="col col-list" id="groups" tabIndex={-1} aria-label="Группы линий">
       <h2 className="vh list-h" tabIndex={-1}>Группы линий</h2>
       {!p.sample && count > 0 && <Suspense fallback={<div className="stg stg-wait" aria-hidden="true" />}><StageBar n={stage} sentAt={p.sent ? whenLabel(p.sent.at, now) : undefined} onStage={onStage} onAct={onStageAct} /></Suspense>}
       {p.sample && (
@@ -290,7 +273,7 @@ export const GroupList = memo(function GroupList({
           {weakSummary(p.weak) && <button className="xchip" type="button" onClick={onOpenWeak}><IconLan /><span className="vh">Слаботочка: </span>{weakSummary(p.weak)}</button>}
         </div>
       )}
-      <div className={'box lst' + (picking ? ' picking' : '')}>
+      <div className="box lst">
         {rooms.length > 0 && (
           <div className="folders" role="group" aria-label="Помещения">
             <button type="button" className="rfold" aria-pressed={!curRoom} onClick={() => setRoom(null)}>Все<span className="cnt mono">{count}</span></button>
@@ -308,31 +291,18 @@ export const GroupList = memo(function GroupList({
               groups={[{ id: 'rooms', items: [{ id: '*', label: 'Все помещения', mark: String(count), current: !curRoom, run: () => setRoom(null) }, ...rooms.map(r => ({ id: r.zone, label: r.zone, mark: String(r.n), current: roomKey(curRoom) === roomKey(r.zone), run: () => setRoom(r.zone) }))] }]}
             />
           )}
-          {count > 0 && !picking && (
+          {count > 0 && (
             <ListBar
               chips={[{ id: 'bad', label: 'Нарушения', n: cnt.bad }, { id: 'warn', label: 'Советы', n: cnt.warn }, { id: 'chg', label: 'Изменено', n: showChg ? chg.size : 0 }, { id: 'note', label: 'Заметки', n: noted.size }]}
               filter={filter}
               onFilter={setFilter}
               sort={sort}
               onSort={setSort}
-              onPick={() => setPicking(true)}
               renumber={jumbled ? onRenumber : undefined}
             />
           )}
           {!phone && <AddMenu down onAdd={onAdd} onRooms={onRooms} onFloor={onOpenFloor} onWeak={onOpenWeak} />}
         </div>
-        {count > 0 && picking && (
-          <Suspense fallback={null}>
-            <BulkBar
-              n={live.length}
-              zones={zones}
-              onZone={z => { onBulkZone(live, z); stopPick(); }}
-              onCopy={() => { onBulkCopy(live); stopPick(); }}
-              onDelete={() => { onBulkDelete(live); stopPick(); }}
-              onDone={stopPick}
-            />
-          </Suspense>
-        )}
         {count > 0 && (
           <div className="lst-th" aria-hidden="true">
             <span>№</span><span>Группа</span><span>P, Вт</span><span>I, А</span><span>ΔU, %</span><span />
@@ -370,7 +340,7 @@ export const GroupList = memo(function GroupList({
         </div>
       </div>
       {count > 0 && <p className="note lst-foot">Расчёт предварительный. ТКП 339-2022 с изм. № 1, СН 4.04.01-2019 с изм. № 1 и № 2.<span className="lst-keys"> <kbd>J</kbd> <kbd>K</kbd> по группам · <kbd>?</kbd> все клавиши</span></p>}
-      {peek && !picking && peek.id !== sel && (() => {
+      {peek && peek.id !== sel && (() => {
         const k = a.rows.findIndex(y => y.l.id === peek.id);
         if (k < 0) return null;
         const x = a.rows[k];

@@ -43,16 +43,14 @@ describe('горячие клавиши', () => {
     wide(false);
   });
 
-  it('S включает выбор, ? открывает справку', async () => {
+  it('? открывает справку', async () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(document.querySelector('.col-list h2') as HTMLElement);
-    await user.keyboard('s');
-    expect(screen.getByRole('toolbar', { name: 'Действия с выбранными группами' })).toBeInTheDocument();
-    await user.keyboard('{Escape}');
     await user.keyboard('?');
     expect(isOpen('Горячие клавиши')).toBe(true);
     expect(screen.getByText('Следующая группа')).toBeInTheDocument();
+    expect(screen.queryByText('Выбрать несколько групп')).toBeNull();
   });
 
   it('справка открывается из шестерёнки', async () => {
